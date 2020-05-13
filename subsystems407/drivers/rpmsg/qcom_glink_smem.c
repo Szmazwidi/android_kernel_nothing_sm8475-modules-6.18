@@ -39,6 +39,7 @@ struct qcom_glink_smem {
 	struct device dev;
 
 	int irq;
+	char irqname[32];
 	struct qcom_glink *glink;
 
 	struct mbox_client mbox_client;
@@ -304,10 +305,11 @@ struct qcom_glink_smem *qcom_glink_smem_register(struct device *parent,
 		goto err_put_dev;
 	}
 
+	scnprintf(smem->irqname, 32, "glink-native-%u", remote_pid);
 	smem->irq = of_irq_get(smem->dev.of_node, 0);
 	ret = devm_request_irq(&smem->dev, smem->irq, qcom_glink_smem_intr,
 			       IRQF_NO_SUSPEND | IRQF_NO_AUTOEN,
-			       "glink-smem", smem);
+			       smem->irqname, smem);
 	if (ret) {
 		dev_err(&smem->dev, "failed to request IRQ\n");
 		goto err_put_dev;
