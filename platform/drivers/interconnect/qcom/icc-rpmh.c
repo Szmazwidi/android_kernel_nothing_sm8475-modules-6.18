@@ -83,6 +83,13 @@ int qcom_icc_aggregate(struct icc_node *node, u32 tag, u32 avg_bw,
 }
 EXPORT_SYMBOL_GPL(qcom_icc_aggregate);
 
+int qcom_icc_aggregate_stub(struct icc_node *node, u32 tag, u32 avg_bw,
+			    u32 peak_bw, u32 *agg_avg, u32 *agg_peak)
+{
+	return 0;
+}
+EXPORT_SYMBOL(qcom_icc_aggregate_stub);
+
 /**
  * qcom_icc_set - set the constraints based on path
  * @src: source node for the path to set constraints on
@@ -109,6 +116,12 @@ int qcom_icc_set(struct icc_node *src, struct icc_node *dst)
 	return 0;
 }
 EXPORT_SYMBOL_GPL(qcom_icc_set);
+
+int qcom_icc_set_stub(struct icc_node *src, struct icc_node *dst)
+{
+	return 0;
+}
+EXPORT_SYMBOL(qcom_icc_set_stub);
 
 /**
  * qcom_icc_bcm_init - populates bcm aux data and connect qnodes
@@ -215,9 +228,9 @@ int qcom_icc_rpmh_probe(struct platform_device *pdev)
 
 	provider = &qp->provider;
 	provider->dev = dev;
-	provider->set = qcom_icc_set;
+	provider->set = qcom_icc_set_stub;
 	provider->pre_aggregate = qcom_icc_pre_aggregate;
-	provider->aggregate = qcom_icc_aggregate;
+	provider->aggregate = qcom_icc_aggregate_stub;
 	provider->xlate_extended = qcom_icc_xlate_extended;
 	INIT_LIST_HEAD(&provider->nodes);
 	provider->data = data;
@@ -292,6 +305,9 @@ int qcom_icc_rpmh_probe(struct platform_device *pdev)
 	/* Populate child NoC devices if any */
 	if (of_get_child_count(dev->of_node) > 0)
 		return of_platform_populate(dev->of_node, NULL, NULL, dev);
+
+	provider->set = qcom_icc_set;
+	provider->aggregate = qcom_icc_aggregate;
 
 	mutex_lock(&probe_list_lock);
 	list_add_tail(&qp->probe_list, &qnoc_probe_list);
