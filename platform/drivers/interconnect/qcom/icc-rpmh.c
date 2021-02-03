@@ -124,6 +124,15 @@ int qcom_icc_set_stub(struct icc_node *src, struct icc_node *dst)
 }
 EXPORT_SYMBOL(qcom_icc_set_stub);
 
+int qcom_icc_get_bw_stub(struct icc_node *node, u32 *avg, u32 *peak)
+{
+	*avg = 0;
+	*peak = 0;
+
+	return 0;
+}
+EXPORT_SYMBOL(qcom_icc_get_bw_stub);
+
 /**
  * qcom_icc_bcm_init - populates bcm aux data and connect qnodes
  * @bcm: bcm to be initialized
@@ -235,6 +244,7 @@ int qcom_icc_rpmh_probe(struct platform_device *pdev)
 	provider->xlate_extended = qcom_icc_xlate_extended;
 	INIT_LIST_HEAD(&provider->nodes);
 	provider->data = data;
+	provider->get_bw = qcom_icc_get_bw_stub;
 
 	qp->dev = dev;
 	qp->bcms = desc->bcms;
