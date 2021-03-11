@@ -141,6 +141,16 @@ struct pinctrl_qup {
 	u32 offset;
 };
 
+/*
+ * struct msm_spare_tlmm - TLMM spare registers config
+ * @spare_reg:	spare register number
+ * @offset:	Offset of spare register
+ */
+struct msm_spare_tlmm {
+	int spare_reg;
+	u32 offset;
+};
+
 /**
  * struct msm_pinctrl_soc_data - Qualcomm pin controller driver configuration
  * @pins:	    An array describing all pins the pin controller affects.
@@ -184,6 +194,8 @@ struct msm_pinctrl_soc_data {
 	unsigned int nqup_regs;
 	unsigned int gpio_func;
 	unsigned int egpio_func;
+	const struct msm_spare_tlmm *spare_regs;
+	unsigned int nspare_regs;
 };
 
 extern const struct dev_pm_ops msm_pinctrl_dev_pm_ops;
