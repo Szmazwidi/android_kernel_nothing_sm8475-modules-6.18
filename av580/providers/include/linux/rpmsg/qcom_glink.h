@@ -19,6 +19,7 @@ struct qcom_glink_smem *qcom_glink_smem_register(struct device *parent,
 						 struct device_node *node);
 void qcom_glink_smem_unregister(struct qcom_glink_smem *glink);
 int qcom_glink_smem_start(struct qcom_glink_smem *glink);
+bool qcom_glink_is_wakeup(bool reset);
 void qcom_glink_early_ssr_notify(void *data);
 
 #else
@@ -38,6 +39,10 @@ int qcom_glink_smem_start(struct qcom_glink_smem *glink)
 	return -ENXIO;
 }
 
+static inline bool qcom_glink_is_wakeup(bool reset)
+{
+	return false;
+}
 #endif
 
 #endif
