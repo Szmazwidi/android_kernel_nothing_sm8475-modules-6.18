@@ -161,7 +161,7 @@ int qcom_icc_aggregate_stub(struct icc_node *node, u32 tag, u32 avg_bw,
 			    u32 peak_bw, u32 *agg_avg, u32 *agg_peak);
 int qcom_icc_set(struct icc_node *src, struct icc_node *dst);
 int qcom_icc_set_stub(struct icc_node *src, struct icc_node *dst);
-int qcom_icc_bcm_init(struct qcom_icc_bcm *bcm, struct device *dev);
+int qcom_icc_bcm_init(struct qcom_icc_provider *qp, struct qcom_icc_bcm *bcm, struct device *dev);
 void qcom_icc_pre_aggregate(struct icc_node *node);
 int qcom_icc_rpmh_probe(struct platform_device *pdev);
 int qcom_icc_rpmh_remove(struct platform_device *pdev);
