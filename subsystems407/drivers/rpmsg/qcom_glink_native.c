@@ -525,7 +525,7 @@ static void qcom_glink_send_close_ack(struct qcom_glink *glink,
 	qcom_glink_tx(glink, &req, sizeof(req), NULL, 0, true);
 }
 
-static int __qcom_glink_rx_done(struct qcom_glink *glink,
+static int qcom_glink_send_rx_done(struct qcom_glink *glink,
 				struct glink_channel *channel,
 				struct glink_core_rx_intent *intent,
 				bool wait)
@@ -569,7 +569,7 @@ static void qcom_glink_rx_done_work(struct kthread_work *work)
 		list_del(&intent->node);
 		spin_unlock_irqrestore(&channel->intent_lock, flags);
 
-		__qcom_glink_rx_done(glink, channel, intent, true);
+		qcom_glink_send_rx_done(glink, channel, intent, true);
 
 		spin_lock_irqsave(&channel->intent_lock, flags);
 	}
@@ -599,7 +599,7 @@ static void qcom_glink_rx_done(struct qcom_glink *glink,
 	/* Schedule the sending of a rx_done indication */
 	spin_lock(&channel->intent_lock);
 	if (list_empty(&channel->done_intents))
-		ret = __qcom_glink_rx_done(glink, channel, intent, false);
+		ret = qcom_glink_send_rx_done(glink, channel, intent, false);
 
 	if (ret) {
 		list_add_tail(&intent->node, &channel->done_intents);
