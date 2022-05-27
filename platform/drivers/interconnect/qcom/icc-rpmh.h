@@ -99,6 +99,8 @@ struct qcom_icc_node {
 	u64 sum_avg[QCOM_ICC_NUM_BUCKETS];
 	u64 max_peak[QCOM_ICC_NUM_BUCKETS];
 	bool perf_mode[QCOM_ICC_NUM_BUCKETS];
+	u32 init_avg;
+	u32 init_peak;
 	struct qcom_icc_bcm *bcms[MAX_BCM_PER_NODE];
 	size_t num_bcms;
 	struct regmap *regmap;
