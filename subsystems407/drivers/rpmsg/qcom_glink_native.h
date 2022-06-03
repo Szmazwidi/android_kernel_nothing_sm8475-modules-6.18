@@ -12,6 +12,18 @@
 #define GLINK_FEATURE_MIGRATION		BIT(1)
 #define GLINK_FEATURE_TRACER_PKT	BIT(2)
 
+/**
+ * rpmsg rx callback return definitions
+ * @RPMSG_HANDLED: rpmsg user is done processing data, framework can free the
+ *                 resources related to the buffer
+ * @RPMSG_DEFER:   rpmsg user is not done processing data, framework will hold
+ *                 onto resources related to the buffer until rpmsg_rx_done is
+ *                 called. User should check their endpoint to see if rx_done
+ *                 is a supported operation.
+ */
+#define RPMSG_HANDLED	0
+#define RPMSG_DEFER	1
+
 struct qcom_glink_pipe {
 	size_t length;
 
@@ -39,5 +51,9 @@ struct qcom_glink *qcom_glink_native_probe(struct device *dev,
 int qcom_glink_native_start(struct qcom_glink *glink);
 void qcom_glink_native_remove(struct qcom_glink *glink);
 void qcom_glink_native_rx(struct qcom_glink *glink);
+
+/* These operations are temporarily exposing deferred freeing interfaces */
+bool qcom_glink_rx_done_supported(struct rpmsg_endpoint *ept);
+int qcom_glink_rx_done(struct rpmsg_endpoint *ept, void *data);
 
 #endif

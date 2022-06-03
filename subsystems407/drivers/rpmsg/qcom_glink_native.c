@@ -153,6 +153,7 @@ enum {
  * @riids:	idr of all remote intents
  * @intent_work: worker responsible for transmitting rx_done packets
  * @done_intents: list of intents that needs to be announced rx_done
+ * @defer_intents: list of intents held by the client released by rpmsg_rx_done
  * @buf:	receive buffer, for gathering fragments
  * @buf_offset:	write offset in @buf
  * @buf_size:	size of current @buf
@@ -182,6 +183,7 @@ struct glink_channel {
 	struct idr riids;
 	struct kthread_work intent_work;
 	struct list_head done_intents;
+	struct list_head defer_intents;
 
 	struct glink_core_rx_intent *buf;
 	int buf_offset;
@@ -242,6 +244,7 @@ static struct glink_channel *qcom_glink_alloc_channel(struct qcom_glink *glink,
 	init_waitqueue_head(&channel->intent_req_wq);
 
 	INIT_LIST_HEAD(&channel->done_intents);
+	INIT_LIST_HEAD(&channel->defer_intents);
 	kthread_init_work(&channel->intent_work, qcom_glink_rx_done_work);
 
 	idr_init(&channel->liids);
@@ -266,6 +269,12 @@ static void qcom_glink_channel_release(struct kref *ref)
 	spin_lock_irqsave(&channel->intent_lock, flags);
 	/* Free all non-reuse intents pending rx_done work */
 	list_for_each_entry_safe(intent, tmp, &channel->done_intents, node) {
+		if (!intent->reuse) {
+			kfree(intent->data);
+			kfree(intent);
+		}
+	}
+	list_for_each_entry_safe(intent, tmp, &channel->defer_intents, node) {
 		if (!intent->reuse) {
 			kfree(intent->data);
 			kfree(intent);
@@ -576,9 +585,10 @@ static void qcom_glink_rx_done_work(struct kthread_work *work)
 	spin_unlock_irqrestore(&channel->intent_lock, flags);
 }
 
-static void qcom_glink_rx_done(struct qcom_glink *glink,
+static void __qcom_glink_rx_done(struct qcom_glink *glink,
 			       struct glink_channel *channel,
-			       struct glink_core_rx_intent *intent)
+			       struct glink_core_rx_intent *intent,
+			       bool defer)
 {
 	int ret = -EAGAIN;
 
@@ -596,6 +606,14 @@ static void qcom_glink_rx_done(struct qcom_glink *glink,
 		spin_unlock(&channel->intent_lock);
 	}
 
+	/* Move intent to defer list until client calls rpmsg_rx_done */
+	if (defer) {
+		spin_lock(&channel->intent_lock);
+		list_add_tail(&intent->node, &channel->defer_intents);
+		spin_unlock(&channel->intent_lock);
+		return;
+	}
+
 	/* Schedule the sending of a rx_done indication */
 	spin_lock(&channel->intent_lock);
 	if (list_empty(&channel->done_intents))
@@ -607,6 +625,51 @@ static void qcom_glink_rx_done(struct qcom_glink *glink,
 	}
 	spin_unlock(&channel->intent_lock);
 }
+
+bool qcom_glink_rx_done_supported(struct rpmsg_endpoint *ept)
+{
+	return false;
+}
+EXPORT_SYMBOL_GPL(qcom_glink_rx_done_supported);
+
+/**
+ * rpmsg_rx_done() - release resources related to @data from a @rx_cb
+ * @ept:	the rpmsg endpoint
+ * @data:	payload from a message
+ *
+ * Returns 0 on success and an appropriate error value on failure.
+ */
+int qcom_glink_rx_done(struct rpmsg_endpoint *ept, void *data)
+{
+	struct glink_core_rx_intent *intent, *tmp;
+	struct glink_channel *channel;
+	struct qcom_glink *glink;
+	unsigned long flags;
+
+	if (WARN_ON(!ept))
+		return -EINVAL;
+
+	if (!qcom_glink_rx_done_supported(ept))
+		return -EINVAL;
+
+	channel = to_glink_channel(ept);
+	glink = channel->glink;
+
+	spin_lock_irqsave(&channel->intent_lock, flags);
+	list_for_each_entry_safe(intent, tmp, &channel->defer_intents, node) {
+		if (intent->data == data) {
+			list_del(&intent->node);
+			spin_unlock_irqrestore(&channel->intent_lock, flags);
+
+			qcom_glink_send_rx_done(glink, channel, intent, true);
+			return 0;
+		}
+	}
+	spin_unlock_irqrestore(&channel->intent_lock, flags);
+
+	return -EINVAL;
+}
+EXPORT_SYMBOL_GPL(qcom_glink_rx_done);
 
 /**
  * qcom_glink_receive_version() - receive version/features from remote system
@@ -911,6 +974,7 @@ static int qcom_glink_rx_data(struct qcom_glink *glink, size_t avail)
 	} __packed hdr;
 	unsigned int chunk_size;
 	unsigned int left_size;
+	bool rx_done_defer;
 	unsigned int rcid;
 	unsigned int liid;
 	int ret = 0;
@@ -1010,7 +1074,13 @@ static int qcom_glink_rx_data(struct qcom_glink *glink, size_t avail)
 		intent->offset = 0;
 		channel->buf = NULL;
 
-		qcom_glink_rx_done(glink, channel, intent);
+
+		if (qcom_glink_rx_done_supported(&channel->ept) && ret == RPMSG_DEFER)
+			rx_done_defer = true;
+		else
+			rx_done_defer = false;
+
+		__qcom_glink_rx_done(glink, channel, intent, rx_done_defer);
 	}
 
 advance_rx:
