@@ -53,7 +53,7 @@ int qcom_q6v5_prepare(struct qcom_q6v5 *q6v5)
 {
 	int ret;
 
-	ret = icc_set_bw(q6v5->path, 0, UINT_MAX);
+	ret = icc_set_bw(q6v5->path, UINT_MAX, UINT_MAX);
 	if (ret < 0) {
 		dev_err(q6v5->dev, "failed to set bandwidth request\n");
 		return ret;
