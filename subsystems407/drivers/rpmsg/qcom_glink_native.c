@@ -83,6 +83,7 @@ struct glink_core_rx_intent {
 /**
  * struct qcom_glink - driver context, relates to one remote subsystem
  * @dev:	reference to the associated struct device
+ * @name:	remote subsystem name
  * @rx_pipe:	pipe object for receive FIFO
  * @tx_pipe:	pipe object for transmit FIFO
  * @rx_work:	worker for handling received control messages
@@ -100,6 +101,8 @@ struct glink_core_rx_intent {
  */
 struct qcom_glink {
 	struct device *dev;
+
+	const char *name;
 
 	struct qcom_glink_pipe *rx_pipe;
 	struct qcom_glink_pipe *tx_pipe;
@@ -1859,6 +1862,10 @@ struct qcom_glink *qcom_glink_native_probe(struct device *dev,
 	ret = device_add_groups(dev, qcom_glink_groups);
 	if (ret)
 		dev_err(dev, "failed to add groups\n");
+
+	ret = of_property_read_string(dev->of_node, "label", &glink->name);
+	if (ret < 0)
+		glink->name = dev->of_node->name;
 
 	return glink;
 }
