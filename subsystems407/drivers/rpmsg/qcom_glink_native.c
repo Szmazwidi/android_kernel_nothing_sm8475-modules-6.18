@@ -660,6 +660,7 @@ static void __qcom_glink_rx_done(struct qcom_glink *glink,
 			       struct glink_core_rx_intent *intent,
 			       bool defer)
 {
+	unsigned long flags;
 	int ret = -EAGAIN;
 
 	/* We don't send RX_DONE to intentless systems */
@@ -671,21 +672,21 @@ static void __qcom_glink_rx_done(struct qcom_glink *glink,
 
 	/* Take it off the tree of receive intents */
 	if (!intent->reuse) {
-		spin_lock(&channel->intent_lock);
+		spin_lock_irqsave(&channel->intent_lock, flags);
 		idr_remove(&channel->liids, intent->id);
-		spin_unlock(&channel->intent_lock);
+		spin_unlock_irqrestore(&channel->intent_lock, flags);
 	}
 
 	/* Move intent to defer list until client calls rpmsg_rx_done */
 	if (defer) {
-		spin_lock(&channel->intent_lock);
+		spin_lock_irqsave(&channel->intent_lock, flags);
 		list_add_tail(&intent->node, &channel->defer_intents);
-		spin_unlock(&channel->intent_lock);
+		spin_unlock_irqrestore(&channel->intent_lock, flags);
 		return;
 	}
 
 	/* Schedule the sending of a rx_done indication */
-	spin_lock(&channel->intent_lock);
+	spin_lock_irqsave(&channel->intent_lock, flags);
 	if (list_empty(&channel->done_intents))
 		ret = qcom_glink_send_rx_done(glink, channel, intent, false);
 
@@ -693,7 +694,7 @@ static void __qcom_glink_rx_done(struct qcom_glink *glink,
 		list_add_tail(&intent->node, &channel->done_intents);
 		kthread_queue_work(&glink->kworker, &channel->intent_work);
 	}
-	spin_unlock(&channel->intent_lock);
+	spin_unlock_irqrestore(&channel->intent_lock, flags);
 }
 
 bool qcom_glink_rx_done_supported(struct rpmsg_endpoint *ept)
