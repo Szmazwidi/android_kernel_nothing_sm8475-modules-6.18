@@ -20,6 +20,8 @@
 #include <linux/qtee_shmbridge.h>
 #include <linux/of_platform.h>
 
+#include <linux/gunyah/gh_rm_drv.h>
+
 #include "qtee_shmbridge_internal.h"
 
 #define DEFAULT_BRIDGE_SIZE	SZ_4M	/*4M*/
@@ -284,6 +286,8 @@ int32_t qtee_shmbridge_register(
 	uint64_t ns_vmids = 0;
 	int i = 0;
 
+	gh_vmid_t temp_vmid;
+
 	if (!qtee_shmbridge_enabled)
 		return 0;
 
@@ -299,6 +303,23 @@ int32_t qtee_shmbridge_register(
 		pr_debug("%s: found 0%llu already exist with shmbridge\n",
 			__func__, paddr);
 		goto bridge_exist;
+	}
+
+	if (support_hyp) {
+
+		/* Calls to create SHMBridge from HLOS-VM is handled by QHEEBSP AC Layer while from
+		 * secondary CPU-VMs, such as OEM-VM and QTVM, it is handled by Hypervisor RM.
+		 * RM always expects the destination VM fields to be 0 and only expects the self
+		 * owner bit to be set.
+		 */
+
+		if (ns_vmid_num == 1) {
+			if (!gh_rm_get_this_vmid(&temp_vmid) &&
+				(temp_vmid == ns_vmid_list[0])) {
+
+				ns_vmid_num = 0;
+			}
+		}
 	}
 
 	for (i = 0; i < ns_vmid_num; i++) {
