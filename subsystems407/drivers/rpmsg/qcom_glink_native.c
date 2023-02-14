@@ -200,6 +200,7 @@ enum {
  * @intent_req_result: Result of intent request
  * @intent_received: flag indicating that an intent has been received
  * @intent_req_wq: wait queue for intent_req signalling
+ * @intent_timeout_count: number of times intents have timed out consecutively
  */
 struct glink_channel {
 	struct rpmsg_endpoint ept;
@@ -234,7 +235,10 @@ struct glink_channel {
 	bool intent_received;
 	wait_queue_head_t intent_req_wq;
 	bool channel_ready;
+	int intent_timeout_count;
 };
+
+#define MAX_INTENT_TIMEOUTS		2
 
 #define to_glink_channel(_ept) container_of(_ept, struct glink_channel, ept)
 
@@ -280,6 +284,7 @@ static struct glink_channel *qcom_glink_alloc_channel(struct qcom_glink *glink,
 	init_completion(&channel->open_req);
 	init_completion(&channel->open_ack);
 	init_waitqueue_head(&channel->intent_req_wq);
+	channel->intent_timeout_count = 0;
 
 	INIT_LIST_HEAD(&channel->done_intents);
 	INIT_LIST_HEAD(&channel->defer_intents);
@@ -499,6 +504,7 @@ static void qcom_glink_handle_intent_req_ack(struct qcom_glink *glink,
 
 	WRITE_ONCE(channel->intent_req_result, granted);
 	wake_up_all(&channel->intent_req_wq);
+	channel->intent_timeout_count = 0;
 	CH_INFO(channel, "\n");
 }
 
@@ -1683,8 +1689,14 @@ static int qcom_glink_request_intent(struct qcom_glink *glink,
 				 READ_ONCE(channel->intent_received),
 				 10 * HZ);
 	if (!ret) {
-		dev_err(glink->dev, "%s: intent request timed out\n", channel->name);
+		dev_err(glink->dev, "%s: intent request ack timed out (%d)\n",
+			channel->name, channel->intent_timeout_count);
 		ret = -ETIMEDOUT;
+		channel->intent_timeout_count++;
+		if (channel->intent_timeout_count >= MAX_INTENT_TIMEOUTS)
+			GLINK_BUG(glink->ilc,
+				"remoteproc:%s channel:%s unresponsive\n",
+				glink->name, channel->name);
 	} else {
 		ret = READ_ONCE(channel->intent_req_result) ? 0 : -ECANCELED;
 	}
