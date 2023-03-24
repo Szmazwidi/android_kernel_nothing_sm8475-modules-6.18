@@ -939,6 +939,8 @@ static void android_vh_rproc_recovery_set(void *data, struct rproc *rproc)
 {
 	struct qcom_adsp *adsp = (struct qcom_adsp *)rproc->priv;
 
+	if (strnstr(rproc->name, "spss", sizeof(rproc->name)))
+		return;
 	adsp->subsys_recovery_disabled = rproc->recovery_disabled;
 }
 
