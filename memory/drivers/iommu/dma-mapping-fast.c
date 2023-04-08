@@ -921,7 +921,7 @@ static void fast_smmu_reserve_pci_windows(struct device *dev,
 
 static void fast_smmu_reserve_msi_iova(struct device *dev, struct dma_fast_smmu_mapping *fast)
 {
-	dma_addr_t msi_iova_base;
+	dma_addr_t msi_iova_base, msi_iova_end;
 	u32 msi_size;
 	int ret;
 	unsigned long flags;
@@ -942,8 +942,9 @@ static void fast_smmu_reserve_msi_iova(struct device *dev, struct dma_fast_smmu_
 			msi_size);
 		goto out;
 	}
-	dev_dbg(dev, "iova allocator reserved 0x%lx-0x%lx for MSI\n", msi_iova_base,
-		msi_iova_base + msi_size);
+	msi_iova_end = msi_iova_base + msi_size - 1;
+	dev_dbg(dev, "iova allocator reserved 0x%pad-0x%pad for MSI\n", &msi_iova_base,
+		&msi_iova_end);
 	spin_unlock_irqrestore(&fast->lock, flags);
 
 	ret = iommu_get_msi_cookie(fast->domain, msi_iova_base);
