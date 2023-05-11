@@ -228,11 +228,8 @@ static int adsp_start(struct rproc *rproc)
 	}
 
 	ret = qcom_scm_pas_auth_and_reset(adsp->pas_id);
-	if (ret) {
-		dev_err(adsp->dev,
-			"failed to authenticate image and release reset\n");
-		goto disable_px_supply;
-	}
+	if (ret)
+		panic("Panicking, auth and reset failed for remoteproc %s\n", rproc->name);
 
 	ret = qcom_q6v5_wait_for_start(&adsp->q6v5, msecs_to_jiffies(5000));
 	if (ret == -ETIMEDOUT) {
@@ -291,7 +288,7 @@ static int adsp_stop(struct rproc *rproc)
 		ret = adsp_shutdown_poll_decrypt(adsp);
 
 	if (ret)
-		dev_err(adsp->dev, "failed to shutdown: %d\n", ret);
+		panic("Panicking, remoteproc %s failed to shutdown.\n", rproc->name);
 
 	handover = qcom_q6v5_unprepare(&adsp->q6v5);
 	if (handover)
