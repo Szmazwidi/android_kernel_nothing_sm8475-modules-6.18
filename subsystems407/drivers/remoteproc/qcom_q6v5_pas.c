@@ -250,7 +250,6 @@ static int adsp_load(struct rproc *rproc, const struct firmware *fw)
 
 	adsp_add_coredump_segments(adsp, fw);
 
-exit:
 	return ret;
 }
 
@@ -603,6 +602,8 @@ static int adsp_probe(struct platform_device *pdev)
 			     qcom_pas_handover);
 	if (ret)
 		goto detach_proxy_pds;
+
+	qcom_q6v5_register_ssr_subdev(&adsp->q6v5, &adsp->ssr_subdev.subdev);
 
 	qcom_add_glink_subdev(rproc, &adsp->glink_subdev, desc->ssr_name);
 	qcom_add_smd_subdev(rproc, &adsp->smd_subdev);
