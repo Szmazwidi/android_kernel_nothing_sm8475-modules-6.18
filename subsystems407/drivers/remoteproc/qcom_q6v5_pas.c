@@ -191,12 +191,50 @@ static int adsp_unprepare(struct rproc *rproc)
 
 	return 0;
 }
+static void adsp_add_coredump_segments(struct qcom_adsp *adsp, const struct firmware *fw)
+{
+	struct rproc *rproc = adsp->rproc;
+	struct rproc_dump_segment *entry;
+	struct elf32_hdr *ehdr = (struct elf32_hdr *)fw->data;
+	struct elf32_phdr *phdr, *phdrs = (struct elf32_phdr *)(fw->data + ehdr->e_phoff);
+	uint32_t elf_min_addr = U32_MAX;
+	bool relocatable = false;
+	int ret;
+	int i;
+
+	for (i = 0; i < ehdr->e_phnum; i++) {
+		phdr = &phdrs[i];
+		if (phdr->p_type != PT_LOAD ||
+		   (phdr->p_flags & QCOM_MDT_TYPE_MASK) == QCOM_MDT_TYPE_HASH ||
+		   !phdr->p_memsz)
+			continue;
+
+		if (phdr->p_flags & QCOM_MDT_RELOCATABLE)
+			relocatable = true;
+
+		elf_min_addr = min(phdr->p_paddr, elf_min_addr);
+
+		ret = rproc_coredump_add_segment(rproc, phdr->p_paddr, phdr->p_memsz);
+		if (ret) {
+			dev_err(adsp->dev, "failed to add rproc segment: %d\n", ret);
+			rproc_coredump_cleanup(adsp->rproc);
+			return;
+		}
+	}
+
+	list_for_each_entry(entry, &rproc->dump_segments, node)
+		entry->da = adsp->mem_phys + entry->da - elf_min_addr;
+
+	if (relocatable)
+		adsp->mem_reloc = adsp->mem_phys + adsp->mem_reloc - elf_min_addr;
+}
 
 static int adsp_load(struct rproc *rproc, const struct firmware *fw)
 {
 	struct qcom_adsp *adsp = (struct qcom_adsp *)rproc->priv;
 	int ret;
 
+	rproc_coredump_cleanup(adsp->rproc);
 	ret = qcom_mdt_pas_init(adsp->dev, fw, rproc->firmware, adsp->pas_id,
 				adsp->mem_phys, &adsp->pas_metadata);
 	if (ret)
@@ -210,7 +248,10 @@ static int adsp_load(struct rproc *rproc, const struct firmware *fw)
 
 	qcom_pil_info_store(adsp->info_name, adsp->mem_phys, adsp->mem_size);
 
-	return 0;
+	adsp_add_coredump_segments(adsp, fw);
+
+exit:
+	return ret;
 }
 
 static int adsp_start(struct rproc *rproc)
@@ -343,7 +384,6 @@ static const struct rproc_ops adsp_ops = {
 	.start = adsp_start,
 	.stop = adsp_stop,
 	.da_to_va = adsp_da_to_va,
-	.parse_fw = qcom_register_dump_segments,
 	.load = adsp_load,
 	.panic = adsp_panic,
 };
