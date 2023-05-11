@@ -37,6 +37,7 @@ struct adsp_data {
 	const char *firmware_name;
 	int pas_id;
 	unsigned int minidump_id;
+	bool uses_elf64;
 	bool has_aggre2_clk;
 	bool auto_boot;
 	bool decrypt_shutdown;
@@ -521,7 +522,10 @@ static int adsp_probe(struct platform_device *pdev)
 	}
 
 	rproc->auto_boot = desc->auto_boot;
-	rproc_coredump_set_elf_info(rproc, ELFCLASS32, EM_NONE);
+	if (desc->uses_elf64)
+		rproc_coredump_set_elf_info(rproc, ELFCLASS64, EM_NONE);
+	else
+		rproc_coredump_set_elf_info(rproc, ELFCLASS32, EM_NONE);
 
 	adsp = (struct qcom_adsp *)rproc->priv;
 	adsp->dev = &pdev->dev;
@@ -854,6 +858,7 @@ static const struct adsp_data sc8180x_mpss_resource = {
 	.crash_reason_smem = 421,
 	.firmware_name = "modem.mdt",
 	.pas_id = 4,
+	.uses_elf64 = true,
 	.has_aggre2_clk = false,
 	.auto_boot = false,
 	.proxy_pd_names = (char*[]){
