@@ -36,6 +36,7 @@ struct qcom_sysmon {
 	struct notifier_block nb;
 
 	struct device *dev;
+	uint32_t transaction_id;
 
 	struct rpmsg_endpoint *ept;
 	struct completion comp;
@@ -176,6 +177,7 @@ static int sysmon_callback(struct rpmsg_device *rpdev, void *data, int count,
 #define SSCTL_SHUTDOWN_REQ		0x21
 #define SSCTL_SHUTDOWN_READY_IND	0x21
 #define SSCTL_SUBSYS_EVENT_REQ		0x23
+#define SSCTL_SUBSYS_EVENT_WITH_TID_REQ		0x25
 
 #define SSCTL_MAX_MSG_LEN		7
 
@@ -207,6 +209,7 @@ struct ssctl_subsys_event_req {
 	u8 subsys_name_len;
 	char subsys_name[SSCTL_SUBSYS_NAME_LENGTH];
 	u32 event;
+	uint32_t transaction_id;
 	u8 evt_driven_valid;
 	u32 evt_driven;
 };
@@ -240,6 +243,16 @@ static struct qmi_elem_info ssctl_subsys_event_req_ei[] = {
 		.tlv_type	= 0x02,
 		.offset		= offsetof(struct ssctl_subsys_event_req,
 					   event),
+		.ei_array	= NULL,
+	},
+	{
+		.data_type	= QMI_UNSIGNED_4_BYTE,
+		.elem_len	= 1,
+		.elem_size	= sizeof(uint32_t),
+		.array_type	= NO_ARRAY,
+		.tlv_type	= 0x03,
+		.offset		= offsetof(struct ssctl_subsys_event_req,
+					   transaction_id),
 		.ei_array	= NULL,
 	},
 	{
@@ -393,9 +406,10 @@ static void ssctl_send_event(struct qcom_sysmon *sysmon,
 	req.event = event->ssr_event;
 	req.evt_driven_valid = true;
 	req.evt_driven = SSCTL_SSR_EVENT_FORCED;
+	req.transaction_id = sysmon->transaction_id;
 
 	ret = qmi_send_request(&sysmon->qmi, &sysmon->ssctl, &txn,
-			       SSCTL_SUBSYS_EVENT_REQ, 40,
+			       SSCTL_SUBSYS_EVENT_WITH_TID_REQ, 40,
 			       ssctl_subsys_event_req_ei, &req);
 	if (ret < 0) {
 		dev_err(sysmon->dev, "failed to send subsystem event\n");
@@ -544,6 +558,11 @@ static void sysmon_stop(struct rproc_subdev *subdev, bool crashed)
 
 	mutex_lock(&sysmon->state_lock);
 	sysmon->state = SSCTL_SSR_EVENT_BEFORE_SHUTDOWN;
+
+	sysmon->transaction_id++;
+	dev_info(sysmon->dev, "Incrementing tid for %s to %d\n", sysmon->name,
+		 sysmon->transaction_id);
+
 	blocking_notifier_call_chain(&sysmon_notifiers, 0, (void *)&event);
 	mutex_unlock(&sysmon->state_lock);
 
