@@ -24,6 +24,7 @@
 #define LLCC_CMPTDMA     15
 #define LLCC_DISP        16
 #define LLCC_VIDFW       17
+#define LLCC_CAMFW       18
 #define LLCC_MDMHPFX     20
 #define LLCC_MDMPNG      21
 #define LLCC_AUDHW       22
@@ -49,12 +50,25 @@
 #define LLCC_ISLAND2     47
 #define LLCC_ISLAND3     48
 #define LLCC_ISLAND4     49
-#define LLCC_CAMEXP2	 50
-#define LLCC_CAMEXP3	 51
-#define LLCC_CAMEXP4	 52
-#define LLCC_DISP_WB	 53
-#define LLCC_DISP_1	 54
-#define LLCC_VIDVSP	 64
+#define LLCC_CAMEXP2     50
+#define LLCC_CAMEXP3     51
+#define LLCC_CAMEXP4     52
+#define LLCC_DISP_WB     53
+#define LLCC_DISP_1      54
+#define LLCC_VIDVSP      64
+#define LLCC_VIDDEC      65
+#define LLCC_CAMOFE      67
+#define LLCC_CAMRTIP     68
+#define LLCC_CAMSRTIP    69
+#define LLCC_CAMRTRF     70
+#define LLCC_CAMSRTRF    71
+
+#define LLCC_VERSION_2_0_0_0          0x02000000
+#define LLCC_VERSION_2_1_0_0          0x02010000
+#define LLCC_VERSION_3_1_0_0          0x03010000
+#define LLCC_VERSION_4_1_0_0          0x04010000
+#define LLCC_VERSION_5_0_0_0          0x05000000
+#define LLCC_VERSION_6_0_0_0          0x06000000
 
 /**
  * struct llcc_slice_desc - Cache slice descriptor
