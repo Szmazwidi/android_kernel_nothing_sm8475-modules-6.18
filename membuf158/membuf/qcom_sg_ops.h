@@ -17,7 +17,6 @@
 #include <linux/scatterlist.h>
 #include <linux/dma-heap.h>
 #include <linux/device.h>
-#include "deferred-free-helper.h"
 #include "qcom_dma_heap_priv.h"
 
 struct qcom_sg_buffer {
@@ -30,7 +29,6 @@ struct qcom_sg_buffer {
 	void *vaddr;
 	bool uncached;
 	struct mem_buf_vmperm *vmperm;
-	struct deferred_freelist_item deferred_free;
 	void (*free)(struct qcom_sg_buffer *buffer);
 };
 
