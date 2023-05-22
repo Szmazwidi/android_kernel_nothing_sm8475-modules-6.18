@@ -155,6 +155,7 @@
 #define QCOM_ID_QRU1032			588
 #define QCOM_ID_QRU1052			589
 #define QCOM_ID_QRU1062			590
+#define QCOM_ID_SUN			618
 
 /*
  * The board type and revision information, used by Qualcomm bootloaders and
