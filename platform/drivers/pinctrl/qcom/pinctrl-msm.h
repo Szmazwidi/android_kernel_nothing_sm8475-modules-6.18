@@ -8,6 +8,10 @@
 #define __PINCTRL_MSM_H__
 
 #include <linux/pinctrl/qcom-pinctrl.h>
+#include <linux/pm.h>
+#include <linux/types.h>
+
+struct platform_device;
 
 struct pinctrl_pin_desc;
 
@@ -83,6 +87,7 @@ struct msm_pingroup {
 
 	unsigned pull_bit:5;
 	unsigned drv_bit:5;
+	unsigned i2c_pull_bit:5;
 
 	unsigned od_bit:5;
 	unsigned egpio_enable:5;

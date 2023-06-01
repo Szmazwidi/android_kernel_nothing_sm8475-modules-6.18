@@ -7,31 +7,34 @@
 
 #include <linux/delay.h>
 #include <linux/err.h>
+#include <linux/gpio/driver.h>
+#include <linux/interrupt.h>
 #include <linux/io.h>
+#include <linux/log2.h>
 #include <linux/module.h>
 #include <linux/of.h>
 #include <linux/platform_device.h>
+#include <linux/pm.h>
+#include <linux/qcom_scm.h>
+#include <linux/reboot.h>
+#include <linux/seq_file.h>
+#include <linux/slab.h>
+#include <linux/spinlock.h>
+
 #include <linux/pinctrl/machine.h>
+#include <linux/pinctrl/pinconf-generic.h>
+#include <linux/pinctrl/pinconf.h>
 #include <linux/pinctrl/pinctrl.h>
 #include <linux/pinctrl/pinmux.h>
-#include <linux/pinctrl/pinconf.h>
-#include <linux/pinctrl/pinconf-generic.h>
-#include <linux/slab.h>
-#include <linux/gpio/driver.h>
-#include <linux/interrupt.h>
-#include <linux/spinlock.h>
-#include <linux/reboot.h>
-#include <linux/pm.h>
-#include <linux/log2.h>
-#include <linux/qcom_scm.h>
 #include <linux/soc/qcom/irq.h>
 #include <linux/bitmap.h>
 #include <linux/sizes.h>
 
 #include "../core.h"
 #include "../pinconf.h"
-#include "pinctrl-msm.h"
 #include "../pinctrl-utils.h"
+
+#include "pinctrl-msm.h"
 
 #define MAX_NR_GPIO 300
 #define MAX_NR_TILES 4
@@ -344,6 +347,8 @@ static int msm_config_reg(struct msm_pinctrl *pctrl,
 	case PIN_CONFIG_BIAS_PULL_UP:
 		*bit = g->pull_bit;
 		*mask = 3;
+		if (g->i2c_pull_bit)
+			*mask |= BIT(g->i2c_pull_bit) >> *bit;
 		break;
 	case PIN_CONFIG_DRIVE_OPEN_DRAIN:
 		*bit = g->od_bit;
@@ -379,6 +384,7 @@ static int msm_config_reg(struct msm_pinctrl *pctrl,
 #define MSM_KEEPER		2
 #define MSM_PULL_UP_NO_KEEPER	2
 #define MSM_PULL_UP		3
+#define MSM_I2C_STRONG_PULL_UP	2200
 
 static unsigned msm_regval_to_drive(u32 val)
 {
@@ -430,6 +436,8 @@ static int msm_config_group_get(struct pinctrl_dev *pctldev,
 	case PIN_CONFIG_BIAS_PULL_UP:
 		if (pctrl->soc->pull_no_keeper)
 			arg = arg == MSM_PULL_UP_NO_KEEPER;
+		else if (arg & BIT(g->i2c_pull_bit))
+			arg = MSM_I2C_STRONG_PULL_UP;
 		else
 			arg = arg == MSM_PULL_UP;
 		if (!arg)
@@ -528,6 +536,8 @@ static int msm_config_group_set(struct pinctrl_dev *pctldev,
 		case PIN_CONFIG_BIAS_PULL_UP:
 			if (pctrl->soc->pull_no_keeper)
 				arg = MSM_PULL_UP_NO_KEEPER;
+			else if (g->i2c_pull_bit && arg == MSM_I2C_STRONG_PULL_UP)
+				arg = BIT(g->i2c_pull_bit) | MSM_PULL_UP;
 			else
 				arg = MSM_PULL_UP;
 			break;
@@ -736,7 +746,6 @@ static void msm_gpio_pin_status_get(struct msm_pinctrl *pctrl, const struct msm_
 }
 
 #ifdef CONFIG_DEBUG_FS
-#include <linux/seq_file.h>
 
 static void msm_gpio_dbg_show_one(struct seq_file *s,
 				  struct pinctrl_dev *pctldev,
@@ -833,9 +842,8 @@ static int msm_gpio_init_valid_mask(struct gpio_chip *gc,
 	const __be32 *p;
 	u16 *tmp;
 
-	/* Driver provided reserved list overrides DT and ACPI */
+	/* Remove driver-provided reserved GPIOs from valid_mask */
 	if (reserved) {
-		bitmap_fill(valid_mask, ngpios);
 		for (i = 0; reserved[i] >= 0; i++) {
 			if (i >= ngpios || reserved[i] >= ngpios) {
 				dev_err(pctrl->dev, "invalid list of reserved GPIOs\n");
@@ -1512,7 +1520,7 @@ static int msm_gpio_init(struct msm_pinctrl *pctrl)
 	girq = &chip->irq;
 	gpio_irq_chip_set_chip(girq, &msm_gpio_irq_chip);
 	girq->parent_handler = msm_gpio_irq_handler;
-	girq->fwnode = pctrl->dev->fwnode;
+	girq->fwnode = dev_fwnode(pctrl->dev);
 	girq->num_parents = 1;
 	girq->parents = devm_kcalloc(pctrl->dev, 1, sizeof(*girq->parents),
 				     GFP_KERNEL);
