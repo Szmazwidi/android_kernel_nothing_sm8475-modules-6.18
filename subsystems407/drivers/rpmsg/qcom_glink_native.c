@@ -1774,17 +1774,42 @@ struct qcom_glink *qcom_glink_native_probe(struct device *dev,
 
 	glink->irq = irq;
 
+	size = of_property_count_u32_elems(dev->of_node, "cpu-affinity");
+	if (size > 0) {
+		arr = kmalloc_array(size, sizeof(u32), GFP_KERNEL);
+		if (!arr) {
+			ret = -ENOMEM;
+			return ERR_PTR(ret);
+		}
+		ret = of_property_read_u32_array(dev->of_node, "cpu-affinity",
+						 arr, size);
+		if (!ret)
+			qcom_glink_set_affinity(glink, arr, size);
+		kfree(arr);
+	}
+	glink->ilc = ipc_log_context_create(GLINK_LOG_PAGE_CNT, glink->name, 0);
+
+	return glink;
+}
+EXPORT_SYMBOL(qcom_glink_native_probe);
+
+int qcom_glink_native_start(struct qcom_glink *glink)
+{
+	int ret;
+
 	ret = qcom_glink_send_version(glink);
-	if (ret)
-		return ERR_PTR(ret);
+	if (ret) {
+		dev_err(glink->dev, "failed to send version: %d\n", ret);
+		return ret;
+	}
 
 	ret = qcom_glink_create_chrdev(glink);
 	if (ret)
 		dev_err(glink->dev, "failed to register chrdev\n");
 
-	return glink;
+	return 0;
 }
-EXPORT_SYMBOL_GPL(qcom_glink_native_probe);
+EXPORT_SYMBOL(qcom_glink_native_start);
 
 static int qcom_glink_remove_device(struct device *dev, void *data)
 {
@@ -1816,6 +1841,9 @@ void qcom_glink_native_remove(struct qcom_glink *glink)
 
 	idr_destroy(&glink->lcids);
 	idr_destroy(&glink->rcids);
+
+	kthread_flush_worker(&glink->kworker);
+	kthread_stop(glink->task);
 	mbox_free_channel(glink->mbox_chan);
 }
 EXPORT_SYMBOL_GPL(qcom_glink_native_remove);
