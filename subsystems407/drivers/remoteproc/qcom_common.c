@@ -369,6 +369,9 @@ static void smd_subdev_stop(struct rproc_subdev *subdev, bool crashed)
 {
 	struct qcom_rproc_subdev *smd = to_smd_subdev(subdev);
 
+	if (!smd->edge)
+		return;
+
 	qcom_smd_unregister_edge(smd->edge);
 	smd->edge = NULL;
 }
