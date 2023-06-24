@@ -60,8 +60,8 @@ struct mem_buf_vmperm *mem_buf_vmperm_alloc_staticvm(struct sg_table *sgt, int *
  * A dmabuf in the "MEMACCEPT" state.
  */
 struct mem_buf_vmperm *mem_buf_vmperm_alloc_accept(struct sg_table *sgt,
-	gh_memparcel_handle_t memparcel_hdl);
-
+	gh_memparcel_handle_t memparcel_hdl, int *vmids, int *perms,
+	unsigned int nr_acl_entries);
 
 /*
  * Performs the expected close step based on whether the dmabuf
