@@ -186,7 +186,7 @@ static int mem_buf_rmt_alloc_dmaheap_mem(struct mem_buf_xfer_mem *xfer_mem)
 		return PTR_ERR(attachment);
 	}
 
-	mem_sgt = dma_buf_map_attachment(attachment, DMA_BIDIRECTIONAL);
+	mem_sgt = dma_buf_map_attachment_unlocked(attachment, DMA_BIDIRECTIONAL);
 	if (IS_ERR(mem_sgt)) {
 		pr_err("%s dma_buf_map_attachment failure rc: %d\n", __func__,
 		       PTR_ERR(mem_sgt));
@@ -311,7 +311,7 @@ static void mem_buf_rmt_free_dmaheap_mem(struct mem_buf_xfer_mem *xfer_mem)
 	struct sg_table *mem_sgt = xfer_mem->mem_sgt;
 
 	pr_debug("%s: Freeing DMAHEAP memory\n", __func__);
-	dma_buf_unmap_attachment(attachment, mem_sgt, DMA_BIDIRECTIONAL);
+	dma_buf_unmap_attachment_unlocked(attachment, mem_sgt, DMA_BIDIRECTIONAL);
 	dma_buf_detach(dmabuf, attachment);
 	dma_buf_put(dmaheap_mem_data->dmabuf);
 	/*
