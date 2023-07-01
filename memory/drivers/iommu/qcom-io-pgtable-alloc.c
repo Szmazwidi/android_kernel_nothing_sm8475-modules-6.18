@@ -32,14 +32,15 @@ static int io_pgtable_hyp_assign_page(u32 vmid, struct page *page)
 	struct qcom_scm_vmperm dst_vmids[] = {{QCOM_SCM_VMID_HLOS,
 					       PERM_READ | PERM_WRITE},
 					      {vmid, PERM_READ}};
-	u64 src_vmid_list = BIT(QCOM_SCM_VMID_HLOS);
+	unsigned int src_vmid_list = BIT(QCOM_SCM_VMID_HLOS);
+	phys_addr_t page_addr = page_to_phys(page);
 	int ret;
 
 	ret = qcom_scm_assign_mem(page_to_phys(page), PAGE_SIZE, &src_vmid_list,
 			      dst_vmids, ARRAY_SIZE(dst_vmids));
 	if (ret)
 		pr_err("failed qcom_assign for %pa address of size %zx - subsys VMid %d rc:%d\n",
-			page_to_phys(page), PAGE_SIZE, vmid, ret);
+			&page_addr, PAGE_SIZE, vmid, ret);
 
 	WARN(ret, "failed to assign memory to VMID: %u rc:%d\n", vmid, ret);
 	return ret ? -EADDRNOTAVAIL : 0;
@@ -49,14 +50,15 @@ static int io_pgtable_hyp_unassign_page(u32 vmid, struct page *page)
 {
 	struct qcom_scm_vmperm dst_vmids[] = {{QCOM_SCM_VMID_HLOS,
 					      PERM_READ | PERM_WRITE | PERM_EXEC}};
-	u64 src_vmid_list = BIT(QCOM_SCM_VMID_HLOS) | BIT(vmid);
+	unsigned int src_vmid_list = BIT(QCOM_SCM_VMID_HLOS) | BIT(vmid);
+	phys_addr_t page_addr = page_to_phys(page);
 	int ret;
 
 	ret = qcom_scm_assign_mem(page_to_phys(page), PAGE_SIZE, &src_vmid_list,
 			      dst_vmids, ARRAY_SIZE(dst_vmids));
 	if (ret)
 		pr_err("failed qcom_assign for unassigning %pa address of size %zx - subsys VMid %d rc:%d\n",
-			page_to_phys(page), PAGE_SIZE, vmid, ret);
+			&page_addr, PAGE_SIZE, vmid, ret);
 
 	WARN(ret, "failed to unassign memory from VMID: %u rc: %d\n", vmid, ret);
 	return ret ? -EADDRNOTAVAIL : 0;
