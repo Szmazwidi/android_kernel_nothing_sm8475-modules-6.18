@@ -4618,7 +4618,7 @@ static int msm_pcie_get_clk(struct msm_pcie_dev_t *pcie_dev)
 	total_num_clk = ret;
 
 	ret = of_property_count_elems_of_size(pdev->dev.of_node,
-					      "clock-frequency",
+					      "qcom,pcie-clock-frequency",
 					      sizeof(*clk_freq));
 	if (ret != total_num_clk) {
 		PCIE_ERR(pcie_dev,
@@ -4633,7 +4633,7 @@ static int msm_pcie_get_clk(struct msm_pcie_dev_t *pcie_dev)
 	if (!clk_freq)
 		return -ENOMEM;
 
-	ret = of_property_read_u32_array(pdev->dev.of_node, "clock-frequency",
+	ret = of_property_read_u32_array(pdev->dev.of_node, "qcom,pcie-clock-frequency",
 					 clk_freq, total_num_clk);
 	if (ret) {
 		PCIE_ERR(pcie_dev,
@@ -7862,7 +7862,7 @@ static int msm_pcie_cesta_init(struct msm_pcie_dev_t *pcie_dev,
 {
 	int ret = 0;
 
-	ret = of_property_read_u32(of_node, "qcom,pcie-clkreq-gpio",
+	ret = of_property_read_u32(of_node, "qcom,pcie-clkreq-pin",
 			&pcie_dev->clkreq_gpio);
 	if (ret) {
 		PCIE_ERR(pcie_dev, "Couldn't find clkreq gpio %d\n",
