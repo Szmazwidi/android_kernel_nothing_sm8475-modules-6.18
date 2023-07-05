@@ -53,7 +53,8 @@
 #define STALING_TRIGGER_MASK          0x1
 
 #define LLCC_TRP_STAL_ATTR1_CFGn(n)   (0x10 + SZ_4K * n)
-#define STALING_ENABLE_MASK           0x1
+#define NOTIFCN_BASED_INVDTN_EN_SHIFT 12
+#define STALING_ENABLE_MASK           0x1001
 #define STALING_NUM_FRAMES_MASK       GENMASK(6, 4)
 
 #define LLCC_TRP_ATTR0_CFGn(n)        (0x21000 + SZ_8 * n)
@@ -835,17 +836,22 @@ static int llcc_staling_conf_capacity(u32 sid, struct llcc_staling_mode_params *
 
 static int llcc_staling_conf_notify(u32 sid, struct llcc_staling_mode_params *p)
 {
-	u32 notif_staling_reg, staling_distance;
+	u32 notif_staling_reg, staling_distance, config;
 	int ret;
 
-	if (p->notify_params.op != LLCC_NOTIFY_STALING_WRITEBACK)
+	if (p->notify_params.op >= LLCC_NOTIFY_STALING_OPS_MAX)
 		return -EINVAL;
+
+	config = LLCC_STALING_MODE_NOTIFY;
+
+	if (drv_data->version >= LLCC_VERSION_6_0_0_0)
+		config |= p->notify_params.op << NOTIFCN_BASED_INVDTN_EN_SHIFT;
 
 	notif_staling_reg = LLCC_TRP_STAL_ATTR1_CFGn(sid);
 
 	ret = regmap_update_bits(drv_data->bcast_regmap, notif_staling_reg,
 				 STALING_ENABLE_MASK,
-				 LLCC_STALING_MODE_NOTIFY);
+				 config);
 	if (ret)
 		return ret;
 
