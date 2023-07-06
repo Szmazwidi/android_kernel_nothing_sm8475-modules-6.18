@@ -19,7 +19,6 @@
 #include <linux/soc/qcom/mdt_loader.h>
 #include <linux/soc/qcom/smem.h>
 #include <linux/devcoredump.h>
-#include <trace/hooks/remoteproc.h>
 
 #include "remoteproc_elf_helpers.h"
 #include "remoteproc_internal.h"
@@ -742,7 +741,7 @@ void qcom_remove_ssr_subdev(struct rproc *rproc, struct qcom_rproc_ssr *ssr)
 }
 EXPORT_SYMBOL_GPL(qcom_remove_ssr_subdev);
 
-static void qcom_check_ssr_status(void *data, struct rproc *rproc)
+void qcom_check_ssr_status(void *data, struct rproc *rproc)
 {
 	if (!atomic_read(&rproc->power) ||
 	    rproc->state == RPROC_RUNNING ||
@@ -772,17 +771,18 @@ static int __init qcom_common_init(void)
 		pr_err("qcom rproc: failed to create sysfs file\n");
 		goto remove_kobject;
 	}
-
+/*
 	ret = register_trace_android_vh_rproc_recovery(qcom_check_ssr_status, NULL);
 	if (ret) {
 		pr_err("qcom rproc: failed to register trace hooks\n");
 		goto remove_sysfs;
 	}
-
+*/
 	return 0;
-
+/*
 remove_sysfs:
 	sysfs_remove_file(sysfs_kobject, &shutdown_requested_attr.attr);
+*/
 remove_kobject:
 	kobject_put(sysfs_kobject);
 	return ret;
@@ -794,7 +794,9 @@ static void __exit qcom_common_exit(void)
 {
 	sysfs_remove_file(sysfs_kobject, &shutdown_requested_attr.attr);
 	kobject_put(sysfs_kobject);
+/*
 	unregister_trace_android_vh_rproc_recovery(qcom_check_ssr_status, NULL);
+*/
 }
 module_exit(qcom_common_exit);
 
