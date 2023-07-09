@@ -37,7 +37,9 @@
 #define CREATE_TRACE_POINTS
 #include "trace-rpmh.h"
 
+#if IS_ENABLED(CONFIG_IPC_LOGGING)
 #include <linux/ipc_logging.h>
+#endif
 
 #define RSC_DRV_IPC_LOG_SIZE		2
 
@@ -563,7 +565,9 @@ static irqreturn_t tcs_tx_done(int irq, void *p)
 			goto skip;
 
 		trace_rpmh_tx_done(drv, i, req);
+#if IS_ENABLED(CONFIG_IPC_LOGGING)
 		ipc_log_string(drv->ipc_log_ctx, "IRQ response: m=%d", i);
+#endif
 
 		/*
 		 * If wake tcs was re-purposed for sending active
@@ -634,10 +638,12 @@ static void __tcs_buffer_write(struct rsc_drv *drv, int tcs_id, int cmd_id,
 		write_tcs_cmd(drv, drv->regs[RSC_DRV_CMD_ADDR], tcs_id, j, cmd->addr);
 		write_tcs_cmd(drv, drv->regs[RSC_DRV_CMD_DATA], tcs_id, j, cmd->data);
 		trace_rpmh_send_msg(drv, tcs_id, j, msgid, cmd);
+#if IS_ENABLED(CONFIG_IPC_LOGGING)
 		ipc_log_string(drv->ipc_log_ctx,
 			       "TCS write: m=%d n=%d msgid=%#x addr=%#x data=%#x wait=%d",
 			       tcs_id, j, msgid, cmd->addr,
 			       cmd->data, cmd->wait);
+#endif
 	}
 
 	write_tcs_reg(drv, drv->regs[RSC_DRV_CMD_WAIT_FOR_CMPL], tcs_id, cmd_complete);
@@ -821,7 +827,9 @@ int rpmh_rsc_send_data(struct rsc_drv *drv, const struct tcs_request *msg, int c
 	 */
 	__tcs_buffer_write(drv, tcs_id, 0, msg);
 	__tcs_set_trigger(drv, tcs_id, true);
+#if IS_ENABLED(CONFIG_IPC_LOGGING)
 	ipc_log_string(drv->ipc_log_ctx, "TCS trigger: m=%d", tcs_id);
+#endif
 
 	return 0;
 }
@@ -1221,8 +1229,10 @@ int rpmh_rsc_mode_solver_set(struct rsc_drv *drv, bool enable)
 		if (!enable || !rpmh_rsc_ctrlr_is_busy(drv)) {
 			drv->in_solver_mode = enable;
 			trace_rpmh_solver_set(drv, enable);
+#if IS_ENABLED(CONFIG_IPC_LOGGING)
 			ipc_log_string(drv->ipc_log_ctx,
 				       "solver mode set: %d", enable);
+#endif
 			ret = 0;
 		}
 		spin_unlock(&drv->lock);
@@ -1257,7 +1267,9 @@ int rpmh_rsc_is_tcs_completed(struct rsc_drv *drv, int ch)
 
 exit:
 	trace_rpmh_switch_channel(drv, ch, ret);
+#if IS_ENABLED(CONFIG_IPC_LOGGING)
 	ipc_log_string(drv->ipc_log_ctx, "channel switched to: %d ret: %d", ch, ret);
+#endif
 	return 0;
 }
 
@@ -1332,7 +1344,9 @@ int rpmh_rsc_drv_enable(struct rsc_drv *drv, bool enable)
 exit:
 	spin_unlock(&drv->lock);
 	trace_rpmh_drv_enable(drv, enable, ret);
+#if IS_ENABLED(CONFIG_IPC_LOGGING)
 	ipc_log_string(drv->ipc_log_ctx, "drv enable: %d ret: %d", enable, ret);
+#endif
 	return ret;
 }
 
@@ -1791,9 +1805,11 @@ static int rpmh_rsc_probe(struct platform_device *pdev)
 		INIT_LIST_HEAD(&drv[i].client.cache);
 		INIT_LIST_HEAD(&drv[i].client.batch_cache);
 
+#if IS_ENABLED(CONFIG_IPC_LOGGING)
 		drv[i].ipc_log_ctx = ipc_log_context_create(
 						RSC_DRV_IPC_LOG_SIZE,
 						drv[i].name, 0);
+#endif
 
 		if (__rsc_count < MAX_RSC_COUNT)
 			__rsc_drv[__rsc_count++] = &drv[i];
