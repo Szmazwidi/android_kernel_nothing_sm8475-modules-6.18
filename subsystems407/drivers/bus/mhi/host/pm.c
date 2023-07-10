@@ -473,9 +473,13 @@ static void mhi_pm_disable_transition(struct mhi_controller *mhi_cntrl)
 
 	mutex_lock(&mhi_cntrl->pm_mutex);
 
-	/* Trigger MHI RESET so that the device will not access host memory */
+	/* Trigger MHI RESET so that the device will not access host memory. */
 	if (!MHI_PM_IN_FATAL_STATE(mhi_cntrl->pm_state)) {
-		dev_dbg(dev, "Triggering MHI Reset in device\n");
+	    /* Skip MHI RESET if in RDDM state */
+		if (mhi_cntrl->rddm_image && mhi_get_exec_env(mhi_cntrl) == MHI_EE_RDDM)
+			goto skip_mhi_reset;
+
+		MHI_VERB(dev, "Triggering MHI Reset in device\n");
 		mhi_set_mhi_state(mhi_cntrl, MHI_STATE_RESET);
 
 		/* Wait for the reset bit to be cleared by the device */
@@ -500,7 +504,8 @@ static void mhi_pm_disable_transition(struct mhi_controller *mhi_cntrl)
 		}
 	}
 
-	dev_dbg(dev,
+skip_mhi_reset:
+	MHI_VERB(dev,
 		 "Waiting for all pending event ring processing to complete\n");
 	mhi_event = mhi_cntrl->mhi_event;
 	for (i = 0; i < mhi_cntrl->total_ev_rings; i++, mhi_event++) {
