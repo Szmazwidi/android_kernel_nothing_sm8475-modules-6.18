@@ -256,7 +256,7 @@ int hyp_assign_from_flags(u64 base, u64 size, unsigned long flags)
 {
 	int *vmids, *modes;
 	u32 nr;
-	u64 src_vm = BIT(QCOM_SCM_VMID_HLOS);
+	unsigned int src_vm = BIT(QCOM_SCM_VMID_HLOS);
 	struct qcom_scm_vmperm *newvm;
 	int ret;
 	int i;
