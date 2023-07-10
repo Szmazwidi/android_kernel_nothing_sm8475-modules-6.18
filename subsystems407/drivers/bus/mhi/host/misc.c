@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
-// Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
+// Copyright (c) 2022-2023 Qualcomm Innovation Center, Inc. All rights reserved.
 
 #include <linux/delay.h>
 #include <linux/device.h>
@@ -990,15 +990,16 @@ int mhi_device_get_sync_atomic(struct mhi_device *mhi_dev, int timeout_us,
 {
 	struct mhi_controller *mhi_cntrl = mhi_dev->mhi_cntrl;
 	struct device *dev = &mhi_dev->dev;
+	unsigned long pm_lock_flags;
 
-	read_lock_bh(&mhi_cntrl->pm_lock);
+	read_lock_irqsave(&mhi_cntrl->pm_lock, pm_lock_flags);
 	if (MHI_PM_IN_ERROR_STATE(mhi_cntrl->pm_state)) {
-		read_unlock_bh(&mhi_cntrl->pm_lock);
+		read_unlock_irqrestore(&mhi_cntrl->pm_lock, pm_lock_flags);
 		return -EIO;
 	}
 
 	mhi_cntrl->wake_get(mhi_cntrl, true);
-	read_unlock_bh(&mhi_cntrl->pm_lock);
+	read_unlock_irqrestore(&mhi_cntrl->pm_lock, pm_lock_flags);
 
 	mhi_dev->dev_wake++;
 	pm_wakeup_event(&mhi_cntrl->mhi_dev->dev, 0);
@@ -1033,9 +1034,9 @@ int mhi_device_get_sync_atomic(struct mhi_device *mhi_dev, int timeout_us,
 		MHI_ERR(dev, "Did not enter M0, cur_state: %s pm_state: %s\n",
 			mhi_state_str(mhi_cntrl->dev_state),
 			to_mhi_pm_state_str(mhi_cntrl->pm_state));
-		read_lock_bh(&mhi_cntrl->pm_lock);
+		read_lock_irqsave(&mhi_cntrl->pm_lock, pm_lock_flags);
 		mhi_cntrl->wake_put(mhi_cntrl, false);
-		read_unlock_bh(&mhi_cntrl->pm_lock);
+		read_unlock_irqrestore(&mhi_cntrl->pm_lock, pm_lock_flags);
 		mhi_dev->dev_wake--;
 		mhi_cntrl->runtime_put(mhi_cntrl);
 		return -ETIMEDOUT;
@@ -1198,6 +1199,30 @@ static int mhi_init_timesync(struct mhi_controller *mhi_cntrl,
 	return 0;
 }
 
+int mhi_init_host_notification(struct mhi_controller *mhi_cntrl,
+							void __iomem *host_notify_db)
+{
+	struct device *dev = &mhi_cntrl->mhi_dev->dev;
+	int ret;
+	u32 host_notify_cfg_offset;
+
+	ret = mhi_get_capability_offset(mhi_cntrl, MHI_HOST_NOTIFY_CAP_ID,
+									&host_notify_cfg_offset);
+	if (ret)
+		return ret;
+
+	host_notify_cfg_offset += MHI_HOST_NOTIFY_CFG_OFFSET;
+	mhi_cntrl->host_notify_db = host_notify_db;
+
+	/* advertise host support */
+	mhi_write_reg(mhi_cntrl, mhi_cntrl->regs, host_notify_cfg_offset,
+			     MHI_HOST_NOTIFY_CFG_SETUP);
+
+	MHI_VERB(dev, "Host notification DB setup complete.\n");
+
+	return 0;
+}
+
 int mhi_misc_init_mmio(struct mhi_controller *mhi_cntrl)
 {
 	struct device *dev = &mhi_cntrl->mhi_dev->dev;
@@ -1222,8 +1247,57 @@ int mhi_misc_init_mmio(struct mhi_controller *mhi_cntrl)
 	if (ret)
 		MHI_LOG(dev, "Time synchronization setup failure\n");
 
+	ret = mhi_init_host_notification(mhi_cntrl, (mhi_cntrl->regs + chdb_off +
+						(8 * MHI_HOST_NOTIFY_DB)));
+	if (ret)
+		MHI_LOG(dev, "Host notification doorbell setup failure\n");
+
 	return 0;
 }
+
+int mhi_host_notify_db_disable_trace(struct mhi_controller *mhi_cntrl)
+{
+	struct device *dev = &mhi_cntrl->mhi_dev->dev;
+	enum mhi_state state;
+	enum mhi_ee_type ee;
+	unsigned long pm_lock_flags;
+
+	if (mhi_cntrl->host_notify_db) {
+		read_lock_irqsave(&mhi_cntrl->pm_lock, pm_lock_flags);
+		if (mhi_cntrl->pm_state == MHI_PM_DISABLE) {
+			read_unlock_irqrestore(&mhi_cntrl->pm_lock, pm_lock_flags);
+			return -EINVAL;
+		}
+
+		if (MHI_PM_IN_ERROR_STATE(mhi_cntrl->pm_state)) {
+			read_unlock_irqrestore(&mhi_cntrl->pm_lock, pm_lock_flags);
+			return -EIO;
+		}
+
+		state = mhi_get_mhi_state(mhi_cntrl);
+		ee = mhi_get_exec_env(mhi_cntrl);
+
+		MHI_VERB(dev, "Entered with MHI state: %s, EE: %s\n",
+			mhi_state_str(state),
+			TO_MHI_EXEC_STR(ee));
+
+		/* Make sure that we are indeed in M0 state and not in RDDM as well */
+		if (state == MHI_STATE_M0 && ee == MHI_EE_AMSS) {
+			mhi_write_db(mhi_cntrl, mhi_cntrl->host_notify_db, 1);
+			read_unlock_irqrestore(&mhi_cntrl->pm_lock, pm_lock_flags);
+			MHI_LOG(dev, "Host notification DB write Success\n");
+			return 0;
+		}
+
+		read_unlock_irqrestore(&mhi_cntrl->pm_lock, pm_lock_flags);
+		MHI_LOG(dev, "Cannot invoke DB due to invalid M state and/or EE\n");
+		return -EPERM;
+	}
+
+	MHI_LOG(dev, "Host notifiction DB feature NOT supported or enabled\n");
+	return -EPERM;
+}
+EXPORT_SYMBOL(mhi_host_notify_db_disable_trace);
 
 /* Recycle by fast forwarding WP to the last posted event */
 static void mhi_recycle_fwd_ev_ring_element
