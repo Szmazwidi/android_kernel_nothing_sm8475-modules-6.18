@@ -745,7 +745,7 @@ static int parse_xfer_event(struct mhi_controller *mhi_cntrl,
 	}
 	case MHI_EV_CC_BAD_TRE:
 	default:
-		dev_err(dev, "Unknown event 0x%x\n", ev_code);
+		WARN(1, "Unknown event 0x%x\n", ev_code);
 		break;
 	} /* switch(MHI_EV_READ_CODE(EV_TRB_CODE,event)) */
 
@@ -841,10 +841,14 @@ static void mhi_process_cmd_completion(struct mhi_controller *mhi_cntrl,
 
 	cmd_pkt = mhi_to_virtual(mhi_ring, ptr);
 
+	WARN(cmd_pkt != mhi_ring->rp,
+		"Out of order cmd completion: 0x%pK. Expected: 0x%pK\n",
+		cmd_pkt, mhi_ring->rp);
+
 	if (MHI_TRE_GET_CMD_TYPE(cmd_pkt) == MHI_CMD_SFR_CFG) {
 		mhi_misc_cmd_completion(mhi_cntrl, MHI_CMD_SFR_CFG,
 					MHI_TRE_GET_EV_CODE(tre));
-		return;
+		goto exit_cmd_completion;
 	}
 
 	chan = MHI_TRE_GET_CMD_CHID(cmd_pkt);
@@ -861,6 +865,7 @@ static void mhi_process_cmd_completion(struct mhi_controller *mhi_cntrl,
 			"Completion packet for invalid channel ID: %d\n", chan);
 	}
 
+exit_cmd_completion:
 	mhi_del_ring_element(mhi_cntrl, mhi_ring);
 }
 
