@@ -368,8 +368,18 @@ static struct regmap *qcom_icc_rpmh_map(struct platform_device *pdev,
 	return devm_regmap_init_mmio(dev, base, desc->config);
 }
 
-static bool is_voter_disabled(char *voter)
+static bool is_voter_disabled(struct device *dev, char *voter)
 {
+	struct device_node *np = dev->of_node;
+	int idx = 0;
+
+	if (!voter || !np)
+		return true;
+
+	idx = of_property_match_string(np, "qcom,disabled-voters", voter);
+	if (idx >= 0)
+		return true;
+
 	if ((strnstr(voter, "disp", strlen(voter)) && socinfo_get_part_info(PART_DISPLAY)) ||
 	    (strnstr(voter, "cam", strlen(voter)) && socinfo_get_part_info(PART_CAMERA)))
 		return true;
@@ -395,7 +405,7 @@ static int qcom_icc_init_disabled_parts(struct qcom_icc_provider *qp)
 		voter_name = desc->voters[voter_idx];
 
 		/* Disable BCMs incase of NO display or No Camera */
-		if (is_voter_disabled(voter_name)) {
+		if (is_voter_disabled(qp->dev, voter_name)) {
 			bcm->disabled = true;
 			qnodes = qp->nodes;
 
@@ -473,7 +483,7 @@ int qcom_icc_rpmh_probe(struct platform_device *pdev)
 			return ret;
 
 		for (i = 0; i < qp->num_voters; i++) {
-			if (desc->voters[i] && !is_voter_disabled(desc->voters[i])) {
+			if (desc->voters[i] && !is_voter_disabled(qp->dev, desc->voters[i])) {
 				qp->voters[i] = of_bcm_voter_get(qp->dev, desc->voters[i]);
 				if (IS_ERR(qp->voters[i]))
 					return PTR_ERR(qp->voters[i]);
