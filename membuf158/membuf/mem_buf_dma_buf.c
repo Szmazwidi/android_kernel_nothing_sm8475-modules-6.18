@@ -202,20 +202,12 @@ static int __mem_buf_vmperm_reclaim(struct mem_buf_vmperm *vmperm,
 
 static int mem_buf_vmperm_relinquish(struct mem_buf_vmperm *vmperm)
 {
-	int ret;
-	struct gh_sgl_desc *sgl_desc;
-
-	sgl_desc = mem_buf_sgt_to_gh_sgl_desc(vmperm->sgt);
-	if (IS_ERR(sgl_desc))
-		return PTR_ERR(sgl_desc);
-
-	ret = mem_buf_unmap_mem_s1(sgl_desc);
-	kvfree(sgl_desc);
-	if (ret)
-		return ret;
-
-	ret = mem_buf_unmap_mem_s2(vmperm->memparcel_hdl);
-	return ret;
+	/*
+	 * mem_buf_retrieve_release() uses memunmap_pages() to remove
+	 * this from the linux page tables. This occurs after the
+	 * stage 2 pagetable mapping is removed below.
+	 */
+	return mem_buf_unmap_mem_s2(vmperm->memparcel_hdl);
 }
 
 int mem_buf_vmperm_release(struct mem_buf_vmperm *vmperm)

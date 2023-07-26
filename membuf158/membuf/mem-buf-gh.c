@@ -12,6 +12,7 @@
 #include <linux/qcom_dma_heap.h>
 #include <linux/qcom_tui_heap.h>
 #include <linux/dma-map-ops.h>
+#include <linux/memremap.h>
 #include <linux/cma.h>
 
 #include "../../../../drivers/dma-buf/heaps/qcom_sg_ops.h"
@@ -128,6 +129,18 @@ struct mem_buf_xfer_dmaheap_mem {
 	char name[MEM_BUF_MAX_DMAHEAP_NAME_LEN];
 	struct dma_buf *dmabuf;
 	struct dma_buf_attachment *attachment;
+};
+
+/*
+ * mem_buf_dmabuf_obj
+ * A dmabuf object representing memory shared/lent by another Virtual machine
+ * and obtained via mem_buf_retrieve().
+ * @buffer: data type expected by qcom_sg_buf_ops
+ * @pgmap: Arguments to memremap_pages
+ */
+struct mem_buf_dmabuf_obj {
+	struct qcom_sg_buffer buffer;
+	struct dev_pagemap pgmap;
 };
 
 static int mem_buf_alloc_obj_id(void)
@@ -1111,13 +1124,19 @@ EXPORT_SYMBOL_GPL(mem_buf_get_sgl);
 
 static void mem_buf_retrieve_release(struct qcom_sg_buffer *buffer)
 {
+	struct mem_buf_dmabuf_obj *obj;
+
+	obj = container_of(buffer, struct mem_buf_dmabuf_obj, buffer);
+
+	memunmap_pages(&obj->pgmap);
 	sg_free_table(&buffer->sg_table);
-	kfree(buffer);
+	kfree(obj);
 }
 
 struct dma_buf *mem_buf_retrieve(struct mem_buf_retrieve_kernel_arg *arg)
 {
 	int ret, op;
+	struct mem_buf_dmabuf_obj *obj;
 	struct qcom_sg_buffer *buffer;
 	struct gh_acl_desc *acl_desc;
 	/* Hypervisor picks the IPA address */
@@ -1125,6 +1144,7 @@ struct dma_buf *mem_buf_retrieve(struct mem_buf_retrieve_kernel_arg *arg)
 	DEFINE_DMA_BUF_EXPORT_INFO(exp_info);
 	struct dma_buf *dmabuf;
 	struct sg_table *sgt;
+	void *kva;
 
 	if (arg->fd_flags & ~MEM_BUF_VALID_FD_FLAGS)
 		return ERR_PTR(-EINVAL);
@@ -1132,9 +1152,10 @@ struct dma_buf *mem_buf_retrieve(struct mem_buf_retrieve_kernel_arg *arg)
 	if (!arg->nr_acl_entries || !arg->vmids || !arg->perms)
 		return ERR_PTR(-EINVAL);
 
-	buffer = kzalloc(sizeof(*buffer), GFP_KERNEL);
-	if (!buffer)
+	obj = kzalloc(sizeof(*obj), GFP_KERNEL);
+	if (!obj)
 		return ERR_PTR(-ENOMEM);
+	buffer = &obj->buffer;
 
 	acl_desc = mem_buf_vmid_perm_list_to_gh_acl(arg->vmids, arg->perms,
 				arg->nr_acl_entries);
@@ -1149,9 +1170,22 @@ struct dma_buf *mem_buf_retrieve(struct mem_buf_retrieve_kernel_arg *arg)
 	if (ret)
 		goto err_map_s2;
 
-	ret = mem_buf_map_mem_s1(sgl_desc);
-	if (ret < 0)
-		goto err_map_mem_s1;
+	if (sgl_desc->n_sgl_entries != 1) {
+		pr_err("%s: Expected contiguous IPA\n", __func__);
+		ret = -EINVAL;
+		goto err_memremap;
+	}
+
+	obj->pgmap.type = MEMORY_DEVICE_GENERIC;
+	obj->pgmap.nr_range = 1;
+	obj->pgmap.range.start = sgl_desc->sgl_entries[0].ipa_base;
+	obj->pgmap.range.end = sgl_desc->sgl_entries[0].ipa_base +
+			       sgl_desc->sgl_entries[0].size - 1;
+	kva = memremap_pages(&obj->pgmap, 0);
+	if (IS_ERR(kva)) {
+		ret = PTR_ERR(kva);
+		goto err_memremap;
+	}
 
 	sgt = dup_gh_sgl_desc_to_sgt(sgl_desc);
 	if (IS_ERR(sgt)) {
@@ -1190,14 +1224,14 @@ struct dma_buf *mem_buf_retrieve(struct mem_buf_retrieve_kernel_arg *arg)
 err_export_dma_buf:
 	sg_free_table(&buffer->sg_table);
 err_dup_sgt:
-	mem_buf_unmap_mem_s1(sgl_desc);
-err_map_mem_s1:
+	memunmap_pages(&obj->pgmap);
+err_memremap:
 	kvfree(sgl_desc);
 	mem_buf_unmap_mem_s2(arg->memparcel_hdl);
 err_map_s2:
 	kfree(acl_desc);
 err_gh_acl:
-	kfree(buffer);
+	kfree(obj);
 	return ERR_PTR(ret);
 }
 EXPORT_SYMBOL_GPL(mem_buf_retrieve);

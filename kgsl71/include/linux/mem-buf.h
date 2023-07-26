@@ -136,20 +136,4 @@ static inline int mem_buf_current_vmid(void)
 	return -EINVAL;
 }
 #endif /* CONFIG_QCOM_MEM_BUF */
-
-
-#ifdef CONFIG_QCOM_MEM_BUF_DEV_GH
-int mem_buf_map_mem_s1(struct gh_sgl_desc *sgl_desc);
-int mem_buf_unmap_mem_s1(struct gh_sgl_desc *sgl_desc);
-#else
-static inline int mem_buf_map_mem_s1(struct gh_sgl_desc *sgl_desc)
-{
-	return -EINVAL;
-}
-
-static inline int mem_buf_unmap_mem_s1(struct gh_sgl_desc *sgl_desc)
-{
-	return -EINVAL;
-}
-#endif /* CONFIG_QCOM_MEM_BUF_DEV_GH */
 #endif /* _MEM_BUF_H */
