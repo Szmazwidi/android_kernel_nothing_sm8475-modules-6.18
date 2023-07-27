@@ -32,7 +32,7 @@ static int io_pgtable_hyp_assign_page(u32 vmid, struct page *page)
 	struct qcom_scm_vmperm dst_vmids[] = {{QCOM_SCM_VMID_HLOS,
 					       PERM_READ | PERM_WRITE},
 					      {vmid, PERM_READ}};
-	unsigned int src_vmid_list = BIT(QCOM_SCM_VMID_HLOS);
+	u64 src_vmid_list = BIT(QCOM_SCM_VMID_HLOS);
 	phys_addr_t page_addr = page_to_phys(page);
 	int ret;
 
@@ -50,7 +50,7 @@ static int io_pgtable_hyp_unassign_page(u32 vmid, struct page *page)
 {
 	struct qcom_scm_vmperm dst_vmids[] = {{QCOM_SCM_VMID_HLOS,
 					      PERM_READ | PERM_WRITE | PERM_EXEC}};
-	unsigned int src_vmid_list = BIT(QCOM_SCM_VMID_HLOS) | BIT(vmid);
+	u64 src_vmid_list = BIT(QCOM_SCM_VMID_HLOS) | BIT(vmid);
 	phys_addr_t page_addr = page_to_phys(page);
 	int ret;
 
