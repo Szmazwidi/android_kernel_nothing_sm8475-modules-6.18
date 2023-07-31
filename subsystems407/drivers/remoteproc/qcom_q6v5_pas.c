@@ -1199,7 +1199,6 @@ static const struct adsp_data sc8180x_mpss_resource = {
 	.firmware_name = "modem.mdt",
 	.pas_id = 4,
 	.uses_elf64 = true,
-	.has_aggre2_clk = false,
 	.auto_boot = false,
 	.proxy_pd_names = (char*[]){
 		"cx",
