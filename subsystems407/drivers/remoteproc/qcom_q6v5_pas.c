@@ -27,6 +27,7 @@
 #include <linux/soc/qcom/smem_state.h>
 #include <linux/soc/qcom/qcom_aoss.h>
 #include <soc/qcom/qcom_ramdump.h>
+#include <soc/qcom/secure_buffer.h>
 
 #include "qcom_common.h"
 #include "qcom_pil_info.h"
@@ -34,6 +35,9 @@
 #include "remoteproc_internal.h"
 
 #define ADSP_DECRYPT_SHUTDOWN_DELAY_MS	100
+
+static bool global_sync_mem_setup;
+static bool mpss_dsm_mem_setup;
 
 struct adsp_data {
 	int crash_reason_smem;
@@ -45,6 +49,7 @@ struct adsp_data {
 	bool has_aggre2_clk;
 	bool auto_boot;
 	bool decrypt_shutdown;
+	bool hyp_assign_mem;
 
 	char **proxy_pd_names;
 
@@ -109,6 +114,21 @@ void adsp_segment_dump(struct rproc *rproc, struct rproc_dump_segment *segment,
 {
 	struct qcom_adsp *adsp = rproc->priv;
 	int total_offset;
+	void __iomem *base;
+	int len = strlen("md_dbg_buf");
+
+	if (strnlen(segment->priv, len + 1) == len &&
+		    !strcmp(segment->priv, "md_dbg_buf")) {
+		base = ioremap((unsigned long)le64_to_cpu(segment->da), size);
+		if (!base) {
+			pr_err("failed to map md_dbg_buf region\n");
+			return;
+		}
+
+		memcpy_fromio(dest, base, size);
+		iounmap(base);
+		return;
+	}
 
 	total_offset = segment->da + segment->offset + offset - adsp->mem_phys;
 	if (total_offset < 0 || total_offset + size > adsp->mem_size) {
@@ -536,6 +556,84 @@ static int adsp_alloc_memory_region(struct qcom_adsp *adsp)
 	return 0;
 }
 
+static int setup_mpss_dsm_mem(struct platform_device *pdev)
+{
+	struct qcom_scm_vmperm newvm[1];
+	struct device_node *node;
+	struct resource res;
+	phys_addr_t mem_phys;
+	int curr_perm;
+	u64 mem_size;
+	int ret;
+
+	newvm[0].vmid = QCOM_SCM_VMID_MSS_MSA;
+	newvm[0].perm = QCOM_SCM_PERM_RW;
+	curr_perm = BIT(QCOM_SCM_VMID_HLOS);
+
+	node = of_parse_phandle(pdev->dev.of_node, "mpss_dsm_mem_reg", 0);
+	if (!node) {
+		dev_err(&pdev->dev, "mpss dsm mem region is missing\n");
+		return -EINVAL;
+	}
+
+	ret = of_address_to_resource(node, 0, &res);
+	if (ret) {
+		dev_err(&pdev->dev, "address to resource failed for mpss dsm mem\n");
+		return ret;
+	}
+
+	mem_phys = res.start;
+	mem_size = resource_size(&res);
+	ret = qcom_scm_assign_mem(mem_phys, mem_size, &curr_perm, newvm, 1);
+	if (ret) {
+		dev_err(&pdev->dev, "hyp assign for mpss dsm mem failed\n");
+		return ret;
+	}
+
+	mpss_dsm_mem_setup = true;
+	return 0;
+}
+
+static int setup_global_sync_mem(struct platform_device *pdev)
+{
+	struct qcom_scm_vmperm newvm[2];
+	struct device_node *node;
+	struct resource res;
+	phys_addr_t mem_phys;
+	int curr_perm;
+	u64 mem_size;
+	int ret;
+
+	curr_perm = BIT(QCOM_SCM_VMID_HLOS);
+	newvm[0].vmid = QCOM_SCM_VMID_HLOS;
+	newvm[0].perm = QCOM_SCM_PERM_RW;
+	newvm[1].vmid = QCOM_SCM_VMID_CDSP;
+	newvm[1].perm = QCOM_SCM_PERM_RW;
+
+	node = of_parse_phandle(pdev->dev.of_node, "global-sync-mem-reg", 0);
+	if (!node) {
+		dev_err(&pdev->dev, "global sync mem region is missing\n");
+		return -EINVAL;
+	}
+
+	ret = of_address_to_resource(node, 0, &res);
+	if (ret) {
+		dev_err(&pdev->dev, "address to resource failed for global sync mem\n");
+		return ret;
+	}
+
+	mem_phys = res.start;
+	mem_size = resource_size(&res);
+	ret = qcom_scm_assign_mem(mem_phys, mem_size, &curr_perm, newvm, ARRAY_SIZE(newvm));
+	if (ret) {
+		dev_err(&pdev->dev, "hyp assign for global sync mem failed\n");
+		return ret;
+	}
+
+	global_sync_mem_setup = true;
+	return 0;
+}
+
 static int adsp_probe(struct platform_device *pdev)
 {
 	const struct adsp_data *desc;
@@ -558,6 +656,24 @@ static int adsp_probe(struct platform_device *pdev)
 				      &fw_name);
 	if (ret < 0 && ret != -EINVAL)
 		return ret;
+
+	if (desc->hyp_assign_mem && !mpss_dsm_mem_setup &&
+			!strcmp(fw_name, "modem.mdt")) {
+		ret = setup_mpss_dsm_mem(pdev);
+		if (ret) {
+			dev_err(&pdev->dev, "failed to setup mpss dsm mem\n");
+			return -EINVAL;
+		}
+	}
+
+	if (desc->hyp_assign_mem && !global_sync_mem_setup &&
+			!strcmp(fw_name, "cdsp.mdt")) {
+		ret = setup_global_sync_mem(pdev);
+		if (ret) {
+			dev_err(&pdev->dev, "failed to setup global sync mem\n");
+			return -EINVAL;
+		}
+	}
 
 	if (desc->minidump_id)
 		ops = &adsp_minidump_ops;
