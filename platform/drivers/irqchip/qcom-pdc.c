@@ -65,7 +65,9 @@ static void __iomem *pdc_base;
 static struct pdc_pin_region *pdc_region;
 static int pdc_region_cnt;
 static struct spi_cfg_regs *spi_cfg;
+#if IS_ENABLED(CONFIG_IPC_LOGGING)
 static void *pdc_ipc_log;
+#endif
 static bool enable_in_cfg;
 
 static u32 __spi_pin_read(unsigned int pin)
