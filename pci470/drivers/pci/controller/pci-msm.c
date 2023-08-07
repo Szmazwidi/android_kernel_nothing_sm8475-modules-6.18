@@ -29,6 +29,7 @@
 #include <linux/pm_wakeup.h>
 #include <linux/remoteproc/qcom_rproc.h>
 #include <linux/reset.h>
+#include <linux/pinctrl/consumer.h>
 #include <linux/regulator/consumer.h>
 #include <linux/rpmsg.h>
 #include <linux/seq_file.h>
