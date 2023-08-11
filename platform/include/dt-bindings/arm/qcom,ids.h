@@ -248,6 +248,8 @@
 #define QCOM_ID_QRU1062			590
 #define QCOM_ID_IPQ5332			592
 #define QCOM_ID_IPQ5322			593
+#define QCOM_ID_PINEAPPLE		557
+#define QCOM_ID_PINEAPPLEP		577
 #define QCOM_ID_SUN			618
 
 /*
