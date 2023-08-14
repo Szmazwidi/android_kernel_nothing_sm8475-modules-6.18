@@ -16,6 +16,12 @@ static const char * const subdevice_state_string[] = {
 };
 
 struct qcom_glink_smem;
+struct reg_info {
+	struct regulator *reg;
+	int uV;
+	int uA;
+};
+
 struct qcom_sysmon;
 
 struct qcom_rproc_glink {

@@ -76,6 +76,8 @@ struct qcom_adsp {
 
 	struct regulator *cx_supply;
 	struct regulator *px_supply;
+	struct reg_info *regs;
+	int reg_cnt;
 
 	struct device *proxy_pds[3];
 
@@ -176,6 +178,36 @@ static void adsp_minidump(struct rproc *rproc)
 			adsp->both_dumps);
 }
 
+static void disable_regulators(struct qcom_adsp *adsp)
+{
+	int i;
+
+	for (i = (adsp->reg_cnt - 1); i >= 0; i--) {
+		regulator_set_voltage(adsp->regs[i].reg, 0, INT_MAX);
+		regulator_set_load(adsp->regs[i].reg, 0);
+		regulator_disable(adsp->regs[i].reg);
+	}
+}
+static int enable_regulators(struct qcom_adsp *adsp)
+{
+	int i, rc = 0;
+
+	for (i = 0; i < adsp->reg_cnt; i++) {
+		regulator_set_voltage(adsp->regs[i].reg, adsp->regs[i].uV, INT_MAX);
+		regulator_set_load(adsp->regs[i].reg, adsp->regs[i].uA);
+		rc = regulator_enable(adsp->regs[i].reg);
+		if (rc) {
+			dev_err(adsp->dev, "Regulator enable failed(rc:%d)\n",
+				rc);
+			goto err_enable;
+		}
+	}
+	return rc;
+
+err_enable:
+	disable_regulators(adsp);
+	return rc;
+}
 static int adsp_pds_enable(struct qcom_adsp *adsp, struct device **pds,
 			   size_t pd_count)
 {
@@ -359,6 +391,10 @@ static int adsp_start(struct rproc *rproc)
 			goto disable_cx_supply;
 	}
 
+	ret = enable_regulators(adsp);
+	if (ret)
+		goto disable_px_supply;
+
 	if (adsp->dtb_pas_id) {
 		ret = qcom_scm_pas_auth_and_reset(adsp->dtb_pas_id);
 		if (ret) {
@@ -434,6 +470,7 @@ static void qcom_pas_handover(struct qcom_q6v5 *q6v5)
 		regulator_disable(adsp->px_supply);
 	if (adsp->cx_supply)
 		regulator_disable(adsp->cx_supply);
+	disable_regulators(adsp);
 	clk_disable_unprepare(adsp->aggre2_clk);
 	clk_disable_unprepare(adsp->xo);
 	adsp_pds_disable(adsp, adsp->proxy_pds, adsp->proxy_pd_count);
@@ -536,25 +573,54 @@ static int adsp_init_clock(struct qcom_adsp *adsp)
 
 static int adsp_init_regulator(struct qcom_adsp *adsp)
 {
-	adsp->cx_supply = devm_regulator_get_optional(adsp->dev, "cx");
-	if (IS_ERR(adsp->cx_supply)) {
-		if (PTR_ERR(adsp->cx_supply) == -ENODEV)
-			adsp->cx_supply = NULL;
-		else
-			return PTR_ERR(adsp->cx_supply);
+	int len;
+	int i, rc;
+	char uv_ua[50];
+	u32 uv_ua_vals[2];
+	const char *reg_name;
+
+	adsp->reg_cnt = of_property_count_strings(adsp->dev->of_node,
+						  "reg-names");
+	if (adsp->reg_cnt <= 0) {
+		dev_err(adsp->dev, "No regulators added!\n");
+		return 0;
 	}
 
-	if (adsp->cx_supply)
-		regulator_set_load(adsp->cx_supply, 100000);
+	adsp->regs = devm_kzalloc(adsp->dev,
+				  sizeof(struct reg_info) * adsp->reg_cnt,
+				  GFP_KERNEL);
+	if (!adsp->regs)
+		return -ENOMEM;
 
-	adsp->px_supply = devm_regulator_get_optional(adsp->dev, "px");
-	if (IS_ERR(adsp->px_supply)) {
-		if (PTR_ERR(adsp->px_supply) == -ENODEV)
-			adsp->px_supply = NULL;
-		else
-			return PTR_ERR(adsp->px_supply);
+	for (i = 0; i < adsp->reg_cnt; i++) {
+		of_property_read_string_index(adsp->dev->of_node, "reg-names",
+					      i, &reg_name);
+
+		adsp->regs[i].reg = devm_regulator_get(adsp->dev, reg_name);
+		if (IS_ERR(adsp->regs[i].reg)) {
+			dev_err(adsp->dev, "failed to get %s reg\n", reg_name);
+			return PTR_ERR(adsp->regs[i].reg);
+		}
+
+		/* Read current(uA) and voltage(uV) value */
+		snprintf(uv_ua, sizeof(uv_ua), "%s-uV-uA", reg_name);
+		if (!of_find_property(adsp->dev->of_node, uv_ua, &len))
+			continue;
+
+		rc = of_property_read_u32_array(adsp->dev->of_node, uv_ua,
+						uv_ua_vals,
+						ARRAY_SIZE(uv_ua_vals));
+		if (rc) {
+			dev_err(adsp->dev, "Failed to read uVuA value(rc:%d)\n",
+				rc);
+			return rc;
+		}
+
+		if (uv_ua_vals[0] > 0)
+			adsp->regs[i].uV = uv_ua_vals[0];
+		if (uv_ua_vals[1] > 0)
+			adsp->regs[i].uA = uv_ua_vals[1];
 	}
-
 	return 0;
 }
 
