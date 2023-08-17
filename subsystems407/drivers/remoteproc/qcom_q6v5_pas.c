@@ -662,9 +662,9 @@ static int setup_mpss_dsm_mem(struct platform_device *pdev)
 	struct device_node *node;
 	struct resource res;
 	phys_addr_t mem_phys;
-	int curr_perm;
+	u64 curr_perm;
 	u64 mem_size;
-	int ret;
+	u64 ret;
 
 	newvm[0].vmid = QCOM_SCM_VMID_MSS_MSA;
 	newvm[0].perm = QCOM_SCM_PERM_RW;
@@ -700,9 +700,9 @@ static int setup_global_sync_mem(struct platform_device *pdev)
 	struct device_node *node;
 	struct resource res;
 	phys_addr_t mem_phys;
-	int curr_perm;
+	u64 curr_perm;
 	u64 mem_size;
-	int ret;
+	u64 ret;
 
 	curr_perm = BIT(QCOM_SCM_VMID_HLOS);
 	newvm[0].vmid = QCOM_SCM_VMID_HLOS;
