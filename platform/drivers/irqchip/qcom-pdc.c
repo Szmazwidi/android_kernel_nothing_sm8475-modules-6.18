@@ -22,7 +22,7 @@
 #include <linux/slab.h>
 #include <linux/types.h>
 
-#include <linux/qcom_scm.h>
+#include <linux/firmware/qcom/qcom_scm.h>
 #if IS_ENABLED(CONFIG_IPC_LOGGING)
 #include <linux/ipc_logging.h>
 #endif
