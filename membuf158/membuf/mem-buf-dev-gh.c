@@ -233,7 +233,7 @@ int mem_buf_map_mem_s2(u32 op, gh_memparcel_handle_t *__memparcel_hdl,
 				    flags, 0, acl_desc, *__sgl_desc,
 				    NULL, 0);
 	if (IS_ERR(sgl_desc)) {
-		pr_err("%s failed to map memory in stage 2 rc: %d\n", __func__,
+		pr_err("%s failed to map memory in stage 2 rc: %ld\n", __func__,
 		       PTR_ERR(sgl_desc));
 		return PTR_ERR(sgl_desc);
 	}
@@ -278,7 +278,7 @@ int mem_buf_unmap_mem_s2(gh_memparcel_handle_t memparcel_hdl)
 	ret = gh_rm_mem_release(memparcel_hdl, 0);
 
 	if (ret < 0)
-		pr_err("%s: Failed to release memparcel hdl: 0x%lx rc: %d\n",
+		pr_err("%s: Failed to release memparcel hdl: 0x%x rc: %d\n",
 		       __func__, memparcel_hdl, ret);
 	else
 		pr_debug("%s: CPU MMU stage 2 mappings removed\n", __func__);

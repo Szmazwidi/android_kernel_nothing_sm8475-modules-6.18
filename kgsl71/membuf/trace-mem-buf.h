@@ -124,7 +124,7 @@ DECLARE_EVENT_CLASS(alloc_req_msg_class,
 				     __get_dynamic_array(perms));
 	),
 
-	TP_printk("txn_id: %d msg_type: %s alloc_sz: 0x%lx src_mem_type: %s nr ACL entries: %d ACL VMIDs: %s ACL Perms: %s",
+	TP_printk("txn_id: %d msg_type: %s alloc_sz: 0x%llx src_mem_type: %s nr ACL entries: %d ACL VMIDs: %s ACL Perms: %s",
 		  __entry->txn_id, __get_str(msg_type), __entry->size,
 		  __get_str(src_type), __entry->nr_acl_entries,
 		  __print_array(__get_dynamic_array(vmids),

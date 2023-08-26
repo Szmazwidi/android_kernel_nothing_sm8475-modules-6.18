@@ -472,7 +472,7 @@ void *mem_buf_msgq_register(const char *msgq_name, struct mem_buf_msgq_hdlr_info
 	desc->msgq_hdl = gh_msgq_register(label);
 	if (IS_ERR(desc->msgq_hdl)) {
 		ret = desc->msgq_hdl;
-		pr_err("Message queue registration failed: rc: %d\n", PTR_ERR(desc->msgq_hdl));
+		pr_err("Message queue registration failed: rc: %ld\n", PTR_ERR(desc->msgq_hdl));
 		goto err_msgq_register;
 	}
 
@@ -483,7 +483,7 @@ void *mem_buf_msgq_register(const char *msgq_name, struct mem_buf_msgq_hdlr_info
 	desc->recv_thr = kthread_run(mem_buf_msgq_recv_fn, desc, "mem_buf_%s_rcvr", msgq_name);
 	if (IS_ERR(desc->recv_thr)) {
 		ret = desc->recv_thr;
-		pr_err("Failed to create msgq receiver thread rc: %d\n", PTR_ERR(desc->recv_thr));
+		pr_err("Failed to create msgq receiver thread rc: %ld\n", PTR_ERR(desc->recv_thr));
 		goto err_thr_create;
 	}
 
