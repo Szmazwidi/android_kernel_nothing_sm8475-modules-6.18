@@ -7,7 +7,7 @@
 #include <linux/slab.h>
 #include <soc/qcom/secure_buffer.h>
 #include <linux/qcom_dma_heap.h>
-#include <linux/qcom_scm.h>
+#include <linux/firmware/qcom/qcom_scm.h>
 
 int get_secure_vmid(unsigned long flags)
 {
@@ -256,7 +256,7 @@ int hyp_assign_from_flags(u64 base, u64 size, unsigned long flags)
 {
 	int *vmids, *modes;
 	u32 nr;
-	unsigned int src_vm = BIT(QCOM_SCM_VMID_HLOS);
+	u64 src_vm = BIT(QCOM_SCM_VMID_HLOS);
 	struct qcom_scm_vmperm *newvm;
 	int ret;
 	int i;

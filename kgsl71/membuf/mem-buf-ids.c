@@ -304,7 +304,7 @@ int mem_buf_vm_init(struct device *dev)
 	if (ret)
 		return ret;
 
-	mem_buf_vm_class = class_create(THIS_MODULE, DEVNAME);
+	mem_buf_vm_class = class_create(DEVNAME);
 	if (IS_ERR(mem_buf_vm_class)) {
 		ret = PTR_ERR(mem_buf_vm_class);
 		goto err_class_create;

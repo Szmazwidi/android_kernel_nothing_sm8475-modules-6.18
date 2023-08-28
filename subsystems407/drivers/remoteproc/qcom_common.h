@@ -15,6 +15,7 @@ static const char * const subdevice_state_string[] = {
 	[QCOM_SSR_AFTER_SHUTDOWN]	= "after_shutdown",
 };
 
+struct qcom_glink_smem;
 struct qcom_sysmon;
 
 struct qcom_rproc_glink {
@@ -24,7 +25,7 @@ struct qcom_rproc_glink {
 
 	struct device *dev;
 	struct device_node *node;
-	struct qcom_glink *edge;
+	struct qcom_glink_smem *edge;
 
 	struct notifier_block nb;
 	void *notifier_handle;

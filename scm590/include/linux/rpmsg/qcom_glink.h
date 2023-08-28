@@ -5,7 +5,7 @@
 
 #include <linux/device.h>
 
-struct qcom_glink;
+struct qcom_glink_smem;
 
 #if IS_ENABLED(CONFIG_RPMSG_QCOM_GLINK)
 void qcom_glink_ssr_notify(const char *ssr_name);
@@ -15,25 +15,25 @@ static inline void qcom_glink_ssr_notify(const char *ssr_name) {}
 
 #if IS_ENABLED(CONFIG_RPMSG_QCOM_GLINK_SMEM)
 
-struct qcom_glink *qcom_glink_smem_register(struct device *parent,
-					    struct device_node *node);
-void qcom_glink_smem_unregister(struct qcom_glink *glink);
-int qcom_glink_smem_start(struct qcom_glink *glink);
+struct qcom_glink_smem *qcom_glink_smem_register(struct device *parent,
+						 struct device_node *node);
+void qcom_glink_smem_unregister(struct qcom_glink_smem *glink);
+int qcom_glink_smem_start(struct qcom_glink_smem *glink);
 void qcom_glink_early_ssr_notify(void *data);
 
 #else
 
-static inline struct qcom_glink *
+static inline struct qcom_glink_smem *
 qcom_glink_smem_register(struct device *parent,
 			 struct device_node *node)
 {
 	return NULL;
 }
 
-static inline void qcom_glink_smem_unregister(struct qcom_glink *glink) {}
+static inline void qcom_glink_smem_unregister(struct qcom_glink_smem *glink) {}
 static inline void qcom_glink_early_ssr_notify(void *data) {}
 
-int qcom_glink_smem_start(struct qcom_glink *glink)
+int qcom_glink_smem_start(struct qcom_glink_smem *glink)
 {
 	return -ENXIO;
 }

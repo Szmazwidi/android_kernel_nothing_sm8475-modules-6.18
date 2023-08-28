@@ -459,9 +459,10 @@ int qcom_icc_rpmh_probe(struct platform_device *pdev)
 	provider->pre_aggregate = qcom_icc_pre_aggregate_stub;
 	provider->aggregate = qcom_icc_aggregate_stub;
 	provider->xlate_extended = qcom_icc_xlate_extended;
-	INIT_LIST_HEAD(&provider->nodes);
 	provider->data = data;
 	provider->get_bw = qcom_icc_get_bw_stub;
+
+	icc_provider_init(provider);
 
 	qp->dev = dev;
 	qp->bcms = desc->bcms;
@@ -495,10 +496,6 @@ int qcom_icc_rpmh_probe(struct platform_device *pdev)
 	if (IS_ERR(qp->regmap))
 		return PTR_ERR(qp->regmap);
 
-	ret = icc_provider_add(provider);
-	if (ret)
-		return ret;
-
 	qp->num_clks = devm_clk_bulk_get_all(qp->dev, &qp->clks);
 	if (qp->num_clks < 0)
 		return qp->num_clks;
@@ -516,7 +513,7 @@ int qcom_icc_rpmh_probe(struct platform_device *pdev)
 		node = icc_node_create(qn->id);
 		if (IS_ERR(node)) {
 			ret = PTR_ERR(node);
-			goto err;
+			goto err_remove_nodes;
 		}
 
 		if (qn->clk_name) {
@@ -526,7 +523,7 @@ int qcom_icc_rpmh_probe(struct platform_device *pdev)
 				if (ret != -EPROBE_DEFER)
 					dev_err(qp->dev, "failed to get %s, err:(%d)\n",
 						qn->clk_name, ret);
-				goto err;
+				goto err_remove_nodes;
 			}
 		}
 
@@ -545,14 +542,21 @@ int qcom_icc_rpmh_probe(struct platform_device *pdev)
 	if (!qp->skip_qos) {
 		ret = qcom_icc_rpmh_configure_qos(qp);
 		if (ret)
-			goto err;
+			goto err_remove_nodes;
 	}
+
+	ret = icc_provider_register(provider);
+	if (ret)
+		goto err_remove_nodes;
 
 	platform_set_drvdata(pdev, qp);
 
 	/* Populate child NoC devices if any */
-	if (of_get_child_count(dev->of_node) > 0)
-		return of_platform_populate(dev->of_node, NULL, NULL, dev);
+	if (of_get_child_count(dev->of_node) > 0) {
+		ret = of_platform_populate(dev->of_node, NULL, NULL, dev);
+		if (ret)
+			goto err_deregister_provider;
+	}
 
 	if (!qp->stub) {
 		provider->set = qcom_icc_set;
@@ -567,10 +571,13 @@ int qcom_icc_rpmh_probe(struct platform_device *pdev)
 	mutex_unlock(&probe_list_lock);
 
 	return 0;
-err:
+
+err_deregister_provider:
+	icc_provider_deregister(provider);
+err_remove_nodes:
 	clk_bulk_put_all(qp->num_clks, qp->clks);
 	icc_nodes_remove(provider);
-	icc_provider_del(provider);
+
 	return ret;
 }
 EXPORT_SYMBOL_GPL(qcom_icc_rpmh_probe);
@@ -582,8 +589,8 @@ int qcom_icc_rpmh_remove(struct platform_device *pdev)
 	qcom_icc_debug_unregister(&qp->provider);
 	clk_bulk_put_all(qp->num_clks, qp->clks);
 
+	icc_provider_deregister(&qp->provider);
 	icc_nodes_remove(&qp->provider);
-	icc_provider_del(&qp->provider);
 
 	return 0;
 }

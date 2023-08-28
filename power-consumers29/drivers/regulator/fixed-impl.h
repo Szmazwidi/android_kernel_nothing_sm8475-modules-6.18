@@ -155,7 +155,7 @@ of_get_fixed_voltage_config(struct device *dev,
 	of_property_read_u32(np, "startup-delay-us", &config->startup_delay);
 	of_property_read_u32(np, "off-on-delay-us", &config->off_on_delay);
 
-	if (of_find_property(np, "vin-supply", NULL))
+	if (of_property_present(np, "vin-supply"))
 		config->input_supply = "vin";
 
 	return config;
@@ -237,7 +237,7 @@ static int reg_fixed_voltage_probe(struct platform_device *pdev)
 		drvdata->enable_clock = devm_clk_get(dev, NULL);
 		if (IS_ERR(drvdata->enable_clock)) {
 			dev_err(dev, "Can't get enable-clock from devicetree\n");
-			return -ENOENT;
+			return PTR_ERR(drvdata->enable_clock);
 		}
 	} else if (drvtype && drvtype->has_performance_state) {
 		drvdata->desc.ops = &fixed_voltage_domain_ops;
@@ -371,6 +371,7 @@ static struct platform_driver regulator_fixed_voltage_driver = {
 #else
 		.name		= "reg-fixed-voltage",
 #endif
+		.probe_type	= PROBE_PREFER_ASYNCHRONOUS,
 		.of_match_table = of_match_ptr(fixed_of_match),
 	},
 };
