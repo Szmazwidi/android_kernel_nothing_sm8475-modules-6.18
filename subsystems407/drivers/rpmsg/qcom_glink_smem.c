@@ -360,9 +360,9 @@ err_put_dev:
 }
 EXPORT_SYMBOL_GPL(qcom_glink_smem_register);
 
-int qcom_glink_smem_start(struct qcom_glink *glink)
+int qcom_glink_smem_start(struct qcom_glink_smem *smem)
 {
-	return qcom_glink_native_start(glink);
+	return qcom_glink_native_start(smem->glink);
 }
 EXPORT_SYMBOL(qcom_glink_smem_start);
 
