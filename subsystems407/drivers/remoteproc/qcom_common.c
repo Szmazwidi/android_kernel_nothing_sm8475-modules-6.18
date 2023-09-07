@@ -363,18 +363,11 @@ static int glink_early_ssr_notifier_event(struct notifier_block *this,
 	return NOTIFY_DONE;
 }
 
-static int glink_subdev_prepare(struct rproc_subdev *subdev)
+static int glink_subdev_start(struct rproc_subdev *subdev)
 {
 	struct qcom_rproc_glink *glink = to_glink_subdev(subdev);
 
 	glink->edge = qcom_glink_smem_register(glink->dev, glink->node);
-
-	return PTR_ERR_OR_ZERO(glink->edge);
-}
-
-static int glink_subdev_start(struct rproc_subdev *subdev)
-{
-	struct qcom_rproc_glink *glink = to_glink_subdev(subdev);
 
 	glink->nb.notifier_call = glink_early_ssr_notifier_event;
 
@@ -432,7 +425,6 @@ void qcom_add_glink_subdev(struct rproc *rproc, struct qcom_rproc_glink *glink,
 
 	glink->dev = dev;
 	glink->subdev.start = glink_subdev_start;
-	glink->subdev.prepare = glink_subdev_prepare;
 	glink->subdev.stop = glink_subdev_stop;
 	glink->subdev.unprepare = glink_subdev_unprepare;
 
