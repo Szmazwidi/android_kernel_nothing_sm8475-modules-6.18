@@ -1657,42 +1657,8 @@ static void qcom_glink_work(struct work_struct *work)
 	}
 }
 
-static void qcom_glink_set_affinity(struct qcom_glink *glink, u32 *arr,
-				    size_t size)
-{
-	int i;
-
-	cpumask_clear(&glink->cpu_mask);
-	for (i = 0; i < size; i++) {
-		if (arr[i] < num_possible_cpus())
-			cpumask_set_cpu(arr[i], &glink->cpu_mask);
-	}
-	if (irq_set_affinity_hint(glink->irq, &glink->cpu_mask))
-		dev_err(glink->dev, "failed to set irq affinity\n");
-	if (set_cpus_allowed_ptr(glink->task, &glink->cpu_mask))
-		dev_err(glink->dev, "failed to set task affinity\n");
-}
-
 void qcom_glink_early_ssr_notify(void *data)
 {
-	struct qcom_glink *glink = data;
-	struct glink_channel *channel;
-	unsigned long flags;
-	int cid;
-
-	if (!glink)
-		return;
-	atomic_inc(&glink->in_reset);
-
-	/* To wakeup any blocking writers */
-	wake_up_all(&glink->tx_avail_notify);
-
-	spin_lock_irqsave(&glink->idr_lock, flags);
-	idr_for_each_entry(&glink->lcids, channel, cid) {
-		wake_up(&channel->intent_req_ack);
-		wake_up(&channel->intent_req_comp);
-	}
-	spin_unlock_irqrestore(&glink->idr_lock, flags);
 }
 EXPORT_SYMBOL(qcom_glink_early_ssr_notify);
 
@@ -1799,21 +1765,6 @@ struct qcom_glink *qcom_glink_native_probe(struct device *dev,
 	if (ret)
 		dev_err(dev, "failed to add groups\n");
 
-	size = of_property_count_u32_elems(dev->of_node, "cpu-affinity");
-	if (size > 0) {
-		arr = kmalloc_array(size, sizeof(u32), GFP_KERNEL);
-		if (!arr) {
-			ret = -ENOMEM;
-			return ERR_PTR(ret);
-		}
-		ret = of_property_read_u32_array(dev->of_node, "cpu-affinity",
-						 arr, size);
-		if (!ret)
-			qcom_glink_set_affinity(glink, arr, size);
-		kfree(arr);
-	}
-	glink->ilc = ipc_log_context_create(GLINK_LOG_PAGE_CNT, glink->name, 0);
-
 	return glink;
 }
 EXPORT_SYMBOL(qcom_glink_native_probe);
@@ -1879,9 +1830,6 @@ void qcom_glink_native_remove(struct qcom_glink *glink)
 
 	idr_destroy(&glink->lcids);
 	idr_destroy(&glink->rcids);
-
-	kthread_flush_worker(&glink->kworker);
-	kthread_stop(glink->task);
 }
 EXPORT_SYMBOL_GPL(qcom_glink_native_remove);
 
