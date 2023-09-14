@@ -36,8 +36,7 @@
 
 #define ADSP_DECRYPT_SHUTDOWN_DELAY_MS	100
 
-static bool global_sync_mem_setup;
-static bool mpss_dsm_mem_setup;
+#define MAX_ASSIGN_COUNT 2
 
 struct adsp_data {
 	int crash_reason_smem;
@@ -60,6 +59,9 @@ struct adsp_data {
 	int ssctl_id;
 
 	int region_assign_idx;
+	int region_assign_count;
+	bool region_assign_shared;
+	int region_assign_vmid;
 };
 
 struct qcom_adsp {
@@ -98,15 +100,19 @@ struct qcom_adsp {
 	phys_addr_t dtb_mem_phys;
 	phys_addr_t mem_reloc;
 	phys_addr_t dtb_mem_reloc;
-	phys_addr_t region_assign_phys;
+	phys_addr_t region_assign_phys[MAX_ASSIGN_COUNT];
 	void *mem_region;
 	void *dtb_mem_region;
 	size_t mem_size;
 	size_t dtb_mem_size;
-	size_t region_assign_size;
+
+	size_t region_assign_size[MAX_ASSIGN_COUNT];
 
 	int region_assign_idx;
-	u64 region_assign_perms;
+	int region_assign_count;
+	bool region_assign_shared;
+	int region_assign_vmid;
+	u64 region_assign_perms[MAX_ASSIGN_COUNT];
 
 	struct qcom_rproc_glink glink_subdev;
 	struct qcom_rproc_subdev smd_subdev;
@@ -656,118 +662,54 @@ static int adsp_alloc_memory_region(struct qcom_adsp *adsp)
 	return 0;
 }
 
-static int setup_mpss_dsm_mem(struct platform_device *pdev)
-{
-	struct qcom_scm_vmperm newvm[1];
-	struct device_node *node;
-	struct resource res;
-	phys_addr_t mem_phys;
-	u64 curr_perm;
-	u64 mem_size;
-	u64 ret;
-
-	newvm[0].vmid = QCOM_SCM_VMID_MSS_MSA;
-	newvm[0].perm = QCOM_SCM_PERM_RW;
-	curr_perm = BIT(QCOM_SCM_VMID_HLOS);
-
-	node = of_parse_phandle(pdev->dev.of_node, "mpss_dsm_mem_reg", 0);
-	if (!node) {
-		dev_err(&pdev->dev, "mpss dsm mem region is missing\n");
-		return -EINVAL;
-	}
-
-	ret = of_address_to_resource(node, 0, &res);
-	if (ret) {
-		dev_err(&pdev->dev, "address to resource failed for mpss dsm mem\n");
-		return ret;
-	}
-
-	mem_phys = res.start;
-	mem_size = resource_size(&res);
-	ret = qcom_scm_assign_mem(mem_phys, mem_size, &curr_perm, newvm, 1);
-	if (ret) {
-		dev_err(&pdev->dev, "hyp assign for mpss dsm mem failed\n");
-		return ret;
-	}
-
-	mpss_dsm_mem_setup = true;
-	return 0;
-}
-
-static int setup_global_sync_mem(struct platform_device *pdev)
-{
-	struct qcom_scm_vmperm newvm[2];
-	struct device_node *node;
-	struct resource res;
-	phys_addr_t mem_phys;
-	u64 curr_perm;
-	u64 mem_size;
-	u64 ret;
-
-	curr_perm = BIT(QCOM_SCM_VMID_HLOS);
-	newvm[0].vmid = QCOM_SCM_VMID_HLOS;
-	newvm[0].perm = QCOM_SCM_PERM_RW;
-	newvm[1].vmid = QCOM_SCM_VMID_CDSP;
-	newvm[1].perm = QCOM_SCM_PERM_RW;
-
-	node = of_parse_phandle(pdev->dev.of_node, "global-sync-mem-reg", 0);
-	if (!node) {
-		dev_err(&pdev->dev, "global sync mem region is missing\n");
-		return -EINVAL;
-	}
-
-	ret = of_address_to_resource(node, 0, &res);
-	if (ret) {
-		dev_err(&pdev->dev, "address to resource failed for global sync mem\n");
-		return ret;
-	}
-
-	mem_phys = res.start;
-	mem_size = resource_size(&res);
-	ret = qcom_scm_assign_mem(mem_phys, mem_size, &curr_perm, newvm, ARRAY_SIZE(newvm));
-	if (ret) {
-		dev_err(&pdev->dev, "hyp assign for global sync mem failed\n");
-		return ret;
-	}
-
-	global_sync_mem_setup = true;
-	return 0;
-}
-
 static int adsp_assign_memory_region(struct qcom_adsp *adsp)
 {
-	struct qcom_scm_vmperm perm;
+	struct qcom_scm_vmperm perm[2];
+	unsigned int perm_size = 1;
 	struct device_node *node;
 	struct resource r;
-	int ret;
+	int offset, ret;
 
 	if (!adsp->region_assign_idx)
 		return 0;
 
-	node = of_parse_phandle(adsp->dev->of_node, "memory-region", adsp->region_assign_idx);
-	if (!node) {
-		dev_err(adsp->dev, "missing shareable memory-region\n");
-		return -EINVAL;
-	}
+	for (offset = 0; offset < adsp->region_assign_count; ++offset) {
+		node = of_parse_phandle(adsp->dev->of_node, "memory-region",
+					adsp->region_assign_idx + offset);
+		if (!node) {
+			dev_err(adsp->dev, "missing shareable memory-region %d\n", offset);
+			return -EINVAL;
+		}
 
-	ret = of_address_to_resource(node, 0, &r);
-	if (ret)
-		return ret;
+		ret = of_address_to_resource(node, 0, &r);
+		if (ret)
+			return ret;
 
-	perm.vmid = QCOM_SCM_VMID_MSS_MSA;
-	perm.perm = QCOM_SCM_PERM_RW;
 
-	adsp->region_assign_phys = r.start;
-	adsp->region_assign_size = resource_size(&r);
-	adsp->region_assign_perms = BIT(QCOM_SCM_VMID_HLOS);
+		if (adsp->region_assign_shared)  {
+			perm[0].vmid = QCOM_SCM_VMID_HLOS;
+			perm[0].perm = QCOM_SCM_PERM_RW;
+			perm[1].vmid = adsp->region_assign_vmid;
+			perm[1].perm = QCOM_SCM_PERM_RW;
+			perm_size = 2;
+		} else {
+			perm[0].vmid = adsp->region_assign_vmid;
+			perm[0].perm = QCOM_SCM_PERM_RW;
+			perm_size = 1;
+		}
 
-	ret = qcom_scm_assign_mem(adsp->region_assign_phys,
-				  adsp->region_assign_size,
-				  &adsp->region_assign_perms,
-				  &perm, 1);
-	if (ret < 0) {
-		dev_err(adsp->dev, "assign memory failed\n");
-		return ret;
+		adsp->region_assign_phys[offset] = r.start;
+		adsp->region_assign_size[offset] = resource_size(&r);
+		adsp->region_assign_perms[offset] = BIT(QCOM_SCM_VMID_HLOS);
+
+		ret = qcom_scm_assign_mem(adsp->region_assign_phys[offset],
+					  adsp->region_assign_size[offset],
+					  &adsp->region_assign_perms[offset],
+					  perm, perm_size);
+		if (ret < 0) {
+			dev_err(adsp->dev, "assign memory %d failed\n", offset);
+			return ret;
+		}
 	}
 
 	return 0;
@@ -776,20 +718,22 @@ static int adsp_assign_memory_region(struct qcom_adsp *adsp)
 static void adsp_unassign_memory_region(struct qcom_adsp *adsp)
 {
 	struct qcom_scm_vmperm perm;
-	int ret;
+	int offset, ret;
 
-	if (!adsp->region_assign_idx)
+	if (!adsp->region_assign_idx || adsp->region_assign_shared)
 		return;
 
-	perm.vmid = QCOM_SCM_VMID_HLOS;
-	perm.perm = QCOM_SCM_PERM_RW;
+	for (offset = 0; offset < adsp->region_assign_count; ++offset) {
+		perm.vmid = QCOM_SCM_VMID_HLOS;
+		perm.perm = QCOM_SCM_PERM_RW;
 
-	ret = qcom_scm_assign_mem(adsp->region_assign_phys,
-				  adsp->region_assign_size,
-				  &adsp->region_assign_perms,
-				  &perm, 1);
-	if (ret < 0)
-		dev_err(adsp->dev, "unassign memory failed\n");
+		ret = qcom_scm_assign_mem(adsp->region_assign_phys[offset],
+					  adsp->region_assign_size[offset],
+					  &adsp->region_assign_perms[offset],
+					  &perm, 1);
+		if (ret < 0)
+			dev_err(adsp->dev, "unassign memory failed\n");
+	}
 }
 
 static int adsp_probe(struct platform_device *pdev)
@@ -814,24 +758,6 @@ static int adsp_probe(struct platform_device *pdev)
 				      &fw_name);
 	if (ret < 0 && ret != -EINVAL)
 		return ret;
-
-	if (desc->hyp_assign_mem && !mpss_dsm_mem_setup &&
-			!strcmp(fw_name, "modem.mdt")) {
-		ret = setup_mpss_dsm_mem(pdev);
-		if (ret) {
-			dev_err(&pdev->dev, "failed to setup mpss dsm mem\n");
-			return -EINVAL;
-		}
-	}
-
-	if (desc->hyp_assign_mem && !global_sync_mem_setup &&
-			!strcmp(fw_name, "cdsp.mdt")) {
-		ret = setup_global_sync_mem(pdev);
-		if (ret) {
-			dev_err(&pdev->dev, "failed to setup global sync mem\n");
-			return -EINVAL;
-		}
-	}
 
 	if (desc->dtb_firmware_name) {
 		dtb_fw_name = desc->dtb_firmware_name;
@@ -866,6 +792,9 @@ static int adsp_probe(struct platform_device *pdev)
 	adsp->decrypt_shutdown = desc->decrypt_shutdown;
 	adsp->both_dumps = desc->both_dumps;
 	adsp->region_assign_idx = desc->region_assign_idx;
+	adsp->region_assign_count = min_t(int, MAX_ASSIGN_COUNT, desc->region_assign_count);
+	adsp->region_assign_vmid = desc->region_assign_vmid;
+	adsp->region_assign_shared = desc->region_assign_shared;
 	if (dtb_fw_name) {
 		adsp->dtb_firmware_name = dtb_fw_name;
 		adsp->dtb_pas_id = desc->dtb_pas_id;
