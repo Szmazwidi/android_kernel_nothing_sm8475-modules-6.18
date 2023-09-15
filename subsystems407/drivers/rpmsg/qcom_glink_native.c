@@ -19,6 +19,7 @@
 #include <linux/wait.h>
 #include <linux/workqueue.h>
 #include <linux/mailbox_client.h>
+#include <linux/suspend.h>
 
 #include "rpmsg_internal.h"
 #include "qcom_glink_native.h"
@@ -28,6 +29,9 @@
 
 #define RPM_GLINK_CID_MIN	1
 #define RPM_GLINK_CID_MAX	65536
+
+static bool should_wake;
+static int glink_resume_pkt;
 
 struct glink_msg {
 	__le16 cmd;
@@ -875,6 +879,18 @@ static int qcom_glink_rx_defer(struct qcom_glink *glink, size_t extra)
 	return 0;
 }
 
+bool qcom_glink_is_wakeup(bool reset)
+{
+	if (!glink_resume_pkt)
+		return false;
+
+	if (reset)
+		glink_resume_pkt = false;
+
+	return true;
+}
+EXPORT_SYMBOL_GPL(qcom_glink_is_wakeup);
+
 static int qcom_glink_rx_data(struct qcom_glink *glink, size_t avail)
 {
 	struct glink_core_rx_intent *intent;
@@ -976,6 +992,11 @@ static int qcom_glink_rx_data(struct qcom_glink *glink, size_t avail)
 					RPMSG_ADDR_ANY);
 		}
 		spin_unlock(&channel->recv_lock);
+
+		if (qcom_glink_is_wakeup(true))
+			pr_info("%s[%d:%d] %s: wakeup packet size:%d\n",
+				channel->name, channel->lcid, channel->rcid,
+				__func__, intent->offset);
 
 		intent->offset = 0;
 		channel->buf = NULL;
@@ -1081,6 +1102,12 @@ void qcom_glink_native_rx(struct qcom_glink *glink)
 	unsigned int cmd;
 	int ret = 0;
 
+	if (should_wake) {
+		dev_dbg(glink->dev, "%s: wakeup\n", __func__);
+		glink_resume_pkt = true;
+		should_wake = false;
+		pm_system_wakeup();
+	}
 	/* To wakeup any blocking writers */
 	wake_up_all(&glink->tx_avail_notify);
 
@@ -1900,6 +1927,26 @@ void qcom_glink_native_remove(struct qcom_glink *glink)
 	idr_destroy(&glink->rcids);
 }
 EXPORT_SYMBOL_GPL(qcom_glink_native_remove);
+
+static int qcom_glink_suspend_no_irq(struct device *dev)
+{
+	should_wake = true;
+
+	return 0;
+}
+
+static int qcom_glink_resume_no_irq(struct device *dev)
+{
+	should_wake = false;
+
+	return 0;
+}
+
+const struct dev_pm_ops glink_native_pm_ops = {
+	.suspend_noirq = qcom_glink_suspend_no_irq,
+	.resume_noirq = qcom_glink_resume_no_irq,
+};
+EXPORT_SYMBOL_GPL(glink_native_pm_ops);
 
 MODULE_DESCRIPTION("Qualcomm GLINK driver");
 MODULE_LICENSE("GPL v2");
