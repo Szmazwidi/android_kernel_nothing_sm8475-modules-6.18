@@ -1735,7 +1735,7 @@ static int rpmh_rsc_probe(struct platform_device *pdev)
 		minor_ver = rsc_id & (MINOR_VER_MASK << MINOR_VER_SHIFT);
 		minor_ver >>= MINOR_VER_SHIFT;
 
-		if (major_ver >= 3 && minor_ver)
+		if (major_ver >= 3)
 			drv[i].regs = rpmh_rsc_reg_offset_ver_3_0;
 		else
 			drv[i].regs = rpmh_rsc_reg_offset_ver_2_7;
