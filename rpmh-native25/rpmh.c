@@ -560,6 +560,60 @@ exit:
 }
 
 /**
+ * rpmh_write_sleep_and_wake: Writes the buffered wake and sleep sets to TCSes
+ *
+ * @dev: The device making the request
+ *
+ * Return:
+ * * 0          - Success
+ * * Error code - Otherwise
+ */
+int rpmh_write_sleep_and_wake(const struct device *dev)
+{
+	struct rpmh_ctrlr *ctrlr = get_rpmh_ctrlr(dev);
+	int ch, ret;
+
+	ch = rpmh_rsc_get_channel(ctrlr_to_drv(ctrlr));
+	if (ch < 0)
+		return ch;
+
+	ret = rpmh_flush(ctrlr, ch);
+	if (ret || !(ctrlr->flags & HW_CHANNEL_PRESENT))
+		return ret;
+
+	return rpmh_rsc_switch_channel(ctrlr_to_drv(ctrlr), ch);
+}
+EXPORT_SYMBOL_GPL(rpmh_write_sleep_and_wake);
+
+/**
+ * rpmh_write_sleep_and_wake_no_child: Writes the buffered wake and sleep sets to TCSes
+ *
+ * Used when the client calling this is not a child device of RSC device.
+ * Use it only after getting the device using rpmh_get_device().
+ * @dev: The device making the request
+ *
+ * Return:
+ * * 0          - Success
+ * * Error code - Otherwise
+ */
+int rpmh_write_sleep_and_wake_no_child(const struct device *dev)
+{
+	struct rpmh_ctrlr *ctrlr = get_rpmh_ctrlr_no_child(dev);
+	int ch, ret;
+
+	ch = rpmh_rsc_get_channel(ctrlr_to_drv(ctrlr));
+	if (ch < 0)
+		return ch;
+
+	ret = rpmh_flush(ctrlr, ch);
+	if (ret || !(ctrlr->flags & HW_CHANNEL_PRESENT))
+		return ret;
+
+	return rpmh_rsc_switch_channel(ctrlr_to_drv(ctrlr), ch);
+}
+EXPORT_SYMBOL_GPL(rpmh_write_sleep_and_wake_no_child);
+
+/**
  * rpmh_invalidate: Invalidate sleep and wake sets in batch_cache
  *
  * @dev: The device making the request
