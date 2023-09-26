@@ -1387,7 +1387,7 @@ static u32 msm_pcie_reg_copy(struct msm_pcie_dev_t *dev,
 	u32 seq_len = 0;
 	void __iomem *base;
 
-	PCIE_DUMP(dev, "RC%d buf=0x%x size=%u, reg_len=%u\n",
+	PCIE_DUMP(dev, "RC%d buf=%p size=%u, reg_len=%u\n",
 		dev->rc_idx, buf, size, reg_len);
 	if (type == MSM_PCIE_DUMP_PARF_REG) {
 		seq = dev->parf_debug_reg;
@@ -1441,7 +1441,7 @@ int msm_pcie_reg_dump(struct pci_dev *pci_dev, u8 *buff, u32 len)
 		return -ENODEV;
 	}
 
-	PCIE_DUMP(pcie_dev, "RC%d hang event dump buff=0x%x len=%u\n",
+	PCIE_DUMP(pcie_dev, "RC%d hang event dump buff=%p len=%u\n",
 		pcie_dev->rc_idx, buff, len);
 
 	if (pcie_dev->link_status == MSM_PCIE_LINK_DOWN) {
@@ -5011,7 +5011,7 @@ static int msm_pcie_get_phy_status_reg(struct msm_pcie_dev_t *pcie_dev)
 	}
 
 	PCIE_DBG(pcie_dev,
-			"PCIe: RC%d: no of phy dbg regs:%u size:%u\n",
+			"PCIe: RC%d: no of phy dbg regs:%lu size:%u\n",
 			pcie_dev->rc_idx, size/sizeof(u32), size);
 	return 0;
 }
@@ -5050,7 +5050,7 @@ static int msm_pcie_get_parf_status_reg(struct msm_pcie_dev_t *pcie_dev)
 	}
 
 	PCIE_DBG(pcie_dev,
-			"PCIe: RC%d: no of parf dbg regs:%u size:%u\n",
+			"PCIe: RC%d: no of parf dbg regs:%lu size:%u\n",
 			pcie_dev->rc_idx, size/sizeof(u32), size);
 	return 0;
 }
@@ -5089,7 +5089,7 @@ static int msm_pcie_get_dbi_status_reg(struct msm_pcie_dev_t *pcie_dev)
 	}
 
 	PCIE_DBG(pcie_dev,
-			"PCIe: RC%d: no of dbi dbg regs:%u size:%u\n",
+			"PCIe: RC%d: no of dbi dbg regs:%lu size:%u\n",
 			pcie_dev->rc_idx, size/sizeof(u32), size);
 	return 0;
 }
