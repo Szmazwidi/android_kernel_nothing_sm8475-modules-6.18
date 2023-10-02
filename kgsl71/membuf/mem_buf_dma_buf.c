@@ -154,7 +154,7 @@ struct mem_buf_vmperm *mem_buf_vmperm_alloc_accept(struct sg_table *sgt,
 	vmperm->memparcel_hdl = memparcel_hdl;
 	return vmperm;
 }
-EXPORT_SYMBOL(mem_buf_vmperm_alloc_accept);
+EXPORT_SYMBOL_GPL(mem_buf_vmperm_alloc_accept);
 
 struct mem_buf_vmperm *mem_buf_vmperm_alloc_staticvm(struct sg_table *sgt,
 	int *vmids, int *perms, u32 nr_acl_entries)
@@ -163,7 +163,7 @@ struct mem_buf_vmperm *mem_buf_vmperm_alloc_staticvm(struct sg_table *sgt,
 		MEM_BUF_WRAPPER_FLAG_STATIC_VM,
 		vmids, perms, nr_acl_entries);
 }
-EXPORT_SYMBOL(mem_buf_vmperm_alloc_staticvm);
+EXPORT_SYMBOL_GPL(mem_buf_vmperm_alloc_staticvm);
 
 struct mem_buf_vmperm *mem_buf_vmperm_alloc(struct sg_table *sgt)
 {
@@ -175,7 +175,7 @@ struct mem_buf_vmperm *mem_buf_vmperm_alloc(struct sg_table *sgt)
 	return mem_buf_vmperm_alloc_flags(sgt, 0,
 		vmids, perms, 1);
 }
-EXPORT_SYMBOL(mem_buf_vmperm_alloc);
+EXPORT_SYMBOL_GPL(mem_buf_vmperm_alloc);
 
 static int __mem_buf_vmperm_reclaim(struct mem_buf_vmperm *vmperm,
 				    bool leak_memory_on_reclaim_fail)
@@ -242,7 +242,7 @@ exit:
 	kfree(vmperm);
 	return ret;
 }
-EXPORT_SYMBOL(mem_buf_vmperm_release);
+EXPORT_SYMBOL_GPL(mem_buf_vmperm_release);
 
 int mem_buf_dma_buf_attach(struct dma_buf *dmabuf, struct dma_buf_attachment *attachment)
 {
@@ -251,7 +251,7 @@ int mem_buf_dma_buf_attach(struct dma_buf *dmabuf, struct dma_buf_attachment *at
 	ops  = container_of(dmabuf->ops, struct mem_buf_dma_buf_ops, dma_ops);
 	return ops->attach(dmabuf, attachment);
 }
-EXPORT_SYMBOL(mem_buf_dma_buf_attach);
+EXPORT_SYMBOL_GPL(mem_buf_dma_buf_attach);
 
 struct mem_buf_vmperm *to_mem_buf_vmperm(struct dma_buf *dmabuf)
 {
@@ -263,7 +263,7 @@ struct mem_buf_vmperm *to_mem_buf_vmperm(struct dma_buf *dmabuf)
 	ops = container_of(dmabuf->ops, struct mem_buf_dma_buf_ops, dma_ops);
 	return ops->lookup(dmabuf);
 }
-EXPORT_SYMBOL(to_mem_buf_vmperm);
+EXPORT_SYMBOL_GPL(to_mem_buf_vmperm);
 
 int mem_buf_dma_buf_set_destructor(struct dma_buf *buf,
 				   mem_buf_dma_buf_destructor dtor,
@@ -279,7 +279,7 @@ int mem_buf_dma_buf_set_destructor(struct dma_buf *buf,
 
 	return 0;
 }
-EXPORT_SYMBOL(mem_buf_dma_buf_set_destructor);
+EXPORT_SYMBOL_GPL(mem_buf_dma_buf_set_destructor);
 
 /*
  * With CFI enabled, ops->attach must be set from *this* modules in order
@@ -316,7 +316,7 @@ mem_buf_dma_buf_export(struct dma_buf_export_info *exp_info,
 	vmperm->dmabuf = dmabuf;
 	return dmabuf;
 }
-EXPORT_SYMBOL(mem_buf_dma_buf_export);
+EXPORT_SYMBOL_GPL(mem_buf_dma_buf_export);
 
 void mem_buf_vmperm_pin(struct mem_buf_vmperm *vmperm)
 {
@@ -324,7 +324,7 @@ void mem_buf_vmperm_pin(struct mem_buf_vmperm *vmperm)
 	vmperm->mapcount++;
 	mutex_unlock(&vmperm->lock);
 }
-EXPORT_SYMBOL(mem_buf_vmperm_pin);
+EXPORT_SYMBOL_GPL(mem_buf_vmperm_pin);
 
 void mem_buf_vmperm_unpin(struct mem_buf_vmperm *vmperm)
 {
@@ -333,7 +333,7 @@ void mem_buf_vmperm_unpin(struct mem_buf_vmperm *vmperm)
 		vmperm->mapcount--;
 	mutex_unlock(&vmperm->lock);
 }
-EXPORT_SYMBOL(mem_buf_vmperm_unpin);
+EXPORT_SYMBOL_GPL(mem_buf_vmperm_unpin);
 
 /*
  * DC IVAC requires write permission, so no CMO on read-only buffers.
@@ -351,7 +351,7 @@ bool mem_buf_vmperm_can_cmo(struct mem_buf_vmperm *vmperm)
 	mutex_unlock(&vmperm->lock);
 	return ret;
 }
-EXPORT_SYMBOL(mem_buf_vmperm_can_cmo);
+EXPORT_SYMBOL_GPL(mem_buf_vmperm_can_cmo);
 
 bool mem_buf_vmperm_can_mmap(struct mem_buf_vmperm *vmperm, struct vm_area_struct *vma)
 {
@@ -373,7 +373,7 @@ unlock:
 	mutex_unlock(&vmperm->lock);
 	return ret;
 }
-EXPORT_SYMBOL(mem_buf_vmperm_can_mmap);
+EXPORT_SYMBOL_GPL(mem_buf_vmperm_can_mmap);
 
 bool mem_buf_vmperm_can_vmap(struct mem_buf_vmperm *vmperm)
 {
@@ -386,7 +386,7 @@ bool mem_buf_vmperm_can_vmap(struct mem_buf_vmperm *vmperm)
 	mutex_unlock(&vmperm->lock);
 	return ret;
 }
-EXPORT_SYMBOL(mem_buf_vmperm_can_vmap);
+EXPORT_SYMBOL_GPL(mem_buf_vmperm_can_vmap);
 
 static int validate_lend_vmids(struct mem_buf_lend_kernel_arg *arg,
 				u32 op)
@@ -534,7 +534,7 @@ int mem_buf_lend(struct dma_buf *dmabuf,
 {
 	return mem_buf_lend_internal(dmabuf, arg, GH_RM_TRANS_TYPE_LEND);
 }
-EXPORT_SYMBOL(mem_buf_lend);
+EXPORT_SYMBOL_GPL(mem_buf_lend);
 
 int mem_buf_share(struct dma_buf *dmabuf,
 			struct mem_buf_lend_kernel_arg *arg)
@@ -587,7 +587,7 @@ int mem_buf_share(struct dma_buf *dmabuf,
 	kfree(perms);
 	return ret;
 }
-EXPORT_SYMBOL(mem_buf_share);
+EXPORT_SYMBOL_GPL(mem_buf_share);
 
 int mem_buf_reclaim(struct dma_buf *dmabuf)
 {
@@ -624,7 +624,7 @@ int mem_buf_reclaim(struct dma_buf *dmabuf)
 	mutex_unlock(&vmperm->lock);
 	return ret;
 }
-EXPORT_SYMBOL(mem_buf_reclaim);
+EXPORT_SYMBOL_GPL(mem_buf_reclaim);
 
 bool mem_buf_dma_buf_exclusive_owner(struct dma_buf *dmabuf)
 {
@@ -640,7 +640,7 @@ bool mem_buf_dma_buf_exclusive_owner(struct dma_buf *dmabuf)
 	mutex_unlock(&vmperm->lock);
 	return ret;
 }
-EXPORT_SYMBOL(mem_buf_dma_buf_exclusive_owner);
+EXPORT_SYMBOL_GPL(mem_buf_dma_buf_exclusive_owner);
 
 int mem_buf_dma_buf_get_vmperm(struct dma_buf *dmabuf, const int **vmids,
 		const int **perms, int *nr_acl_entries)
@@ -701,7 +701,7 @@ err_vmids:
 	mutex_unlock(&vmperm->lock);
 	return ret;
 }
-EXPORT_SYMBOL(mem_buf_dma_buf_copy_vmperm);
+EXPORT_SYMBOL_GPL(mem_buf_dma_buf_copy_vmperm);
 
 int mem_buf_dma_buf_get_memparcel_hdl(struct dma_buf *dmabuf,
 				      gh_memparcel_handle_t *memparcel_hdl)
@@ -719,4 +719,4 @@ int mem_buf_dma_buf_get_memparcel_hdl(struct dma_buf *dmabuf,
 
 	return 0;
 }
-EXPORT_SYMBOL(mem_buf_dma_buf_get_memparcel_hdl);
+EXPORT_SYMBOL_GPL(mem_buf_dma_buf_get_memparcel_hdl);

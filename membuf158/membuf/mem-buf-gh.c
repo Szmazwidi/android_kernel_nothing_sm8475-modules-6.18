@@ -1099,7 +1099,7 @@ void mem_buf_free(void *__membuf)
 	kfree(membuf->acl_desc);
 	kfree(membuf);
 }
-EXPORT_SYMBOL(mem_buf_free);
+EXPORT_SYMBOL_GPL(mem_buf_free);
 
 struct gh_sgl_desc *mem_buf_get_sgl(void *__membuf)
 {
@@ -1107,7 +1107,7 @@ struct gh_sgl_desc *mem_buf_get_sgl(void *__membuf)
 
 	return membuf->sgl_desc;
 }
-EXPORT_SYMBOL(mem_buf_get_sgl);
+EXPORT_SYMBOL_GPL(mem_buf_get_sgl);
 
 static void mem_buf_retrieve_release(struct qcom_sg_buffer *buffer)
 {
@@ -1200,7 +1200,7 @@ err_gh_acl:
 	kfree(buffer);
 	return ERR_PTR(ret);
 }
-EXPORT_SYMBOL(mem_buf_retrieve);
+EXPORT_SYMBOL_GPL(mem_buf_retrieve);
 
 static int mem_buf_prep_alloc_data(struct mem_buf_allocation_data *alloc_data,
 				struct mem_buf_alloc_ioctl_arg *allocation_args)
