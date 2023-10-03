@@ -6162,7 +6162,9 @@ int msm_pcie_enumerate(u32 rc_idx)
 	dev->bridge = bridge;
 
 	dev->enumerated = true;
-	schedule_work(&pcie_drv.drv_connect);
+
+	if (dev->drv_supported)
+		schedule_work(&pcie_drv.drv_connect);
 
 	msm_pcie_write_mask(dev->dm_core +
 		PCIE20_COMMAND_STATUS, 0, BIT(2)|BIT(1));
@@ -7686,7 +7688,7 @@ static void msm_pcie_setup_drv_msg(struct msm_pcie_drv_msg *msg, u32 dev_id,
 	pkt->dword[1] = hdr->dev_id;
 }
 
-static int msm_pcie_setup_drv(struct msm_pcie_dev_t *pcie_dev,
+static void msm_pcie_setup_sw_drv(struct msm_pcie_dev_t *pcie_dev,
 			 struct device_node *of_node)
 {
 	struct msm_pcie_drv_info *drv_info;
@@ -7694,7 +7696,7 @@ static int msm_pcie_setup_drv(struct msm_pcie_dev_t *pcie_dev,
 	drv_info = devm_kzalloc(&pcie_dev->pdev->dev, sizeof(*drv_info),
 				GFP_KERNEL);
 	if (!drv_info)
-		return -ENOMEM;
+		goto out;
 
 	drv_info->dev_id = pcie_dev->rc_idx;
 
@@ -7724,7 +7726,12 @@ static int msm_pcie_setup_drv(struct msm_pcie_dev_t *pcie_dev,
 	drv_info->timeout_ms = IPC_TIMEOUT_MS;
 	pcie_dev->drv_info = drv_info;
 
-	return 0;
+	return;
+
+out:
+	pcie_dev->drv_supported = false;
+	PCIE_ERR(pcie_dev, "PCIe: RC%d: setup sw drv failed\n",
+							pcie_dev->rc_idx);
 }
 
 #if IS_ENABLED(CONFIG_IPC_LOGGING)
@@ -8005,7 +8012,7 @@ static void msm_pcie_read_dt(struct msm_pcie_dev_t *pcie_dev, int rc_idx,
 							"qcom,config-recovery");
 	if (pcie_dev->config_recovery) {
 		PCIE_DUMP(pcie_dev,
-			  "PCIe RC%d config space recovery enabled\n",
+			  "RC%d config space recovery enabled\n",
 			  pcie_dev->rc_idx);
 		INIT_WORK(&pcie_dev->link_recover_wq, handle_link_recover);
 	}
@@ -8018,19 +8025,21 @@ static void msm_pcie_read_dt(struct msm_pcie_dev_t *pcie_dev, int rc_idx,
 	if (ret)
 		pcie_dev->l1ss_timeout_us = L1SS_TIMEOUT_US;
 
-	PCIE_DBG(pcie_dev, "PCIe: RC%d: DRV L1ss timeout: %dus\n",
+	PCIE_DBG(pcie_dev, "RC%d: DRV L1ss timeout: %dus\n",
 			pcie_dev->rc_idx, pcie_dev->l1ss_timeout_us);
 
 	ret = of_property_read_string(of_node, "qcom,drv-name",
 				      &pcie_dev->drv_name);
 	if (!ret) {
 		pcie_dev->drv_supported = true;
-		ret = msm_pcie_setup_drv(pcie_dev, of_node);
-		if (ret)
-			PCIE_ERR(pcie_dev,
-				 "PCIe: RC%d: DRV: failed to setup DRV: ret: %d\n",
-				pcie_dev->rc_idx, ret);
+
+		/* Setup drv for sw drv case only (ex: lpass) */
+		if (strcmp(pcie_dev->drv_name, "cesta"))
+			msm_pcie_setup_sw_drv(pcie_dev, of_node);
 	}
+
+	PCIE_DBG(pcie_dev, "RC%d: %s-DRV supported\n", pcie_dev->rc_idx,
+			pcie_dev->drv_name ? pcie_dev->drv_name : "no");
 
 	pcie_dev->panic_genspeed_mismatch = of_property_read_bool(of_node,
 						"qcom,panic-genspeed-mismatch");
@@ -8066,7 +8075,6 @@ static int msm_pcie_cesta_init(struct msm_pcie_dev_t *pcie_dev,
 	msm_pcie_cesta_map_save(pcie_dev->bw_gen_max);
 	INIT_WORK(&pcie_drv.drv_connect,
 			msm_pcie_drv_cesta_connect_worker);
-	pcie_dev->drv_supported = true;
 
 	return 0;
 }
@@ -8166,12 +8174,17 @@ static int msm_pcie_probe(struct platform_device *pdev)
 		if (ret)
 			goto decrease_rc_num;
 
-	} else {
+	}
+
+	/* SW DRV case */
+	if (!pcie_dev->pcie_sm && pcie_dev->drv_supported) {
 		ret = register_rpmsg_driver(&msm_pcie_drv_rpmsg_driver);
-		if (ret && ret != -EBUSY)
+		if (ret && ret != -EBUSY) {
 			PCIE_ERR(pcie_dev,
 				"PCIe %d: DRV: rpmsg register fail: ret: %d\n",
 							pcie_dev->rc_idx, ret);
+			pcie_dev->drv_supported = false;
+		}
 	}
 
 	msm_pcie_get_pinctrl(pcie_dev, pdev);
@@ -9904,6 +9917,9 @@ static int msm_pcie_pm_ctrl_sanity_check(struct msm_pcie_dev_t *pcie_dev,
 						enum msm_pcie_pm_opt pm_opt,
 						u32 busnr, u32 options)
 {
+	u32 drv_pm_opts = MSM_PCIE_DRV_SUSPEND | MSM_PCIE_DISABLE_PC |
+			MSM_PCIE_ENABLE_PC | MSM_PCIE_DRV_PC_CTRL;
+
 	if (!pcie_dev) {
 		pr_err("PCIe: did not find RC for pci endpoint device.\n");
 		return -ENODEV;
@@ -9918,6 +9934,13 @@ static int msm_pcie_pm_ctrl_sanity_check(struct msm_pcie_dev_t *pcie_dev,
 			 "RC%d has not been successfully probed yet\n",
 			 pcie_dev->rc_idx);
 		return -EPROBE_DEFER;
+	}
+
+	if (!pcie_dev->drv_supported && (pm_opt & drv_pm_opts)) {
+		PCIE_ERR(pcie_dev,
+				"PCIe: RC%d: drv not supported opt %d.\n",
+						pcie_dev->rc_idx, pm_opt);
+		return -EINVAL;
 	}
 
 	return 0;
