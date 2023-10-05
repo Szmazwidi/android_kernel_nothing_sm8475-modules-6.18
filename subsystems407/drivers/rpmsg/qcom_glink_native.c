@@ -1266,7 +1266,7 @@ static int qcom_glink_rx_data_zero_copy(struct qcom_glink *glink, size_t avail)
 		CH_ERR(channel, "failed to get va da:0x%llx len:%d\n", da, len);
 		goto advance_rx;
 	}
-	CH_INFO(channel, "da:0x%llx va:0x%llx len:%d\n", da, data, len);
+	CH_INFO(channel, "da:0x%llx va:%pK len:%d\n", da, data, len);
 
 	intent->data = data;
 	intent->offset = len;
