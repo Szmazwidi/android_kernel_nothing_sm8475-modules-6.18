@@ -158,7 +158,7 @@ static void pdc_enable_intr(struct irq_data *d, bool on)
 	}
 	raw_spin_unlock_irqrestore(&pdc_lock, flags);
 #if IS_ENABLED(CONFIG_IPC_LOGGING)
-	ipc_log_string(pdc_ipc_log, "PIN=%d enable=%d", d->hwirq, on);
+	ipc_log_string(pdc_ipc_log, "PIN=%lu enable=%d", d->hwirq, on);
 #endif
 }
 
@@ -243,7 +243,7 @@ static int qcom_pdc_gic_set_type(struct irq_data *d, unsigned int type)
 	pdc_type |= (old_pdc_type & ~IRQ_i_CFG_TYPE_MASK);
 	pdc_reg_write(IRQ_i_CFG, d->hwirq, pdc_type);
 #if IS_ENABLED(CONFIG_IPC_LOGGING)
-	ipc_log_string(pdc_ipc_log, "Set type: PIN=%d pdc_type=%d gic_type=%d",
+	ipc_log_string(pdc_ipc_log, "Set type: PIN=%lu pdc_type=%d gic_type=%d",
 		       d->hwirq, pdc_type, type);
 #endif
 
@@ -342,7 +342,7 @@ static int qcom_pdc_alloc(struct irq_domain *domain, unsigned int virq,
 	parent_fwspec.param[2]    = type;
 
 #if IS_ENABLED(CONFIG_IPC_LOGGING)
-	ipc_log_string(pdc_ipc_log, "Alloc: PIN=%d", hwirq);
+	ipc_log_string(pdc_ipc_log, "Alloc: PIN=%lu", hwirq);
 #endif
 	return irq_domain_alloc_irqs_parent(domain, virq, nr_irqs,
 					    &parent_fwspec);
