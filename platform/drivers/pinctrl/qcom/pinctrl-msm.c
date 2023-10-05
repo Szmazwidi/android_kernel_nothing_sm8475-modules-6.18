@@ -581,7 +581,7 @@ static int msm_config_group_set(struct pinctrl_dev *pctldev,
 			 * The points above, explain why this _should_ be a
 			 * no-op. However, for historical reasons and to
 			 * support old device trees, we'll violate the docs
-			 * still affect the output.
+			 * and still affect the output.
 			 *
 			 * It should further be noted that this old historical
 			 * behavior actually overrides arg to 0. That means
@@ -1827,11 +1827,7 @@ int msm_pinctrl_probe(struct platform_device *pdev,
 				return PTR_ERR(pctrl->regs[i]);
 		}
 	} else {
-		res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-		if (!res)
-			return -ENOENT;
-
-		pctrl->regs[0] = devm_ioremap_resource(&pdev->dev, res);
+		pctrl->regs[0] = devm_platform_get_and_ioremap_resource(pdev, 0, &res);
 		if (IS_ERR(pctrl->regs[0]))
 			return PTR_ERR(pctrl->regs[0]);
 
