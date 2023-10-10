@@ -40,8 +40,10 @@
 #include <linux/clk/qcom.h>
 #include <soc/qcom/crm.h>
 #include <linux/pinctrl/qcom-pinctrl.h>
-#include <soc/qcom/pcie-pdc.h>
 #include <linux/random.h>
+#if IS_ENABLED(CONFIG_QCOM_PCIE_PDC)
+#include <soc/qcom/pcie-pdc.h>
+#endif /* CONFIG_QCOM_PCIE_PDC */
 
 #include "../pci.h"
 
@@ -3859,6 +3861,7 @@ static int msm_pcie_cesta_map_apply(struct msm_pcie_dev_t *dev, u32 cesta_st)
 	return 0;
 }
 
+#if IS_ENABLED(CONFIG_QCOM_PCIE_PDC)
 /*
  * This function will cause the entry into drv state by
  * configuring CESTA to drv state
@@ -3920,6 +3923,12 @@ static void msm_pcie_cesta_disable_drv(struct msm_pcie_dev_t *dev)
 	if (ret)
 		PCIE_ERR(dev, "Fail to remove clkreq pdc wakeup capable%d\n", ret);
 }
+#else
+static void msm_pcie_cesta_enable_drv(struct msm_pcie_dev_t *dev, bool enable_to)
+{}
+static void msm_pcie_cesta_disable_drv(struct msm_pcie_dev_t *dev)
+{}
+#endif /* CONFIG_QCOM_PCIE_PDC */
 
 static int msm_pcie_gpio_init(struct msm_pcie_dev_t *dev)
 {
