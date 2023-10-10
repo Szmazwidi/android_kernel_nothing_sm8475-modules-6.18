@@ -366,8 +366,8 @@ struct gh_vm_irq_notify_req_payload {
 		struct __packed {
 			gh_vmid_t vmid;
 			u16 reserved;
-		} vmids[0];
-	} optional[0];
+		} vmids[];
+	} optional[];
 } __packed;
 
 /* Call: MEM_QCOM_LOOKUP_SGL */

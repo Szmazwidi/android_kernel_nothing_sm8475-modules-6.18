@@ -723,9 +723,9 @@ static int gh_rm_vm_irq_notify(const gh_vmid_t *vmids, unsigned int num_vmids,
 	req_payload->virq = virq_handle;
 	req_payload->flags = flags;
 	if (flags & GH_VM_IRQ_NOTIFY_FLAGS_LENT) {
-		req_payload->optional[0].num_vmids = num_vmids;
+		req_payload->optional->num_vmids = num_vmids;
 		for (i = 0; i < num_vmids; i++)
-			req_payload->optional[0].vmids[i].vmid = vmids[i];
+			req_payload->optional->vmids[i].vmid = vmids[i];
 	}
 
 
