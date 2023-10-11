@@ -172,7 +172,7 @@ static int mem_buf_rmt_alloc_dmaheap_mem(struct mem_buf_xfer_mem *xfer_mem)
 
 	dmabuf = dma_heap_buffer_alloc(heap, xfer_mem->size, flags, 0);
 	if (IS_ERR(dmabuf)) {
-		pr_err("%s dmaheap_alloc failure sz: 0x%x heap: %s flags: 0x%x rc: %d\n",
+		pr_err("%s dmaheap_alloc failure sz: 0x%zx heap: %s flags: 0x%x rc: %ld\n",
 		       __func__, xfer_mem->size, name, flags,
 		       PTR_ERR(dmabuf));
 		return PTR_ERR(dmabuf);
@@ -180,7 +180,7 @@ static int mem_buf_rmt_alloc_dmaheap_mem(struct mem_buf_xfer_mem *xfer_mem)
 
 	attachment = dma_buf_attach(dmabuf, mem_buf_dev);
 	if (IS_ERR(attachment)) {
-		pr_err("%s dma_buf_attach failure rc: %d\n",  __func__,
+		pr_err("%s dma_buf_attach failure rc: %ld\n",  __func__,
 		       PTR_ERR(attachment));
 		dma_buf_put(dmabuf);
 		return PTR_ERR(attachment);
@@ -188,7 +188,7 @@ static int mem_buf_rmt_alloc_dmaheap_mem(struct mem_buf_xfer_mem *xfer_mem)
 
 	mem_sgt = dma_buf_map_attachment_unlocked(attachment, DMA_BIDIRECTIONAL);
 	if (IS_ERR(mem_sgt)) {
-		pr_err("%s dma_buf_map_attachment failure rc: %d\n", __func__,
+		pr_err("%s dma_buf_map_attachment failure rc: %ld\n", __func__,
 		       PTR_ERR(mem_sgt));
 		dma_buf_detach(dmabuf, attachment);
 		dma_buf_put(dmabuf);
@@ -266,6 +266,49 @@ err_alloc_pages:
 	return ret;
 }
 
+static int mem_buf_rmt_alloc_cma(struct sg_table *sgt, unsigned int count)
+{
+	struct cma *cma;
+	struct page *page;
+	int ret;
+	u32 align;
+
+	/*
+	 * For the common case of 4Mb transfer, we want it to be nicely aligned
+	 * to allow for 2Mb block mappings in S2 pagetable.
+	 */
+	align = min(get_order(count << PAGE_SHIFT), get_order(SZ_2M));
+
+	/*
+	 * Don't use dev_get_cma_area() as we don't want to fall back to
+	 * dma_contiguous_default_area.
+	 */
+	cma = mem_buf_dev->cma_area;
+	if (!cma)
+		return -ENOMEM;
+
+	ret = sg_alloc_table(sgt, 1, GFP_KERNEL);
+	if (ret)
+		return ret;
+
+	page = cma_alloc(cma, count, align, false);
+	if (!page) {
+		ret = -ENOMEM;
+		goto err_cma_alloc;
+	}
+
+	sg_set_page(sgt->sgl, page, count << PAGE_SHIFT, 0);
+
+	/* Zero memory before transferring to Guest VM */
+	memset(page_address(page), 0, count << PAGE_SHIFT);
+
+	return 0;
+
+err_cma_alloc:
+	sg_free_table(sgt);
+	return ret;
+}
+
 static int mem_buf_rmt_alloc_buddy_mem(struct mem_buf_xfer_mem *xfer_mem)
 {
 	struct sg_table *sgt;
@@ -277,7 +320,10 @@ static int mem_buf_rmt_alloc_buddy_mem(struct mem_buf_xfer_mem *xfer_mem)
 	if (!sgt)
 		return -ENOMEM;
 
-	ret = mem_buf_rmt_alloc_pages(sgt, count);
+	if (mem_buf_dev->cma_area)
+		ret = mem_buf_rmt_alloc_cma(sgt, count);
+	else
+		ret = mem_buf_rmt_alloc_pages(sgt, count);
 	if (ret)
 		goto err_alloc_pages;
 
@@ -328,11 +374,17 @@ static void mem_buf_rmt_free_buddy_mem(struct mem_buf_xfer_mem *xfer_mem)
 {
 	struct sg_table *table = xfer_mem->mem_sgt;
 	struct sg_page_iter sgiter;
+	bool is_cma;
 
 	pr_debug("%s: Freeing DMAHEAP-BUDDY memory\n", __func__);
-	for_each_sg_page(table->sgl, &sgiter, table->nents, 0) {
-		__free_page(sg_page_iter_page(&sgiter));
-	}
+
+	/* Returns false when called on !cma memory */
+	is_cma = cma_release(mem_buf_dev->cma_area, sg_page(table->sgl),
+				table->sgl->length >> PAGE_SHIFT);
+	if (!is_cma)
+		for_each_sg_page(table->sgl, &sgiter, table->nents, 0)
+			__free_page(sg_page_iter_page(&sgiter));
+
 	sg_free_table(table);
 	kfree(table);
 	pr_debug("%s: DMAHEAP-BUDDY memory freed\n", __func__);
@@ -434,7 +486,7 @@ struct mem_buf_xfer_mem *mem_buf_prep_xfer_mem(void *req_msg)
 	}
 	mem_type_data = mem_buf_alloc_xfer_mem_type_data(mem_type, arb_payload);
 	if (IS_ERR(mem_type_data)) {
-		pr_err("%s: failed to allocate mem type specific data: %d\n",
+		pr_err("%s: failed to allocate mem type specific data: %ld\n",
 		       __func__, PTR_ERR(mem_type_data));
 		ret = PTR_ERR(mem_type_data);
 		goto err_alloc_xfer_mem_type_data;
@@ -1047,7 +1099,7 @@ void mem_buf_free(void *__membuf)
 	kfree(membuf->acl_desc);
 	kfree(membuf);
 }
-EXPORT_SYMBOL(mem_buf_free);
+EXPORT_SYMBOL_GPL(mem_buf_free);
 
 struct gh_sgl_desc *mem_buf_get_sgl(void *__membuf)
 {
@@ -1055,7 +1107,7 @@ struct gh_sgl_desc *mem_buf_get_sgl(void *__membuf)
 
 	return membuf->sgl_desc;
 }
-EXPORT_SYMBOL(mem_buf_get_sgl);
+EXPORT_SYMBOL_GPL(mem_buf_get_sgl);
 
 static void mem_buf_retrieve_release(struct qcom_sg_buffer *buffer)
 {
@@ -1148,7 +1200,7 @@ err_gh_acl:
 	kfree(buffer);
 	return ERR_PTR(ret);
 }
-EXPORT_SYMBOL(mem_buf_retrieve);
+EXPORT_SYMBOL_GPL(mem_buf_retrieve);
 
 static int mem_buf_prep_alloc_data(struct mem_buf_allocation_data *alloc_data,
 				struct mem_buf_alloc_ioctl_arg *allocation_args)
