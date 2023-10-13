@@ -1685,8 +1685,8 @@ out:
 	return rc;
 }
 
-static ssize_t wireless_fw_update_time_ms_store(struct class *c,
-				struct class_attribute *attr,
+static ssize_t wireless_fw_update_time_ms_store(const struct class *c,
+				const struct class_attribute *attr,
 				const char *buf, size_t count)
 {
 	struct battery_chg_dev *bcdev = container_of(c, struct battery_chg_dev,
@@ -1698,8 +1698,8 @@ static ssize_t wireless_fw_update_time_ms_store(struct class *c,
 	return count;
 }
 
-static ssize_t wireless_fw_update_time_ms_show(struct class *c,
-				struct class_attribute *attr, char *buf)
+static ssize_t wireless_fw_update_time_ms_show(const struct class *c,
+				const struct class_attribute *attr, char *buf)
 {
 	struct battery_chg_dev *bcdev = container_of(c, struct battery_chg_dev,
 						battery_class);
@@ -1708,8 +1708,8 @@ static ssize_t wireless_fw_update_time_ms_show(struct class *c,
 }
 static CLASS_ATTR_RW(wireless_fw_update_time_ms);
 
-static ssize_t wireless_fw_crc_store(struct class *c,
-					struct class_attribute *attr,
+static ssize_t wireless_fw_crc_store(const struct class *c,
+					const struct class_attribute *attr,
 					const char *buf, size_t count)
 {
 	struct battery_chg_dev *bcdev = container_of(c, struct battery_chg_dev,
@@ -1725,8 +1725,8 @@ static ssize_t wireless_fw_crc_store(struct class *c,
 }
 static CLASS_ATTR_WO(wireless_fw_crc);
 
-static ssize_t wireless_fw_version_show(struct class *c,
-					struct class_attribute *attr,
+static ssize_t wireless_fw_version_show(const struct class *c,
+					const struct class_attribute *attr,
 					char *buf)
 {
 	struct battery_chg_dev *bcdev = container_of(c, struct battery_chg_dev,
@@ -1748,8 +1748,8 @@ static ssize_t wireless_fw_version_show(struct class *c,
 }
 static CLASS_ATTR_RO(wireless_fw_version);
 
-static ssize_t wireless_fw_force_update_store(struct class *c,
-					struct class_attribute *attr,
+static ssize_t wireless_fw_force_update_store(const struct class *c,
+					const struct class_attribute *attr,
 					const char *buf, size_t count)
 {
 	struct battery_chg_dev *bcdev = container_of(c, struct battery_chg_dev,
@@ -1768,8 +1768,8 @@ static ssize_t wireless_fw_force_update_store(struct class *c,
 }
 static CLASS_ATTR_WO(wireless_fw_force_update);
 
-static ssize_t wireless_fw_update_store(struct class *c,
-					struct class_attribute *attr,
+static ssize_t wireless_fw_update_store(const struct class *c,
+					const struct class_attribute *attr,
 					const char *buf, size_t count)
 {
 	struct battery_chg_dev *bcdev = container_of(c, struct battery_chg_dev,
@@ -1788,8 +1788,8 @@ static ssize_t wireless_fw_update_store(struct class *c,
 }
 static CLASS_ATTR_WO(wireless_fw_update);
 
-static ssize_t wireless_type_show(struct class *c,
-				struct class_attribute *attr, char *buf)
+static ssize_t wireless_type_show(const struct class *c,
+				const struct class_attribute *attr, char *buf)
 {
 	struct battery_chg_dev *bcdev = container_of(c, struct battery_chg_dev,
 						battery_class);
@@ -1805,8 +1805,8 @@ static ssize_t wireless_type_show(struct class *c,
 }
 static CLASS_ATTR_RO(wireless_type);
 
-static ssize_t charge_control_en_store(struct class *c,
-				struct class_attribute *attr,
+static ssize_t charge_control_en_store(const struct class *c,
+				const struct class_attribute *attr,
 				const char *buf, size_t count)
 {
 	struct battery_chg_dev *bcdev = container_of(c, struct battery_chg_dev,
@@ -1832,8 +1832,8 @@ static ssize_t charge_control_en_store(struct class *c,
 	return count;
 }
 
-static ssize_t charge_control_en_show(struct class *c,
-				struct class_attribute *attr, char *buf)
+static ssize_t charge_control_en_show(const struct class *c,
+				const struct class_attribute *attr, char *buf)
 {
 	struct battery_chg_dev *bcdev = container_of(c, struct battery_chg_dev,
 						battery_class);
@@ -1842,8 +1842,8 @@ static ssize_t charge_control_en_show(struct class *c,
 }
 static CLASS_ATTR_RW(charge_control_en);
 
-static ssize_t usb_typec_compliant_show(struct class *c,
-				struct class_attribute *attr, char *buf)
+static ssize_t usb_typec_compliant_show(const struct class *c,
+				const struct class_attribute *attr, char *buf)
 {
 	struct battery_chg_dev *bcdev = container_of(c, struct battery_chg_dev,
 						battery_class);
@@ -1859,8 +1859,8 @@ static ssize_t usb_typec_compliant_show(struct class *c,
 }
 static CLASS_ATTR_RO(usb_typec_compliant);
 
-static ssize_t usb_real_type_show(struct class *c,
-				struct class_attribute *attr, char *buf)
+static ssize_t usb_real_type_show(const struct class *c,
+				const struct class_attribute *attr, char *buf)
 {
 	struct battery_chg_dev *bcdev = container_of(c, struct battery_chg_dev,
 						battery_class);
@@ -1876,7 +1876,8 @@ static ssize_t usb_real_type_show(struct class *c,
 }
 static CLASS_ATTR_RO(usb_real_type);
 
-static ssize_t restrict_cur_store(struct class *c, struct class_attribute *attr,
+static ssize_t restrict_cur_store(const struct class *c,
+				const struct class_attribute *attr,
 				const char *buf, size_t count)
 {
 	struct battery_chg_dev *bcdev = container_of(c, struct battery_chg_dev,
@@ -1900,7 +1901,8 @@ static ssize_t restrict_cur_store(struct class *c, struct class_attribute *attr,
 	return count;
 }
 
-static ssize_t restrict_cur_show(struct class *c, struct class_attribute *attr,
+static ssize_t restrict_cur_show(const struct class *c,
+				const struct class_attribute *attr,
 				char *buf)
 {
 	struct battery_chg_dev *bcdev = container_of(c, struct battery_chg_dev,
@@ -1910,7 +1912,8 @@ static ssize_t restrict_cur_show(struct class *c, struct class_attribute *attr,
 }
 static CLASS_ATTR_RW(restrict_cur);
 
-static ssize_t restrict_chg_store(struct class *c, struct class_attribute *attr,
+static ssize_t restrict_chg_store(const struct class *c,
+				const struct class_attribute *attr,
 				const char *buf, size_t count)
 {
 	struct battery_chg_dev *bcdev = container_of(c, struct battery_chg_dev,
@@ -1930,7 +1933,8 @@ static ssize_t restrict_chg_store(struct class *c, struct class_attribute *attr,
 	return count;
 }
 
-static ssize_t restrict_chg_show(struct class *c, struct class_attribute *attr,
+static ssize_t restrict_chg_show(const struct class *c,
+				const struct class_attribute *attr,
 				char *buf)
 {
 	struct battery_chg_dev *bcdev = container_of(c, struct battery_chg_dev,
@@ -1940,7 +1944,8 @@ static ssize_t restrict_chg_show(struct class *c, struct class_attribute *attr,
 }
 static CLASS_ATTR_RW(restrict_chg);
 
-static ssize_t fake_soc_store(struct class *c, struct class_attribute *attr,
+static ssize_t fake_soc_store(const struct class *c,
+				const struct class_attribute *attr,
 				const char *buf, size_t count)
 {
 	struct battery_chg_dev *bcdev = container_of(c, struct battery_chg_dev,
@@ -1960,7 +1965,8 @@ static ssize_t fake_soc_store(struct class *c, struct class_attribute *attr,
 	return count;
 }
 
-static ssize_t fake_soc_show(struct class *c, struct class_attribute *attr,
+static ssize_t fake_soc_show(const struct class *c,
+				const struct class_attribute *attr,
 				char *buf)
 {
 	struct battery_chg_dev *bcdev = container_of(c, struct battery_chg_dev,
@@ -1970,8 +1976,8 @@ static ssize_t fake_soc_show(struct class *c, struct class_attribute *attr,
 }
 static CLASS_ATTR_RW(fake_soc);
 
-static ssize_t wireless_boost_en_store(struct class *c,
-					struct class_attribute *attr,
+static ssize_t wireless_boost_en_store(const struct class *c,
+					const struct class_attribute *attr,
 					const char *buf, size_t count)
 {
 	struct battery_chg_dev *bcdev = container_of(c, struct battery_chg_dev,
@@ -1990,8 +1996,9 @@ static ssize_t wireless_boost_en_store(struct class *c,
 	return count;
 }
 
-static ssize_t wireless_boost_en_show(struct class *c,
-					struct class_attribute *attr, char *buf)
+static ssize_t wireless_boost_en_show(const struct class *c,
+					const struct class_attribute *attr,
+					char *buf)
 {
 	struct battery_chg_dev *bcdev = container_of(c, struct battery_chg_dev,
 						battery_class);
@@ -2006,8 +2013,8 @@ static ssize_t wireless_boost_en_show(struct class *c,
 }
 static CLASS_ATTR_RW(wireless_boost_en);
 
-static ssize_t moisture_detection_en_store(struct class *c,
-					struct class_attribute *attr,
+static ssize_t moisture_detection_en_store(const struct class *c,
+					const struct class_attribute *attr,
 					const char *buf, size_t count)
 {
 	struct battery_chg_dev *bcdev = container_of(c, struct battery_chg_dev,
@@ -2026,8 +2033,9 @@ static ssize_t moisture_detection_en_store(struct class *c,
 	return count;
 }
 
-static ssize_t moisture_detection_en_show(struct class *c,
-					struct class_attribute *attr, char *buf)
+static ssize_t moisture_detection_en_show(const struct class *c,
+					const struct class_attribute *attr,
+					char *buf)
 {
 	struct battery_chg_dev *bcdev = container_of(c, struct battery_chg_dev,
 						battery_class);
@@ -2043,8 +2051,9 @@ static ssize_t moisture_detection_en_show(struct class *c,
 }
 static CLASS_ATTR_RW(moisture_detection_en);
 
-static ssize_t moisture_detection_status_show(struct class *c,
-					struct class_attribute *attr, char *buf)
+static ssize_t moisture_detection_status_show(const struct class *c,
+					const struct class_attribute *attr,
+					char *buf)
 {
 	struct battery_chg_dev *bcdev = container_of(c, struct battery_chg_dev,
 						battery_class);
@@ -2060,8 +2069,9 @@ static ssize_t moisture_detection_status_show(struct class *c,
 }
 static CLASS_ATTR_RO(moisture_detection_status);
 
-static ssize_t resistance_show(struct class *c,
-					struct class_attribute *attr, char *buf)
+static ssize_t resistance_show(const struct class *c,
+					const struct class_attribute *attr,
+					char *buf)
 {
 	struct battery_chg_dev *bcdev = container_of(c, struct battery_chg_dev,
 						battery_class);
@@ -2076,8 +2086,8 @@ static ssize_t resistance_show(struct class *c,
 }
 static CLASS_ATTR_RO(resistance);
 
-static ssize_t soh_show(struct class *c, struct class_attribute *attr,
-			char *buf)
+static ssize_t soh_show(const struct class *c,
+			const struct class_attribute *attr, char *buf)
 {
 	struct battery_chg_dev *bcdev = container_of(c, struct battery_chg_dev,
 						battery_class);
@@ -2092,7 +2102,8 @@ static ssize_t soh_show(struct class *c, struct class_attribute *attr,
 }
 static CLASS_ATTR_RO(soh);
 
-static ssize_t ship_mode_en_store(struct class *c, struct class_attribute *attr,
+static ssize_t ship_mode_en_store(const struct class *c,
+				const struct class_attribute *attr,
 				const char *buf, size_t count)
 {
 	struct battery_chg_dev *bcdev = container_of(c, struct battery_chg_dev,
@@ -2104,8 +2115,8 @@ static ssize_t ship_mode_en_store(struct class *c, struct class_attribute *attr,
 	return count;
 }
 
-static ssize_t ship_mode_en_show(struct class *c, struct class_attribute *attr,
-				char *buf)
+static ssize_t ship_mode_en_show(const struct class *c,
+				const struct class_attribute *attr, char *buf)
 {
 	struct battery_chg_dev *bcdev = container_of(c, struct battery_chg_dev,
 						battery_class);
