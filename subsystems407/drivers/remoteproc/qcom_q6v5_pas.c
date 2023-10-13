@@ -1377,11 +1377,6 @@ static const struct adsp_data sun_adsp_resource = {
 	.pas_id = 1,
 	.dtb_pas_id = 0x24,
 	.minidump_id = 5,
-	.proxy_pd_names = (char*[]){
-		"lcx",
-		"lmx",
-		NULL
-	},
 	.load_state = "adsp",
 	.ssr_name = "lpass",
 	.sysmon_name = "adsp",
@@ -1396,12 +1391,6 @@ static const struct adsp_data sun_cdsp_resource = {
 	.pas_id = 18,
 	.dtb_pas_id = 0x25,
 	.minidump_id = 7,
-	.proxy_pd_names = (char*[]){
-		"cx",
-		"mxc",
-		"nsp",
-		NULL
-	},
 	.load_state = "cdsp",
 	.ssr_name = "cdsp",
 	.sysmon_name = "cdsp",
@@ -1421,11 +1410,6 @@ static const struct adsp_data sun_mpss_resource = {
 	.dtb_pas_id = 0x26,
 	.minidump_id = 3,
 	.decrypt_shutdown = true,
-	.proxy_pd_names = (char*[]){
-		"cx",
-		"mss",
-		NULL
-	},
 	.load_state = "modem",
 	.ssr_name = "mpss",
 	.uses_elf64 = true,
@@ -1443,11 +1427,6 @@ static const struct adsp_data pineapple_adsp_resource = {
 	.pas_id = 1,
 	.dtb_pas_id = 0x24,
 	.minidump_id = 5,
-	.proxy_pd_names = (char*[]){
-		"lcx",
-		"lmx",
-		NULL
-	},
 	.load_state = "adsp",
 	.ssr_name = "lpass",
 	.sysmon_name = "adsp",
@@ -1462,12 +1441,6 @@ static const struct adsp_data pineapple_cdsp_resource = {
 	.pas_id = 18,
 	.dtb_pas_id = 0x25,
 	.minidump_id = 7,
-	.proxy_pd_names = (char*[]){
-		"cx",
-		"mxc",
-		"nsp",
-		NULL
-	},
 	.load_state = "cdsp",
 	.ssr_name = "cdsp",
 	.sysmon_name = "cdsp",
@@ -1487,11 +1460,6 @@ static const struct adsp_data pineapple_mpss_resource = {
 	.dtb_pas_id = 0x26,
 	.minidump_id = 3,
 	.decrypt_shutdown = true,
-	.proxy_pd_names = (char*[]){
-		"cx",
-		"mss",
-		NULL
-	},
 	.load_state = "modem",
 	.ssr_name = "mpss",
 	.uses_elf64 = true,
