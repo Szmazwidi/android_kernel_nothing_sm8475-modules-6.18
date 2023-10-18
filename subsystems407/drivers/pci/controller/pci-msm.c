@@ -3760,7 +3760,8 @@ out:
  * l1ss TO signal to pcie state manager and state manager can further
  * go into l1ss sleep state to turn off the resources.
  */
-static void msm_pcie_cesta_enable_l1ss_to(struct msm_pcie_dev_t *dev)
+static void __maybe_unused
+		msm_pcie_cesta_enable_l1ss_to(struct msm_pcie_dev_t *dev)
 {
 	u32 val;
 
@@ -3776,7 +3777,8 @@ static void msm_pcie_cesta_enable_l1ss_to(struct msm_pcie_dev_t *dev)
 }
 
 /* Disable L1ss timeout timer */
-static void msm_pcie_cesta_disable_l1ss_to(struct msm_pcie_dev_t *dev)
+static void __maybe_unused
+		msm_pcie_cesta_disable_l1ss_to(struct msm_pcie_dev_t *dev)
 {
 	msm_pcie_write_reg(dev->parf, PCIE20_PARF_L1SUB_AHB_CLK_MAX_TIMER, 0);
 }
