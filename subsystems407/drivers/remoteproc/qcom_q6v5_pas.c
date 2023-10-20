@@ -49,7 +49,6 @@ struct adsp_data {
 	bool uses_elf64;
 	bool auto_boot;
 	bool decrypt_shutdown;
-	bool hyp_assign_mem;
 
 	char **proxy_pd_names;
 
