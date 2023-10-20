@@ -685,6 +685,24 @@ static uint32_t socinfo_get_platform_subtype(void)
 		: 0;
 }
 
+/* Version 12 */
+static uint32_t socinfo_get_chip_family(void)
+{
+	return socinfo ?
+		(socinfo_format >= SOCINFO_VERSION(0, 12) ?
+		 le32_to_cpu(socinfo->chip_family) : 0)
+		: 0;
+}
+
+/* Version 13 */
+static char *socinfo_get_chip_name(void)
+{
+	return socinfo ?
+		(socinfo_format >= SOCINFO_VERSION(0, 13) ?
+		 socinfo->chip_id : "N/A")
+		: "N/A";
+}
+
 /* Version 14 */
 static uint32_t socinfo_get_num_clusters(void)
 {
@@ -1057,6 +1075,28 @@ msm_get_platform_subtype(struct device *dev,
 }
 ATTR_DEFINE(platform_subtype);
 
+/* Version 12 */
+static ssize_t
+msm_get_chip_family(struct device *dev,
+		struct device_attribute *attr,
+		char *buf)
+{
+	return scnprintf(buf, PAGE_SIZE, "0x%x\n",
+			socinfo_get_chip_family());
+}
+ATTR_DEFINE(chip_family);
+
+/* Version 13 */
+static ssize_t
+msm_get_chip_id(struct device *dev,
+		struct device_attribute *attr,
+		char *buf)
+{
+	return scnprintf(buf, PAGE_SIZE, "%-.32s\n",
+			socinfo_get_chip_name());
+}
+ATTR_DEFINE(chip_id);
+
 /* Version 14 */
 static ssize_t
 msm_get_num_clusters(struct device *dev,
@@ -1223,7 +1263,11 @@ static void socinfo_populate_sysfs(struct qcom_socinfo *qcom_socinfo)
 		msm_custom_socinfo_attrs[i++] = &dev_attr_eva.attr;
 		fallthrough;
 	case SOCINFO_VERSION(0, 13):
+		msm_custom_socinfo_attrs[i++] = &dev_attr_chip_id.attr;
+		fallthrough;
 	case SOCINFO_VERSION(0, 12):
+		msm_custom_socinfo_attrs[i++] = &dev_attr_chip_family.attr;
+		fallthrough;
 	case SOCINFO_VERSION(0, 11):
 	case SOCINFO_VERSION(0, 10):
 	case SOCINFO_VERSION(0, 9):
