@@ -10,12 +10,14 @@
 
 #include <linux/clk.h>
 #include <linux/delay.h>
+#include <linux/dma-mapping.h>
 #include <linux/firmware.h>
 #include <linux/interrupt.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/of_address.h>
 #include <linux/of_device.h>
+#include <linux/of_reserved_mem.h>
 #include <linux/platform_device.h>
 #include <linux/pm_domain.h>
 #include <linux/pm_runtime.h>
@@ -62,6 +64,7 @@ struct adsp_data {
 	int region_assign_count;
 	bool region_assign_shared;
 	int region_assign_vmid;
+	bool dma_phys_below_32b;
 };
 
 struct qcom_adsp {
@@ -115,6 +118,8 @@ struct qcom_adsp {
 	bool region_assign_shared;
 	int region_assign_vmid;
 	u64 region_assign_perms[MAX_ASSIGN_COUNT];
+
+	bool dma_phys_below_32b;
 
 	struct qcom_rproc_glink glink_subdev;
 	struct qcom_rproc_subdev smd_subdev;
@@ -262,16 +267,19 @@ static int adsp_shutdown_poll_decrypt(struct qcom_adsp *adsp)
 static int adsp_unprepare(struct rproc *rproc)
 {
 	struct qcom_adsp *adsp = rproc->priv;
+	struct device *dev = NULL;
 
+	if (adsp->dma_phys_below_32b)
+		dev = adsp->dev;
 	/*
 	 * adsp_load() did pass pas_metadata to the SCM driver for storing
 	 * metadata context. It might have been released already if
 	 * auth_and_reset() was successful, but in other cases clean it up
 	 * here.
 	 */
-	qcom_scm_pas_metadata_release(&adsp->pas_metadata);
+	qcom_scm_pas_metadata_release(&adsp->pas_metadata, dev);
 	if (adsp->dtb_pas_id)
-		qcom_scm_pas_metadata_release(&adsp->dtb_pas_metadata);
+		qcom_scm_pas_metadata_release(&adsp->dtb_pas_metadata, dev);
 
 	return 0;
 }
@@ -316,7 +324,11 @@ static void adsp_add_coredump_segments(struct qcom_adsp *adsp, const struct firm
 static int adsp_load(struct rproc *rproc, const struct firmware *fw)
 {
 	struct qcom_adsp *adsp = rproc->priv;
+	struct device *dev = NULL;
 	int ret;
+
+	if (adsp->dma_phys_below_32b)
+		dev = adsp->dev;
 
 	rproc_coredump_cleanup(adsp->rproc);
 
@@ -333,7 +345,7 @@ static int adsp_load(struct rproc *rproc, const struct firmware *fw)
 
 		ret = qcom_mdt_pas_init(adsp->dev, adsp->dtb_firmware, adsp->dtb_firmware_name,
 					adsp->dtb_pas_id, adsp->dtb_mem_phys,
-					&adsp->dtb_pas_metadata);
+					&adsp->dtb_pas_metadata, adsp->dma_phys_below_32b);
 		if (ret)
 			goto release_dtb_firmware;
 
@@ -350,7 +362,7 @@ static int adsp_load(struct rproc *rproc, const struct firmware *fw)
 	return 0;
 
 release_dtb_metadata:
-	qcom_scm_pas_metadata_release(&adsp->dtb_pas_metadata);
+	qcom_scm_pas_metadata_release(&adsp->dtb_pas_metadata, dev);
 
 release_dtb_firmware:
 	release_firmware(adsp->dtb_firmware);
@@ -361,7 +373,11 @@ release_dtb_firmware:
 static int adsp_start(struct rproc *rproc)
 {
 	struct qcom_adsp *adsp = rproc->priv;
+	struct device *dev = NULL;
 	int ret;
+
+	if (adsp->dma_phys_below_32b)
+		dev = adsp->dev;
 
 	ret = qcom_q6v5_prepare(&adsp->q6v5);
 	if (ret)
@@ -405,7 +421,7 @@ static int adsp_start(struct rproc *rproc)
 	}
 
 	ret = qcom_mdt_pas_init(adsp->dev, adsp->firmware, rproc->firmware, adsp->pas_id,
-				adsp->mem_phys, &adsp->pas_metadata);
+				adsp->mem_phys, &adsp->pas_metadata, adsp->dma_phys_below_32b);
 	if (ret)
 		goto disable_px_supply;
 
@@ -428,9 +444,9 @@ static int adsp_start(struct rproc *rproc)
 		goto release_pas_metadata;
 	}
 
-	qcom_scm_pas_metadata_release(&adsp->pas_metadata);
+	qcom_scm_pas_metadata_release(&adsp->pas_metadata, dev);
 	if (adsp->dtb_pas_id)
-		qcom_scm_pas_metadata_release(&adsp->dtb_pas_metadata);
+		qcom_scm_pas_metadata_release(&adsp->dtb_pas_metadata, dev);
 
 	/* Remove pointer to the loaded firmware, only valid in adsp_load() & adsp_start() */
 	adsp->firmware = NULL;
@@ -438,9 +454,9 @@ static int adsp_start(struct rproc *rproc)
 	return 0;
 
 release_pas_metadata:
-	qcom_scm_pas_metadata_release(&adsp->pas_metadata);
+	qcom_scm_pas_metadata_release(&adsp->pas_metadata, dev);
 	if (adsp->dtb_pas_id)
-		qcom_scm_pas_metadata_release(&adsp->dtb_pas_metadata);
+		qcom_scm_pas_metadata_release(&adsp->dtb_pas_metadata, dev);
 disable_px_supply:
 	if (adsp->px_supply)
 		regulator_disable(adsp->px_supply);
@@ -728,6 +744,28 @@ static int adsp_alloc_memory_region(struct qcom_adsp *adsp)
 	return 0;
 }
 
+static int adsp_setup_32b_dma_allocs(struct qcom_adsp *adsp)
+{
+	int ret;
+
+	if (!adsp->dma_phys_below_32b)
+		return 0;
+
+	ret = of_reserved_mem_device_init_by_idx(adsp->dev, adsp->dev->of_node, 2);
+	if (ret) {
+		dev_err(adsp->dev,
+			"Unable to get the CMA area for performing dma_alloc_* calls\n");
+		goto out;
+	}
+
+	ret = dma_set_mask_and_coherent(adsp->dev, DMA_BIT_MASK(32));
+	if (ret)
+		dev_err(adsp->dev, "Unable to set the coherent mask to 32-bits!\n");
+
+out:
+	return ret;
+}
+
 static int adsp_assign_memory_region(struct qcom_adsp *adsp)
 {
 	struct qcom_scm_vmperm perm[2];
@@ -861,6 +899,7 @@ static int adsp_probe(struct platform_device *pdev)
 	adsp->region_assign_count = min_t(int, MAX_ASSIGN_COUNT, desc->region_assign_count);
 	adsp->region_assign_vmid = desc->region_assign_vmid;
 	adsp->region_assign_shared = desc->region_assign_shared;
+	adsp->dma_phys_below_32b = desc->dma_phys_below_32b;
 	if (dtb_fw_name) {
 		adsp->dtb_firmware_name = dtb_fw_name;
 		adsp->dtb_pas_id = desc->dtb_pas_id;
@@ -872,6 +911,10 @@ static int adsp_probe(struct platform_device *pdev)
 		goto free_rproc;
 
 	ret = adsp_alloc_memory_region(adsp);
+	if (ret)
+		goto free_rproc;
+
+	ret = adsp_setup_32b_dma_allocs(adsp);
 	if (ret)
 		goto free_rproc;
 
@@ -1382,6 +1425,7 @@ static const struct adsp_data sun_adsp_resource = {
 	.sysmon_name = "adsp",
 	.ssctl_id = 0x14,
 	.uses_elf64 = true,
+	.dma_phys_below_32b = true,
 };
 
 static const struct adsp_data sun_cdsp_resource = {
@@ -1396,10 +1440,11 @@ static const struct adsp_data sun_cdsp_resource = {
 	.sysmon_name = "cdsp",
 	.ssctl_id = 0x17,
 	.uses_elf64 = true,
-	.region_assign_idx = 2,
+	.region_assign_idx = 3,
 	.region_assign_count = 1,
 	.region_assign_shared = true,
 	.region_assign_vmid = QCOM_SCM_VMID_CDSP,
+	.dma_phys_below_32b = true,
 };
 
 static const struct adsp_data sun_mpss_resource = {
@@ -1415,9 +1460,10 @@ static const struct adsp_data sun_mpss_resource = {
 	.uses_elf64 = true,
 	.sysmon_name = "modem",
 	.ssctl_id = 0x12,
-	.region_assign_idx = 2,
+	.region_assign_idx = 3,
 	.region_assign_count = 2,
 	.region_assign_vmid = QCOM_SCM_VMID_MSS_MSA,
+	.dma_phys_below_32b = true,
 };
 
 static const struct adsp_data pineapple_adsp_resource = {
@@ -1465,9 +1511,10 @@ static const struct adsp_data pineapple_mpss_resource = {
 	.uses_elf64 = true,
 	.sysmon_name = "modem",
 	.ssctl_id = 0x12,
-	.region_assign_idx = 2,
+	.region_assign_idx = 3,
 	.region_assign_count = 2,
 	.region_assign_vmid = QCOM_SCM_VMID_MSS_MSA,
+	.dma_phys_below_32b = true,
 };
 
 static const struct of_device_id adsp_of_match[] = {
