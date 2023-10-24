@@ -14,7 +14,7 @@
 #include <linux/slab.h>
 #include <linux/types.h>
 #include <linux/uaccess.h>
-
+#include <linux/memremap.h>
 #include <linux/mem-buf-exporter.h>
 #include <soc/qcom/secure_buffer.h>
 #include <uapi/linux/mem-buf.h>
@@ -50,5 +50,16 @@ static inline int mem_buf_msgq_alloc(struct device *dev)
 static inline void mem_buf_msgq_free(struct device *dev)
 {
 }
+#endif
+
+/*
+ * Use stub APIs on PVM until ZONE_DEVICE is available.
+ */
+#ifndef CONFIG_ZONE_DEVICE
+static inline void *memremap_pages(struct dev_pagemap *pgmap, int nid)
+{
+	return ERR_PTR(-EINVAL);
+}
+static inline void memunmap_pages(struct dev_pagemap *pgmap) {}
 #endif
 #endif
