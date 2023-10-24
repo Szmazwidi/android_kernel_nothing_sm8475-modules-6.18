@@ -841,7 +841,7 @@ static void msm_gpio_log_pin_status(struct gpio_chip *chip, unsigned int offset)
 					&drive, &pull, &egpio_enable, &val);
 
 	printk_deferred("%s: %s, %s, func%d, %dmA, %s\n",
-			g->name, is_out ? "out" : "in",
+			g->grp.name, is_out ? "out" : "in",
 			val ? "high" : "low", func,
 			msm_regval_to_drive(drive),
 			pctrl->soc->pull_no_keeper ? pulls_no_keeper[pull] : pulls_keeper[pull]);
