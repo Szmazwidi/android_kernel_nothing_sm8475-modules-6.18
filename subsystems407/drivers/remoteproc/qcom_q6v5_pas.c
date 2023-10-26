@@ -1511,6 +1511,7 @@ static const struct adsp_data sun_adsp_resource = {
 	.ssctl_id = 0x14,
 	.uses_elf64 = true,
 	.dma_phys_below_32b = true,
+	.auto_boot = true,
 };
 
 static const struct adsp_data sun_cdsp_resource = {
@@ -1530,6 +1531,7 @@ static const struct adsp_data sun_cdsp_resource = {
 	.region_assign_shared = true,
 	.region_assign_vmid = QCOM_SCM_VMID_CDSP,
 	.dma_phys_below_32b = true,
+	.auto_boot = true,
 };
 
 static const struct adsp_data sun_mpss_resource = {
