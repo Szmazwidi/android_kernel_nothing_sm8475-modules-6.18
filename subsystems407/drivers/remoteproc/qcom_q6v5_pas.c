@@ -134,7 +134,7 @@ static ssize_t txn_id_show(struct device *dev, struct device_attribute *attr, ch
 }
 static DEVICE_ATTR_RO(txn_id);
 
-void adsp_segment_dump(struct rproc *rproc, struct rproc_dump_segment *segment,
+static void adsp_segment_dump(struct rproc *rproc, struct rproc_dump_segment *segment,
 		       void *dest, size_t offset, size_t size)
 {
 	struct qcom_adsp *adsp = rproc->priv;
@@ -942,7 +942,7 @@ free_rproc:
 	return ret;
 }
 
-static int adsp_remove(struct platform_device *pdev)
+static void adsp_remove(struct platform_device *pdev)
 {
 	struct qcom_adsp *adsp = platform_get_drvdata(pdev);
 
@@ -959,8 +959,6 @@ static int adsp_remove(struct platform_device *pdev)
 	adsp_pds_detach(adsp, adsp->proxy_pds, adsp->proxy_pd_count);
 	device_init_wakeup(adsp->dev, false);
 	rproc_free(adsp->rproc);
-
-	return 0;
 }
 
 static const struct adsp_data adsp_resource_init = {
@@ -1529,7 +1527,7 @@ MODULE_DEVICE_TABLE(of, adsp_of_match);
 
 static struct platform_driver adsp_driver = {
 	.probe = adsp_probe,
-	.remove = adsp_remove,
+	.remove_new = adsp_remove,
 	.driver = {
 		.name = "qcom_q6v5_pas",
 		.of_match_table = adsp_of_match,
