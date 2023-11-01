@@ -270,7 +270,10 @@ static u32 rpmh_rsc_reg_offsets_ver_3_0_hw_channel[] = {
 static inline void __iomem *
 tcs_reg_addr(const struct rsc_drv *drv, int reg, int tcs_id)
 {
-	return drv->tcs_base + drv->regs[RSC_DRV_TCS_OFFSET] * tcs_id + reg;
+	if (!drv->tcs_distance)
+		return drv->tcs_base + drv->regs[RSC_DRV_TCS_OFFSET] * tcs_id + reg;
+
+	return drv->tcs_base + drv->tcs_distance * tcs_id + reg;
 }
 
 static inline void __iomem *
@@ -1627,6 +1630,10 @@ static int rpmh_probe_tcs_config(struct rsc_drv *drv)
 	if (ret)
 		return ret;
 	drv->tcs_base = drv->base + offset;
+
+	ret = of_property_read_u32(np, "qcom,tcs-distance", &drv->tcs_distance);
+	if (ret)
+		drv->tcs_distance = 0;
 
 	config = readl_relaxed(drv->base + drv->regs[DRV_PRNT_CHLD_CONFIG]);
 
