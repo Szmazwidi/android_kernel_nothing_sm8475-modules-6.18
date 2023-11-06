@@ -443,8 +443,8 @@ static void add_mpss_dsm_mem_ssr_dump(struct qcom_adsp *adsp)
 	 * bytes will be zeros, so, left shift by 16 to get proper address & size.
 	 */
 	for (i = 0; i < resource_size(&imem); i = i + 4) {
-		da = __raw_readw(base + i) << 16;
-		size = __raw_readw(base + (i + 2)) << 16;
+		da = (u32)(__raw_readw(base + i) << 16);
+		size = (u32)(__raw_readw(base + (i + 2)) << 16);
 		if (da && size)
 			rproc_coredump_add_custom_segment(rproc, da, size, adsp_segment_dump, NULL);
 	}
@@ -604,8 +604,6 @@ static int adsp_start(struct rproc *rproc)
 		goto release_pas_metadata;
 	}
 
-	add_mpss_dsm_mem_ssr_dump(adsp);
-
 	qcom_scm_pas_metadata_release(&adsp->pas_metadata, dev);
 
 	if (adsp->dtb_pas_id)
@@ -681,6 +679,8 @@ static int adsp_stop(struct rproc *rproc)
 	handover = qcom_q6v5_unprepare(&adsp->q6v5);
 	if (handover)
 		qcom_pas_handover(&adsp->q6v5);
+
+	add_mpss_dsm_mem_ssr_dump(adsp);
 
 	adsp_unassign_memory_region(adsp);
 
