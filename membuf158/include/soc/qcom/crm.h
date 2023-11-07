@@ -76,7 +76,7 @@ struct crm_cmd {
 	bool wait;
 };
 
-#if IS_ENABLED(CONFIG_QCOM_CRM)
+#if IS_ENABLED(CONFIG_QCOM_CRM) || IS_ENABLED(CONFIG_QCOM_CRM_V2)
 int crm_write_perf_ol(const struct device *dev, enum crm_drv_type drv,
 		      u32 drv_id, const struct crm_cmd *cmd);
 int crm_write_bw_vote(const struct device *dev, enum crm_drv_type drv,
