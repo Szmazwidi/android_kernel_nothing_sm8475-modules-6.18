@@ -141,6 +141,7 @@ struct rsc_drv_top {
  * @name:               Controller identifier.
  * @base:               Start address of the DRV registers in this controller.
  * @tcs_base:           Start address of the TCS registers in this controller.
+ * @tcs_distance:       Distance between two TCSes.
  * @id:                 Instance id in the controller (Direct Resource Voter).
  * @num_tcs:            Number of TCSes in this DRV.
  * @num_channels:       Number of channels in this DRV.
@@ -174,6 +175,7 @@ struct rsc_drv {
 	char name[MAX_NAME_LENGTH];
 	void __iomem *base;
 	void __iomem *tcs_base;
+	u32 tcs_distance;
 	int id;
 	int num_tcs;
 	int num_channels;
