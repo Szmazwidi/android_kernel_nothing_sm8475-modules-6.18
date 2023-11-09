@@ -138,37 +138,69 @@ static ssize_t txn_id_show(struct device *dev, struct device_attribute *attr, ch
 }
 static DEVICE_ATTR_RO(txn_id);
 
-static void adsp_segment_dump(struct rproc *rproc, struct rproc_dump_segment *segment,
-		       void *dest, size_t offset, size_t size)
+static int adsp_custom_segment_dump(struct qcom_adsp *adsp,
+				    struct rproc_dump_segment *segment,
+				    void *dest, size_t offset, size_t size)
+{
+	int len = strlen("md_dbg_buf");
+	void __iomem *base;
+	int total_offset;
+	bool valid = false;
+	int i;
+
+	if (segment->priv && strnlen(segment->priv, len + 1) == len &&
+		    !strcmp(segment->priv, "md_dbg_buf"))
+		goto custom_segment_dump;
+
+	/*
+	 * Also, do second level of check for custom segments in
+	 * adsp_custom_segment_dump(), which checks if the segment
+	 * lies outside the subsystem region range.
+	 */
+	for (i = 0; i < adsp->region_assign_count; i++) {
+		total_offset = segment->da + segment->offset +
+				offset - adsp->region_assign_phys[i];
+		if (!(total_offset < 0 ||
+				total_offset + size > adsp->region_assign_size[i])) {
+			valid = true;
+			break;
+		}
+	}
+
+	if (!valid)
+		return -EINVAL;
+
+custom_segment_dump:
+	base = ioremap((unsigned long)le64_to_cpu(segment->da), size);
+	if (!base) {
+		dev_err(adsp->dev, "failed to map custom_segment region\n");
+		return -EINVAL;
+	}
+
+	memcpy_fromio(dest, base, size);
+	iounmap(base);
+
+	return 0;
+}
+
+void adsp_segment_dump(struct rproc *rproc, struct rproc_dump_segment *segment,
+		     void *dest, size_t offset, size_t size)
 {
 	struct qcom_adsp *adsp = rproc->priv;
 	int total_offset;
-	void __iomem *base;
-	int len = strlen("md_dbg_buf");
-
-	if (strnlen(segment->priv, len + 1) == len &&
-		    !strcmp(segment->priv, "md_dbg_buf")) {
-		base = ioremap((unsigned long)le64_to_cpu(segment->da), size);
-		if (!base) {
-			pr_err("failed to map md_dbg_buf region\n");
-			return;
-		}
-
-		memcpy_fromio(dest, base, size);
-		iounmap(base);
-		return;
-	}
 
 	total_offset = segment->da + segment->offset + offset - adsp->mem_phys;
-	if (total_offset < 0 || total_offset + size > adsp->mem_size) {
-		dev_err(adsp->dev,
-			"invalid copy request for segment %pad with offset %zu and size %zu)\n",
-			&segment->da, offset, size);
-		memset(dest, 0xff, size);
+	if (!(total_offset < 0 || total_offset + size > adsp->mem_size)) {
+		memcpy_fromio(dest, adsp->mem_region + total_offset, size);
+		return;
+	} else if (!adsp_custom_segment_dump(adsp, segment, dest, offset, size)) {
 		return;
 	}
 
-	memcpy_fromio(dest, adsp->mem_region + total_offset, size);
+	dev_err(adsp->dev,
+		"invalid copy request for segment %pad with offset %zu and size %zu)\n",
+		&segment->da, offset, size);
+	memset(dest, 0xff, size);
 }
 
 static void adsp_minidump(struct rproc *rproc)
@@ -369,6 +401,131 @@ release_dtb_firmware:
 	return ret;
 }
 
+static void add_mpss_dsm_mem_ssr_dump(struct qcom_adsp *adsp)
+{
+	struct rproc *rproc = adsp->rproc;
+	struct device_node *np;
+	struct resource imem;
+	void __iomem *base;
+	int ret = 0, i;
+	const char *prop = "qcom,msm-imem-mss-dsm";
+	dma_addr_t da;
+	size_t size;
+
+	if (!adsp->region_assign_idx || adsp->region_assign_shared)
+		return;
+
+	np = of_find_compatible_node(NULL, NULL, prop);
+	if (!np) {
+		pr_err("%s entry missing!\n", prop);
+		return;
+	}
+
+	ret = of_address_to_resource(np, 0, &imem);
+	of_node_put(np);
+	if (ret < 0) {
+		pr_err("address to resource conversion failed for %s\n", prop);
+		return;
+	}
+
+	base = ioremap(imem.start, resource_size(&imem));
+	if (!base) {
+		pr_err("failed to map MSS DSM region\n");
+		return;
+	}
+
+	/*
+	 * There can be multiple DSM partitions based on the Modem flavor.
+	 * Each DSM partition start address and size are written to IMEM by Modem and each
+	 * partition consumes 4 bytes (2 bytes for address and 2 bytes for size) of IMEM.
+	 *
+	 * Modem physical address range has to be in the low 4G (32 bits only) and low 2
+	 * bytes will be zeros, so, left shift by 16 to get proper address & size.
+	 */
+	for (i = 0; i < resource_size(&imem); i = i + 4) {
+		da = (u32)(__raw_readw(base + i) << 16);
+		size = (u32)(__raw_readw(base + (i + 2)) << 16);
+		if (da && size)
+			rproc_coredump_add_custom_segment(rproc, da, size, adsp_segment_dump, NULL);
+	}
+
+	iounmap(base);
+}
+
+static int adsp_assign_memory_region(struct qcom_adsp *adsp)
+{
+	struct qcom_scm_vmperm perm[2];
+	unsigned int perm_size = 1;
+	struct device_node *node;
+	struct resource r;
+	int offset, ret;
+
+	if (!adsp->region_assign_idx)
+		return 0;
+
+	for (offset = 0; offset < adsp->region_assign_count; ++offset) {
+		node = of_parse_phandle(adsp->dev->of_node, "memory-region",
+					adsp->region_assign_idx + offset);
+		if (!node) {
+			dev_err(adsp->dev, "missing shareable memory-region %d\n", offset);
+			return -EINVAL;
+		}
+
+		ret = of_address_to_resource(node, 0, &r);
+		if (ret)
+			return ret;
+
+
+		if (adsp->region_assign_shared)  {
+			perm[0].vmid = QCOM_SCM_VMID_HLOS;
+			perm[0].perm = QCOM_SCM_PERM_RW;
+			perm[1].vmid = adsp->region_assign_vmid;
+			perm[1].perm = QCOM_SCM_PERM_RW;
+			perm_size = 2;
+		} else {
+			perm[0].vmid = adsp->region_assign_vmid;
+			perm[0].perm = QCOM_SCM_PERM_RW;
+			perm_size = 1;
+		}
+
+		adsp->region_assign_phys[offset] = r.start;
+		adsp->region_assign_size[offset] = resource_size(&r);
+		adsp->region_assign_perms[offset] = BIT(QCOM_SCM_VMID_HLOS);
+
+		ret = qcom_scm_assign_mem(adsp->region_assign_phys[offset],
+					  adsp->region_assign_size[offset],
+					  &adsp->region_assign_perms[offset],
+					  perm, perm_size);
+		if (ret < 0) {
+			dev_err(adsp->dev, "assign memory %d failed\n", offset);
+			return ret;
+		}
+	}
+
+	return 0;
+}
+
+static void adsp_unassign_memory_region(struct qcom_adsp *adsp)
+{
+	struct qcom_scm_vmperm perm;
+	int offset, ret;
+
+	if (!adsp->region_assign_idx || adsp->region_assign_shared)
+		return;
+
+	for (offset = 0; offset < adsp->region_assign_count; ++offset) {
+		perm.vmid = QCOM_SCM_VMID_HLOS;
+		perm.perm = QCOM_SCM_PERM_RW;
+
+		ret = qcom_scm_assign_mem(adsp->region_assign_phys[offset],
+					  adsp->region_assign_size[offset],
+					  &adsp->region_assign_perms[offset],
+					  &perm, 1);
+		if (ret < 0)
+			dev_err(adsp->dev, "unassign memory failed\n");
+	}
+}
+
 static int adsp_start(struct rproc *rproc)
 {
 	struct qcom_adsp *adsp = rproc->priv;
@@ -381,6 +538,10 @@ static int adsp_start(struct rproc *rproc)
 	ret = qcom_q6v5_prepare(&adsp->q6v5);
 	if (ret)
 		return ret;
+
+	ret = adsp_assign_memory_region(adsp);
+	if (ret)
+		goto disable_irqs;
 
 	ret = adsp_pds_enable(adsp, adsp->proxy_pds, adsp->proxy_pd_count);
 	if (ret < 0)
@@ -444,6 +605,7 @@ static int adsp_start(struct rproc *rproc)
 	}
 
 	qcom_scm_pas_metadata_release(&adsp->pas_metadata, dev);
+
 	if (adsp->dtb_pas_id)
 		qcom_scm_pas_metadata_release(&adsp->dtb_pas_metadata, dev);
 
@@ -517,6 +679,10 @@ static int adsp_stop(struct rproc *rproc)
 	handover = qcom_q6v5_unprepare(&adsp->q6v5);
 	if (handover)
 		qcom_pas_handover(&adsp->q6v5);
+
+	add_mpss_dsm_mem_ssr_dump(adsp);
+
+	adsp_unassign_memory_region(adsp);
 
 	return ret;
 }
@@ -765,80 +931,6 @@ out:
 	return ret;
 }
 
-static int adsp_assign_memory_region(struct qcom_adsp *adsp)
-{
-	struct qcom_scm_vmperm perm[2];
-	unsigned int perm_size = 1;
-	struct device_node *node;
-	struct resource r;
-	int offset, ret;
-
-	if (!adsp->region_assign_idx)
-		return 0;
-
-	for (offset = 0; offset < adsp->region_assign_count; ++offset) {
-		node = of_parse_phandle(adsp->dev->of_node, "memory-region",
-					adsp->region_assign_idx + offset);
-		if (!node) {
-			dev_err(adsp->dev, "missing shareable memory-region %d\n", offset);
-			return -EINVAL;
-		}
-
-		ret = of_address_to_resource(node, 0, &r);
-		if (ret)
-			return ret;
-
-
-		if (adsp->region_assign_shared)  {
-			perm[0].vmid = QCOM_SCM_VMID_HLOS;
-			perm[0].perm = QCOM_SCM_PERM_RW;
-			perm[1].vmid = adsp->region_assign_vmid;
-			perm[1].perm = QCOM_SCM_PERM_RW;
-			perm_size = 2;
-		} else {
-			perm[0].vmid = adsp->region_assign_vmid;
-			perm[0].perm = QCOM_SCM_PERM_RW;
-			perm_size = 1;
-		}
-
-		adsp->region_assign_phys[offset] = r.start;
-		adsp->region_assign_size[offset] = resource_size(&r);
-		adsp->region_assign_perms[offset] = BIT(QCOM_SCM_VMID_HLOS);
-
-		ret = qcom_scm_assign_mem(adsp->region_assign_phys[offset],
-					  adsp->region_assign_size[offset],
-					  &adsp->region_assign_perms[offset],
-					  perm, perm_size);
-		if (ret < 0) {
-			dev_err(adsp->dev, "assign memory %d failed\n", offset);
-			return ret;
-		}
-	}
-
-	return 0;
-}
-
-static void adsp_unassign_memory_region(struct qcom_adsp *adsp)
-{
-	struct qcom_scm_vmperm perm;
-	int offset, ret;
-
-	if (!adsp->region_assign_idx || adsp->region_assign_shared)
-		return;
-
-	for (offset = 0; offset < adsp->region_assign_count; ++offset) {
-		perm.vmid = QCOM_SCM_VMID_HLOS;
-		perm.perm = QCOM_SCM_PERM_RW;
-
-		ret = qcom_scm_assign_mem(adsp->region_assign_phys[offset],
-					  adsp->region_assign_size[offset],
-					  &adsp->region_assign_perms[offset],
-					  &perm, 1);
-		if (ret < 0)
-			dev_err(adsp->dev, "unassign memory failed\n");
-	}
-}
-
 static int adsp_probe(struct platform_device *pdev)
 {
 	const struct adsp_data *desc;
@@ -914,10 +1006,6 @@ static int adsp_probe(struct platform_device *pdev)
 		goto free_rproc;
 
 	ret = adsp_setup_32b_dma_allocs(adsp);
-	if (ret)
-		goto free_rproc;
-
-	ret = adsp_assign_memory_region(adsp);
 	if (ret)
 		goto free_rproc;
 
