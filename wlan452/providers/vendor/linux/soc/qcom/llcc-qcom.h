@@ -62,6 +62,7 @@
 #define LLCC_CAMSRTIP    69
 #define LLCC_CAMRTRF     70
 #define LLCC_CAMSRTRF    71
+#define LLCC_CVPFWMPU    82
 
 #define LLCC_VERSION_2_0_0_0          0x02000000
 #define LLCC_VERSION_2_1_0_0          0x02010000
