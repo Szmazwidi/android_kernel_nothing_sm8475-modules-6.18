@@ -30,6 +30,7 @@
 #include <linux/soc/qcom/qcom_aoss.h>
 #include <soc/qcom/qcom_ramdump.h>
 #include <soc/qcom/secure_buffer.h>
+#include <trace/hooks/remoteproc.h>
 
 #include "qcom_common.h"
 #include "qcom_pil_info.h"
@@ -119,6 +120,7 @@ struct qcom_adsp {
 	u64 region_assign_perms[MAX_ASSIGN_COUNT];
 
 	bool dma_phys_below_32b;
+	bool subsys_recovery_disabled;
 
 	struct qcom_rproc_glink glink_subdev;
 	struct qcom_rproc_subdev smd_subdev;
@@ -128,6 +130,8 @@ struct qcom_adsp {
 	struct qcom_scm_pas_metadata pas_metadata;
 	struct qcom_scm_pas_metadata dtb_pas_metadata;
 };
+
+static bool recovery_set_cb;
 
 static ssize_t txn_id_show(struct device *dev, struct device_attribute *attr, char *buf)
 {
@@ -931,6 +935,36 @@ out:
 	return ret;
 }
 
+static void android_vh_rproc_recovery_set(void *data, struct rproc *rproc)
+{
+	struct qcom_adsp *adsp = (struct qcom_adsp *)rproc->priv;
+
+	adsp->subsys_recovery_disabled = rproc->recovery_disabled;
+}
+
+void qcom_rproc_update_recovery_status(struct rproc *rproc, bool enable)
+{
+	struct qcom_adsp *adsp;
+
+	if (!rproc)
+		return;
+
+	adsp = (struct qcom_adsp *)rproc->priv;
+	mutex_lock(&rproc->lock);
+	if (enable) {
+		/* Save recovery flag */
+		adsp->subsys_recovery_disabled = rproc->recovery_disabled;
+		rproc->recovery_disabled = !enable;
+		pr_info("qcom rproc: %s: recovery enabled by kernel client\n", rproc->name);
+	} else {
+		/* Restore recovery flag */
+		rproc->recovery_disabled = adsp->subsys_recovery_disabled;
+		pr_info("qcom rproc: %s: recovery disabled by kernel client\n", rproc->name);
+	}
+	mutex_unlock(&rproc->lock);
+}
+EXPORT_SYMBOL_GPL(qcom_rproc_update_recovery_status);
+
 static int adsp_probe(struct platform_device *pdev)
 {
 	const struct adsp_data *desc;
@@ -1054,8 +1088,20 @@ static int adsp_probe(struct platform_device *pdev)
 	if (ret)
 		goto destroy_minidump_dev;
 
+	if (!recovery_set_cb) {
+		ret = register_trace_android_vh_rproc_recovery_set(android_vh_rproc_recovery_set,
+											NULL);
+		if (ret) {
+			dev_err(&pdev->dev, "Unable to register with rproc_recovery_set trace hook\n");
+			goto remove_rproc;
+		}
+		recovery_set_cb = true;
+	}
+
 	return 0;
 
+remove_rproc:
+	rproc_del(rproc);
 destroy_minidump_dev:
 	if (adsp->minidump_dev)
 		qcom_destroy_ramdump_device(adsp->minidump_dev);
@@ -1076,6 +1122,7 @@ static void adsp_remove(struct platform_device *pdev)
 {
 	struct qcom_adsp *adsp = platform_get_drvdata(pdev);
 
+	unregister_trace_android_vh_rproc_recovery_set(android_vh_rproc_recovery_set, NULL);
 	rproc_del(adsp->rproc);
 	qcom_q6v5_deinit(&adsp->q6v5);
 	if (adsp->minidump_dev)
