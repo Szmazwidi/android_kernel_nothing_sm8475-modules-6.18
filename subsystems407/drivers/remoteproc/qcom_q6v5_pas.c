@@ -121,6 +121,7 @@ struct qcom_adsp {
 
 	bool dma_phys_below_32b;
 	bool subsys_recovery_disabled;
+	bool region_assigned;
 
 	struct qcom_rproc_glink glink_subdev;
 	struct qcom_rproc_subdev smd_subdev;
@@ -543,9 +544,13 @@ static int adsp_start(struct rproc *rproc)
 	if (ret)
 		return ret;
 
-	ret = adsp_assign_memory_region(adsp);
-	if (ret)
-		goto disable_irqs;
+	if (!adsp->region_assign_shared ||
+			(adsp->region_assign_shared && !adsp->region_assigned)) {
+		ret = adsp_assign_memory_region(adsp);
+		if (ret)
+			goto disable_irqs;
+	}
+	adsp->region_assigned = true;
 
 	ret = adsp_pds_enable(adsp, adsp->proxy_pds, adsp->proxy_pd_count);
 	if (ret < 0)
