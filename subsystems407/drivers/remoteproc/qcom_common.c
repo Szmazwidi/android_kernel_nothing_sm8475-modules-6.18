@@ -19,6 +19,7 @@
 #include <linux/soc/qcom/mdt_loader.h>
 #include <linux/soc/qcom/smem.h>
 #include <linux/devcoredump.h>
+#include <trace/hooks/remoteproc.h>
 
 #include "remoteproc_elf_helpers.h"
 #include "remoteproc_internal.h"
@@ -766,7 +767,7 @@ void qcom_remove_ssr_subdev(struct rproc *rproc, struct qcom_rproc_ssr *ssr)
 }
 EXPORT_SYMBOL_GPL(qcom_remove_ssr_subdev);
 
-void qcom_check_ssr_status(void *data, struct rproc *rproc)
+static void qcom_check_ssr_status(void *data, struct rproc *rproc)
 {
 	if (!atomic_read(&rproc->power) ||
 	    rproc->state == RPROC_RUNNING ||
@@ -777,6 +778,13 @@ void qcom_check_ssr_status(void *data, struct rproc *rproc)
 		return;
 
 	panic("Panicking, remoteproc %s failed to recover!\n", rproc->name);
+}
+
+static void rproc_recovery_notifier(void *data, struct rproc *rproc)
+{
+	const char *recovery = rproc->recovery_disabled ? "disabled" : "enabled";
+
+	pr_info("qcom rproc: %s: recovery %s\n", rproc->name, recovery);
 }
 
 static int __init qcom_common_init(void)
@@ -802,21 +810,24 @@ static int __init qcom_common_init(void)
 		goto remove_shutdown_sysfs;
 	}
 
-/*
 	ret = register_trace_android_vh_rproc_recovery(qcom_check_ssr_status, NULL);
 	if (ret) {
 		pr_err("qcom rproc: failed to register trace hooks\n");
 		goto remove_coredump_sysfs;
 	}
-*/
+
+	ret = register_trace_android_vh_rproc_recovery_set(rproc_recovery_notifier, NULL);
+	if (ret) {
+		pr_err("qcom rproc: failed to register recovery_set vendor hook\n");
+		goto unregister_rproc_recovery_vh;
+	}
+
 	return 0;
-/*
 
 unregister_rproc_recovery_vh:
 	unregister_trace_android_vh_rproc_recovery(qcom_check_ssr_status, NULL);
 remove_coredump_sysfs:
 	sysfs_remove_file(sysfs_kobject, &both_coredumps_attr.attr);
-*/
 remove_shutdown_sysfs:
 	sysfs_remove_file(sysfs_kobject, &shutdown_requested_attr.attr);
 remove_kobject:
@@ -831,9 +842,7 @@ static void __exit qcom_common_exit(void)
 	sysfs_remove_file(sysfs_kobject, &both_coredumps_attr.attr);
 	sysfs_remove_file(sysfs_kobject, &shutdown_requested_attr.attr);
 	kobject_put(sysfs_kobject);
-/*
 	unregister_trace_android_vh_rproc_recovery(qcom_check_ssr_status, NULL);
-*/
 }
 module_exit(qcom_common_exit);
 
