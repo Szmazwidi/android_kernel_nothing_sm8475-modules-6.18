@@ -15,6 +15,8 @@
 #define VDDP_REF_CLK_MAX_UV        1200000
 #define VDDA_QREF_MIN_UV	   880000
 #define VDDA_QREF_MAX_UV	   912000
+#define VDDA_REFGEN_MIN_UV	   880000
+#define VDDA_REFGEN_MAX_UV	   920000
 
 #define UFS_PHY_DEFAULT_LANES_PER_DIRECTION	1
 
@@ -382,6 +384,9 @@ static int ufs_qcom_phy_init_vreg(struct device *dev,
 	} else if (!strcmp(name, "vdda-qref")) {
 		vreg->max_uV = VDDA_QREF_MAX_UV;
 		vreg->min_uV = VDDA_QREF_MIN_UV;
+	} else if (!strcmp(name, "vdda-refgen")) {
+		vreg->max_uV = VDDA_REFGEN_MAX_UV;
+		vreg->min_uV = VDDA_REFGEN_MIN_UV;
 	}
 
 out:
@@ -411,6 +416,9 @@ int ufs_qcom_phy_init_vregulators(struct ufs_qcom_phy *phy_common)
 
 	ufs_qcom_phy_init_vreg(phy_common->dev, &phy_common->vdda_qref,
 			       "vdda-qref");
+
+	ufs_qcom_phy_init_vreg(phy_common->dev, &phy_common->vdda_refgen,
+			       "vdda-refgen");
 
 out:
 	return err;
@@ -767,6 +775,15 @@ int ufs_qcom_phy_power_on(struct phy *generic_phy)
 		}
 	}
 
+	if (phy_common->vdda_refgen.reg) {
+		err = ufs_qcom_phy_enable_vreg(dev, &phy_common->vdda_refgen);
+		if (err) {
+			dev_err(dev, "%s enable vdda_refgen failed, err=%d\n",
+				__func__, err);
+			goto out;
+		}
+	}
+
 	err = ufs_qcom_phy_enable_vreg(dev, &phy_common->vdda_phy);
 	if (err) {
 		dev_err(dev, "%s enable vdda_phy failed, err=%d\n",
@@ -840,6 +857,8 @@ int ufs_qcom_phy_power_off(struct phy *generic_phy)
 	ufs_qcom_phy_disable_vreg(phy_common->dev, &phy_common->vdda_phy);
 	if (phy_common->vdda_qref.reg)
 		ufs_qcom_phy_disable_vreg(phy_common->dev, &phy_common->vdda_qref);
+	if (phy_common->vdda_refgen.reg)
+		ufs_qcom_phy_disable_vreg(phy_common->dev, &phy_common->vdda_refgen);
 	return 0;
 }
 EXPORT_SYMBOL(ufs_qcom_phy_power_off);

@@ -88,6 +88,7 @@ struct ufs_qcom_phy {
 	struct ufs_qcom_phy_vreg vddp_ref_clk;
 	struct ufs_qcom_phy_vreg vdd_phy_gdsc;
 	struct ufs_qcom_phy_vreg vdda_qref;
+	struct ufs_qcom_phy_vreg vdda_refgen;
 
 	/* Number of lanes available (1 or 2) for Rx/Tx */
 	u32 lanes_per_direction;
