@@ -1555,6 +1555,9 @@ static int qcom_llcc_probe(struct platform_device *pdev)
 			dev_err(dev, "Failed to register llcc edac driver\n");
 	}
 
+	if (of_platform_populate(dev->of_node, NULL, NULL, dev) < 0)
+		dev_err(dev, "llcc populate failed!!\n");
+
 	return 0;
 err:
 	drv_data = ERR_PTR(-ENODEV);
