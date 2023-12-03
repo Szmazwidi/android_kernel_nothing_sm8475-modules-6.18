@@ -4204,10 +4204,15 @@ static int msm_pcie_core_phy_reset(struct msm_pcie_dev_t *dev)
 				PCIE_DBG2(dev,
 					"PCIe: RC%d successfully asserted reset for %s.\n",
 					dev->rc_idx, reset_info->name);
+		}
+	}
 
-			/* add a 1ms delay to ensure the reset is asserted */
-			usleep_range(1000, 1005);
+	/* add a 1ms delay to ensure the reset is asserted */
+	usleep_range(1000, 1005);
 
+	for (i = MSM_PCIE_MAX_RESET-1; i >= 0; i--) {
+		reset_info = &dev->reset[i];
+		if (reset_info->hdl) {
 			rc = reset_control_deassert(reset_info->hdl);
 			if (rc)
 				PCIE_ERR(dev,
