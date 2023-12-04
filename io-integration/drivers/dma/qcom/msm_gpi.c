@@ -2323,6 +2323,8 @@ static void gpi_process_events(struct gpii *gpii)
 
 	do {
 		while (rp != ev_ring->rp) {
+			/* make sure event_ring rp updates before proceeding */
+			mb();
 			gpi_event = ev_ring->rp;
 			chid = gpi_event->xfer_compl_event.chid;
 			type = gpi_event->xfer_compl_event.type;
@@ -2374,6 +2376,8 @@ static void gpi_process_events(struct gpii *gpii)
 					  type);
 			}
 			gpi_ring_recycle_ev_element(ev_ring);
+			/* make sure event_ring rp updates before proceeding */
+			mb();
 		}
 		gpi_write_ev_db(gpii, ev_ring, ev_ring->wp);
 
@@ -2381,6 +2385,8 @@ static void gpi_process_events(struct gpii *gpii)
 		gpi_write_reg(gpii, gpii->ieob_clr_reg, BIT(0));
 
 		cntxt_rp = gpi_read_reg(gpii, gpii->ev_ring_rp_lsb_reg);
+		/* make sure event_ring rp updates before proceeding */
+		mb();
 		rp = to_virtual(ev_ring, cntxt_rp);
 
 	} while (rp != ev_ring->rp);
@@ -3888,7 +3894,7 @@ static int gpi_probe(struct platform_device *pdev)
 
 	/* setup debug capabilities */
 	gpi_setup_debug(gpi_dev);
-	GPI_LOG(gpi_dev, "probe success\n");
+	GPI_LOG(gpi_dev, "%s: probe success\n", __func__);
 
 	return ret;
 }
