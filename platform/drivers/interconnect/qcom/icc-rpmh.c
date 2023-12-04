@@ -10,7 +10,6 @@
 #include <linux/module.h>
 #include <linux/of.h>
 #include <linux/of_platform.h>
-#include <linux/of_device.h>
 #include <linux/slab.h>
 #include <soc/qcom/socinfo.h>
 
@@ -449,6 +448,7 @@ int qcom_icc_rpmh_probe(struct platform_device *pdev)
 	data = devm_kzalloc(dev, struct_size(data, nodes, num_nodes), GFP_KERNEL);
 	if (!data)
 		return -ENOMEM;
+	data->num_nodes = num_nodes;
 
 	qp->stub = of_property_read_bool(pdev->dev.of_node, "qcom,stub");
 	qp->skip_qos = of_property_read_bool(pdev->dev.of_node, "qcom,skip-qos");
@@ -536,8 +536,6 @@ int qcom_icc_rpmh_probe(struct platform_device *pdev)
 
 		data->nodes[i] = node;
 	}
-
-	data->num_nodes = num_nodes;
 
 	if (!qp->skip_qos) {
 		ret = qcom_icc_rpmh_configure_qos(qp);

@@ -31,16 +31,19 @@
 #endif
 #define PDC_MAX_GPIO_IRQS	256
 
+/* Valid only on HW version < 3.2 */
 #define IRQ_ENABLE_BANK		0x10
 #define IRQ_i_CFG		0x110
-#define IRQ_i_CFG_IRQ_ENABLE	3
-#define IRQ_i_CFG_TYPE_MASK	0x7
 
-#define VERSION			0x1000
-#define MAJOR_VER_MASK		0xFF
-#define MAJOR_VER_SHIFT		16
-#define MINOR_VER_MASK		0xFF
-#define MINOR_VER_SHIFT		8
+/* Valid only on HW version >= 3.2 */
+#define IRQ_i_CFG_IRQ_ENABLE	3
+
+#define IRQ_i_CFG_TYPE_MASK	GENMASK(2, 0)
+
+#define PDC_VERSION_REG		0x1000
+
+/* Notable PDC versions */
+#define PDC_VERSION_3_2		0x30200
 
 struct pdc_pin_region {
 	u32 pin_base;
@@ -63,11 +66,11 @@ static DEFINE_RAW_SPINLOCK(pdc_lock);
 static void __iomem *pdc_base;
 static struct pdc_pin_region *pdc_region;
 static int pdc_region_cnt;
+static unsigned int pdc_version;
 static struct spi_cfg_regs *spi_cfg;
 #if IS_ENABLED(CONFIG_IPC_LOGGING)
 static void *pdc_ipc_log;
 #endif
-static bool enable_in_cfg;
 
 static u32 __spi_pin_read(unsigned int pin)
 {
@@ -135,26 +138,32 @@ static u32 pdc_reg_read(int reg, u32 i)
 	return readl_relaxed(pdc_base + reg + i * sizeof(u32));
 }
 
-static void pdc_enable_intr(struct irq_data *d, bool on)
+static void __pdc_enable_intr(int pin_out, bool on)
 {
-	int pin_out = d->hwirq;
 	unsigned long enable;
-	unsigned long flags;
-	u32 index, mask;
 
-	raw_spin_lock_irqsave(&pdc_lock, flags);
-	if (!enable_in_cfg) {
+	if (pdc_version < PDC_VERSION_3_2) {
+		u32 index, mask;
+
 		index = pin_out / 32;
 		mask = pin_out % 32;
+
 		enable = pdc_reg_read(IRQ_ENABLE_BANK, index);
 		__assign_bit(mask, &enable, on);
 		pdc_reg_write(IRQ_ENABLE_BANK, index, enable);
 	} else {
-		index = d->hwirq;
-		enable = pdc_reg_read(IRQ_i_CFG, index);
+		enable = pdc_reg_read(IRQ_i_CFG, pin_out);
 		__assign_bit(IRQ_i_CFG_IRQ_ENABLE, &enable, on);
-		pdc_reg_write(IRQ_i_CFG, index, enable);
+		pdc_reg_write(IRQ_i_CFG, pin_out, enable);
 	}
+}
+
+static void pdc_enable_intr(struct irq_data *d, bool on)
+{
+	unsigned long flags;
+
+	raw_spin_lock_irqsave(&pdc_lock, flags);
+	__pdc_enable_intr(d->hwirq, on);
 	raw_spin_unlock_irqrestore(&pdc_lock, flags);
 #if IS_ENABLED(CONFIG_IPC_LOGGING)
 	ipc_log_string(pdc_ipc_log, "PIN=%lu enable=%d", d->hwirq, on);
@@ -355,8 +364,7 @@ static const struct irq_domain_ops qcom_pdc_ops = {
 
 static int pdc_setup_pin_mapping(struct device_node *np)
 {
-	int ret, n, i, last_region;
-	u32 irq_index, reg_index, val, max_irq;
+	int ret, n, i;
 
 	n = of_property_count_elems_of_size(np, "qcom,pdc-ranges", sizeof(u32));
 	if (n <= 0 || n % 3)
@@ -385,52 +393,38 @@ static int pdc_setup_pin_mapping(struct device_node *np)
 						 &pdc_region[n].cnt);
 		if (ret)
 			return ret;
-	}
 
-	last_region = pdc_region_cnt - 1;
-	max_irq = pdc_region[last_region].pin_base + pdc_region[last_region].cnt;
-
-	if (!enable_in_cfg) {
-		for (i = 0; i < max_irq; i++) {
-			reg_index = (i + pdc_region[n].pin_base) >> 5;
-			irq_index = (i + pdc_region[n].pin_base) & 0x1f;
-			val = pdc_reg_read(IRQ_ENABLE_BANK, reg_index);
-			val &= ~BIT(irq_index);
-			pdc_reg_write(IRQ_ENABLE_BANK, reg_index, val);
-		}
-	} else {
-		for (i = 0; i < max_irq; i++) {
-			val = pdc_reg_read(IRQ_i_CFG, i);
-			val &= ~BIT(IRQ_i_CFG_IRQ_ENABLE);
-			pdc_reg_write(IRQ_i_CFG, i, val);
-		}
+		for (i = 0; i < pdc_region[n].cnt; i++)
+			__pdc_enable_intr(i + pdc_region[n].pin_base, 0);
 	}
 
 	return 0;
 }
 
+#define QCOM_PDC_SIZE 0x30000
+
 static int qcom_pdc_init(struct device_node *node, struct device_node *parent)
 {
 	struct irq_domain *parent_domain, *pdc_domain;
+	resource_size_t res_size;
 	struct resource res;
 	int ret;
-	u32 version, major_ver, minor_ver;
 
-	pdc_base = of_iomap(node, 0);
+	/* compat with old sm8150 DT which had very small region for PDC */
+	if (of_address_to_resource(node, 0, &res))
+		return -EINVAL;
+
+	res_size = max_t(resource_size_t, resource_size(&res), QCOM_PDC_SIZE);
+	if (res_size > resource_size(&res))
+		pr_warn("%pOF: invalid reg size, please fix DT\n", node);
+
+	pdc_base = ioremap(res.start, res_size);
 	if (!pdc_base) {
 		pr_err("%pOF: unable to map PDC registers\n", node);
 		return -ENXIO;
 	}
 
-	version = pdc_reg_read(VERSION, 0);
-	major_ver = version & (MAJOR_VER_MASK << MAJOR_VER_SHIFT);
-	major_ver >>= MAJOR_VER_SHIFT;
-	minor_ver = version & (MINOR_VER_MASK << MINOR_VER_SHIFT);
-	minor_ver >>= MINOR_VER_SHIFT;
-	if (major_ver >= 3 && minor_ver > 1)
-		enable_in_cfg = true;
-	else
-		enable_in_cfg = false;
+	pdc_version = pdc_reg_read(PDC_VERSION_REG, 0);
 
 	parent_domain = irq_find_host(parent);
 	if (!parent_domain) {
