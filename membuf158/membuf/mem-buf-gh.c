@@ -10,7 +10,7 @@
 #include <linux/memory_hotplug.h>
 #include <linux/module.h>
 #include <linux/qcom_dma_heap.h>
-#include <linux/qcom_tui_heap.h>
+#include <linux/qcom_tvm_heap.h>
 #include <linux/dma-map-ops.h>
 #include <linux/memremap.h>
 #include <linux/cma.h>
@@ -1316,7 +1316,7 @@ int mem_buf_alloc_fd(struct mem_buf_alloc_ioctl_arg *allocation_args)
 		return ret;
 
 	if (alloc_data.dst_mem_type == MEM_BUF_DMAHEAP_MEM_TYPE)
-		ret = qcom_tui_heap_add_pool_fd(&alloc_data);
+		ret = qcom_tvm_heap_add_pool_fd(&alloc_data);
 	else
 		ret = -EINVAL;
 

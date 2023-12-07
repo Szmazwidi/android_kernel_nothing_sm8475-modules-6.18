@@ -10,7 +10,7 @@
 #include <linux/err.h>
 
 #include <linux/qcom_dma_heap.h>
-#include <linux/qcom_tui_heap.h>
+#include <linux/qcom_tvm_heap.h>
 #include "qcom_cma_heap.h"
 #include "qcom_dt_parser.h"
 #include "qcom_system_heap.h"
@@ -60,8 +60,8 @@ static int qcom_dma_heap_probe(struct platform_device *pdev)
 		case HEAP_TYPE_CMA:
 			ret = qcom_add_cma_heap(heap_data);
 			break;
-		case HEAP_TYPE_TUI_CARVEOUT:
-			ret = qcom_tui_carveout_heap_create(heap_data);
+		case HEAP_TYPE_TVM_CARVEOUT:
+			ret = qcom_tvm_carveout_heap_create(heap_data);
 			break;
 		default:
 			pr_err("%s: Unknown heap type %u\n", __func__, heap_data->type);
