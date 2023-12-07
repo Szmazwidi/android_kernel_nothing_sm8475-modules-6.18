@@ -465,6 +465,13 @@ static int gdsc_disable(struct regulator_dev *rdev)
 		}
 	}
 
+	regmap_read(sc->regmap, REG_OFFSET, &regval);
+	if (regval & HW_CONTROL_MASK) {
+		dev_warn(&rdev->dev, "Invalid Disable while %s is under HW control\n",
+				sc->rdesc.name);
+		return -EBUSY;
+	}
+
 	if (sc->force_root_en) {
 		clk_prepare_enable(sc->clocks[sc->root_clk_idx]);
 		sc->is_root_clk_voted = true;
