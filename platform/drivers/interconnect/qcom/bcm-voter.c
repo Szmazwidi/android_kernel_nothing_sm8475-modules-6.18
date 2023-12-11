@@ -470,8 +470,8 @@ static int commit_crm(struct bcm_voter *voter)
 				return ret;
 			}
 
-			ret = crm_write_bw_vote(crm->dev, crm->client_type,
-						crm->client_idx, &crm_cmd);
+			ret = crm_write_bw_pt_vote(crm->dev, crm->client_type,
+						   crm->client_idx, &crm_cmd);
 			if (ret) {
 				pr_err("Error writing crm bw: ret=%d\n", ret);
 				return ret;
