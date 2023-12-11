@@ -81,19 +81,17 @@ static void bcm_aggregate_mask(struct qcom_icc_bcm *bcm)
 			node = bcm->nodes[i];
 
 			/* If any vote in this bucket exists, keep the BCM enabled */
-			if (node->sum_avg[bucket] || node->max_peak[bucket]) {
-				bcm->vote_x[bucket] = 0;
-				bcm->vote_y[bucket] = bcm->enable_mask;
-				break;
-			}
+			if (node->sum_avg[bucket] || node->max_peak[bucket])
+				bcm->vote_y[bucket] |= bcm->enable_mask;
+
+			if (node->perf_mode[bucket])
+				bcm->vote_y[bucket] |= bcm->perf_mode_mask;
 		}
 	}
 
 	if (bcm->keepalive) {
-		bcm->vote_x[QCOM_ICC_BUCKET_AMC] = bcm->enable_mask;
-		bcm->vote_x[QCOM_ICC_BUCKET_WAKE] = bcm->enable_mask;
-		bcm->vote_y[QCOM_ICC_BUCKET_AMC] = bcm->enable_mask;
-		bcm->vote_y[QCOM_ICC_BUCKET_WAKE] = bcm->enable_mask;
+		bcm->vote_y[QCOM_ICC_BUCKET_AMC] |= bcm->enable_mask;
+		bcm->vote_y[QCOM_ICC_BUCKET_WAKE] |= bcm->enable_mask;
 	}
 }
 
@@ -103,7 +101,6 @@ static void bcm_aggregate(struct qcom_icc_bcm *bcm, bool init)
 	size_t i, bucket;
 	u64 agg_avg[QCOM_ICC_NUM_BUCKETS] = {0};
 	u64 agg_peak[QCOM_ICC_NUM_BUCKETS] = {0};
-	bool perf_mode[QCOM_ICC_NUM_BUCKETS] = {0};
 	u64 temp;
 
 	for (bucket = 0; bucket < QCOM_ICC_NUM_BUCKETS; bucket++) {
@@ -116,8 +113,6 @@ static void bcm_aggregate(struct qcom_icc_bcm *bcm, bool init)
 			temp = bcm_div(node->max_peak[bucket] * bcm->aux_data.width,
 				       node->buswidth);
 			agg_peak[bucket] = max(agg_peak[bucket], temp);
-
-			perf_mode[bucket] |= node->perf_mode[bucket];
 		}
 
 		temp = agg_avg[bucket] * bcm->vote_scale;
