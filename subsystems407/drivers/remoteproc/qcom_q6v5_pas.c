@@ -1844,6 +1844,7 @@ static const struct adsp_data sun_soccp_resource = {
 	.ssr_name = "soccp",
 	.sysmon_name = "soccp",
 	.check_status = true,
+	.auto_boot = true,
 };
 
 static const struct adsp_data pineapple_adsp_resource = {
