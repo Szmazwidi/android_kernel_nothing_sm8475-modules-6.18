@@ -81,6 +81,8 @@ int crm_write_perf_ol(const struct device *dev, enum crm_drv_type drv,
 		      u32 drv_id, const struct crm_cmd *cmd);
 int crm_write_bw_vote(const struct device *dev, enum crm_drv_type drv,
 		      u32 drv_id, const struct crm_cmd *cmd);
+int crm_write_bw_pt_vote(const struct device *dev, enum crm_drv_type drv,
+		      u32 drv_id, const struct crm_cmd *cmd);
 int crm_write_pwr_states(const struct device *dev, u32 drv_id);
 int crm_dump_drv_regs(const char *name, u32 drv_id);
 int crm_dump_regs(const char *name);
@@ -99,6 +101,12 @@ static inline int crm_write_bw_vote(const struct device *dev,
 				    enum crm_drv_type drv,
 				    u32 drv_id,
 				    const struct crm_cmd *cmd)
+{ return -ENODEV; }
+
+static inline int crm_write_bw_pt_vote(const struct device *dev,
+					enum crm_drv_type drv,
+					u32 drv_id,
+					const struct crm_cmd *cmd)
 { return -ENODEV; }
 
 static inline int crm_write_pwr_states(const struct device *dev, u32 drv_id)
