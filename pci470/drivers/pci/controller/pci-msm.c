@@ -183,6 +183,9 @@
 #define PCIE20_AER_ROOT_ERR_STATUS_REG (0x130)
 #define PCIE20_AER_ERR_SRC_ID_REG (0x134)
 
+#define	PCI_EXP_AER_FLAGS (PCI_EXP_DEVCTL_CERE | PCI_EXP_DEVCTL_NFERE | \
+				PCI_EXP_DEVCTL_FERE | PCI_EXP_DEVCTL_URRE)
+
 #define PCIE20_L1SUB_CONTROL1_REG (0x204)
 #define PCIE20_TX_P_FC_CREDIT_STATUS_OFF (0x730)
 #define PCIE20_TX_NP_FC_CREDIT_STATUS_OFF (0x734)
@@ -1002,6 +1005,7 @@ static u32 msm_pcie_cesta_map[MAX_MAP_IDX][MAX_POWER_STATE] = {
 struct msm_pcie_dev_t {
 	struct platform_device *pdev;
 	struct pci_dev *dev;
+	struct pci_host_bridge *bridge;
 	struct regulator *gdsc_core;
 	struct regulator *gdsc_phy;
 	struct msm_pcie_vreg_info_t vreg[MSM_PCIE_MAX_VREG];
@@ -5900,6 +5904,28 @@ static void msm_pcie_disable(struct msm_pcie_dev_t *dev)
 	PCIE_DBG(dev, "RC%d: exit\n", dev->rc_idx);
 }
 
+static int msm_pcie_aer_is_native(struct pci_dev *dev)
+{
+	struct msm_pcie_dev_t *pcie_dev = PCIE_BUS_PRIV_DATA(dev->bus);
+	struct pci_host_bridge *host = pcie_dev->bridge;
+
+	if (!dev->aer_cap)
+		return 0;
+
+	return host->native_aer;
+}
+
+static int msm_pcie_enable_pcie_error_reporting(struct pci_dev *dev)
+{
+	int rc;
+
+	if (!msm_pcie_aer_is_native(dev))
+		return -EIO;
+
+	rc = pcie_capability_set_word(dev, PCI_EXP_DEVCTL, PCI_EXP_AER_FLAGS);
+	return pcibios_err_to_errno(rc);
+}
+
 static int msm_pcie_config_device_info(struct pci_dev *pcidev, void *pdev)
 {
 	struct msm_pcie_dev_t *pcie_dev = (struct msm_pcie_dev_t *) pdev;
@@ -5935,7 +5961,7 @@ static int msm_pcie_config_device_info(struct pci_dev *pcidev, void *pdev)
 		if (pci_pcie_type(pcidev) == PCI_EXP_TYPE_ROOT_PORT)
 			pcie_dev->aer_stats = pcidev->aer_stats;
 
-		if (pci_enable_pcie_error_reporting(pcidev))
+		if (msm_pcie_enable_pcie_error_reporting(pcidev))
 			PCIE_ERR(pcie_dev,
 				 "PCIe: RC%d: PCIE error reporting unavailable on %02x:%02x:%01x\n",
 				 pcie_dev->rc_idx, pcidev->bus->number,
@@ -6076,6 +6102,8 @@ int msm_pcie_enumerate(u32 rc_idx)
 	bridge->ops = &msm_pcie_ops;
 
 	pci_host_probe(bridge);
+
+	dev->bridge = bridge;
 
 	dev->enumerated = true;
 	schedule_work(&pcie_drv.drv_connect);
