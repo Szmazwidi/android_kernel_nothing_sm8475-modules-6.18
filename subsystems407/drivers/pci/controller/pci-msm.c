@@ -4690,6 +4690,9 @@ static int msm_pcie_get_clk(struct msm_pcie_dev_t *pcie_dev)
 	/* get clocks */
 	ret = devm_clk_bulk_get_all(&pdev->dev, &bulk_clks);
 	if (ret <= 0) {
+		/* Mask the error when PCIe resources are managed by CESTA */
+		if (pcie_dev->pcie_sm)
+			return 0;
 		PCIE_ERR(pcie_dev,
 			 "PCIe: RC%d: failed to get clocks: ret: %d\n",
 			 pcie_dev->rc_idx, ret);
