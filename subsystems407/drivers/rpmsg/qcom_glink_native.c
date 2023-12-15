@@ -271,7 +271,6 @@ static const struct rpmsg_endpoint_ops glink_endpoint_ops;
 
 #define GLINK_FEATURE_INTENTLESS	BIT(1)
 
-#define NATIVE_DTR_SIG			BIT(31)
 #define NATIVE_DTR_SIG			NATIVE_DSR_SIG
 #define NATIVE_DSR_SIG			BIT(31)
 #define NATIVE_RTS_SIG			NATIVE_CTS_SIG
