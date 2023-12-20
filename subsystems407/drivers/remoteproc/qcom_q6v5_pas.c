@@ -602,11 +602,9 @@ static int adsp_start(struct rproc *rproc)
 
 	if (adsp->dtb_pas_id) {
 		ret = qcom_scm_pas_auth_and_reset(adsp->dtb_pas_id);
-		if (ret) {
-			dev_err(adsp->dev,
-				"failed to authenticate dtb image and release reset\n");
-			goto disable_px_supply;
-		}
+		if (ret)
+			panic("Panicking, auth and reset failed for remoteproc %s dtb\n",
+				 rproc->name);
 	}
 
 	ret = qcom_mdt_pas_init(adsp->dev, adsp->firmware, rproc->firmware, adsp->pas_id,
@@ -628,7 +626,9 @@ static int adsp_start(struct rproc *rproc)
 
 	if (!timeout_disabled) {
 		ret = qcom_q6v5_wait_for_start(&adsp->q6v5, msecs_to_jiffies(5000));
-		if (ret == -ETIMEDOUT) {
+		if (rproc->recovery_disabled && ret)
+			panic("Panicking, remoteproc %s failed to bootup.\n", adsp->rproc->name);
+		else if (ret == -ETIMEDOUT) {
 			dev_err(adsp->dev, "start timed out\n");
 			qcom_scm_pas_shutdown(adsp->pas_id);
 			goto release_pas_metadata;
@@ -843,7 +843,7 @@ static int adsp_stop(struct rproc *rproc)
 	if (adsp->dtb_pas_id) {
 		ret = qcom_scm_pas_shutdown(adsp->dtb_pas_id);
 		if (ret)
-			dev_err(adsp->dev, "failed to shutdown dtb: %d\n", ret);
+			panic("Panicking, remoteproc %s dtb failed to shutdown.\n", rproc->name);
 	}
 
 	handover = qcom_q6v5_unprepare(&adsp->q6v5);
