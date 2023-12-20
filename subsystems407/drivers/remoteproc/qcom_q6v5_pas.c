@@ -1195,6 +1195,8 @@ static int adsp_probe(struct platform_device *pdev)
 	adsp->region_assign_shared = desc->region_assign_shared;
 	adsp->dma_phys_below_32b = desc->dma_phys_below_32b;
 	adsp->check_status_handover = desc->check_status_handover;
+	adsp->subsys_recovery_disabled = true;
+
 	if (dtb_fw_name) {
 		adsp->dtb_firmware_name = dtb_fw_name;
 		adsp->dtb_pas_id = desc->dtb_pas_id;
