@@ -652,7 +652,7 @@ static int sysmon_notify(struct notifier_block *nb, unsigned long event,
 	/* Skip non-running rprocs and the originating instance */
 	if (sysmon->state != QCOM_SSR_AFTER_POWERUP ||
 	    !strcmp(source->name, sysmon->name)) {
-		dev_err(source->dev, "not notifying %s target_state: %s\n",
+		dev_dbg(source->dev, "not notifying %s target_state: %s\n",
 			sysmon->name, subdevice_state_string[sysmon->state]);
 		return NOTIFY_DONE;
 	}
