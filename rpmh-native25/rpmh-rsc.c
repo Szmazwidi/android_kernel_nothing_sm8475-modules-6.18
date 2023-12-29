@@ -640,7 +640,7 @@ static void __tcs_buffer_write(struct rsc_drv *drv, int tcs_id, int cmd_id,
 		write_tcs_cmd(drv, drv->regs[RSC_DRV_CMD_MSGID], tcs_id, j, msgid);
 		write_tcs_cmd(drv, drv->regs[RSC_DRV_CMD_ADDR], tcs_id, j, cmd->addr);
 		write_tcs_cmd(drv, drv->regs[RSC_DRV_CMD_DATA], tcs_id, j, cmd->data);
-		trace_rpmh_send_msg(drv, tcs_id, j, msgid, cmd);
+		trace_rpmh_send_msg(drv, tcs_id, msg->state, j, msgid, cmd);
 #if IS_ENABLED(CONFIG_IPC_LOGGING)
 		ipc_log_string(drv->ipc_log_ctx,
 			       "TCS write: m=%d n=%d msgid=%#x addr=%#x data=%#x wait=%d",

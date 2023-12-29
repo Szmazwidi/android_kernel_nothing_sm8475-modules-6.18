@@ -25,7 +25,6 @@
 #include <linux/gpio/consumer.h>
 #include <linux/slab.h>
 #include <linux/of.h>
-#include <linux/of_device.h>
 #include <linux/regulator/of_regulator.h>
 #ifdef QTI_FIXED_REGULATOR
 #include <linux/regulator/debug-regulator.h>

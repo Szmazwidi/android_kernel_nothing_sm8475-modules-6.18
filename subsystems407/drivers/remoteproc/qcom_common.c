@@ -24,6 +24,7 @@
 #include "remoteproc_elf_helpers.h"
 #include "remoteproc_internal.h"
 #include "qcom_common.h"
+#include "../soc/qcom/minidump_private.h"
 
 #define SSR_NOTIF_TIMEOUT CONFIG_RPROC_SSR_NOTIF_TIMEOUT
 
@@ -34,9 +35,9 @@
 #define MAX_NUM_OF_SS           10
 #define MAX_REGION_NAME_LENGTH  16
 #define SBL_MINIDUMP_SMEM_ID	602
-#define MD_REGION_VALID		('V' << 24 | 'A' << 16 | 'L' << 8 | 'I' << 0)
-#define MD_SS_ENCR_DONE		('D' << 24 | 'O' << 16 | 'N' << 8 | 'E' << 0)
-#define MD_SS_ENABLED		('E' << 24 | 'N' << 16 | 'B' << 8 | 'L' << 0)
+#define MINIDUMP_REGION_VALID		('V' << 24 | 'A' << 16 | 'L' << 8 | 'I' << 0)
+#define MINIDUMP_SS_ENCR_DONE		('D' << 24 | 'O' << 16 | 'N' << 8 | 'E' << 0)
+#define MINIDUMP_SS_ENABLED		('E' << 24 | 'N' << 16 | 'B' << 8 | 'L' << 0)
 
 /**
  * struct minidump_region - Minidump region
@@ -173,7 +174,7 @@ static int qcom_add_minidump_segments(struct rproc *rproc, struct minidump_subsy
 
 	for (i = 0; i < seg_cnt; i++) {
 		memcpy_fromio(&region, ptr + i, sizeof(region));
-		if (le32_to_cpu(region.valid) == MD_REGION_VALID) {
+		if (le32_to_cpu(region.valid) == MINIDUMP_REGION_VALID) {
 			name = kstrndup(region.name, MAX_REGION_NAME_LENGTH - 1, GFP_KERNEL);
 			if (!name) {
 				iounmap(ptr);
@@ -327,8 +328,7 @@ void qcom_minidump(struct rproc *rproc, struct device *md_dev, unsigned int mini
 	 */
 	if (subsystem->regions_baseptr == 0 ||
 	    le32_to_cpu(subsystem->status) != 1 ||
-	    le32_to_cpu(subsystem->enabled) != MD_SS_ENABLED ||
-	    le32_to_cpu(subsystem->encryption_status) != MD_SS_ENCR_DONE) {
+	    le32_to_cpu(subsystem->enabled) != MINIDUMP_SS_ENABLED) {
 		return rproc_coredump(rproc);
 	}
 
@@ -336,8 +336,14 @@ void qcom_minidump(struct rproc *rproc, struct device *md_dev, unsigned int mini
 	    qcom_collect_both_coredumps)
 		rproc_coredump(rproc);
 
-	if (le32_to_cpu(subsystem->encryption_status) != MD_SS_ENCR_DONE)
-		dev_err(&rproc->dev, "encryption_status != MD_SS_ENCR_DONE\n");
+	if (le32_to_cpu(subsystem->encryption_status) != MINIDUMP_SS_ENCR_DONE)
+		dev_err(&rproc->dev, "encryption_status != MINIDUMP_SS_ENCR_DONE\n");
+
+	/**
+	 * Clear out the dump segments populated by parse_fw before
+	 * re-populating them with minidump segments.
+	 */
+	rproc_coredump_cleanup(rproc);
 
 	ret = qcom_add_minidump_segments(rproc, subsystem, dumpfn);
 	if (ret) {

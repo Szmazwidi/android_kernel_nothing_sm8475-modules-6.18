@@ -15,8 +15,8 @@
 #include <linux/interrupt.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
+#include <linux/of.h>
 #include <linux/of_address.h>
-#include <linux/of_device.h>
 #include <linux/of_reserved_mem.h>
 #include <linux/platform_device.h>
 #include <linux/pm_domain.h>
@@ -893,6 +893,7 @@ static const struct rproc_ops adsp_minidump_ops = {
 	.start = adsp_start,
 	.stop = adsp_stop,
 	.da_to_va = adsp_da_to_va,
+	.parse_fw = qcom_register_dump_segments,
 	.load = adsp_load,
 	.panic = adsp_panic,
 	.coredump = adsp_minidump,
@@ -1030,9 +1031,8 @@ static void adsp_pds_detach(struct qcom_adsp *adsp, struct device **pds,
 
 static int adsp_alloc_memory_region(struct qcom_adsp *adsp)
 {
+	struct reserved_mem *rmem;
 	struct device_node *node;
-	struct resource r;
-	int ret;
 
 	node = of_parse_phandle(adsp->dev->of_node, "memory-region", 0);
 	if (!node) {
@@ -1040,17 +1040,19 @@ static int adsp_alloc_memory_region(struct qcom_adsp *adsp)
 		return -EINVAL;
 	}
 
-	ret = of_address_to_resource(node, 0, &r);
+	rmem = of_reserved_mem_lookup(node);
 	of_node_put(node);
-	if (ret)
-		return ret;
+	if (!rmem) {
+		dev_err(adsp->dev, "unable to resolve memory-region\n");
+		return -EINVAL;
+	}
 
-	adsp->mem_phys = adsp->mem_reloc = r.start;
-	adsp->mem_size = resource_size(&r);
+	adsp->mem_phys = adsp->mem_reloc = rmem->base;
+	adsp->mem_size = rmem->size;
 	adsp->mem_region = devm_ioremap_wc(adsp->dev, adsp->mem_phys, adsp->mem_size);
 	if (!adsp->mem_region) {
 		dev_err(adsp->dev, "unable to map memory region: %pa+%zx\n",
-			&r.start, adsp->mem_size);
+			&rmem->base, adsp->mem_size);
 		return -EBUSY;
 	}
 
@@ -1063,16 +1065,19 @@ static int adsp_alloc_memory_region(struct qcom_adsp *adsp)
 		return -EINVAL;
 	}
 
-	ret = of_address_to_resource(node, 0, &r);
-	if (ret)
-		return ret;
+	rmem = of_reserved_mem_lookup(node);
+	of_node_put(node);
+	if (!rmem) {
+		dev_err(adsp->dev, "unable to resolve dtb memory-region\n");
+		return -EINVAL;
+	}
 
-	adsp->dtb_mem_phys = adsp->dtb_mem_reloc = r.start;
-	adsp->dtb_mem_size = resource_size(&r);
+	adsp->dtb_mem_phys = adsp->dtb_mem_reloc = rmem->base;
+	adsp->dtb_mem_size = rmem->size;
 	adsp->dtb_mem_region = devm_ioremap_wc(adsp->dev, adsp->dtb_mem_phys, adsp->dtb_mem_size);
 	if (!adsp->dtb_mem_region) {
 		dev_err(adsp->dev, "unable to map dtb memory region: %pa+%zx\n",
-			&r.start, adsp->dtb_mem_size);
+			&rmem->base, adsp->dtb_mem_size);
 		return -EBUSY;
 	}
 
@@ -1576,7 +1581,7 @@ static const struct adsp_data sc8180x_mpss_resource = {
 	.ssctl_id = 0x12,
 };
 
-static const struct adsp_data slpi_resource_init = {
+static const struct adsp_data msm8996_slpi_resource_init = {
 		.crash_reason_smem = 424,
 		.firmware_name = "slpi.mdt",
 		.pas_id = 12,
@@ -1590,7 +1595,7 @@ static const struct adsp_data slpi_resource_init = {
 		.ssctl_id = 0x16,
 };
 
-static const struct adsp_data sm8150_slpi_resource = {
+static const struct adsp_data sdm845_slpi_resource_init = {
 		.crash_reason_smem = 424,
 		.firmware_name = "slpi.mdt",
 		.pas_id = 12,
@@ -1604,38 +1609,6 @@ static const struct adsp_data sm8150_slpi_resource = {
 		.ssr_name = "dsps",
 		.sysmon_name = "slpi",
 		.ssctl_id = 0x16,
-};
-
-static const struct adsp_data sm8250_slpi_resource = {
-	.crash_reason_smem = 424,
-	.firmware_name = "slpi.mdt",
-	.pas_id = 12,
-	.auto_boot = true,
-	.proxy_pd_names = (char*[]){
-		"lcx",
-		"lmx",
-		NULL
-	},
-	.load_state = "slpi",
-	.ssr_name = "dsps",
-	.sysmon_name = "slpi",
-	.ssctl_id = 0x16,
-};
-
-static const struct adsp_data sm8350_slpi_resource = {
-	.crash_reason_smem = 424,
-	.firmware_name = "slpi.mdt",
-	.pas_id = 12,
-	.auto_boot = true,
-	.proxy_pd_names = (char*[]){
-		"lcx",
-		"lmx",
-		NULL
-	},
-	.load_state = "slpi",
-	.ssr_name = "dsps",
-	.sysmon_name = "slpi",
-	.ssctl_id = 0x16,
 };
 
 static const struct adsp_data wcss_resource_init = {
@@ -1861,9 +1834,9 @@ static const struct of_device_id adsp_of_match[] = {
 	{ .compatible = "qcom,msm8953-adsp-pil", .data = &msm8996_adsp_resource},
 	{ .compatible = "qcom,msm8974-adsp-pil", .data = &adsp_resource_init},
 	{ .compatible = "qcom,msm8996-adsp-pil", .data = &msm8996_adsp_resource},
-	{ .compatible = "qcom,msm8996-slpi-pil", .data = &slpi_resource_init},
+	{ .compatible = "qcom,msm8996-slpi-pil", .data = &msm8996_slpi_resource_init},
 	{ .compatible = "qcom,msm8998-adsp-pas", .data = &msm8996_adsp_resource},
-	{ .compatible = "qcom,msm8998-slpi-pas", .data = &slpi_resource_init},
+	{ .compatible = "qcom,msm8998-slpi-pas", .data = &msm8996_slpi_resource_init},
 	{ .compatible = "qcom,qcs404-adsp-pas", .data = &adsp_resource_init },
 	{ .compatible = "qcom,qcs404-cdsp-pas", .data = &cdsp_resource_init },
 	{ .compatible = "qcom,qcs404-wcss-pas", .data = &wcss_resource_init },
@@ -1878,6 +1851,7 @@ static const struct of_device_id adsp_of_match[] = {
 	{ .compatible = "qcom,sdm660-adsp-pas", .data = &adsp_resource_init},
 	{ .compatible = "qcom,sdm845-adsp-pas", .data = &sdm845_adsp_resource_init},
 	{ .compatible = "qcom,sdm845-cdsp-pas", .data = &sdm845_cdsp_resource_init},
+	{ .compatible = "qcom,sdm845-slpi-pas", .data = &sdm845_slpi_resource_init},
 	{ .compatible = "qcom,sdx55-mpss-pas", .data = &sdx55_mpss_resource},
 	{ .compatible = "qcom,sm6115-adsp-pas", .data = &adsp_resource_init},
 	{ .compatible = "qcom,sm6115-cdsp-pas", .data = &cdsp_resource_init},
@@ -1888,17 +1862,17 @@ static const struct of_device_id adsp_of_match[] = {
 	{ .compatible = "qcom,sm8150-adsp-pas", .data = &sm8150_adsp_resource},
 	{ .compatible = "qcom,sm8150-cdsp-pas", .data = &sm8150_cdsp_resource},
 	{ .compatible = "qcom,sm8150-mpss-pas", .data = &mpss_resource_init},
-	{ .compatible = "qcom,sm8150-slpi-pas", .data = &sm8150_slpi_resource},
+	{ .compatible = "qcom,sm8150-slpi-pas", .data = &sdm845_slpi_resource_init},
 	{ .compatible = "qcom,sm8250-adsp-pas", .data = &sm8250_adsp_resource},
 	{ .compatible = "qcom,sm8250-cdsp-pas", .data = &sm8250_cdsp_resource},
-	{ .compatible = "qcom,sm8250-slpi-pas", .data = &sm8250_slpi_resource},
+	{ .compatible = "qcom,sm8250-slpi-pas", .data = &sdm845_slpi_resource_init},
 	{ .compatible = "qcom,sm8350-adsp-pas", .data = &sm8350_adsp_resource},
 	{ .compatible = "qcom,sm8350-cdsp-pas", .data = &sm8350_cdsp_resource},
-	{ .compatible = "qcom,sm8350-slpi-pas", .data = &sm8350_slpi_resource},
+	{ .compatible = "qcom,sm8350-slpi-pas", .data = &sdm845_slpi_resource_init},
 	{ .compatible = "qcom,sm8350-mpss-pas", .data = &mpss_resource_init},
 	{ .compatible = "qcom,sm8450-adsp-pas", .data = &sm8350_adsp_resource},
 	{ .compatible = "qcom,sm8450-cdsp-pas", .data = &sm8350_cdsp_resource},
-	{ .compatible = "qcom,sm8450-slpi-pas", .data = &sm8350_slpi_resource},
+	{ .compatible = "qcom,sm8450-slpi-pas", .data = &sdm845_slpi_resource_init},
 	{ .compatible = "qcom,sm8450-mpss-pas", .data = &sm8450_mpss_resource},
 	{ .compatible = "qcom,sm8550-adsp-pas", .data = &sm8550_adsp_resource},
 	{ .compatible = "qcom,sm8550-cdsp-pas", .data = &sm8550_cdsp_resource},
