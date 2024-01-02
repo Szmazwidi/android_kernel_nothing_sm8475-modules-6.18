@@ -4252,6 +4252,9 @@ static int msm_pcie_core_phy_reset(struct msm_pcie_dev_t *dev)
 		}
 	}
 
+	/* add 1ms delay to allow PHY and Controller get out of reset */
+	usleep_range(1000, 1005);
+
 	PCIE_DBG(dev, "RC%d: exit\n", dev->rc_idx);
 
 	return rc;
