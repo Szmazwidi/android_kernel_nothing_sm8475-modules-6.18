@@ -644,8 +644,7 @@ static const struct regmap_config redriver_regmap = {
 	.val_bits = 8,
 };
 
-static int nb7vpq904m_probe(struct i2c_client *client,
-			       const struct i2c_device_id *dev_id)
+static int nb7vpq904m_probe(struct i2c_client *client)
 {
 	struct nb7vpq904m_redriver *redriver;
 	int ret;
