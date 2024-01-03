@@ -592,12 +592,12 @@ static struct platform_driver qtee_shmbridge_driver = {
 	},
 };
 
-int __init qtee_shmbridge_driver_init(void)
+int qtee_shmbridge_driver_init(void)
 {
 	return platform_driver_register(&qtee_shmbridge_driver);
 }
 
-void __exit qtee_shmbridge_driver_exit(void)
+void qtee_shmbridge_driver_exit(void)
 {
 	platform_driver_unregister(&qtee_shmbridge_driver);
 }

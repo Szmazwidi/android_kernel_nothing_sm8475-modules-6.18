@@ -5,8 +5,8 @@
 #ifndef __QCOM_QTEE_SHM_BRIDGE_INT_H_
 #define __QCOM_QTEE_SHM_BRIDGE_INT_H_
 
-int __init qtee_shmbridge_driver_init(void);
-void __exit qtee_shmbridge_driver_exit(void);
+int qtee_shmbridge_driver_init(void);
+void qtee_shmbridge_driver_exit(void);
 
 #define SCM_SVC_RTIC                                0x19
 #define TZ_HLOS_NOTIFY_CORE_KERNEL_BOOTUP           0x7
