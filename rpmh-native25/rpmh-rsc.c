@@ -928,6 +928,11 @@ int rpmh_rsc_write_ctrl_data(struct rsc_drv *drv, const struct tcs_request *msg,
 	int tcs_id = 0, cmd_id = 0;
 	int ret;
 
+	if (!msg->num_cmds) {
+		ipc_log_string(drv->ipc_log_ctx, "Empty num_cmds, returning");
+		return 0;
+	}
+
 	tcs = get_tcs_for_msg(drv, msg->state, ch);
 	if (IS_ERR(tcs))
 		return PTR_ERR(tcs);
