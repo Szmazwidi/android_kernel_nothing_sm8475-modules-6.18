@@ -40,6 +40,7 @@ struct qcom_cpucp_ipc {
 struct qcom_cpucp_mbox_desc {
 	u32 enable_reg;
 	u32 map_reg;
+	u32 rx_reg;
 	u32 send_reg;
 	u32 status_reg;
 	u32 clear_reg;
@@ -79,7 +80,7 @@ static irqreturn_t qcom_cpucp_v2_mbox_rx_interrupt(int irq, void *p)
 {
 	struct qcom_cpucp_ipc *cpucp_ipc = p;
 	const struct qcom_cpucp_mbox_desc *desc = cpucp_ipc->desc;
-	u64 status;
+	u64 status, data;
 	int i;
 	unsigned long flags;
 
@@ -87,13 +88,15 @@ static irqreturn_t qcom_cpucp_v2_mbox_rx_interrupt(int irq, void *p)
 
 	for (i = 0; i < desc->num_chans; i++) {
 		if (status & ((u64)1 << i)) {
+			data = readq(cpucp_ipc->rx_irq_base + desc->rx_reg +
+						(i * desc->chan_stride));
 			writeq(status, cpucp_ipc->rx_irq_base + desc->clear_reg);
 			/* Make sure reg write is complete before proceeding */
 			mb();
 
 			spin_lock_irqsave(&cpucp_ipc->chans[i].lock, flags);
 			if (!IS_ERR(cpucp_ipc->chans[i].con_priv))
-				mbox_chan_received_data(&cpucp_ipc->chans[i], NULL);
+				mbox_chan_received_data(&cpucp_ipc->chans[i], (void *)&data);
 			spin_unlock_irqrestore(&cpucp_ipc->chans[i].lock, flags);
 		}
 	}
@@ -303,6 +306,7 @@ static const struct qcom_cpucp_mbox_desc cpucp_mbox_desc = {
 };
 
 static const struct qcom_cpucp_mbox_desc cpucp_v2_mbox_desc = {
+	.rx_reg = 0x100,
 	.send_reg = 0x104,
 	.chan_stride = 0x8,
 	.map_reg = 0x4000,
