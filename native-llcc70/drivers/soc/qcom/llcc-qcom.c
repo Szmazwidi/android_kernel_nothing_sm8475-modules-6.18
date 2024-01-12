@@ -466,6 +466,8 @@ static const struct llcc_slice_config sun_data[] = {
 						0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 	{LLCC_WRCACHE,  31,  512, 1, 1, 0xFFFFFFFF, 0, 0, 0, 0, 0, 1,
 						0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{LLCC_CVPFW,    19,   64, 4, 1, 0xFFFFFFFF, 0, 0, 0, 0, 0, 0,
+						0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 	{LLCC_CMPTHCP,  15,  256, 4, 1, 0xFFFFFFFF, 0, 0, 0, 0, 0, 0,
 						0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 	{LLCC_LCPDARE,  30,  128, 5, 1, 0xFFFFFFFF, 0, 0, 0, 0, 0, 1,
@@ -490,8 +492,6 @@ static const struct llcc_slice_config sun_data[] = {
 						0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 33},
 	{LLCC_CAMSRTRF, 21, 6144, 1, 1, 0xFFFFFFFF, 0, 0, 0, 0, 0, 0,
 						0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 33},
-	{LLCC_CVPFWMPU, 19,   64, 4, 1, 0xFFFFFFFF, 0, 0, 0, 0, 0, 0,
-						0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 };
 
 static const struct llcc_edac_reg_offset llcc_v1_edac_reg_offset = {
