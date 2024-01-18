@@ -456,7 +456,7 @@ int qcom_ice_evict_key(struct qcom_ice *ice, int slot)
 			return 0;
 	}
 
-	return qcom_scm_ice_invalidate_key(hwkm_slot);
+	return qcom_scm_clear_ice_key(hwkm_slot, 0);
 }
 EXPORT_SYMBOL_GPL(qcom_ice_evict_key);
 
