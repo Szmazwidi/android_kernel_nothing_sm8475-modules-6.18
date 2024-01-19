@@ -538,13 +538,14 @@ static struct qcom_ice *qcom_ice_create(struct device *dev,
 	 * Also, enable the clock before we check what HW version the driver
 	 * supports.
 	 */
-	engine->core_clk = devm_clk_get_optional_enabled(dev, "ice_core_clk");
+	engine->core_clk = devm_clk_get_optional_enabled(dev, "core_clk_ice");
 	if (!engine->core_clk)
 		engine->core_clk = devm_clk_get_optional_enabled(dev, "ice");
 	if (!engine->core_clk)
 		engine->core_clk = devm_clk_get_enabled(dev, NULL);
 	if (IS_ERR(engine->core_clk))
 		return ERR_CAST(engine->core_clk);
+
 	engine->use_hwkm = of_property_read_bool(dev->of_node,
 						 "qcom,ice-use-hwkm");
 
