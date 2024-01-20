@@ -182,6 +182,16 @@ int qcom_icc_get_bw_stub(struct icc_node *node, u32 *avg, u32 *peak)
 }
 EXPORT_SYMBOL(qcom_icc_get_bw_stub);
 
+int qcom_icc_get_bw(struct icc_node *node, u32 *avg, u32 *peak)
+{
+	struct qcom_icc_node *qn = node->data;
+
+	*peak = qn->init_peak;
+	*avg  = qn->init_avg;
+
+	return 0;
+}
+
 /**
  * qcom_icc_bcm_init - populates bcm aux data and connect qnodes
  * @bcm: bcm to be initialized
@@ -239,7 +249,14 @@ int qcom_icc_bcm_init(struct qcom_icc_provider *qp, struct qcom_icc_bcm *bcm,
 		qn->num_bcms++;
 	}
 
-	if (bcm->keepalive || bcm->keepalive_early) {
+	if (bcm->keepalive) {
+		/*
+		 * Default vote for keepalive BCMs, use the first node as proxy node
+		 */
+		qn = bcm->nodes[0];
+		qn->init_avg  = INT_MAX;
+		qn->init_peak = INT_MAX;
+
 		voter = qp->voters[bcm->voter_idx];
 		qcom_icc_bcm_voter_add(voter, bcm);
 
@@ -460,7 +477,7 @@ int qcom_icc_rpmh_probe(struct platform_device *pdev)
 	provider->aggregate = qcom_icc_aggregate_stub;
 	provider->xlate_extended = qcom_icc_xlate_extended;
 	provider->data = data;
-	provider->get_bw = qcom_icc_get_bw_stub;
+	provider->get_bw = qcom_icc_get_bw;
 
 	icc_provider_init(provider);
 
