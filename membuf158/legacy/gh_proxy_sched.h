@@ -82,6 +82,8 @@ int gh_get_nr_vcpus(gh_vmid_t vmid);
 
 bool gh_vm_supports_proxy_sched(gh_vmid_t vmid);
 
+int gh_vcpu_create_wq(gh_vmid_t vmid, unsigned int vcpu_id);
+
 int gh_vcpu_run(gh_vmid_t vmid, unsigned int vcpu_id, uint64_t resume_data_0,
 			uint64_t resume_data_1, uint64_t resume_data_2,
 			struct gh_hcall_vcpu_run_resp *resp);
@@ -106,6 +108,11 @@ bool gh_vm_supports_proxy_sched(gh_vmid_t vmid)
 static inline int gh_vcpu_run(gh_vmid_t vmid, unsigned int vcpu_id,
 	uint64_t resume_data_0, uint64_t resume_data_1,
 	uint64_t resume_data_2, struct gh_hcall_vcpu_run_resp *resp)
+{
+	return -EPERM;
+}
+
+int gh_vcpu_create_wq(gh_vmid_t vmid, unsigned int vcpu_id)
 {
 	return -EPERM;
 }
