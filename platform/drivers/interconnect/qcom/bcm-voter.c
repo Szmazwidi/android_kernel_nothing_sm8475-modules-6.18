@@ -33,7 +33,6 @@ static DEFINE_MUTEX(bcm_voter_lock);
  * @voter_node: list of bcm voters
  * @tcs_wait: mask for which buckets require TCS completion
  * @has_amc: flag to determine if this voter supports AMC
- * @init: flag to determine when init has completed.
  */
 struct bcm_voter {
 	struct device *dev;
@@ -45,7 +44,6 @@ struct bcm_voter {
 	struct list_head voter_node;
 	u32 tcs_wait;
 	bool has_amc;
-	bool init;
 };
 
 static int cmp_vcd(void *priv, const struct list_head *a, const struct list_head *b)
@@ -95,7 +93,7 @@ static void bcm_aggregate_mask(struct qcom_icc_bcm *bcm)
 	}
 }
 
-static void bcm_aggregate(struct qcom_icc_bcm *bcm, bool init)
+static void bcm_aggregate(struct qcom_icc_bcm *bcm)
 {
 	struct qcom_icc_node *node;
 	size_t i, bucket;
@@ -122,28 +120,12 @@ static void bcm_aggregate(struct qcom_icc_bcm *bcm, bool init)
 		bcm->vote_y[bucket] = bcm_div(temp, bcm->aux_data.unit);
 	}
 
-	if (bcm->keepalive || bcm->keepalive_early) {
-		/*
-		 * Keepalive should normally only be enforced for AMC/WAKE so
-		 * that BCMs are only kept alive when HLOS is active. But early
-		 * during init all clients haven't had a chance to vot yet, and
-		 * some have use cases that persist when HLOS is asleep. So
-		 * during init vote to all sets, including SLEEP.
-		 */
-		if (init) {
-			bcm->vote_x[QCOM_ICC_BUCKET_AMC] = 16000;
-			bcm->vote_x[QCOM_ICC_BUCKET_WAKE] = 16000;
-			bcm->vote_x[QCOM_ICC_BUCKET_SLEEP] = 16000;
-			bcm->vote_y[QCOM_ICC_BUCKET_AMC] = 16000;
-			bcm->vote_y[QCOM_ICC_BUCKET_WAKE] = 16000;
-			bcm->vote_y[QCOM_ICC_BUCKET_SLEEP] = 16000;
-		} else if (bcm->vote_x[QCOM_ICC_BUCKET_AMC] == 0 &&
-			   bcm->vote_y[QCOM_ICC_BUCKET_AMC] == 0) {
-			bcm->vote_x[QCOM_ICC_BUCKET_AMC] = 1;
-			bcm->vote_x[QCOM_ICC_BUCKET_WAKE] = 1;
-			bcm->vote_y[QCOM_ICC_BUCKET_AMC] = 1;
-			bcm->vote_y[QCOM_ICC_BUCKET_WAKE] = 1;
-		}
+	if (bcm->keepalive && bcm->vote_x[QCOM_ICC_BUCKET_AMC] == 0 &&
+	    bcm->vote_y[QCOM_ICC_BUCKET_AMC] == 0) {
+		bcm->vote_x[QCOM_ICC_BUCKET_AMC] = 1;
+		bcm->vote_x[QCOM_ICC_BUCKET_WAKE] = 1;
+		bcm->vote_y[QCOM_ICC_BUCKET_AMC] = 1;
+		bcm->vote_y[QCOM_ICC_BUCKET_WAKE] = 1;
 	}
 }
 
@@ -530,7 +512,7 @@ int qcom_icc_bcm_voter_commit(struct bcm_voter *voter)
 		if (bcm->enable_mask)
 			bcm_aggregate_mask(bcm);
 		else
-			bcm_aggregate(bcm, voter->init);
+			bcm_aggregate(bcm);
 	}
 
 	if (voter->crm)
@@ -546,24 +528,6 @@ int qcom_icc_bcm_voter_commit(struct bcm_voter *voter)
 }
 EXPORT_SYMBOL_GPL(qcom_icc_bcm_voter_commit);
 
-/**
- * qcom_icc_bcm_voter_clear_init - clear init flag used during boot up
- * @voter: voter that we need to clear the init flag for
- */
-void qcom_icc_bcm_voter_clear_init(struct bcm_voter *voter)
-{
-	if (!voter)
-		return;
-
-	if (!qcom_icc_bcm_voter_exist(voter))
-		return;
-
-	mutex_lock(&voter->lock);
-	voter->init = false;
-	mutex_unlock(&voter->lock);
-}
-EXPORT_SYMBOL(qcom_icc_bcm_voter_clear_init);
-
 static int qcom_icc_bcm_voter_probe(struct platform_device *pdev)
 {
 	struct device_node *np = pdev->dev.of_node;
@@ -578,7 +542,6 @@ static int qcom_icc_bcm_voter_probe(struct platform_device *pdev)
 
 	voter->dev = &pdev->dev;
 	voter->np = np;
-	voter->init = true;
 	voter->has_amc = !of_property_read_bool(np, "qcom,no-amc");
 
 	if (of_property_read_u32(np, "qcom,tcs-wait", &voter->tcs_wait))

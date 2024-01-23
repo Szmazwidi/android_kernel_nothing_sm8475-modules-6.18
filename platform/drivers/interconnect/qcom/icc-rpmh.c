@@ -19,9 +19,6 @@
 #include "icc-rpmh.h"
 #include "qnoc-qos.h"
 
-static LIST_HEAD(qnoc_probe_list);
-static DEFINE_MUTEX(probe_list_lock);
-
 /**
  * qcom_icc_pre_aggregate - cleans up stale values from prior icc_set
  * @node: icc node to operate on
@@ -206,7 +203,6 @@ int qcom_icc_bcm_init(struct qcom_icc_provider *qp, struct qcom_icc_bcm *bcm,
 	const struct bcm_db *data;
 	struct bcm_voter *voter;
 	size_t data_count;
-	int ret;
 	int i;
 
 	/* BCM is already initialised*/
@@ -259,15 +255,7 @@ int qcom_icc_bcm_init(struct qcom_icc_provider *qp, struct qcom_icc_bcm *bcm,
 
 		voter = qp->voters[bcm->voter_idx];
 		qcom_icc_bcm_voter_add(voter, bcm);
-
-		ret = qcom_icc_bcm_voter_commit(voter);
-		if (ret) {
-			dev_err(dev, "failed to place initial vote for %s\n",
-				bcm->name);
-			return ret;
-		}
 	}
-
 	return 0;
 }
 EXPORT_SYMBOL_GPL(qcom_icc_bcm_init);
@@ -472,12 +460,19 @@ int qcom_icc_rpmh_probe(struct platform_device *pdev)
 
 	provider = &qp->provider;
 	provider->dev = dev;
-	provider->set = qcom_icc_set_stub;
-	provider->pre_aggregate = qcom_icc_pre_aggregate_stub;
-	provider->aggregate = qcom_icc_aggregate_stub;
+
+	provider->set = qcom_icc_set;
+	provider->pre_aggregate = qcom_icc_pre_aggregate;
+	provider->aggregate = qcom_icc_aggregate;
 	provider->xlate_extended = qcom_icc_xlate_extended;
 	provider->data = data;
 	provider->get_bw = qcom_icc_get_bw;
+
+	if (qp->stub) {
+		provider->set = qcom_icc_set_stub;
+		provider->pre_aggregate = qcom_icc_pre_aggregate_stub;
+		provider->aggregate = qcom_icc_aggregate_stub;
+	}
 
 	icc_provider_init(provider);
 
@@ -573,17 +568,7 @@ int qcom_icc_rpmh_probe(struct platform_device *pdev)
 			goto err_deregister_provider;
 	}
 
-	if (!qp->stub) {
-		provider->set = qcom_icc_set;
-		provider->pre_aggregate = qcom_icc_pre_aggregate;
-		provider->aggregate = qcom_icc_aggregate;
-	}
-
 	qcom_icc_debug_register(provider);
-
-	mutex_lock(&probe_list_lock);
-	list_add_tail(&qp->probe_list, &qnoc_probe_list);
-	mutex_unlock(&probe_list_lock);
 
 	return 0;
 
@@ -610,51 +595,5 @@ int qcom_icc_rpmh_remove(struct platform_device *pdev)
 	return 0;
 }
 EXPORT_SYMBOL_GPL(qcom_icc_rpmh_remove);
-
-void qcom_icc_rpmh_sync_state(struct device *dev)
-{
-	struct platform_device *pdev = to_platform_device(dev);
-	const struct of_device_id *oft = dev->driver->of_match_table;
-	struct qcom_icc_provider *qp = platform_get_drvdata(pdev);
-	struct qcom_icc_bcm *bcm;
-	struct bcm_voter *voter;
-	static int probe_count;
-	int num_providers;
-
-	for (num_providers = 0; oft[num_providers].data; num_providers++)
-		;
-
-	mutex_lock(&probe_list_lock);
-	probe_count++;
-
-	if (probe_count < num_providers) {
-		mutex_unlock(&probe_list_lock);
-		return;
-	}
-
-	list_for_each_entry(qp, &qnoc_probe_list, probe_list) {
-		int i;
-
-		for (i = 0; i < qp->num_voters; i++)
-			qcom_icc_bcm_voter_clear_init(qp->voters[i]);
-
-		for (i = 0; i < qp->num_bcms; i++) {
-			bcm = qp->bcms[i];
-			if (!bcm->keepalive && !bcm->keepalive_early)
-				continue;
-
-			bcm->keepalive_early = false;
-
-			voter = qp->voters[bcm->voter_idx];
-			qcom_icc_bcm_voter_add(voter, bcm);
-			qcom_icc_bcm_voter_commit(voter);
-		}
-	}
-
-	mutex_unlock(&probe_list_lock);
-
-	dev_info(dev, "sync-state\n");
-}
-EXPORT_SYMBOL(qcom_icc_rpmh_sync_state);
 
 MODULE_LICENSE("GPL v2");
