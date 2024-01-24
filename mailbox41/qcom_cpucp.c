@@ -217,7 +217,7 @@ static int qcom_cpucp_probe(struct platform_device *pdev)
 	cpucp_ipc->dev = &pdev->dev;
 	cpucp_ipc->desc = desc;
 
-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "tx");
 	if (!res) {
 		dev_err(&pdev->dev, "Failed to get the device base address\n");
 		return -ENODEV;
@@ -230,7 +230,7 @@ static int qcom_cpucp_probe(struct platform_device *pdev)
 		return -ENOMEM;
 	}
 
-	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "rx");
 	if (!res) {
 		dev_err(&pdev->dev, "Failed to get the device base address\n");
 		return -ENODEV;
