@@ -1845,6 +1845,7 @@ static const struct adsp_data sun_mpss_resource = {
 	.region_assign_count = 2,
 	.region_assign_vmid = QCOM_SCM_VMID_MSS_MSA,
 	.dma_phys_below_32b = true,
+	.both_dumps = true,
 };
 
 static const struct adsp_data sun_soccp_resource = {
