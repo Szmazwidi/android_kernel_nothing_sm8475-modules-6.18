@@ -26,6 +26,7 @@
  * @rx_irq_base:	Memory address for receiving irq
  * @dev:		Device associated with this instance
  * @irq:		CPUCP to HLOS irq
+ * @rx_chans:		Bitmask of channels to monitor on rx
  */
 struct qcom_cpucp_ipc {
 	struct mbox_controller mbox;
@@ -35,6 +36,7 @@ struct qcom_cpucp_ipc {
 	void __iomem *rx_irq_base;
 	struct device *dev;
 	int irq;
+	u32 rx_chans;
 };
 
 struct qcom_cpucp_mbox_desc {
@@ -58,10 +60,8 @@ static irqreturn_t qcom_cpucp_rx_interrupt(int irq, void *p)
 	unsigned long flags;
 
 	for (i = 0; i < desc->num_chans; i++) {
-
 		val = readl(cpucp_ipc->rx_irq_base + desc->status_reg + (i * desc->chan_stride));
 		if (val & CPUCP_STATUS_IRQ_VAL) {
-
 			writel(CPUCP_CLEAR_IRQ_VAL,
 			       cpucp_ipc->rx_irq_base + desc->clear_reg + (i * desc->chan_stride));
 			/* Make sure reg write is complete before proceeding */
@@ -80,6 +80,7 @@ static irqreturn_t qcom_cpucp_v2_mbox_rx_interrupt(int irq, void *p)
 {
 	struct qcom_cpucp_ipc *cpucp_ipc = p;
 	const struct qcom_cpucp_mbox_desc *desc = cpucp_ipc->desc;
+	irqreturn_t ret = IRQ_NONE;
 	u64 status, data;
 	int i;
 	unsigned long flags;
@@ -87,21 +88,23 @@ static irqreturn_t qcom_cpucp_v2_mbox_rx_interrupt(int irq, void *p)
 	status = readq(cpucp_ipc->rx_irq_base + desc->status_reg);
 
 	for (i = 0; i < desc->num_chans; i++) {
+		if (cpucp_ipc->rx_chans && !(cpucp_ipc->rx_chans & BIT(i)))
+			continue;
 		if (status & ((u64)1 << i)) {
 			data = readq(cpucp_ipc->rx_irq_base + desc->rx_reg +
 						(i * desc->chan_stride));
 			writeq(status, cpucp_ipc->rx_irq_base + desc->clear_reg);
 			/* Make sure reg write is complete before proceeding */
 			mb();
-
 			spin_lock_irqsave(&cpucp_ipc->chans[i].lock, flags);
 			if (!IS_ERR(cpucp_ipc->chans[i].con_priv))
 				mbox_chan_received_data(&cpucp_ipc->chans[i], (void *)&data);
 			spin_unlock_irqrestore(&cpucp_ipc->chans[i].lock, flags);
+			ret = IRQ_HANDLED;
 		}
 	}
 
-	return IRQ_HANDLED;
+	return ret;
 }
 
 static int qcom_cpucp_mbox_startup(struct mbox_chan *chan)
@@ -204,6 +207,7 @@ static int qcom_cpucp_probe(struct platform_device *pdev)
 	const struct qcom_cpucp_mbox_desc *desc;
 	struct qcom_cpucp_ipc *cpucp_ipc;
 	struct resource *res;
+	unsigned long flags = IRQF_TRIGGER_HIGH | IRQF_NO_SUSPEND;
 	int ret;
 
 	desc = device_get_match_data(&pdev->dev);
@@ -266,9 +270,15 @@ static int qcom_cpucp_probe(struct platform_device *pdev)
 		return ret;
 	}
 
+	ret = of_property_read_u32(cpucp_ipc->dev->of_node, "qcom,rx-chans",
+						&cpucp_ipc->rx_chans);
+	if (ret < 0 || !cpucp_ipc->rx_chans)
+		dev_dbg(&pdev->dev, "Missing chans mask. Skipping\n");
+	else
+		flags |= IRQF_SHARED;
 	ret = devm_request_irq(&pdev->dev, cpucp_ipc->irq,
 			desc->v2_mbox ? qcom_cpucp_v2_mbox_rx_interrupt : qcom_cpucp_rx_interrupt,
-			IRQF_TRIGGER_HIGH | IRQF_NO_SUSPEND, "qcom_cpucp", cpucp_ipc);
+			flags, "qcom_cpucp", cpucp_ipc);
 
 	if (ret < 0) {
 		dev_err(&pdev->dev, "Failed to register the irq: %d\n", ret);
