@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /*
  * Copyright (c) 2013-2015, 2019-2021, Linux Foundation. All rights reserved.
- * Copyright (c) 2023 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
 #ifndef UFS_QCOM_PHY_I_H_
@@ -153,6 +153,8 @@ int ufs_qcom_phy_power_on(struct phy *generic_phy);
 int ufs_qcom_phy_power_off(struct phy *generic_phy);
 int ufs_qcom_phy_init_clks(struct ufs_qcom_phy *phy_common);
 int ufs_qcom_phy_init_vregulators(struct ufs_qcom_phy *phy_common);
+int ufs_qcom_phy_disable_vreg(struct device *dev,
+			     struct ufs_qcom_phy_vreg *vreg);
 int ufs_qcom_phy_remove(struct phy *generic_phy,
 		       struct ufs_qcom_phy *ufs_qcom_phy);
 struct phy *ufs_qcom_phy_generic_probe(struct platform_device *pdev,
