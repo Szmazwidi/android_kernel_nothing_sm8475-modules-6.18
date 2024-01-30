@@ -332,14 +332,22 @@ static int qcom_ice_program_wrapped_key(struct qcom_ice *ice,
 	int hwkm_slot;
 	int err;
 	union crypto_cfg cfg;
+	union crypto_cfg prev_cfg;
 	struct qtee_shm shm;
 
 	hwkm_slot = translate_hwkm_slot(ice, slot);
 
+	memset(&prev_cfg, 0, sizeof(prev_cfg));
+	prev_cfg.regval = qcom_ice_readl(ice, QCOM_ICE_LUT_KEYS_CRYPTOCFG_R16 +
+					QCOM_ICE_LUT_KEYS_CRYPTOCFG_OFFSET * slot);
 	memset(&cfg, 0, sizeof(cfg));
 	cfg.dusize = data_unit_size;
 	cfg.capidx = QCOM_SCM_ICE_CIPHER_AES_256_XTS;
 	cfg.cfge = 0x80;
+
+	/* If the configuration was retained, we do not need to reset the key */
+	if (prev_cfg.cfge == cfg.cfge)
+		return 0;
 
 	/* Clear CFGE */
 	qcom_ice_writel(ice, 0x0, QCOM_ICE_LUT_KEYS_CRYPTOCFG_R16 +
