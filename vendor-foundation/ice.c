@@ -78,6 +78,7 @@ struct qcom_ice {
 	u8 hwkm_version;
 	bool use_hwkm;
 	bool hwkm_init_complete;
+	bool handle_clks;
 };
 
 union crypto_cfg {
@@ -289,11 +290,13 @@ int qcom_ice_resume(struct qcom_ice *ice)
 	struct device *dev = ice->dev;
 	int err;
 
-	err = clk_prepare_enable(ice->core_clk);
-	if (err) {
-		dev_err(dev, "failed to enable core clock (%d)\n",
-			err);
-		return err;
+	if (ice->handle_clks) {
+		err = clk_prepare_enable(ice->core_clk);
+		if (err) {
+			dev_err(dev, "failed to enable core clock (%d)\n",
+				err);
+			return err;
+		}
 	}
 
 	qcom_ice_enable_standard_mode(ice);
@@ -304,7 +307,8 @@ EXPORT_SYMBOL_GPL(qcom_ice_resume);
 
 int qcom_ice_suspend(struct qcom_ice *ice)
 {
-	clk_disable_unprepare(ice->core_clk);
+	if (ice->handle_clks)
+		clk_disable_unprepare(ice->core_clk);
 
 	return 0;
 }
@@ -531,6 +535,9 @@ static struct qcom_ice *qcom_ice_create(struct device *dev,
 	engine->dev = dev;
 	engine->base = base;
 
+	engine->handle_clks = false;
+	engine->handle_clks = of_property_read_bool(dev->of_node,
+						 "qcom,ice-handle-clks");
 	/*
 	 * Legacy DT binding uses different clk names for each consumer,
 	 * so lets try those first. If none of those are a match, it means
@@ -538,13 +545,15 @@ static struct qcom_ice *qcom_ice_create(struct device *dev,
 	 * Also, enable the clock before we check what HW version the driver
 	 * supports.
 	 */
-	engine->core_clk = devm_clk_get_optional_enabled(dev, "core_clk_ice");
-	if (!engine->core_clk)
-		engine->core_clk = devm_clk_get_optional_enabled(dev, "ice");
-	if (!engine->core_clk)
-		engine->core_clk = devm_clk_get_enabled(dev, NULL);
-	if (IS_ERR(engine->core_clk))
-		return ERR_CAST(engine->core_clk);
+	if (engine->handle_clks) {
+		engine->core_clk = devm_clk_get_optional_enabled(dev, "core_clk_ice");
+		if (!engine->core_clk)
+			engine->core_clk = devm_clk_get_optional_enabled(dev, "ice");
+		if (!engine->core_clk)
+			engine->core_clk = devm_clk_get_enabled(dev, NULL);
+		if (IS_ERR(engine->core_clk))
+			return ERR_CAST(engine->core_clk);
+	}
 
 	engine->use_hwkm = of_property_read_bool(dev->of_node,
 						 "qcom,ice-use-hwkm");
