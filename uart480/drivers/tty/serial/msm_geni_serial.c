@@ -693,6 +693,13 @@ int msm_geni_serial_resources_on(struct msm_geni_serial_port *port)
 			    "%s: Error %d geni_se_common_clks_on failed\n", __func__, ret);
 		return ret;
 	}
+	/*
+	 * Reprogram GENI output control register, to ensure QUP to Pad output path
+	 * is retained post suspend. Added 10us delay to settle the write of the
+	 * register as per HW team recommendation.
+	 */
+	geni_write_reg(0x7F,  port->uport.membase, GENI_OUTPUT_CTRL);
+	udelay(10);
 	geni_capture_stop_time(&port->se, port->ipc_log_kpi, __func__,
 			       port->uart_kpi, start_time, 0, 0);
 
@@ -2624,8 +2631,8 @@ static void start_rx_sequencer(struct uart_port *uport)
 		UART_LOG_DBG(port->ipc_log_misc, uport->dev,
 			     "%s: start xfer_rx\n", __func__);
 		if (msm_geni_uart_gsi_xfer_rx(uport))
-			IPC_LOG_MSG(port->ipc_log_misc,
-				    "%s: RX xfer is failed\n", __func__);
+			UART_LOG_DBG(port->ipc_log_misc, uport->dev,
+				     "%s: RX xfer is failed\n", __func__);
 		geni_status = geni_read_reg(uport->membase, SE_GENI_STATUS);
 		UART_LOG_DBG(port->ipc_log_misc, uport->dev,
 			     "%s: xfer_rx done. geni_status:0x%x\n",
@@ -3898,9 +3905,9 @@ static void msm_geni_serial_shutdown(struct uart_port *uport)
 				msm_port->serial_rsc.geni_pinctrl,
 				msm_port->serial_rsc.geni_gpio_shutdown);
 			if (ret)
-				IPC_LOG_MSG(msm_port->ipc_log_misc,
-				      "%s: Error %d pinctrl_select_state\n",
-					__func__, ret);
+				UART_LOG_DBG(msm_port->ipc_log_misc, uport->dev,
+					     "%s: Error %d pinctrl_select_state\n",
+					     __func__, ret);
 		}
 
 		/* Reset UART error to default during port_close() */
@@ -4205,12 +4212,14 @@ static int msm_geni_serial_reconfigure_baud_rate(struct uart_port *uport)
 	if (!uart_console(uport)) {
 		if (!wait_for_completion_timeout(&port->xfer,
 						 msecs_to_jiffies(POLL_WAIT_TIMEOUT_MSEC)))
-			IPC_LOG_MSG(port->ipc_log_misc, "%s:Timeout for stop_rx\n", __func__);
+			UART_LOG_DBG(port->ipc_log_misc, uport->dev,
+				     "%s:Timeout for stop_rx\n", __func__);
 	}
 
 	ret = msm_geni_serial_config_baud_rate(uport, termios, port->cur_baud);
 	if (!ret)
-		IPC_LOG_MSG(port->ipc_log_misc, "%s: baud %d\n", __func__, port->cur_baud);
+		UART_LOG_DBG(port->ipc_log_misc, uport->dev,
+			     "%s: baud %d\n", __func__, port->cur_baud);
 
 	msm_geni_serial_start_rx(uport);
 	if (!uart_console(uport))
@@ -4272,14 +4281,15 @@ static int msm_geni_serial_config_baud_rate(struct uart_port *uport,
 	clk_freq_diff =  (desired_rate - (clk_rate / clk_div));
 	if (clk_freq_diff)
 		UART_LOG_DBG(port->ipc_log_misc, uport->dev,
-			"%s src_clk freq_diff:%d baud:%d clk_rate:%lu clk_div:%d\n",
-			__func__, clk_freq_diff, baud, clk_rate, clk_div);
+			     "%s src_clk freq_diff:%d baud:%d clk_rate:%lu clk_div:%d\n",
+			     __func__, clk_freq_diff, baud, clk_rate, clk_div);
 
 	uport->uartclk = clk_rate;
 	ret = clk_set_rate(port->serial_rsc.se_clk, clk_rate);
 	if (ret) {
 		dev_err(uport->dev, "Error setting clock rate\n");
-		IPC_LOG_MSG(port->ipc_log_misc, "%s: SE clock set_rate error:%d\n", __func__, ret);
+		UART_LOG_DBG(port->ipc_log_misc, uport->dev,
+			     "%s: SE clock set_rate error:%d\n", __func__, ret);
 		WARN_ON(1);
 	}
 	ser_clk_cfg |= SER_CLK_EN;
@@ -4320,9 +4330,9 @@ static void msm_geni_serial_set_termios(struct uart_port *uport,
 
 		ret = msm_geni_serial_power_on(uport);
 		if (ret) {
-			IPC_LOG_MSG(port->ipc_log_misc,
-				    "%s: Failed to vote clock on:%d\n",
-				    __func__, ret);
+			UART_LOG_DBG(port->ipc_log_misc, uport->dev,
+				     "%s: Failed to vote clock on:%d\n",
+				     __func__, ret);
 			return;
 		}
 	}
@@ -4339,8 +4349,8 @@ static void msm_geni_serial_set_termios(struct uart_port *uport,
 	if (!uart_console(uport)) {
 		poll_wait_time = msecs_to_jiffies(POLL_WAIT_TIMEOUT_MSEC);
 		if (!wait_for_completion_timeout(&port->xfer, poll_wait_time))
-			IPC_LOG_MSG(port->ipc_log_misc,
-				    "%s:Timeout for stop_rx\n", __func__);
+			UART_LOG_DBG(port->ipc_log_misc, uport->dev,
+				     "%s:Timeout for stop_rx\n", __func__);
 	}
 
 	/* baud rate */
@@ -4353,7 +4363,8 @@ static void msm_geni_serial_set_termios(struct uart_port *uport,
 	if (!uart_console(uport))
 		port->current_termios = termios;
 
-	IPC_LOG_MSG(port->ipc_log_misc, "%s: baud %d\n", __func__, baud);
+	UART_LOG_DBG(port->ipc_log_misc, uport->dev,
+		     "%s: baud %d\n", __func__, baud);
 	geni_capture_stop_time(&port->se, port->ipc_log_kpi, __func__,
 			       port->uart_kpi, start_time, 0, 0);
 exit_set_termios:
@@ -5582,8 +5593,8 @@ static int msm_geni_serial_sys_resume(struct device *dev)
 		     __func__, true);
 
 	if (pm_suspend_via_firmware()) {
-		IPC_LOG_MSG(port->ipc_log_pwr, "deepsleep: %s\n",
-			    __func__);
+		UART_LOG_DBG(port->ipc_log_pwr, dev,
+			     "deepsleep: %s\n", __func__);
 
 		if (!uart_console(uport))
 			port->resuming_from_deep_sleep = true;
