@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
  * Copyright (c) 2013-2021, Linux Foundation. All rights reserved.
- * Copyright (c) 2022-2023 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) 2022-2024 Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
 #include "phy-qcom-ufs-i.h"
@@ -563,7 +563,7 @@ out:
 	return ret;
 }
 
-static int ufs_qcom_phy_disable_vreg(struct device *dev,
+int ufs_qcom_phy_disable_vreg(struct device *dev,
 			      struct ufs_qcom_phy_vreg *vreg)
 {
 	int ret = 0;
@@ -584,6 +584,7 @@ static int ufs_qcom_phy_disable_vreg(struct device *dev,
 out:
 	return ret;
 }
+EXPORT_SYMBOL_GPL(ufs_qcom_phy_disable_vreg);
 
 static void ufs_qcom_phy_disable_ref_clk(struct ufs_qcom_phy *phy)
 {
