@@ -67,7 +67,9 @@ static inline int msm_dma_map_sgtable(struct device *dev, struct sg_table *sgt,
 	int nents;
 
 	nents = msm_dma_map_sg_attrs(dev, sgt->sgl, sgt->orig_nents, dir, dma_buf, attrs);
-	if (nents <= 0)
+	if (nents < 0)
+		return nents;
+	else if (unlikely(nents == 0))
 		return -EINVAL;
 
 	sgt->nents = nents;
