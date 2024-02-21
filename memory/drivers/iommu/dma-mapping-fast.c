@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
  * Copyright (c) 2016-2021, The Linux Foundation. All rights reserved.
- * Copyright (c) 2022-2023 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) 2022-2024 Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
 #include <linux/dma-mapping.h>
@@ -27,6 +27,35 @@
 
 static struct rb_root mappings;
 static DEFINE_RWLOCK(mappings_lock);
+
+static bool dev_use_swiotlb(struct device *dev, size_t size,
+			    enum dma_data_direction dir)
+{
+	return IS_ENABLED(CONFIG_SWIOTLB) && dma_kmalloc_needs_bounce(dev, size, dir);
+}
+
+static bool dev_use_sg_swiotlb(struct device *dev, struct scatterlist *sg,
+			       int nents, enum dma_data_direction dir)
+{
+	struct scatterlist *s;
+	int i;
+
+	if (!IS_ENABLED(CONFIG_SWIOTLB))
+		return false;
+
+	/*
+	 * If kmalloc() buffers are not DMA-safe for this device and
+	 * direction, check the individual lengths in the sg list. If any
+	 * element is deemed unsafe, use the swiotlb for bouncing.
+	 */
+	if (!dma_kmalloc_safe(dev, dir)) {
+		for_each_sg(sg, s, nents, i)
+			if (!dma_kmalloc_size_aligned(s->length))
+				return true;
+	}
+
+	return false;
+}
 
 static int fast_smmu_add_mapping(struct dma_fast_smmu_mapping *fast)
 {
@@ -228,6 +257,12 @@ static dma_addr_t fast_smmu_map_page(struct device *dev, struct page *page,
 	bool is_coherent = is_dma_coherent(dev, attrs);
 	int prot = qcom_dma_info_to_prot(dir, is_coherent, attrs);
 
+	if (dev_use_swiotlb(dev, size, dir) &&
+	    iova_offset(mapping->iovad, phys_plus_off | size)) {
+		dev_warn_once(dev, "Fastmap does not support bounce buffers\n");
+		return DMA_MAPPING_ERROR;
+	}
+
 	if (!skip_sync && !is_coherent)
 		qcom_arch_sync_dma_for_device(phys_plus_off, size, dir);
 
@@ -353,6 +388,11 @@ static int fast_smmu_map_sg(struct device *dev, struct scatterlist *sg,
 	dma_addr_t iova;
 	unsigned long flags;
 	size_t unused = 0;
+
+	if (dev_use_sg_swiotlb(dev, sg, nents, dir)) {
+		dev_warn_once(dev, "Fastmap does not support bounce buffers\n");
+		goto fail;
+	}
 
 	iova_len = qcom_iommu_dma_prepare_map_sg(dev, mapping->iovad, sg, nents);
 
