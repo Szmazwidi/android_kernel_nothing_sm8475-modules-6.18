@@ -249,24 +249,32 @@
 #define QCOM_ID_QRB4210			523
 #define QCOM_ID_QRB2210			524
 #define QCOM_ID_SA8775P			534
+#define QCOM_ID_PARROT			537
 #define QCOM_ID_QRU1000			539
 #define QCOM_ID_QDU1000			545
 #define QCOM_ID_X1E80100		555
+#define QCOM_ID_PINEAPPLE		557
 #define QCOM_ID_SM4450			568
+#define QCOM_ID_PINEAPPLEP		577
+#define QCOM_ID_PARROTP			583
 #define QCOM_ID_QDU1010			587
 #define QCOM_ID_QRU1032			588
 #define QCOM_ID_QRU1052			589
 #define QCOM_ID_QRU1062			590
 #define QCOM_ID_IPQ5332			592
 #define QCOM_ID_IPQ5322			593
-#define QCOM_ID_PINEAPPLE		557
-#define QCOM_ID_PINEAPPLEP		577
 #define QCOM_ID_IPQ5312			594
 #define QCOM_ID_IPQ5302			595
+#define QCOM_ID_PARROT7			613
 #define QCOM_ID_SUN			618
-#define QCOM_ID_SUNP			639
 #define QCOM_ID_IPQ5300			624
+#define QCOM_ID_PARROTQ			631
+#define QCOM_ID_SG_PARROT		633
+#define QCOM_ID_SG_PARROTP		634
+#define QCOM_ID_PARROT7P		638
+#define QCOM_ID_SUNP			639
 #define QCOM_ID_TUNA			655
+#define QCOM_ID_PARROTPRO		663
 
 /*
  * The board type and revision information, used by Qualcomm bootloaders and
