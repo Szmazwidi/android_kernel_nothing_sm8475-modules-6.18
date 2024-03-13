@@ -2933,6 +2933,18 @@ static int geni_i2c_suspend_late(struct device *device)
 			    __func__);
 		return -EBUSY;
 	}
+
+	if (gi2c->pm_ctrl_client) {
+		if (!pm_runtime_status_suspended(gi2c->dev)) {
+			I2C_LOG_DBG(gi2c->ipcl, false, gi2c->dev,
+				    ":%s: Wait for pm client to call put_sync\n", __func__);
+			return -EBUSY;
+		}
+		I2C_LOG_DBG(gi2c->ipcl, false, gi2c->dev,
+			    "%s: System suspend bypassed due to pm-ctrl-client\n", __func__);
+		return 0;
+	}
+
 	/* Make sure no transactions are pending */
 	ret = i2c_trylock_bus(&gi2c->adap, I2C_LOCK_SEGMENT);
 	if (!ret) {
