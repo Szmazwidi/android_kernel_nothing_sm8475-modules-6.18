@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /*
  * Copyright (c) 2017-2021, The Linux Foundation. All rights reserved.
- * Copyright (c) 2022-2023 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) 2022-2024 Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
 #ifndef _LINUX_QCOM_GENI_SE_COMMON
@@ -52,8 +52,8 @@ if (print) { \
 #define DEFAULT_SE_CLK	19200
 #define SPI_CORE2X_VOTE	51000
 #define Q2SPI_CORE2X_VOTE	100000
-#define I2C_CORE2X_VOTE	200000
-#define I3C_CORE2X_VOTE	200000
+#define I2C_CORE2X_VOTE	50000
+#define I3C_CORE2X_VOTE	50000
 #define APPS_PROC_TO_QUP_VOTE	140000
 /* SE_DMA_GENERAL_CFG */
 #define SE_DMA_DEBUG_REG0		(0xE40)
