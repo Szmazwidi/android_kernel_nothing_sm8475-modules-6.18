@@ -2238,8 +2238,8 @@ static int geni_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[],
 	if (gi2c->prev_cancel_pending) {
 		ret = do_pending_cancel(gi2c);
 		if (ret) {
-			/* for levm skip auto suspend timer */
-			if (!gi2c->is_le_vm) {
+			/* for levm and PM control clients, skip auto suspend timer */
+			if (!gi2c->is_le_vm && !gi2c->pm_ctrl_client) {
 				pm_runtime_mark_last_busy(gi2c->dev);
 				pm_runtime_put_autosuspend(gi2c->dev);
 			}
@@ -2252,8 +2252,8 @@ static int geni_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[],
 	if ((geni_ios & 0x3) != 0x3) { //SCL:b'1, SDA:b'0
 		I2C_LOG_ERR(gi2c->ipcl, false, gi2c->dev,
 			    "IO lines in bad state, Power the slave\n");
-		/* for levm skip auto suspend timer */
-		if (!gi2c->is_le_vm) {
+		/* for levm and PM control clients, skip auto suspend timer */
+		if (!gi2c->is_le_vm && !gi2c->pm_ctrl_client) {
 			pm_runtime_mark_last_busy(gi2c->dev);
 			pm_runtime_put_autosuspend(gi2c->dev);
 		}
@@ -2600,8 +2600,8 @@ static int geni_i2c_probe(struct platform_device *pdev)
 	strscpy(gi2c->adap.name, "Geni-I2C", sizeof(gi2c->adap.name));
 
 	pm_runtime_set_suspended(gi2c->dev);
-	/* for levm skip auto suspend timer */
-	if (!gi2c->is_le_vm) {
+	/* for levm and PM control clients skip auto suspend timer */
+	if (!gi2c->is_le_vm && !gi2c->pm_ctrl_client) {
 		pm_runtime_set_autosuspend_delay(gi2c->dev, I2C_AUTO_SUSPEND_DELAY);
 		pm_runtime_use_autosuspend(gi2c->dev);
 	}
