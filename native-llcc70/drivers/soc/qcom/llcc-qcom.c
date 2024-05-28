@@ -1504,6 +1504,10 @@ static int qcom_llcc_probe(struct platform_device *pdev)
 	}
 
 	cfg = of_device_get_match_data(&pdev->dev);
+	if (!cfg) {
+		ret = -EINVAL;
+		goto err;
+	}
 
 	ret = regmap_read(regmap, cfg->reg_offset[LLCC_COMMON_STATUS0], &num_banks);
 	if (ret)
