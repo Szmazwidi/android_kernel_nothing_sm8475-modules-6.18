@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
  * Copyright (c) 2016-2021, The Linux Foundation. All rights reserved.
- * Copyright (c) 2022-2023 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) 2022-2024 Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
 #define pr_fmt(fmt)	"io-pgtable-fast: " fmt
@@ -49,10 +49,8 @@
 
 
 /* Stage-1 PTE */
-#define AV8L_FAST_PTE_AP_PRIV_RW	(((av8l_fast_iopte)0) << 6)
-#define AV8L_FAST_PTE_AP_RW		(((av8l_fast_iopte)1) << 6)
-#define AV8L_FAST_PTE_AP_PRIV_RO	(((av8l_fast_iopte)2) << 6)
-#define AV8L_FAST_PTE_AP_RO		(((av8l_fast_iopte)3) << 6)
+#define AV8L_FAST_PTE_AP_UNPRIV		(((av8l_fast_iopte)1) << 6)
+#define AV8L_FAST_PTE_AP_RDONLY		(((av8l_fast_iopte)2) << 6)
 #define AV8L_FAST_PTE_ATTRINDX_SHIFT	2
 #define AV8L_FAST_PTE_ATTRINDX_MASK	0x7
 #define AV8L_FAST_PTE_nG		(((av8l_fast_iopte)1) << 11)
@@ -221,11 +219,14 @@ static void __av8l_check_for_stale_tlb(av8l_fast_iopte *ptep)
 static av8l_fast_iopte
 av8l_fast_prot_to_pte(struct av8l_fast_io_pgtable *data, int prot)
 {
-	av8l_fast_iopte pte = AV8L_FAST_PTE_XN
-		| AV8L_FAST_PTE_TYPE_PAGE
+	av8l_fast_iopte pte = AV8L_FAST_PTE_TYPE_PAGE
 		| AV8L_FAST_PTE_AF
-		| AV8L_FAST_PTE_nG
-		| AV8L_FAST_PTE_SH_OS;
+		| AV8L_FAST_PTE_nG;
+
+	if (!(prot & IOMMU_WRITE) && (prot & IOMMU_READ))
+		pte |= AV8L_FAST_PTE_AP_RDONLY;
+	if (!(prot & IOMMU_PRIV))
+		pte |= AV8L_FAST_PTE_AP_UNPRIV;
 
 	if (prot & IOMMU_MMIO)
 		pte |= (AV8L_FAST_MAIR_ATTR_IDX_DEV
@@ -236,10 +237,14 @@ av8l_fast_prot_to_pte(struct av8l_fast_io_pgtable *data, int prot)
 	else if (prot & IOMMU_SYS_CACHE)
 		pte |= (AV8L_FAST_MAIR_ATTR_IDX_UPSTREAM
 			<< AV8L_FAST_PTE_ATTRINDX_SHIFT);
-	if (!(prot & IOMMU_WRITE))
-		pte |= AV8L_FAST_PTE_AP_RO;
+
+	if (prot & IOMMU_CACHE)
+		pte |= AV8L_FAST_PTE_SH_IS;
 	else
-		pte |= AV8L_FAST_PTE_AP_RW;
+		pte |= AV8L_FAST_PTE_SH_OS;
+
+	if (prot & IOMMU_NOEXEC)
+		pte |= AV8L_FAST_PTE_XN;
 
 	return pte;
 }
