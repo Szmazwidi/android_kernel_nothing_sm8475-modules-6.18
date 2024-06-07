@@ -706,6 +706,14 @@ exit_start:
 	return ret;
 }
 
+static irqreturn_t soccp_running_ack(int irq, void *data)
+{
+	struct qcom_q6v5 *q6v5 = data;
+
+	complete(&q6v5->running_ack);
+
+	return IRQ_HANDLED;
+}
 /*
  * rproc_config_check: Check back the config register
  *
@@ -840,6 +848,8 @@ int rproc_set_state(struct rproc *rproc, bool state)
 			goto soccp_out;
 		}
 
+		reinit_completion(&(adsp->q6v5.running_ack));
+
 		ret = qcom_smem_state_update_bits(adsp->wake_state,
 					    SOCCP_STATE_MASK,
 					    BIT(adsp->wake_bit));
@@ -853,6 +863,14 @@ int rproc_set_state(struct rproc *rproc, bool state)
 			dev_err(adsp->dev, "failed to change from D3 to D0\n");
 			goto soccp_out;
 		}
+
+		ret = wait_for_completion_timeout(&adsp->q6v5.running_ack, msecs_to_jiffies(5));
+		if (!ret) {
+			dev_err(adsp->dev, "failed to get ack for state change from D3 to D0\n");
+			ret = -ETIMEDOUT;
+			goto soccp_out;
+		} else
+			ret = 0;
 
 		refcount_set(&adsp->current_users, 1);
 	} else {
@@ -1373,7 +1391,24 @@ static int adsp_probe(struct platform_device *pdev)
 			goto detach_proxy_pds;
 		}
 
+		adsp->q6v5.active_state_ack_irq = platform_get_irq_byname(pdev, "wake-ack");
+		if (adsp->q6v5.active_state_ack_irq < 0) {
+			dev_err(&pdev->dev, "failed to acquire readyack irq\n");
+			goto detach_proxy_pds;
+		}
+
+		ret = devm_request_threaded_irq(&pdev->dev, adsp->q6v5.active_state_ack_irq,
+						NULL, soccp_running_ack,
+						IRQF_TRIGGER_RISING | IRQF_ONESHOT,
+						"qcom_q6v5_pas", &adsp->q6v5);
+		if (ret) {
+			dev_err(&pdev->dev, "failed to acquire ready ack IRQ\n");
+			goto detach_proxy_pds;
+		}
+
 		mutex_init(&adsp->adsp_lock);
+
+		init_completion(&(adsp->q6v5.running_ack));
 
 		refcount_set(&adsp->current_users, 0);
 	}
