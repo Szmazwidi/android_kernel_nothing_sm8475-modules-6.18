@@ -381,7 +381,7 @@ struct gsi_common {
 	struct gsi_xfer_param rx;
 	void *ipc;
 	bool req_chan;
-	bool err; /* For every gsi error performing gsi reset */
+	bool *err; /* For every gsi error performing gsi reset */
 	int *protocol_err; /* protocol specific error*/
 	void (*ev_cb_fun)(struct dma_chan *ch, struct msm_gpi_cb const *cb_str, void *ptr);
 };

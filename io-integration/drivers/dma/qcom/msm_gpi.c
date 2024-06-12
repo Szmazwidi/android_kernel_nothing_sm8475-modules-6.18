@@ -1325,6 +1325,13 @@ int gsi_common_tx_tre_optimization(struct gsi_common *gsi, u32 num_xfers, u32 nu
 					   "%s: msg xfer timeout\n", __func__);
 				return timeout;
 			}
+
+			/* GSI HW creates an error during callback, so error check handling here */
+			if (*gsi->err) {
+				GSI_SE_DBG(gsi->ipc, false, gsi->dev,
+					   "%s: gsi error\n", __func__);
+				return -EIO;
+			}
 		}
 		GSI_SE_DBG(gsi->ipc, false, gsi->dev,
 			   "%s: maxirq_cnt:%d i:%d\n", __func__, max_irq_cnt, i);
