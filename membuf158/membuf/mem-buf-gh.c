@@ -17,6 +17,7 @@
 #include <linux/cma.h>
 #include <linux/genalloc.h>
 #include <linux/math.h>
+#include <linux/of.h>
 
 #include "../../../../drivers/dma-buf/heaps/qcom_sg_ops.h"
 #include "mem-buf-gh.h"
