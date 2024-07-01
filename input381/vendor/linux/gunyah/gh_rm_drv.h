@@ -143,10 +143,10 @@ struct gh_acl_desc {
 } __packed;
 
 struct gh_sgl_desc {
-	u16 n_sgl_entries;
+	u32 n_sgl_entries;
 	u16 reserved;
 	struct gh_sgl_entry sgl_entries[];
-} __packed;
+};
 
 struct gh_mem_attr_desc {
 	u16 n_mem_attr_entries;
