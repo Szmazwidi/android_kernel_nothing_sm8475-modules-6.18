@@ -702,8 +702,10 @@ void qcom_free_io_pgtable_ops(struct io_pgtable_ops *ops)
 }
 EXPORT_SYMBOL(qcom_free_io_pgtable_ops);
 
-#if defined(CONFIG_TRACEPOINTS) && defined(CONFIG_ANDROID_VENDOR_HOOKS) && \
-		defined(CONFIG_ANDROID_VENDOR_OEM_DATA)
+#if (defined(CONFIG_TRACEPOINTS) && defined(CONFIG_ANDROID_VENDOR_HOOKS) && \
+	defined(CONFIG_ANDROID_VENDOR_OEM_DATA)) || \
+	IS_ENABLED(CONFIG_QTVM_IOMMU_TRACE_HOOKS)
+
 /*
  * iovad->vendor_data1 i.e, ANDROID_VENDOR_DATA(1), field is a 64-bit field.
  *
@@ -770,13 +772,6 @@ static void init_iovad_attr(void *unused, struct device *dev,
 
 	if (!of_property_read_u32(node, "qcom,iova-max-align-shift", &shift))
 		iovad_set_max_align_shift(iovad, (unsigned long)shift);
-}
-
-static void register_iommu_iovad_init_alloc_algo_vh(void)
-{
-	if (register_trace_android_rvh_iommu_iovad_init_alloc_algo(
-				init_iovad_attr, NULL))
-		pr_err("Failed to register init_iovad_attr vendor hook\n");
 }
 
 static struct iova *to_iova(struct rb_node *node)
@@ -905,18 +900,30 @@ static void __qcom_alloc_insert_iova(void *data, struct iova_domain *iovad,
 						 size_aligned);
 }
 
+static void __qcom_limit_align_shift(void *data, struct iova_domain *iovad,
+		unsigned long size, unsigned long *shift)
+{
+	*shift = limit_align_shift(iovad, *shift);
+}
+
+#endif
+
+#if (defined(CONFIG_TRACEPOINTS) && defined(CONFIG_ANDROID_VENDOR_HOOKS) && \
+	defined(CONFIG_ANDROID_VENDOR_OEM_DATA)) && \
+	!IS_ENABLED(CONFIG_QTVM_IOMMU_TRACE_HOOKS)
+static void register_iommu_iovad_init_alloc_algo_vh(void)
+{
+	if (register_trace_android_rvh_iommu_iovad_init_alloc_algo(
+				init_iovad_attr, NULL))
+		pr_err("Failed to register init_iovad_attr vendor hook\n");
+}
+
 static void register_iommu_alloc_insert_iova_vh(void)
 {
 	if (register_trace_android_rvh_iommu_alloc_insert_iova(
 			__qcom_alloc_insert_iova, NULL)) {
 		pr_err("Failed to register alloc_inser_iova vendor hook\n");
 	}
-}
-
-static void __qcom_limit_align_shift(void *data, struct iova_domain *iovad,
-		unsigned long size, unsigned long *shift)
-{
-	*shift = limit_align_shift(iovad, *shift);
 }
 
 static void register_iommu_limit_align_shift(void)
@@ -926,7 +933,6 @@ static void register_iommu_limit_align_shift(void)
 		pr_err("Failed to register limit_align_shift vendor hook\n");
 	}
 }
-
 #else
 static void register_iommu_iovad_init_alloc_algo_vh(void)
 {
@@ -940,6 +946,35 @@ static void register_iommu_limit_align_shift(void)
 {
 }
 #endif
+
+/*
+ * trace hook implementations are called directly
+ * when CONFIG_ANDROID_VENDOR_HOOKS isn't defined.
+ */
+#if !defined(CONFIG_ANDROID_VENDOR_HOOKS) && IS_ENABLED(CONFIG_QTVM_IOMMU_TRACE_HOOKS)
+void trace_android_rvh_iommu_iovad_init_alloc_algo(
+		struct device *dev, struct iova_domain *iovad)
+{
+	init_iovad_attr(NULL, dev, iovad);
+}
+
+void trace_android_rvh_iommu_alloc_insert_iova(
+		struct iova_domain *iovad, unsigned long size,
+		unsigned long limit_pfn, struct iova *new,
+		bool size_aligned, int *ret)
+{
+	__qcom_alloc_insert_iova(NULL, iovad, size, limit_pfn, new,
+			size_aligned, ret);
+}
+
+void trace_android_rvh_iommu_limit_align_shift(
+		struct iova_domain *iovad, unsigned long size,
+		unsigned long *shift)
+{
+	__qcom_limit_align_shift(NULL, iovad, size, shift);
+}
+#endif /* !defined(CONFIG_ANDROID_VENDOR_HOOKS) && IS_ENABLED(CONFIG_QTVM_IOMMU_TRACE_HOOKS) */
+
 
 /*
  * These tables must have the same length.
