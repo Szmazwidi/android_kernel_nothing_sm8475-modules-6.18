@@ -16,6 +16,7 @@
 #include <linux/memory.h>
 #include <linux/genalloc.h>
 #include <linux/mem-buf-altmap.h>
+#include <linux/delay.h>
 
 #include <linux/mem-buf.h>
 #include "mem-buf-dev.h"
@@ -31,6 +32,12 @@ struct gen_pool *dmabuf_mem_pool;
 EXPORT_SYMBOL_GPL(dmabuf_mem_pool);
 
 #define POOL_MIN_ALLOC_ORDER SUBSECTION_SHIFT
+
+/* Gunyah RM error codes */
+#define GH_RM_ERR_MEM_INUSE	0x1B
+#define GH_RM_ERR_MEM_RELEASED	0xC
+
+#define RECLAIM_RETRY_DELAY_US	100
 
 int mem_buf_hyp_assign_table(struct sg_table *sgt, u32 *src_vmid, int source_nelems,
 			     int *dest_vmids, int *dest_perms, int dest_nelems)
@@ -90,14 +97,34 @@ int mem_buf_unassign_mem(struct sg_table *sgt, int *src_vmids,
 	int dst_vmid[] = {current_vmid};
 	int dst_perm[] = {PERM_READ | PERM_WRITE | PERM_EXEC};
 	int ret;
+	int i, num_retries = 5;
 
 	if (!sgt || !src_vmids || !nr_acl_entries)
 		return -EINVAL;
 
 	if (memparcel_hdl != MEM_BUF_MEMPARCEL_INVALID) {
-		ret = mem_buf_unassign_mem_gunyah(memparcel_hdl);
-		if (ret)
+		/*
+		 * Until support for listening for gunyah notifications is present
+		 */
+		for (i = 0; i < num_retries; i++) {
+			ret = mem_buf_unassign_mem_gunyah(memparcel_hdl);
+
+			/* retry only for MEM_INUSE cases */
+			if (!ret || ret != GH_RM_ERR_MEM_INUSE)
+				break;
+
+			msleep(RECLAIM_RETRY_DELAY_US);
+		}
+		if (ret) {
+			if (num_retries)
+				pr_err_ratelimited("mem_buf_unassign_mem_gunyah: handle %d failed after %d retries\n",
+				memparcel_hdl, i);
 			return ret;
+		}
+
+		if (num_retries)
+			pr_info_ratelimited("mem_buf_unassign_mem_gunyah: handle %d succeeeded after %d retries\n",
+				 memparcel_hdl, i);
 	}
 
 	ret = mem_buf_hyp_assign_table(sgt, src_vmids, nr_acl_entries,
