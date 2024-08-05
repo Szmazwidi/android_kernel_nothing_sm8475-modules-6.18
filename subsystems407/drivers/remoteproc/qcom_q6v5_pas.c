@@ -35,6 +35,7 @@
 #include <linux/iopoll.h>
 #include <linux/refcount.h>
 #include <trace/events/rproc_qcom.h>
+#include <linux/interconnect.h>
 
 #include "qcom_common.h"
 #include "qcom_pil_info.h"
@@ -853,6 +854,12 @@ int rproc_set_state(struct rproc *rproc, bool state)
 			goto soccp_out;
 		}
 
+		ret = icc_set_bw(adsp->q6v5.path, UINT_MAX, UINT_MAX);
+		if (ret < 0) {
+			dev_err(adsp->q6v5.dev, "failed to set bandwidth request\n");
+			goto soccp_out;
+		}
+
 		ret = clk_prepare_enable(adsp->xo);
 		if (ret) {
 			dev_err(adsp->dev, "failed to enable clks\n");
@@ -915,8 +922,16 @@ int rproc_set_state(struct rproc *rproc, bool state)
 					current->comm, readl(adsp->tcsr_addr));
 				goto soccp_out;
 			}
+
+			ret = icc_set_bw(adsp->q6v5.path, 0, 0);
+			if (ret < 0) {
+				dev_err(adsp->q6v5.dev, "failed to set bandwidth request\n");
+				goto soccp_out;
+			}
+
 			disable_regulators(adsp);
 			clk_disable_unprepare(adsp->xo);
+
 			refcount_set(&adsp->current_users, 0);
 		}
 	}
