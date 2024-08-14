@@ -2049,6 +2049,7 @@ static const struct adsp_data parrot_mpss_resource = {
 	.ssctl_id = 0x12,
 	.dma_phys_below_32b = true,
 	.decrypt_shutdown = true,
+	.both_dumps = true,
 };
 
 static const struct adsp_data parrot_wpss_resource = {
@@ -2089,6 +2090,7 @@ static const struct adsp_data ravelin_mpss_resource = {
 	.ssctl_id = 0x12,
 	.dma_phys_below_32b = true,
 	.decrypt_shutdown = true,
+	.both_dumps = true,
 };
 
 static const struct adsp_data ravelin_wpss_resource = {
