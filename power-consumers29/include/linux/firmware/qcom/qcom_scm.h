@@ -282,5 +282,7 @@ extern int qcom_scm_lmh_profile_change(u32 profile_id);
 extern bool qcom_scm_lmh_dcvsh_available(void);
 
 extern int qcom_scm_tsens_reinit(int *tsens_ret);
-
+extern int gh_scm_assign_mem(phys_addr_t mem_addr, size_t mem_sz, u64 *src,
+			const struct qcom_scm_vmperm *dstvm,
+			unsigned int nr_dst_vmperm);
 #endif
