@@ -256,6 +256,15 @@ void mhi_reg_write_work(struct work_struct *w)
 	if (!mhi_is_active(mhi_cntrl))
 		return;
 
+	/* Return if MHI is in process of suspend state */
+	read_lock_irq(&mhi_cntrl->pm_lock);
+	if (mhi_cntrl->pm_state == MHI_PM_M3 ||
+	    mhi_cntrl->pm_state == MHI_PM_M3_ENTER) {
+		read_unlock_irq(&mhi_cntrl->pm_lock);
+		return;
+	}
+	read_unlock_irq(&mhi_cntrl->pm_lock);
+
 	if (msm_pcie_prevent_l1(parent))
 		return;
 
