@@ -162,6 +162,8 @@ struct qcom_adsp {
 	void *tcsr_addr;
 	void *spare_reg_addr;
 	bool check_status;
+	bool rproc_ddr_set_icc_low_svs;
+	unsigned int rproc_ddr_lowsvs_icc_bw;
 };
 
 static ssize_t txn_id_show(struct device *dev, struct device_attribute *attr, char *buf)
@@ -805,6 +807,55 @@ static bool rproc_poll_handover(struct qcom_adsp *adsp)
 
 	return adsp->q6v5.handover_issued;
 }
+
+static int bus_bw_init(struct qcom_adsp *adsp)
+{
+	int ret = 0;
+	bool rproc_ddr_set_icc_low_svs;
+	unsigned int rproc_ddr_lowsvs_icc_bw;
+
+	rproc_ddr_set_icc_low_svs = of_property_read_bool(adsp->dev->of_node,
+				     "rproc-ddr-set-icc-low-svs");
+
+	if (rproc_ddr_set_icc_low_svs) {
+		adsp->rproc_ddr_set_icc_low_svs = rproc_ddr_set_icc_low_svs;
+		ret = of_property_read_u32(adsp->dev->of_node,
+				"rproc-ddr-lowsvs-icc-bw", &rproc_ddr_lowsvs_icc_bw);
+		if (!rproc_ddr_lowsvs_icc_bw) {
+			dev_err(adsp->dev, "Low SVS ICC Bw is not available.\n");
+			return ret;
+		}
+		adsp->rproc_ddr_lowsvs_icc_bw = rproc_ddr_lowsvs_icc_bw;
+		dev_info(adsp->dev, "LowSVS Bus BW: %d\n", rproc_ddr_lowsvs_icc_bw);
+	} else {
+		adsp->rproc_ddr_set_icc_low_svs = false;
+		dev_info(adsp->dev, "Low SVS vote for ICC is not set.\n");
+	}
+
+	return ret;
+}
+
+static int set_icc_bw(struct qcom_adsp *adsp, bool enable)
+{
+	int ret;
+	u32 avg_bw, peak_bw;
+
+	avg_bw = enable
+			? adsp->rproc_ddr_set_icc_low_svs
+				? adsp->rproc_ddr_lowsvs_icc_bw
+				: UINT_MAX
+			: 0;
+	peak_bw = enable
+			? adsp->rproc_ddr_set_icc_low_svs
+				? adsp->rproc_ddr_lowsvs_icc_bw
+				: UINT_MAX
+			: 0;
+
+	ret = icc_set_bw(adsp->q6v5.path, avg_bw, peak_bw);
+
+	return ret;
+}
+
 /*
  * rproc_set_state: Request the SOCCP to change state
  *
@@ -854,7 +905,7 @@ int rproc_set_state(struct rproc *rproc, bool state)
 			goto soccp_out;
 		}
 
-		ret = icc_set_bw(adsp->q6v5.path, UINT_MAX, UINT_MAX);
+		ret = set_icc_bw(adsp, true);
 		if (ret < 0) {
 			dev_err(adsp->q6v5.dev, "failed to set bandwidth request\n");
 			goto soccp_out;
@@ -923,7 +974,7 @@ int rproc_set_state(struct rproc *rproc, bool state)
 				goto soccp_out;
 			}
 
-			ret = icc_set_bw(adsp->q6v5.path, 0, 0);
+			ret = set_icc_bw(adsp, false);
 			if (ret < 0) {
 				dev_err(adsp->q6v5.dev, "failed to set bandwidth request\n");
 				goto soccp_out;
@@ -1407,6 +1458,10 @@ static int adsp_probe(struct platform_device *pdev)
 		goto free_rproc;
 
 	ret = adsp_init_regulator(adsp);
+	if (ret)
+		goto free_rproc;
+
+	ret = bus_bw_init(adsp);
 	if (ret)
 		goto free_rproc;
 
