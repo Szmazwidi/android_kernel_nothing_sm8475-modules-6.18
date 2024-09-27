@@ -547,6 +547,43 @@ static const struct llcc_slice_config tuna_data[] = {
 			0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 13},
 };
 
+static const struct llcc_slice_config kera_data[] = {
+	{LLCC_CPUSS,     1, 1152, 0, 0, 0xFFF, 0, 0, 0, 0, 0, 1,
+						1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{LLCC_MDMHPFX,  24, 1024, 3, 1, 0xFFF, 0, 0, 0, 0, 0, 0,
+						0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{LLCC_VIDSC0,    2,  128, 3, 1, 0xFFF, 0, 0, 0, 0, 0, 0,
+						0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{LLCC_MDMHPGRW, 25, 1024, 3, 0, 0xFFF, 0, 0, 0, 0, 0, 0,
+						0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{LLCC_GPUHTW,   11,  256, 1, 1, 0xFFF, 0, 0, 0, 0, 0, 0,
+						0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{LLCC_GPU,       9,  640, 1, 0, 0xFFF, 0, 0, 0, 0, 0, 0,
+						0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{LLCC_MMUHWT,   18,  256, 1, 1, 0xFFF, 0, 0, 0, 0, 0, 1,
+						0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{LLCC_MDMPNG,   27,  256, 3, 1, 0xFFF, 0, 0, 0, 0, 0, 0,
+						0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{LLCC_MODPE,    29,  256, 1, 1, 0xF00, 0, 0, 0, 0, 0, 0,
+						0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0},
+	{LLCC_WRCACHE,  31,  256, 1, 1, 0xFFF, 0, 0, 0, 0, 0, 1,
+						0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{LLCC_LCPDARE,  30,  128, 3, 1, 0xFFF, 0, 0, 0, 0, 0, 1,
+						0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0},
+	{LLCC_ISLAND1,  12, 1280, 7, 1, 0, 0x7FF, 0, 0, 0, 0, 0,
+						0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{LLCC_CAMOFE,   33, 1024, 1, 1, 0xFFF, 0, 0, 0, 0, 0, 0,
+						0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 13},
+	{LLCC_CAMRTIP,  13, 1024, 1, 1, 0xFFF, 0, 0, 0, 0, 0, 0,
+						0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 13},
+	{LLCC_CAMSRTIP, 14, 512, 1, 1, 0xFFF, 0, 0, 0, 0, 0, 0,
+						0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 13},
+	{LLCC_CAMRTRF,   7, 1024, 1, 1, 0xFFF, 0, 0, 0, 0, 0, 0,
+						0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 13},
+	{LLCC_CAMSRTRF, 21, 1024, 1, 1, 0xFFF, 0, 0, 0, 0, 0, 0,
+						0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 13},
+};
+
 static const struct llcc_slice_config x1e80100_data[] = {
 	{LLCC_CPUSS,	 1, 6144, 1, 1, 0xFFF, 0x0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 	{LLCC_VIDSC0,	 2,  512, 3, 1, 0xFFF, 0x0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -810,6 +847,14 @@ static const struct qcom_llcc_config tuna_cfg = {
 	.size = ARRAY_SIZE(tuna_data),
 	.need_llcc_cfg = true,
 	.reg_offset = llcc_v6_reg_offset,
+	.edac_reg_offset = &llcc_v6_edac_reg_offset,
+};
+
+static const struct qcom_llcc_config kera_cfg = {
+	.sct_data       = kera_data,
+	.size           = ARRAY_SIZE(kera_data),
+	.need_llcc_cfg  = true,
+	.reg_offset     = llcc_v6_reg_offset,
 	.edac_reg_offset = &llcc_v6_edac_reg_offset,
 };
 
@@ -1702,6 +1747,7 @@ static const struct of_device_id qcom_llcc_of_match[] = {
 	{ .compatible = "qcom,pineapple-llcc", .data = &pineapple_cfg },
 	{ .compatible = "qcom,sun-llcc", .data = &sun_cfg },
 	{ .compatible = "qcom,tuna-llcc", .data = &tuna_cfg },
+	{ .compatible = "qcom,kera-llcc", .data = &kera_cfg },
 	{ .compatible = "qcom,x1e80100-llcc", .data = &x1e80100_cfg },
 	{ .compatible = "qcom,sdxpinn-llcc", .data = &sdxpinn_cfg },
 	{ }
