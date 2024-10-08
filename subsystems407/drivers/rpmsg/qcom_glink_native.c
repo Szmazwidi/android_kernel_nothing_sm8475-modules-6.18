@@ -1823,7 +1823,6 @@ static struct rpmsg_endpoint *qcom_glink_create_ept(struct rpmsg_device *rpdev,
 static int qcom_glink_announce_create(struct rpmsg_device *rpdev)
 {
 	struct glink_channel *channel = to_glink_channel(rpdev->ept);
-	struct sched_param param = {.sched_priority = 1};
 	struct device_node *np = rpdev->dev.of_node;
 	struct qcom_glink *glink = channel->glink;
 	struct glink_core_rx_intent *intent;
@@ -1881,11 +1880,8 @@ static int qcom_glink_announce_create(struct rpmsg_device *rpdev)
 		goto exit;
 	}
 
-	if (of_property_read_bool(np, "qcom,ch-sched-rt")) {
-		rc = sched_setscheduler(channel->rx_task, SCHED_FIFO, &param);
-		if (rc)
-			pr_err("failed to set [%s] thread policy.\n", channel->name);
-	}
+	if (of_property_read_bool(np, "qcom,ch-sched-rt"))
+		sched_set_fifo_low(channel->rx_task);
 
 exit:
 	CH_INFO(channel, "Exit\n");
