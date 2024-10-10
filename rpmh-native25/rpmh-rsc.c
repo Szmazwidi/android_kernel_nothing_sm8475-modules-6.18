@@ -818,7 +818,7 @@ int rpmh_rsc_send_data(struct rsc_drv *drv, const struct tcs_request *msg, int c
 
 	/* Controller is busy in 'solver' mode */
 	if (drv->in_solver_mode) {
-		spin_unlock_irqrestore(&drv->lock, flags);
+		spin_unlock_irq(&drv->lock);
 		return -EBUSY;
 	}
 
@@ -861,7 +861,7 @@ int rpmh_rsc_send_data(struct rsc_drv *drv, const struct tcs_request *msg, int c
 	if (!msg->wait_for_compl)
 		clear_bit(tcs_id, drv->tcs_in_use);
 
-	spin_unlock_irqrestore(&drv->lock, flags);
+	spin_unlock_irq(&drv->lock);
 
 	if (!msg->wait_for_compl)
 		wake_up(&drv->tcs_wait);
