@@ -278,7 +278,9 @@
 #define QCOM_ID_SG_RAVELIN		653
 #define QCOM_ID_SG_RAVELINP		654
 #define QCOM_ID_TUNA			655
+#define QCOM_ID_TUNA7			681
 #define QCOM_ID_KERA			659
+#define QCOM_ID_KERAP			686
 #define QCOM_ID_PARROTPRO		663
 
 /*
