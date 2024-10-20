@@ -1991,6 +1991,9 @@ struct gh_sgl_desc *gh_rm_mem_accept(gh_memparcel_handle_t handle, u8 mem_type,
 	if (IS_ERR(req_payload))
 		return ERR_CAST(req_payload);
 
+#if defined(CONFIG_GUNYAH_LEGACY)
+	flags |= GH_RM_MEM_ACCEPT_MAP_IPA_CONTIGUOUS;
+#endif
 	/* Send DONE flag only after all sgl_desc fragments are received */
 	if (flags & GH_RM_MEM_ACCEPT_MAP_IPA_CONTIGUOUS || sgl_desc) {
 		multi_call = false;
@@ -2343,6 +2346,13 @@ int gh_rm_mem_donate(u8 mem_type, u8 flags, gh_label_t label,
 
 	trace_gh_rm_mem_donate(mem_type, flags, label, acl_desc, sgl_desc,
 			       mem_attr_desc, handle, 0, DONATE);
+
+#if defined(CONFIG_GUNYAH_LEGACY)
+	if (sgl_desc->n_sgl_entries != 1) {
+		pr_err("%s: Physically contiguous memory required\n", __func__);
+		return -EINVAL;
+	}
+#endif
 
 	if (acl_desc->n_acl_entries != 1) {
 		pr_err("%s: Donate requires single destination VM\n", __func__);
