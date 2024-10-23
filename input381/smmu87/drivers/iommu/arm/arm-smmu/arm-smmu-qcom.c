@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
  * Copyright (c) 2019-2021, The Linux Foundation. All rights reserved.
- * Copyright (c) 2022-2023 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) 2022-2024 Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
 #include <linux/acpi.h>
@@ -19,6 +19,7 @@
 #include <linux/firmware/qcom/qcom_scm.h>
 #include <linux/slab.h>
 #include <linux/workqueue.h>
+#include <linux/pm_runtime.h>
 
 #include "arm-smmu.h"
 #include "arm-smmu-qcom.h"
@@ -1565,7 +1566,7 @@ static ssize_t arm_smmu_debug_testbus_read(struct file *file,
 		phys_addr_t phys_addr = smmu->phys_addr;
 		void __iomem *tcu_base = data->tcu_base;
 
-		arm_smmu_power_on(smmu->pwr);
+		pm_runtime_resume_and_get(smmu->dev);
 
 		if (ops == TESTBUS_SELECT) {
 			scnprintf(buf, buf_len, "TCU clk testbus sel: 0x%0x\n",
@@ -1581,7 +1582,7 @@ static ssize_t arm_smmu_debug_testbus_read(struct file *file,
 				  arm_smmu_debug_tcu_testbus_output(phys_addr));
 		}
 
-		arm_smmu_power_off(smmu, smmu->pwr);
+		pm_runtime_put_sync_suspend(smmu->dev);
 	}
 	buflen = min(count, strlen(buf));
 	if (copy_to_user(ubuf, buf, buflen)) {
@@ -1634,7 +1635,7 @@ static ssize_t arm_smmu_debug_tcu_testbus_sel_write(struct file *file,
 	if (kstrtou64(comma + 1, 0, &val))
 		goto invalid_format;
 
-	arm_smmu_power_on(smmu->pwr);
+	pm_runtime_resume_and_get(smmu->dev);
 
 	if (sel == 1)
 		arm_smmu_debug_tcu_testbus_select(phys_addr,
@@ -1643,7 +1644,7 @@ static ssize_t arm_smmu_debug_tcu_testbus_sel_write(struct file *file,
 		arm_smmu_debug_tcu_testbus_select(phys_addr,
 				tcu_base, PTW_AND_CACHE_TESTBUS, WRITE, val);
 
-	arm_smmu_power_off(smmu, smmu->pwr);
+	pm_runtime_put_sync_suspend(smmu->dev);
 
 	return count;
 
@@ -1888,7 +1889,7 @@ static void qsmmuv500_log_outstanding_transactions(struct work_struct *work)
 		goto bug;
 	}
 
-	if (arm_smmu_power_on(smmu->pwr)) {
+	if (pm_runtime_resume_and_get(smmu->dev)) {
 		dev_err_ratelimited(smmu->dev,
 				    "%s: Failed to power on SMMU.\n",
 				    __func__);
@@ -1906,7 +1907,7 @@ static void qsmmuv500_log_outstanding_transactions(struct work_struct *work)
 		arm_smmu_power_off(smmu, tbu->pwr);
 	}
 
-	arm_smmu_power_off(smmu, smmu->pwr);
+	pm_runtime_put_sync_suspend(smmu->dev);
 unlock:
 	mutex_unlock(&capture_reg_lock);
 bug:
@@ -2006,11 +2007,11 @@ static ssize_t arm_smmu_debug_capturebus_snapshot_read(struct file *file,
 
 	memset(buf, 0, buf_len);
 
-	if (arm_smmu_power_on(smmu->pwr))
+	if (pm_runtime_resume_and_get(smmu->dev))
 		return -EINVAL;
 
 	if (arm_smmu_power_on(tbu->pwr)) {
-		arm_smmu_power_off(smmu, smmu->pwr);
+		pm_runtime_put_sync_suspend(smmu->dev);
 		return -EINVAL;
 	}
 
@@ -2024,7 +2025,7 @@ static ssize_t arm_smmu_debug_capturebus_snapshot_read(struct file *file,
 
 	mutex_unlock(&capture_reg_lock);
 	arm_smmu_power_off(tbu->smmu, tbu->pwr);
-	arm_smmu_power_off(smmu, smmu->pwr);
+	pm_runtime_put_sync_suspend(smmu->dev);
 
 	for (i = 0; i < NO_OF_CAPTURE_POINTS ; ++i) {
 		for (j = 0; j < REGS_PER_CAPTURE_POINT; ++j) {
@@ -2104,11 +2105,11 @@ static ssize_t arm_smmu_debug_capturebus_config_write(struct file *file,
 		goto invalid_format;
 
 program_capturebus:
-	if (arm_smmu_power_on(smmu->pwr))
+	if (pm_runtime_resume_and_get(smmu->dev))
 		return -EINVAL;
 
 	if (arm_smmu_power_on(tbu->pwr)) {
-		arm_smmu_power_off(smmu, smmu->pwr);
+		pm_runtime_put_sync_suspend(smmu->dev);
 		return -EINVAL;
 	}
 
@@ -2125,7 +2126,7 @@ program_capturebus:
 
 	mutex_unlock(&capture_reg_lock);
 	arm_smmu_power_off(tbu->smmu, tbu->pwr);
-	arm_smmu_power_off(smmu, smmu->pwr);
+	pm_runtime_put_sync_suspend(smmu->dev);
 
 	return count;
 
@@ -2155,11 +2156,11 @@ static ssize_t arm_smmu_debug_capturebus_config_read(struct file *file,
 
 	memset(buf, 0, buf_len);
 
-	if (arm_smmu_power_on(smmu->pwr))
+	if (pm_runtime_resume_and_get(smmu->dev))
 		return -EINVAL;
 
 	if (arm_smmu_power_on(tbu->pwr)) {
-		arm_smmu_power_off(smmu, smmu->pwr);
+		pm_runtime_put_sync_suspend(smmu->dev);
 		return -EINVAL;
 	}
 
@@ -2175,7 +2176,7 @@ static ssize_t arm_smmu_debug_capturebus_config_read(struct file *file,
 
 	mutex_unlock(&capture_reg_lock);
 	arm_smmu_power_off(tbu->smmu, tbu->pwr);
-	arm_smmu_power_off(smmu, smmu->pwr);
+	pm_runtime_put_sync_suspend(smmu->dev);
 
 	for (i = 0; i < NO_OF_MASK_AND_MATCH; ++i) {
 		scnprintf(buf + strlen(buf), buf_len - strlen(buf),
@@ -2267,11 +2268,11 @@ static irqreturn_t arm_smmu_debug_capture_bus_match(int irq, void *dev)
 	int i, j;
 	u64 val;
 
-	if (arm_smmu_power_on(smmu->pwr))
+	if (pm_runtime_resume_and_get(smmu->dev))
 		return IRQ_NONE;
 
 	if (arm_smmu_power_on(tbu->pwr)) {
-		arm_smmu_power_off(smmu, smmu->pwr);
+		pm_runtime_put_sync_suspend(smmu->dev);
 		return IRQ_NONE;
 	}
 
@@ -2288,7 +2289,7 @@ static irqreturn_t arm_smmu_debug_capture_bus_match(int irq, void *dev)
 
 	mutex_unlock(&capture_reg_lock);
 	arm_smmu_power_off(tbu->smmu, tbu->pwr);
-	arm_smmu_power_off(smmu, smmu->pwr);
+	pm_runtime_put_sync_suspend(smmu->dev);
 
 	dev_info(tbu->dev, "TNX_TCR_CNTL : 0x%0llx\n", val);
 
