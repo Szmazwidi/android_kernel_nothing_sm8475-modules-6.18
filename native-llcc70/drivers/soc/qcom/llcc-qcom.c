@@ -548,7 +548,7 @@ static const struct llcc_slice_config tuna_data[] = {
 };
 
 static const struct llcc_slice_config kera_data[] = {
-	{LLCC_CPUSS,     1, 1152, 0, 0, 0xFFF, 0, 0, 0, 0, 0, 1,
+	{LLCC_CPUSS,     1,  896, 0, 0, 0xFFF, 0, 0, 0, 0, 0, 1,
 						1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 	{LLCC_MDMHPFX,  24, 1024, 3, 1, 0xFFF, 0, 0, 0, 0, 0, 0,
 						0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
