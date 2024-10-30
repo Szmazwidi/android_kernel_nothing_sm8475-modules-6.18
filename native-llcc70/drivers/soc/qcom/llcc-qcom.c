@@ -548,7 +548,7 @@ static const struct llcc_slice_config tuna_data[] = {
 };
 
 static const struct llcc_slice_config kera_data[] = {
-	{LLCC_CPUSS,     1, 1152, 0, 0, 0xFFF, 0, 0, 0, 0, 0, 1,
+	{LLCC_CPUSS,     1,  896, 0, 0, 0xFFF, 0, 0, 0, 0, 0, 1,
 						1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 	{LLCC_MDMHPFX,  24, 1024, 3, 1, 0xFFF, 0, 0, 0, 0, 0, 0,
 						0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -570,7 +570,7 @@ static const struct llcc_slice_config kera_data[] = {
 						0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 	{LLCC_LCPDARE,  30,  128, 3, 1, 0xFFF, 0, 0, 0, 0, 0, 1,
 						0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0},
-	{LLCC_ISLAND1,  12, 1280, 7, 1, 0, 0x7FF, 0, 0, 0, 0, 0,
+	{LLCC_ISLAND1,  12, 1280, 7, 1, 0, 0x3FF, 0, 0, 0, 0, 0,
 						0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 	{LLCC_CAMOFE,   33, 1024, 1, 1, 0xFFF, 0, 0, 0, 0, 0, 0,
 						0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 13},
@@ -582,6 +582,8 @@ static const struct llcc_slice_config kera_data[] = {
 						0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 13},
 	{LLCC_CAMSRTRF, 21, 1024, 1, 1, 0xFFF, 0, 0, 0, 0, 0, 0,
 						0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 13},
+	{LLCC_CPUSSMPAM, 6, 1152, 1, 1, 0xFFF, 0, 0, 0, 0, 0, 1,
+						1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 };
 
 static const struct llcc_slice_config x1e80100_data[] = {
