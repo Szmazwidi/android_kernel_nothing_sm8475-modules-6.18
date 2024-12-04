@@ -1887,6 +1887,19 @@ static int gh_rm_mem_accept_check_resp(struct gh_mem_accept_resp_payload *resp,
 }
 
 /*
+ * On legacy targets sanitize policy is not supported.
+ * Also on certain hypervisors, GH_RM_RPC_MSG_ID_CALL_VM_GET_VMID call loops
+ * indefinetly instead of returning an error.
+ */
+#ifdef CONFIG_GUNYAH_LEGACY
+static u8 gh_rm_mem_accept_sanitize_policy(u8 mem_type,
+				 u8 trans_type, u32 flags,
+				 struct gh_acl_desc *acl_desc)
+{
+	return 0;
+}
+#else
+/*
  * Linux wants a santize-by-default policy.
  * We set the appropriate gunyah flag, unless overridden by
  * GH_RM_MEM_ACCEPT_NO_SANITIZE_ON_RELEASE, or disallowed by memory type==IO or
@@ -1923,6 +1936,7 @@ static u8 gh_rm_mem_accept_sanitize_policy(u8 mem_type,
 
 	return sanitize;
 }
+#endif
 
 static struct gh_mem_accept_req_payload_hdr *
 gh_rm_mem_accept_prepare_request(gh_memparcel_handle_t handle, u8 mem_type,
@@ -1974,14 +1988,17 @@ gh_rm_mem_accept_prepare_request(gh_memparcel_handle_t handle, u8 mem_type,
 	req_payload_hdr->memparcel_handle = handle;
 	req_payload_hdr->mem_type = mem_type;
 	req_payload_hdr->trans_type = trans_type;
+#ifdef CONFIG_GUNYAH_LEGACY
+	req_payload_hdr->flags = flags;
+#else
 	req_payload_hdr->flags = flags & GH_RM_MEM_ACCEPT_VALID_GH_FLAGS;
+#endif
 	req_payload_hdr->flags |= gh_rm_mem_accept_sanitize_policy(mem_type,
 						trans_type, flags, acl_desc);
 	if (flags & GH_RM_MEM_ACCEPT_VALIDATE_LABEL)
 		req_payload_hdr->validate_label = label;
 	gh_rm_populate_mem_request(req_buf, fn_id, acl_desc, sgl_desc, map_vmid,
 				   mem_attr_desc);
-
 	return req_payload_hdr;
 }
 
