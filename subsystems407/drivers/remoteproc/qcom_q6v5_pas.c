@@ -2112,7 +2112,7 @@ static const struct adsp_data kera_adsp_resource = {
 	.sysmon_name = "adsp",
 	.ssctl_id = 0x14,
 	.uses_elf64 = true,
-	.auto_boot = false,
+	.auto_boot = true,
 	.crash_reason_stack = 660,
 	.smem_host_id = 2,
 };
@@ -2133,7 +2133,7 @@ static const struct adsp_data kera_cdsp_resource = {
 	.region_assign_count = 1,
 	.region_assign_shared = true,
 	.region_assign_vmid = QCOM_SCM_VMID_CDSP,
-	.auto_boot = false,
+	.auto_boot = true,
 	.crash_reason_stack = 660,
 	.smem_host_id = 5,
 };
