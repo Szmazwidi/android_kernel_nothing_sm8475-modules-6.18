@@ -2295,6 +2295,9 @@ static void qcom_glink_rx_close(struct qcom_glink *glink, unsigned int rcid)
 		return;
 	CH_INFO(channel, "\n");
 
+	WRITE_ONCE(channel->intent_req_result, 0);
+	wake_up_all(&channel->intent_req_wq);
+
 	if (channel->rpdev) {
 		strscpy_pad(chinfo.name, channel->name, sizeof(chinfo.name));
 		chinfo.src = RPMSG_ADDR_ANY;
