@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (c) 2016-2017, Linaro Ltd
- * Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) 2024-2025 Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
 #include <linux/idr.h>
@@ -1950,8 +1950,9 @@ static int qcom_glink_request_intent(struct qcom_glink *glink,
 		goto unlock;
 
 	ret = wait_event_timeout(channel->intent_req_wq,
-				 (READ_ONCE(channel->intent_req_result) >= 0 &&
-				 READ_ONCE(channel->intent_received)) ||
+				 READ_ONCE(channel->intent_req_result) == 0 ||
+				 (READ_ONCE(channel->intent_req_result) > 0 &&
+				  READ_ONCE(channel->intent_received)) ||
 				 glink->abort_tx,
 				 10 * HZ);
 	if (!ret) {
@@ -1963,8 +1964,10 @@ static int qcom_glink_request_intent(struct qcom_glink *glink,
 			GLINK_BUG(glink->ilc,
 				"remoteproc:%s channel:%s unresponsive\n",
 				glink->name, channel->name);
+	} else if (glink->abort_tx) {
+		ret = -ECANCELED;
 	} else {
-		ret = READ_ONCE(channel->intent_req_result) ? 0 : -ECANCELED;
+		ret = READ_ONCE(channel->intent_req_result) ? 0 : -EAGAIN;
 	}
 
 unlock:
