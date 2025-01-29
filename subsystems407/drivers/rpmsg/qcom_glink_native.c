@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (c) 2016-2017, Linaro Ltd
- * Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) 2024-2025 Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
 #include <linux/idr.h>
@@ -1240,6 +1240,7 @@ out:
 	spin_unlock(&channel->recv_lock);
 
 	wake_up_interruptible(&channel->rx_wq);
+	channel->buf = NULL;
 }
 
 static int qcom_glink_rx_data(struct qcom_glink *glink, size_t avail, unsigned int iters)
