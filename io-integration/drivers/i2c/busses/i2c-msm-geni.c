@@ -713,8 +713,9 @@ static bool geni_i2c_is_bus_recovery_required(struct geni_i2c_dev *gi2c)
  */
 static int geni_i2c_bus_recovery(struct geni_i2c_dev *gi2c)
 {
-	int timeout = 0, ret = 0;
+	int timeout = 0;
 	u32 m_param = 0, m_cmd = 0;
+	u32 geni_m_irq_en = 0;
 	unsigned long long start_time;
 
 	start_time = geni_capture_start_time(&gi2c->i2c_rsc, gi2c->ipc_log_kpi, __func__,
@@ -724,29 +725,47 @@ static int geni_i2c_bus_recovery(struct geni_i2c_dev *gi2c)
 	/* Must be enabled by client "only" if required. */
 	if (gi2c->bus_recovery_enable &&
 	    geni_i2c_is_bus_recovery_required(gi2c)) {
-		GENI_SE_ERR(gi2c->ipcl, false, gi2c->dev,
-			    "%d:SDA Line stuck\n", gi2c->err);
+		I2C_LOG_ERR(gi2c->ipcl, false, gi2c->dev,
+			    "SDA Line stuck %d\n", gi2c->err);
 	} else {
-		GENI_SE_DBG(gi2c->ipcl, false, gi2c->dev,
+		I2C_LOG_DBG(gi2c->ipcl, false, gi2c->dev,
 			    "Bus Recovery not required/enabled\n");
 		return 0;
 	}
 
 	I2C_LOG_DBG(gi2c->ipcl, false, gi2c->dev, "%s: start recovery\n",
 		    __func__);
+
+	geni_m_irq_en = geni_read_reg(gi2c->base, SE_GENI_M_IRQ_EN);
+	if (!(geni_m_irq_en & M_CMD_DONE_EN)) {
+		I2C_LOG_DBG(gi2c->ipcl, false, gi2c->dev,
+			    "Set M_CMD_DONE_EN bit, geni_m_irq_en:0x%x\n",
+			    geni_m_irq_en);
+		/*
+		 * Opcodes are needed this(SE_GENI_M_IRQ_EN) bit for IRQ to be fired.
+		 * As part of SE_DMA mode configuration we are not setting
+		 * SE_GENI_M_IRQ_EN bit so setting this bit prior to opcode
+		 * execution
+		 */
+		geni_m_irq_en |= M_CMD_DONE_EN;
+		geni_write_reg(geni_m_irq_en, gi2c->base, SE_GENI_M_IRQ_EN);
+	}
+
 	/* BUS_CLEAR */
 	reinit_completion(&gi2c->xfer);
 	m_cmd = I2C_BUS_CLEAR;
 	geni_se_setup_m_cmd(&gi2c->i2c_rsc, m_cmd, m_param);
 	timeout = wait_for_completion_timeout(&gi2c->xfer, HZ);
 	if (!timeout) {
+		I2C_LOG_ERR(gi2c->ipcl, true, gi2c->dev,
+			    "Bus clear Failed\n");
 		geni_i2c_err(gi2c, GENI_TIMEOUT);
 		gi2c->cur = NULL;
-		ret = geni_i2c_stop_with_cancel(gi2c);
-		if (ret) {
-			I2C_LOG_DBG(gi2c->ipcl, true, gi2c->dev,
-				    "%s: Bus clear Failed\n", __func__);
-			return ret;
+		timeout = geni_i2c_stop_with_cancel(gi2c);
+		if (timeout) {
+			I2C_LOG_ERR(gi2c->ipcl, true, gi2c->dev,
+				    "Bus clear with cancel failed\n");
+			return -ETIMEDOUT;
 		}
 	}
 	I2C_LOG_DBG(gi2c->ipcl, false, gi2c->dev,
@@ -758,13 +777,15 @@ static int geni_i2c_bus_recovery(struct geni_i2c_dev *gi2c)
 	geni_se_setup_m_cmd(&gi2c->i2c_rsc, m_cmd, m_param);
 	timeout = wait_for_completion_timeout(&gi2c->xfer, HZ);
 	if (!timeout) {
+		I2C_LOG_ERR(gi2c->ipcl, true, gi2c->dev,
+			    "Bus Stop Failed\n");
 		geni_i2c_err(gi2c, GENI_TIMEOUT);
 		gi2c->cur = NULL;
-		ret = geni_i2c_stop_with_cancel(gi2c);
-		if (ret) {
-			I2C_LOG_DBG(gi2c->ipcl, true, gi2c->dev,
-				    "%s:Bus Stop Failed\n", __func__);
-			return ret;
+		timeout = geni_i2c_stop_with_cancel(gi2c);
+		if (timeout) {
+			I2C_LOG_ERR(gi2c->ipcl, true, gi2c->dev,
+				    "Bus Stop with cancel failed\n");
+			return -ETIMEDOUT;
 		}
 	}
 	I2C_LOG_DBG(gi2c->ipcl, false, gi2c->dev,
@@ -2691,13 +2712,28 @@ static int geni_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[],
 	if (!gi2c->is_shared && ((geni_ios & 0x3) != 0x3)) { //SCL:b'1, SDA:b'0
 		I2C_LOG_ERR(gi2c->ipcl, false, gi2c->dev,
 			    "IO lines in bad state, Power the slave\n");
-		/* for levm and PM control clients, skip auto suspend timer */
-		if (!gi2c->is_le_vm && !gi2c->pm_ctrl_client) {
-			pm_runtime_mark_last_busy(gi2c->dev);
-			pm_runtime_put_autosuspend(gi2c->dev);
+		if (gi2c->se_mode == FIFO_SE_DMA) {
+			gi2c->err = -EBUSY;
+			ret = geni_i2c_bus_recovery(gi2c);
+			if (ret)
+				I2C_LOG_ERR(gi2c->ipcl, true, gi2c->dev,
+					    "Bus Recovery failed\n");
+			gi2c->err = 0;
+		} else {
+			I2C_LOG_DBG(gi2c->ipcl, false, gi2c->dev,
+				    "Bus Recovery not supported for GSI\n");
 		}
-		atomic_set(&gi2c->is_xfer_in_progress, 0);
-		return -ENXIO;
+
+		if (gi2c->se_mode == GSI_ONLY ||
+		    (gi2c->se_mode != GSI_ONLY && ret)) {
+			/* for levm skip auto suspend timer */
+			if (!gi2c->is_le_vm) {
+				pm_runtime_mark_last_busy(gi2c->dev);
+				pm_runtime_put_autosuspend(gi2c->dev);
+			}
+			atomic_set(&gi2c->is_xfer_in_progress, 0);
+			return -ENXIO;
+		}
 	}
 
 	if (gi2c->is_le_vm && (!gi2c->first_xfer_done)) {
