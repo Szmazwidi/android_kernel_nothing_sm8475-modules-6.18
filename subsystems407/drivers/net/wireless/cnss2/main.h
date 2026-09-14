@@ -110,6 +110,7 @@ struct cnss_pinctrl_info {
 	int bt_en_gpio;
 	int xo_clk_gpio; /*qca6490 only */
 	int sw_ctrl_gpio;
+	bool bt_en_bootstrap_asserted;
 };
 
 #if IS_ENABLED(CONFIG_MSM_SUBSYSTEM_RESTART)
@@ -615,6 +616,7 @@ int cnss_vreg_unvote_type(struct cnss_plat_data *plat_priv,
 int cnss_get_pinctrl(struct cnss_plat_data *plat_priv);
 int cnss_power_on_device(struct cnss_plat_data *plat_priv);
 void cnss_power_off_device(struct cnss_plat_data *plat_priv);
+void cnss_release_bt_en_bootstrap(struct cnss_plat_data *plat_priv);
 bool cnss_is_device_powered_on(struct cnss_plat_data *plat_priv);
 int cnss_enable_dev_sol_irq(struct cnss_plat_data *plat_priv);
 int cnss_disable_dev_sol_irq(struct cnss_plat_data *plat_priv);

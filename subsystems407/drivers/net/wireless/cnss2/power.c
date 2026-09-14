@@ -13,6 +13,7 @@
 #include <linux/of_gpio.h>
 #include <linux/pinctrl/consumer.h>
 #include <linux/regulator/consumer.h>
+#include <linux/btpower.h>
 #if IS_ENABLED(CONFIG_QCOM_COMMAND_DB)
 #include <soc/qcom/cmd-db.h>
 #endif
@@ -937,7 +938,8 @@ out:
  */
 static int cnss_select_pinctrl_enable(struct cnss_plat_data *plat_priv)
 {
-	int ret = 0, bt_en_gpio = plat_priv->pinctrl_info.bt_en_gpio;
+	struct cnss_pinctrl_info *pinctrl_info = &plat_priv->pinctrl_info;
+	int ret = 0, bt_en_gpio = pinctrl_info->bt_en_gpio;
 	u8 wlan_en_state = 0;
 
 	if (bt_en_gpio < 0 || plat_priv->device_id != QCA6490_DEVICE_ID)
@@ -950,21 +952,86 @@ static int cnss_select_pinctrl_enable(struct cnss_plat_data *plat_priv)
 			return ret;
 		wlan_en_state = 1;
 	}
+
 	if (!gpio_get_value(bt_en_gpio)) {
 		cnss_pr_dbg("BT_EN_GPIO State: Off. Delay WLAN_GPIO enable\n");
-		/* check for BT_EN_GPIO down race during above operation */
+
 		if (wlan_en_state) {
 			cnss_pr_dbg("Reset WLAN_EN as BT got turned off during enable\n");
 			cnss_select_pinctrl_state(plat_priv, false);
 			wlan_en_state = 0;
 		}
-		/* 100 ms delay for BT_EN and WLAN_EN QCA6490 PMU sequencing */
+
+		/* QCA6490 shared PMU sequencing: the PCIe endpoint on Pong
+		 * does not respond when WLAN_EN is asserted while BT_EN
+		 * remains low. Give AON time to discharge, temporarily assert
+		 * BT_EN, then assert WLAN_EN.
+		 */
+		msleep(100);
+
+		cnss_set_xo_clk_gpio_state(plat_priv, true);
+		ret = gpio_direction_output(bt_en_gpio, 1);
+		cnss_set_xo_clk_gpio_state(plat_priv, false);
+
+		if (ret) {
+			cnss_pr_err("Failed to assert temporary BT_EN GPIO(%d), err=%d\n",
+				    bt_en_gpio, ret);
+			return ret;
+		}
+
+		pinctrl_info->bt_en_bootstrap_asserted = true;
+		cnss_pr_info("Temporary BT_EN GPIO(%d) asserted for WLAN bootstrap\n",
+			     bt_en_gpio);
+
 		msleep(100);
 	}
+
 set_wlan_en:
 	if (!wlan_en_state)
 		ret = cnss_select_pinctrl_state(plat_priv, true);
+
 	return ret;
+}
+
+void cnss_release_bt_en_bootstrap(struct cnss_plat_data *plat_priv)
+{
+	struct cnss_pinctrl_info *pinctrl_info = &plat_priv->pinctrl_info;
+	int ret, bt_state;
+
+	if (!pinctrl_info->bt_en_bootstrap_asserted)
+		return;
+
+	if (plat_priv->device_id != QCA6490_DEVICE_ID ||
+	    pinctrl_info->bt_en_gpio < 0) {
+		pinctrl_info->bt_en_bootstrap_asserted = false;
+		return;
+	}
+
+	/* BT_EN is shared with Bluetooth. Release the temporary WLAN
+	 * bootstrap vote only when the Bluetooth power driver reports
+	 * that Bluetooth is actually powered off.
+	 */
+	bt_state = btpower_get_power_state();
+	if (bt_state != BT_POWER_DISABLE) {
+		cnss_pr_info("BT power state %d active, keeping BT_EN asserted\n",
+			     bt_state);
+		pinctrl_info->bt_en_bootstrap_asserted = false;
+		return;
+	}
+
+	cnss_set_xo_clk_gpio_state(plat_priv, true);
+	ret = gpio_direction_output(pinctrl_info->bt_en_gpio, 0);
+	cnss_set_xo_clk_gpio_state(plat_priv, false);
+
+	if (ret) {
+		cnss_pr_err("Failed to release temporary BT_EN GPIO(%d), err=%d\n",
+			    pinctrl_info->bt_en_gpio, ret);
+		return;
+	}
+
+	pinctrl_info->bt_en_bootstrap_asserted = false;
+	cnss_pr_info("Temporary BT_EN GPIO(%d) released\n",
+		     pinctrl_info->bt_en_gpio);
 }
 
 int cnss_get_input_gpio_value(struct cnss_plat_data *plat_priv, int gpio_num)
@@ -1034,6 +1101,7 @@ void cnss_power_off_device(struct cnss_plat_data *plat_priv)
 
 	cnss_disable_dev_sol_irq(plat_priv);
 	cnss_select_pinctrl_state(plat_priv, false);
+	cnss_release_bt_en_bootstrap(plat_priv);
 	cnss_clk_off(plat_priv, &plat_priv->clk_list);
 	cnss_vreg_off_type(plat_priv, CNSS_VREG_PRIM);
 	plat_priv->powered_on = false;

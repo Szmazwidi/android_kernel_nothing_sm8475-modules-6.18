@@ -83,6 +83,7 @@ struct btpower_platform_data {
 
 int btpower_register_slimdev(struct device *dev);
 int btpower_get_chipset_version(void);
+int btpower_get_power_state(void);
 int btpower_aop_mbox_init(struct btpower_platform_data *pdata);
 
 #define BT_CMD_SLIM_TEST		0xbfac

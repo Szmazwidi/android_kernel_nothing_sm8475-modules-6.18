@@ -781,6 +781,8 @@ static int cnss_fw_ready_hdlr(struct cnss_plat_data *plat_priv)
 	} else {
 		ret = cnss_setup_dms_mac(plat_priv);
 		ret = cnss_bus_call_driver_probe(plat_priv);
+		if (!ret)
+			cnss_release_bt_en_bootstrap(plat_priv);
 	}
 
 	if (ret && test_bit(CNSS_DEV_ERR_NOTIFY, &plat_priv->driver_state))
