@@ -4500,6 +4500,7 @@ static int battery_chg_remove(struct platform_device *pdev)
 
 static const struct of_device_id battery_chg_match_table[] = {
 	{ .compatible = "qcom,battery-charger" },
+	{ .compatible = "qcom,waipio-battery-charger" },
 	{},
 };
 
