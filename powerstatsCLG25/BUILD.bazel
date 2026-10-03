@@ -1,0 +1,6 @@
+# CLG25: Nothing PowerStats sysfs nodes (/sys/module/soc_sleep_stats/...) for the stock PowerStats HAL.
+# Logic from redducc-stuff/kernel_nothing_pong c61396ae38 (qcom_stats: Add Nothing's PowerStats nodes).
+package(default_visibility=['//visibility:public'])
+load('//build/kernel/kleaf:kernel.bzl', 'ddk_module')
+ddk_module(name='soc_sleep_stats', kernel_build='//common:kernel_aarch64', out='soc_sleep_stats.ko', srcs=['soc_sleep_stats.c'],
+           deps=['//devices/pong618/build:symbol_smem'], copts=['-ferror-limit=0'])
