@@ -1,0 +1,9 @@
+# Reduced from the original package BUILD.bazel: only targets whose modules run on the phone are kept.
+load("//build/kernel/kleaf:kernel.bzl", "ddk_config", "ddk_headers", "ddk_module", "ddk_submodule")
+package(default_visibility = ["//visibility:public"])
+
+ddk_headers(name="headers",hdrs=glob(["inc/**/*.h","cnss_utils/**/*.h"], allow_empty = True),includes=["inc","cnss_utils"])
+ddk_config(name='config452', kernel_build='//common:kernel_aarch64', kconfigs=['Kconfig.pong452'], defconfig='defconfig.pong452', deps=[])
+ddk_submodule(name='prealloc', srcs=['cnss_prealloc/cnss_prealloc.c'] + glob(['**/*.h'], allow_empty = True), out='cnss_prealloc.ko', includes=['inc', 'cnss_utils'], copts=['-ferror-limit=0'], deps=[], hdrs=[':headers', '//devices/pong618/wlan452/providers:vendor_headers'])
+ddk_submodule(name='netlink', srcs=['cnss_genl/cnss_nl.c'] + glob(['**/*.h'], allow_empty = True), out='cnss_nl.ko', includes=['inc', 'cnss_utils'], copts=['-ferror-limit=0'], deps=[], hdrs=[':headers', '//devices/pong618/wlan452/providers:vendor_headers'])
+ddk_module(name="helpers",kernel_build="//common:kernel_aarch64",config=":config452",deps=[':prealloc', ':netlink'])

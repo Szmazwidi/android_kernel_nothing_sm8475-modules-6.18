@@ -1,0 +1,6 @@
+config CNSS_OUT_OF_TREE
+	bool "CNSS external headers"
+config WCNSS_MEM_PRE_ALLOC
+	tristate "CNSS memory pools"
+config CNSS_GENL
+	tristate "CNSS netlink"
