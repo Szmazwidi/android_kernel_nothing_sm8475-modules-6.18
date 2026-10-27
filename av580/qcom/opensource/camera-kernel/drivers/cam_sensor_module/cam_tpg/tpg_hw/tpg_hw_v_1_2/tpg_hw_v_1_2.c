@@ -183,6 +183,11 @@ static int tpg_hw_v_1_2_reset(
 int tpg_hw_v_1_2_process_cmd(
 	struct tpg_hw *hw,
 	uint32_t       cmd,
+	void          *arg);
+
+int tpg_hw_v_1_2_process_cmd(
+	struct tpg_hw *hw,
+	uint32_t       cmd,
 	void          *arg)
 {
 	int rc = 0;
@@ -239,11 +244,15 @@ int tpg_hw_v_1_2_process_cmd(
 	return rc;
 }
 
+int tpg_hw_v_1_2_start(struct tpg_hw *hw, void *data);
+
 int tpg_hw_v_1_2_start(struct tpg_hw *hw, void *data)
 {
 	CAM_DBG(CAM_TPG, "TPG V1.2 HWL start");
 	return 0;
 }
+
+int tpg_hw_v_1_2_stop(struct tpg_hw *hw, void *data);
 
 int tpg_hw_v_1_2_stop(struct tpg_hw *hw, void *data)
 {
@@ -251,6 +260,8 @@ int tpg_hw_v_1_2_stop(struct tpg_hw *hw, void *data)
 	tpg_hw_v_1_2_reset(hw, data);
 	return 0;
 }
+
+int tpg_hw_v_1_2_dump_status(struct tpg_hw *hw, void *data);
 
 int tpg_hw_v_1_2_dump_status(struct tpg_hw *hw, void *data)
 {
@@ -273,6 +284,8 @@ int tpg_hw_v_1_2_dump_status(struct tpg_hw *hw, void *data)
 
 	return 0;
 }
+
+int tpg_hw_v_1_2_init(struct tpg_hw *hw, void *data);
 
 int tpg_hw_v_1_2_init(struct tpg_hw *hw, void *data)
 {

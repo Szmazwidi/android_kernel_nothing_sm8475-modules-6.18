@@ -57,6 +57,8 @@ static struct cam_context *cam_node_get_ctxt_from_free_list(
 	return ctx;
 }
 
+void cam_node_put_ctxt_to_free_list(struct kref *ref);
+
 void cam_node_put_ctxt_to_free_list(struct kref *ref)
 {
 	struct cam_context *ctx =
@@ -679,6 +681,8 @@ static int __cam_node_crm_dump_req(struct cam_req_mgr_dump_info *dump)
 	return cam_context_handle_crm_dump_req(ctx, dump);
 }
 
+int cam_node_deinit(struct cam_node *node);
+
 int cam_node_deinit(struct cam_node *node)
 {
 	if (node)
@@ -688,6 +692,8 @@ int cam_node_deinit(struct cam_node *node)
 
 	return 0;
 }
+
+int cam_node_shutdown(struct cam_node *node);
 
 int cam_node_shutdown(struct cam_node *node)
 {
@@ -714,6 +720,9 @@ int cam_node_shutdown(struct cam_node *node)
 }
 
 int cam_node_init(struct cam_node *node, struct cam_hw_mgr_intf *hw_mgr_intf,
+	struct cam_context *ctx_list, uint32_t ctx_size, char *name);
+
+int cam_node_init(struct cam_node *node, struct cam_hw_mgr_intf *hw_mgr_intf,
 	struct cam_context *ctx_list, uint32_t ctx_size, char *name)
 {
 	int rc = 0;
@@ -726,7 +735,7 @@ int cam_node_init(struct cam_node *node, struct cam_hw_mgr_intf *hw_mgr_intf,
 
 	memset(node, 0, sizeof(*node));
 
-	strlcpy(node->name, name, sizeof(node->name));
+	strscpy(node->name, name, sizeof(node->name));
 
 	memcpy(&node->hw_mgr_intf, hw_mgr_intf, sizeof(node->hw_mgr_intf));
 	node->crm_node_intf.apply_req = __cam_node_crm_apply_req;
@@ -759,6 +768,8 @@ err:
 	CAM_DBG(CAM_CORE, "Exit. (rc = %d)", rc);
 	return rc;
 }
+
+int cam_node_handle_ioctl(struct cam_node *node, struct cam_control *cmd);
 
 int cam_node_handle_ioctl(struct cam_node *node, struct cam_control *cmd)
 {

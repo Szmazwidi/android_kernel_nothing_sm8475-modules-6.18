@@ -13,6 +13,9 @@
 #include "cam_packet_util.h"
 
 int32_t cam_actuator_construct_default_power_setting(
+	struct cam_sensor_power_ctrl_t *power_info);
+
+int32_t cam_actuator_construct_default_power_setting(
 	struct cam_sensor_power_ctrl_t *power_info)
 {
 	int rc = 0;
@@ -213,6 +216,9 @@ static int32_t cam_actuator_i2c_modes_util(
 }
 
 int32_t cam_actuator_slaveInfo_pkt_parser(struct cam_actuator_ctrl_t *a_ctrl,
+	uint32_t *cmd_buf, size_t len);
+
+int32_t cam_actuator_slaveInfo_pkt_parser(struct cam_actuator_ctrl_t *a_ctrl,
 	uint32_t *cmd_buf, size_t len)
 {
 	int32_t rc = 0;
@@ -244,6 +250,9 @@ int32_t cam_actuator_slaveInfo_pkt_parser(struct cam_actuator_ctrl_t *a_ctrl,
 
 	return rc;
 }
+
+int32_t cam_actuator_apply_settings(struct cam_actuator_ctrl_t *a_ctrl,
+	struct i2c_settings_array *i2c_set);
 
 int32_t cam_actuator_apply_settings(struct cam_actuator_ctrl_t *a_ctrl,
 	struct i2c_settings_array *i2c_set)
@@ -279,6 +288,8 @@ int32_t cam_actuator_apply_settings(struct cam_actuator_ctrl_t *a_ctrl,
 
 	return rc;
 }
+
+int32_t cam_actuator_apply_request(struct cam_req_mgr_apply_request *apply);
 
 int32_t cam_actuator_apply_request(struct cam_req_mgr_apply_request *apply)
 {
@@ -337,6 +348,9 @@ release_mutex:
 	mutex_unlock(&(a_ctrl->actuator_mutex));
 	return rc;
 }
+
+int32_t cam_actuator_establish_link(
+	struct cam_req_mgr_core_dev_link_setup *link);
 
 int32_t cam_actuator_establish_link(
 	struct cam_req_mgr_core_dev_link_setup *link)
@@ -400,6 +414,8 @@ static int cam_actuator_update_req_mgr(
 	return rc;
 }
 
+int32_t cam_actuator_publish_dev_info(struct cam_req_mgr_device_info *info);
+
 int32_t cam_actuator_publish_dev_info(struct cam_req_mgr_device_info *info)
 {
 	if (!info) {
@@ -408,12 +424,15 @@ int32_t cam_actuator_publish_dev_info(struct cam_req_mgr_device_info *info)
 	}
 
 	info->dev_id = CAM_REQ_MGR_DEVICE_ACTUATOR;
-	strlcpy(info->name, CAM_ACTUATOR_NAME, sizeof(info->name));
+	strscpy(info->name, CAM_ACTUATOR_NAME, sizeof(info->name));
 	info->p_delay = 1;
 	info->trigger = CAM_TRIGGER_POINT_SOF;
 
 	return 0;
 }
+
+int32_t cam_actuator_i2c_pkt_parse(struct cam_actuator_ctrl_t *a_ctrl,
+	void *arg);
 
 int32_t cam_actuator_i2c_pkt_parse(struct cam_actuator_ctrl_t *a_ctrl,
 	void *arg)
@@ -798,6 +817,8 @@ end:
 	return rc;
 }
 
+void cam_actuator_shutdown(struct cam_actuator_ctrl_t *a_ctrl);
+
 void cam_actuator_shutdown(struct cam_actuator_ctrl_t *a_ctrl)
 {
 	int rc = 0;
@@ -835,6 +856,9 @@ void cam_actuator_shutdown(struct cam_actuator_ctrl_t *a_ctrl)
 
 	a_ctrl->cam_act_state = CAM_ACTUATOR_INIT;
 }
+
+int32_t cam_actuator_driver_cmd(struct cam_actuator_ctrl_t *a_ctrl,
+	void *arg);
 
 int32_t cam_actuator_driver_cmd(struct cam_actuator_ctrl_t *a_ctrl,
 	void *arg)
@@ -1060,6 +1084,8 @@ release_mutex:
 
 	return rc;
 }
+
+int32_t cam_actuator_flush_request(struct cam_req_mgr_flush_request *flush_req);
 
 int32_t cam_actuator_flush_request(struct cam_req_mgr_flush_request *flush_req)
 {

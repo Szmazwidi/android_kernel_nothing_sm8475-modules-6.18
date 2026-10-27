@@ -32,6 +32,8 @@ static void __cam_req_mgr_reset_apply_data(struct cam_req_mgr_core_link *link)
 	}
 }
 
+void cam_req_mgr_core_link_reset(struct cam_req_mgr_core_link *link);
+
 void cam_req_mgr_core_link_reset(struct cam_req_mgr_core_link *link)
 {
 	int i = 0;
@@ -74,6 +76,8 @@ void cam_req_mgr_core_link_reset(struct cam_req_mgr_core_link *link)
 	for (i = 0; i < MAXIMUM_LINKS_PER_SESSION - 1; i++)
 		link->sync_link[i] = NULL;
 }
+
+void cam_req_mgr_handle_core_shutdown(void);
 
 void cam_req_mgr_handle_core_shutdown(void)
 {
@@ -1732,6 +1736,9 @@ static int __cam_req_mgr_check_multi_sync_link_ready(
  *
  */
 enum crm_req_eof_trigger_type __cam_req_mgr_check_for_eof(
+	struct cam_req_mgr_core_link *link);
+
+enum crm_req_eof_trigger_type __cam_req_mgr_check_for_eof(
 	struct cam_req_mgr_core_link *link)
 {
 	int32_t                        curr_idx;
@@ -2691,6 +2698,8 @@ static int __cam_req_mgr_try_cancel_req(struct cam_req_mgr_core_link *link,
  *
  * @return: 0 on success.
  */
+int cam_req_mgr_process_flush_req(void *priv, void *data);
+
 int cam_req_mgr_process_flush_req(void *priv, void *data)
 {
 	int                                  rc = 0;
@@ -2752,6 +2761,8 @@ int cam_req_mgr_process_flush_req(void *priv, void *data)
  *
  * @return: 0 on success.
  */
+int cam_req_mgr_process_sched_req(void *priv, void *data);
+
 int cam_req_mgr_process_sched_req(void *priv, void *data)
 {
 	int                               rc = 0, i;
@@ -2839,6 +2850,8 @@ end:
  *
  * @return: 0 on success.
  */
+int cam_req_mgr_process_add_req(void *priv, void *data);
+
 int cam_req_mgr_process_add_req(void *priv, void *data)
 {
 	int                                  rc = 0, i = 0, idx;
@@ -2962,6 +2975,10 @@ end:
  */
 void __cam_req_mgr_apply_on_bubble(
 	struct cam_req_mgr_core_link    *link,
+	struct cam_req_mgr_error_notify *err_info);
+
+void __cam_req_mgr_apply_on_bubble(
+	struct cam_req_mgr_core_link    *link,
 	struct cam_req_mgr_error_notify *err_info)
 {
 	int rc = 0;
@@ -2989,6 +3006,8 @@ void __cam_req_mgr_apply_on_bubble(
  *
  * @return: 0 on success.
  */
+int cam_req_mgr_process_error(void *priv, void *data);
+
 int cam_req_mgr_process_error(void *priv, void *data)
 {
 	int                                  rc = 0, idx = -1;
@@ -3090,6 +3109,8 @@ end:
  *
  * @return: 0 on success.
  */
+int cam_req_mgr_process_stop(void *priv, void *data);
+
 int cam_req_mgr_process_stop(void *priv, void *data)
 {
 	int                                  rc = 0;
@@ -3876,6 +3897,9 @@ error:
 
 /* IOCTLs handling section */
 int cam_req_mgr_create_session(
+	struct cam_req_mgr_session_info *ses_info);
+
+int cam_req_mgr_create_session(
 	struct cam_req_mgr_session_info *ses_info)
 {
 	int                              rc = 0;
@@ -3978,6 +4002,10 @@ static int __cam_req_mgr_unlink(
 
 int cam_req_mgr_destroy_session(
 		struct cam_req_mgr_session_info *ses_info,
+		bool is_shutdown);
+
+int cam_req_mgr_destroy_session(
+		struct cam_req_mgr_session_info *ses_info,
 		bool is_shutdown)
 {
 	int rc;
@@ -4040,6 +4068,8 @@ static void cam_req_mgr_process_workq_link_worker(struct work_struct *w)
 {
 	cam_req_mgr_process_workq(w);
 }
+
+int cam_req_mgr_link(struct cam_req_mgr_ver_info *link_info);
 
 int cam_req_mgr_link(struct cam_req_mgr_ver_info *link_info)
 {
@@ -4150,6 +4180,8 @@ link_hdl_fail:
 	mutex_unlock(&g_crm_core_dev->crm_lock);
 	return rc;
 }
+
+int cam_req_mgr_link_v2(struct cam_req_mgr_ver_info *link_info);
 
 int cam_req_mgr_link_v2(struct cam_req_mgr_ver_info *link_info)
 {
@@ -4269,6 +4301,8 @@ link_hdl_fail:
 }
 
 
+int cam_req_mgr_unlink(struct cam_req_mgr_unlink_info *unlink_info);
+
 int cam_req_mgr_unlink(struct cam_req_mgr_unlink_info *unlink_info)
 {
 	int                              rc = 0;
@@ -4313,6 +4347,9 @@ done:
 	mutex_unlock(&g_crm_core_dev->crm_lock);
 	return rc;
 }
+
+int cam_req_mgr_schedule_request(
+			struct cam_req_mgr_sched_request *sched_req);
 
 int cam_req_mgr_schedule_request(
 			struct cam_req_mgr_sched_request *sched_req)
@@ -4380,6 +4417,9 @@ end:
 	mutex_unlock(&g_crm_core_dev->crm_lock);
 	return rc;
 }
+
+int cam_req_mgr_sync_config(
+	struct cam_req_mgr_sync_mode *sync_info);
 
 int cam_req_mgr_sync_config(
 	struct cam_req_mgr_sync_mode *sync_info)
@@ -4491,6 +4531,9 @@ done:
 }
 
 int cam_req_mgr_flush_requests(
+	struct cam_req_mgr_flush_info *flush_info);
+
+int cam_req_mgr_flush_requests(
 	struct cam_req_mgr_flush_info *flush_info)
 {
 	int                               rc = 0;
@@ -4564,6 +4607,8 @@ end:
 	mutex_unlock(&g_crm_core_dev->crm_lock);
 	return rc;
 }
+
+int cam_req_mgr_link_control(struct cam_req_mgr_link_control *control);
 
 int cam_req_mgr_link_control(struct cam_req_mgr_link_control *control)
 {
@@ -4645,6 +4690,8 @@ int cam_req_mgr_link_control(struct cam_req_mgr_link_control *control)
 end:
 	return rc;
 }
+
+int cam_req_mgr_dump_request(struct cam_dump_req_cmd *dump_req);
 
 int cam_req_mgr_dump_request(struct cam_dump_req_cmd *dump_req)
 {
@@ -4806,6 +4853,8 @@ end:
 	return dumped_len;
 }
 
+int cam_req_mgr_core_device_init(void);
+
 int cam_req_mgr_core_device_init(void)
 {
 	int i;
@@ -4836,6 +4885,8 @@ int cam_req_mgr_core_device_init(void)
 
 	return 0;
 }
+
+int cam_req_mgr_core_device_deinit(void);
 
 int cam_req_mgr_core_device_deinit(void)
 {

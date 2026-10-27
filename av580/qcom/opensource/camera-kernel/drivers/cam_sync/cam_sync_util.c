@@ -9,6 +9,9 @@
 #include "cam_common_util.h"
 
 int cam_sync_util_find_and_set_empty_row(struct sync_device *sync_dev,
+	long *idx);
+
+int cam_sync_util_find_and_set_empty_row(struct sync_device *sync_dev,
 	long *idx)
 {
 	int rc = 0;
@@ -27,6 +30,8 @@ int cam_sync_util_find_and_set_empty_row(struct sync_device *sync_dev,
 	return rc;
 }
 
+int cam_sync_init_wait_ref(uint32_t sync_obj);
+
 int cam_sync_init_wait_ref(uint32_t sync_obj)
 {
 	struct sync_table_row *row = NULL;
@@ -36,6 +41,8 @@ int cam_sync_init_wait_ref(uint32_t sync_obj)
 	refcount_set(&row->wait_ref_cnt, 1);
 	return 0;
 }
+
+int cam_sync_get_wait_ref(uint32_t sync_obj);
 
 int cam_sync_get_wait_ref(uint32_t sync_obj)
 {
@@ -56,6 +63,8 @@ int cam_sync_get_wait_ref(uint32_t sync_obj)
 	return 0;
 }
 
+int cam_sync_put_wait_ref(uint32_t sync_obj);
+
 int cam_sync_put_wait_ref(uint32_t sync_obj)
 {
 	struct sync_table_row *row = NULL;
@@ -70,6 +79,9 @@ int cam_sync_put_wait_ref(uint32_t sync_obj)
 }
 
 int cam_sync_init_row(struct sync_table_row *table,
+	uint32_t idx, const char *name, uint32_t type);
+
+int cam_sync_init_row(struct sync_table_row *table,
 	uint32_t idx, const char *name, uint32_t type)
 {
 	struct sync_table_row *row = table + idx;
@@ -79,7 +91,7 @@ int cam_sync_init_row(struct sync_table_row *table,
 
 	memset(row, 0, sizeof(*row));
 
-	strlcpy(row->name, name, SYNC_DEBUG_NAME_LEN);
+	strscpy(row->name, name, SYNC_DEBUG_NAME_LEN);
 	INIT_LIST_HEAD(&row->parents_list);
 	INIT_LIST_HEAD(&row->children_list);
 	row->type = type;
@@ -97,6 +109,11 @@ int cam_sync_init_row(struct sync_table_row *table,
 
 	return 0;
 }
+
+int cam_sync_init_group_object(struct sync_table_row *table,
+	uint32_t idx,
+	uint32_t *sync_objs,
+	uint32_t num_objs);
 
 int cam_sync_init_group_object(struct sync_table_row *table,
 	uint32_t idx,
@@ -190,6 +207,8 @@ clean_children_info:
 	cam_sync_util_cleanup_children_list(row, SYNC_LIST_CLEAN_ALL, 0);
 	return rc;
 }
+
+int cam_sync_deinit_object(struct sync_table_row *table, uint32_t idx);
 
 int cam_sync_deinit_object(struct sync_table_row *table, uint32_t idx)
 {
@@ -327,6 +346,8 @@ int cam_sync_deinit_object(struct sync_table_row *table, uint32_t idx)
 	return 0;
 }
 
+void cam_sync_util_cb_dispatch(struct work_struct *cb_dispatch_work);
+
 void cam_sync_util_cb_dispatch(struct work_struct *cb_dispatch_work)
 {
 	struct sync_callback_info *cb_info = container_of(cb_dispatch_work,
@@ -342,6 +363,9 @@ void cam_sync_util_cb_dispatch(struct work_struct *cb_dispatch_work)
 
 	kfree(cb_info);
 }
+
+void cam_sync_util_dispatch_signaled_cb(int32_t sync_obj,
+	uint32_t status, uint32_t event_cause);
 
 void cam_sync_util_dispatch_signaled_cb(int32_t sync_obj,
 	uint32_t status, uint32_t event_cause)
@@ -407,6 +431,12 @@ void cam_sync_util_send_v4l2_event(uint32_t id,
 	uint32_t sync_obj,
 	int status,
 	void *payload,
+	int len, uint32_t event_cause);
+
+void cam_sync_util_send_v4l2_event(uint32_t id,
+	uint32_t sync_obj,
+	int status,
+	void *payload,
 	int len, uint32_t event_cause)
 {
 	struct v4l2_event event;
@@ -445,6 +475,9 @@ void cam_sync_util_send_v4l2_event(uint32_t id,
 }
 
 int cam_sync_util_update_parent_state(struct sync_table_row *parent_row,
+	int new_state);
+
+int cam_sync_util_update_parent_state(struct sync_table_row *parent_row,
 	int new_state)
 {
 	int rc = 0;
@@ -469,6 +502,9 @@ int cam_sync_util_update_parent_state(struct sync_table_row *parent_row,
 }
 
 void cam_sync_util_cleanup_children_list(struct sync_table_row *row,
+	uint32_t list_clean_type, uint32_t sync_obj);
+
+void cam_sync_util_cleanup_children_list(struct sync_table_row *row,
 	uint32_t list_clean_type, uint32_t sync_obj)
 {
 	struct sync_child_info *child_info = NULL;
@@ -490,6 +526,9 @@ void cam_sync_util_cleanup_children_list(struct sync_table_row *row,
 			break;
 	}
 }
+
+void cam_sync_util_cleanup_parents_list(struct sync_table_row *row,
+	uint32_t list_clean_type, uint32_t sync_obj);
 
 void cam_sync_util_cleanup_parents_list(struct sync_table_row *row,
 	uint32_t list_clean_type, uint32_t sync_obj)

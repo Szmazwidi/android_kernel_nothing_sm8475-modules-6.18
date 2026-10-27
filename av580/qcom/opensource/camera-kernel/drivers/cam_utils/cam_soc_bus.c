@@ -4,6 +4,7 @@
  * Copyright (c) 2024, Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
+#include <linux/of.h>
 #include <linux/msm-bus.h>
 #include "cam_soc_bus.h"
 
@@ -23,6 +24,8 @@ struct cam_soc_bus_client_data {
 	unsigned int curr_vote_level;
 	bool dyn_vote;
 };
+
+int cam_soc_bus_client_update_request(void *client, unsigned int idx);
 
 int cam_soc_bus_client_update_request(void *client, unsigned int idx)
 {
@@ -65,6 +68,8 @@ int cam_soc_bus_client_update_request(void *client, unsigned int idx)
 end:
 	return rc;
 }
+
+int cam_soc_bus_client_update_bw(void *client, uint64_t ab, uint64_t ib);
 
 int cam_soc_bus_client_update_bw(void *client, uint64_t ab, uint64_t ib)
 {
@@ -116,6 +121,10 @@ int cam_soc_bus_client_update_bw(void *client, uint64_t ab, uint64_t ib)
 end:
 	return rc;
 }
+
+int cam_soc_bus_client_register(struct platform_device *pdev,
+	struct device_node *dev_node, void **client,
+	struct cam_soc_bus_client_common_data *common_data, bool use_path_name);
 
 int cam_soc_bus_client_register(struct platform_device *pdev,
 	struct device_node *dev_node, void **client,
@@ -212,6 +221,8 @@ end:
 	return rc;
 
 }
+
+void cam_soc_bus_client_unregister(void **client);
 
 void cam_soc_bus_client_unregister(void **client)
 {

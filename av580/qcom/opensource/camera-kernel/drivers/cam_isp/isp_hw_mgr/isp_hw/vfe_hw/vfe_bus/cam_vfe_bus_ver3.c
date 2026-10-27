@@ -1217,13 +1217,13 @@ static int cam_vfe_bus_ver3_acquire_wm(
 
 	switch (rsrc_data->en_cfg) {
 	case 0x1:
-		strlcpy(wm_mode, "line-based", sizeof(wm_mode));
+		strscpy(wm_mode, "line-based", sizeof(wm_mode));
 		break;
 	case ((0x1 << 16) | 0x1):
-		strlcpy(wm_mode, "frame-based", sizeof(wm_mode));
+		strscpy(wm_mode, "frame-based", sizeof(wm_mode));
 		break;
 	case ((0x2 << 16) | 0x1):
-		strlcpy(wm_mode, "index-based", sizeof(wm_mode));
+		strscpy(wm_mode, "index-based", sizeof(wm_mode));
 		break;
 	}
 
@@ -4227,6 +4227,13 @@ int cam_vfe_bus_ver3_init(
 	struct cam_hw_intf                   *hw_intf,
 	void                                 *bus_hw_info,
 	void                                 *vfe_irq_controller,
+	struct cam_vfe_bus                  **vfe_bus);
+
+int cam_vfe_bus_ver3_init(
+	struct cam_hw_soc_info               *soc_info,
+	struct cam_hw_intf                   *hw_intf,
+	void                                 *bus_hw_info,
+	void                                 *vfe_irq_controller,
 	struct cam_vfe_bus                  **vfe_bus)
 {
 	int i, rc = 0;
@@ -4417,6 +4424,9 @@ free_bus_local:
 end:
 	return rc;
 }
+
+int cam_vfe_bus_ver3_deinit(
+	struct cam_vfe_bus                  **vfe_bus);
 
 int cam_vfe_bus_ver3_deinit(
 	struct cam_vfe_bus                  **vfe_bus)

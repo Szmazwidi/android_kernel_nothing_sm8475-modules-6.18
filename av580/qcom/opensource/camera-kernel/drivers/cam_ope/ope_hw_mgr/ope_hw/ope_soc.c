@@ -52,6 +52,9 @@ static int cam_ope_request_platform_resource(
 }
 
 int cam_ope_init_soc_resources(struct cam_hw_soc_info *soc_info,
+	irq_handler_t ope_irq_handler, void *irq_data);
+
+int cam_ope_init_soc_resources(struct cam_hw_soc_info *soc_info,
 	irq_handler_t ope_irq_handler, void *irq_data)
 {
 	struct cam_ope_soc_private  *soc_private;
@@ -92,6 +95,8 @@ end:
 	return rc;
 }
 
+int cam_ope_enable_soc_resources(struct cam_hw_soc_info *soc_info);
+
 int cam_ope_enable_soc_resources(struct cam_hw_soc_info *soc_info)
 {
 	int rc = 0;
@@ -107,6 +112,9 @@ int cam_ope_enable_soc_resources(struct cam_hw_soc_info *soc_info)
 }
 
 int cam_ope_disable_soc_resources(struct cam_hw_soc_info *soc_info,
+	bool disable_clk);
+
+int cam_ope_disable_soc_resources(struct cam_hw_soc_info *soc_info,
 	bool disable_clk)
 {
 	int rc = 0;
@@ -118,6 +126,9 @@ int cam_ope_disable_soc_resources(struct cam_hw_soc_info *soc_info,
 
 	return rc;
 }
+
+int cam_ope_update_clk_rate(struct cam_hw_soc_info *soc_info,
+	uint32_t clk_rate);
 
 int cam_ope_update_clk_rate(struct cam_hw_soc_info *soc_info,
 	uint32_t clk_rate)
@@ -146,6 +157,8 @@ int cam_ope_update_clk_rate(struct cam_hw_soc_info *soc_info,
 		clk_rate, src_clk_idx);
 	return cam_soc_util_set_src_clk_rate(soc_info, clk_rate);
 }
+
+int cam_ope_toggle_clk(struct cam_hw_soc_info *soc_info, bool clk_enable);
 
 int cam_ope_toggle_clk(struct cam_hw_soc_info *soc_info, bool clk_enable)
 {

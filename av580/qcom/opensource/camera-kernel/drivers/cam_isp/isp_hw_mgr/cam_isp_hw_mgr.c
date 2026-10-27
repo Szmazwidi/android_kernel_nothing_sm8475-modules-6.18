@@ -10,6 +10,9 @@
 
 
 int cam_isp_hw_mgr_init(const char   *device_name_str,
+	struct cam_hw_mgr_intf *hw_mgr, int *iommu_hdl);
+
+int cam_isp_hw_mgr_init(const char   *device_name_str,
 	struct cam_hw_mgr_intf *hw_mgr, int *iommu_hdl)
 {
 	int rc = 0;
@@ -25,6 +28,8 @@ int cam_isp_hw_mgr_init(const char   *device_name_str,
 
 	return rc;
 }
+
+void cam_isp_hw_mgr_deinit(const char *device_name_str);
 
 void cam_isp_hw_mgr_deinit(const char *device_name_str)
 {

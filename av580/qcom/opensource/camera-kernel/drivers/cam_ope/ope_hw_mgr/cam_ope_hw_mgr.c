@@ -1741,6 +1741,8 @@ end:
 	mutex_unlock(&ctx->ctx_mutex);
 }
 
+int32_t cam_ope_hw_mgr_cb(uint32_t irq_status, void *data);
+
 int32_t cam_ope_hw_mgr_cb(uint32_t irq_status, void *data)
 {
 	int32_t rc = 0;
@@ -2673,7 +2675,7 @@ static int cam_ope_mgr_acquire_hw(void *hw_priv, void *hw_acquire_args)
 		CAM_ERR(CAM_ISP, "Out of memory");
 		goto end;
 	}
-	strlcpy(cdm_acquire->identifier, "ope", sizeof("ope"));
+	strscpy(cdm_acquire->identifier, "ope", sizeof("ope"));
 	if (ctx->ope_acquire.dev_type == OPE_DEV_TYPE_OPE_RT) {
 		cdm_acquire->priority = CAM_CDM_BL_FIFO_3;
 		ctx->req_timer_timeout = OPE_REQUEST_RT_TIMEOUT;
@@ -3991,6 +3993,9 @@ err:
 	return -ENOMEM;
 }
 
+
+int cam_ope_hw_mgr_init(struct device_node *of_node, uint64_t *hw_mgr_hdl,
+	int *iommu_hdl);
 
 int cam_ope_hw_mgr_init(struct device_node *of_node, uint64_t *hw_mgr_hdl,
 	int *iommu_hdl)

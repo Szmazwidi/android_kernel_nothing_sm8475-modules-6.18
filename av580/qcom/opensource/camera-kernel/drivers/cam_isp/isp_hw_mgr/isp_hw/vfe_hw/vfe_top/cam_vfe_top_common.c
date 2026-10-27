@@ -187,6 +187,9 @@ static int cam_vfe_top_calc_hw_clk_rate(
 }
 
 int cam_vfe_top_clock_update(struct cam_vfe_top_priv_common *top_common,
+	void *cmd_args, uint32_t arg_size);
+
+int cam_vfe_top_clock_update(struct cam_vfe_top_priv_common *top_common,
 	void *cmd_args, uint32_t arg_size)
 {
 	struct cam_vfe_clock_update_args     *clk_update = NULL;
@@ -396,6 +399,10 @@ end:
 
 int cam_vfe_top_bw_update_v2(struct cam_vfe_soc_private *soc_private,
 	struct cam_vfe_top_priv_common *top_common, void *cmd_args,
+	uint32_t arg_size);
+
+int cam_vfe_top_bw_update_v2(struct cam_vfe_soc_private *soc_private,
+	struct cam_vfe_top_priv_common *top_common, void *cmd_args,
 	uint32_t arg_size)
 {
 	struct cam_vfe_bw_update_args_v2        *bw_update = NULL;
@@ -433,6 +440,10 @@ int cam_vfe_top_bw_update_v2(struct cam_vfe_soc_private *soc_private,
 
 	return rc;
 }
+
+int cam_vfe_top_bw_update(struct cam_vfe_soc_private *soc_private,
+	struct cam_vfe_top_priv_common *top_common, void *cmd_args,
+	uint32_t arg_size);
 
 int cam_vfe_top_bw_update(struct cam_vfe_soc_private *soc_private,
 	struct cam_vfe_top_priv_common *top_common, void *cmd_args,
@@ -521,6 +532,10 @@ int cam_vfe_top_bw_update(struct cam_vfe_soc_private *soc_private,
 
 int cam_vfe_top_bw_control(struct cam_vfe_soc_private *soc_private,
 	struct cam_vfe_top_priv_common *top_common, void *cmd_args,
+	uint32_t arg_size);
+
+int cam_vfe_top_bw_control(struct cam_vfe_soc_private *soc_private,
+	struct cam_vfe_top_priv_common *top_common, void *cmd_args,
 	uint32_t arg_size)
 {
 	struct cam_isp_bw_control_args       *bw_ctrl = NULL;
@@ -563,6 +578,9 @@ int cam_vfe_top_bw_control(struct cam_vfe_soc_private *soc_private,
 
 	return rc;
 }
+
+int cam_vfe_top_apply_clk_bw_update(struct cam_vfe_top_priv_common *top_common,
+	void *cmd_args, uint32_t arg_size);
 
 int cam_vfe_top_apply_clk_bw_update(struct cam_vfe_top_priv_common *top_common,
 	void *cmd_args, uint32_t arg_size)
@@ -714,6 +732,8 @@ end:
 	return rc;
 }
 
+int cam_vfe_top_apply_clock_start_stop(struct cam_vfe_top_priv_common *top_common);
+
 int cam_vfe_top_apply_clock_start_stop(struct cam_vfe_top_priv_common *top_common)
 {
 	int rc = 0;
@@ -743,6 +763,8 @@ end:
 	top_common->skip_data_rst_on_stop = false;
 	return rc;
 }
+
+int cam_vfe_top_apply_bw_start_stop(struct cam_vfe_top_priv_common *top_common);
 
 int cam_vfe_top_apply_bw_start_stop(struct cam_vfe_top_priv_common *top_common)
 {

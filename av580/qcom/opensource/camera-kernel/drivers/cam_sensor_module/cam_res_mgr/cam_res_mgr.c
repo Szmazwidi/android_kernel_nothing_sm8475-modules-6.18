@@ -4,6 +4,8 @@
  * Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
+#include "cam_gpio_request.h"
+#include <linux/of.h>
 #include <linux/init.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -47,6 +49,8 @@ static void cam_res_mgr_free_res(void)
 	}
 	mutex_unlock(&cam_res->flash_res_lock);
 }
+
+void cam_res_mgr_led_trigger_register(const char *name, struct led_trigger **tp);
 
 void cam_res_mgr_led_trigger_register(const char *name, struct led_trigger **tp)
 {
@@ -95,6 +99,8 @@ void cam_res_mgr_led_trigger_register(const char *name, struct led_trigger **tp)
 }
 EXPORT_SYMBOL(cam_res_mgr_led_trigger_register);
 
+void cam_res_mgr_led_trigger_unregister(struct led_trigger *tp);
+
 void cam_res_mgr_led_trigger_unregister(struct led_trigger *tp)
 {
 	bool found = false;
@@ -127,6 +133,9 @@ void cam_res_mgr_led_trigger_unregister(struct led_trigger *tp)
 EXPORT_SYMBOL(cam_res_mgr_led_trigger_unregister);
 
 void cam_res_mgr_led_trigger_event(struct led_trigger *trig,
+	enum led_brightness brightness);
+
+void cam_res_mgr_led_trigger_event(struct led_trigger *trig,
 	enum led_brightness brightness)
 {
 	bool found = false;
@@ -156,6 +165,9 @@ void cam_res_mgr_led_trigger_event(struct led_trigger *trig,
 EXPORT_SYMBOL(cam_res_mgr_led_trigger_event);
 
 int cam_res_mgr_util_get_idx_from_shared_pctrl_gpio(
+	uint gpio);
+
+int cam_res_mgr_util_get_idx_from_shared_pctrl_gpio(
 	uint gpio)
 {
 	int index = 0;
@@ -172,6 +184,9 @@ int cam_res_mgr_util_get_idx_from_shared_pctrl_gpio(
 	return index;
 }
 EXPORT_SYMBOL(cam_res_mgr_util_get_idx_from_shared_pctrl_gpio);
+
+int cam_res_mgr_util_get_idx_from_shared_gpio(
+	uint gpio);
 
 int cam_res_mgr_util_get_idx_from_shared_gpio(
 	uint gpio)
@@ -224,6 +239,8 @@ static bool cam_res_mgr_gpio_is_in_shared_gpio(
 
 	return found;
 }
+
+int cam_res_mgr_util_shared_gpio_check_hold(uint gpio);
 
 int cam_res_mgr_util_shared_gpio_check_hold(uint gpio)
 {
@@ -435,6 +452,9 @@ static bool __cam_res_mgr_find_if_gpio_is_shared(uint gpio)
 
 
 int cam_res_mgr_gpio_request(struct device *dev, uint gpio,
+		unsigned long flags, const char *label);
+
+int cam_res_mgr_gpio_request(struct device *dev, uint gpio,
 		unsigned long flags, const char *label)
 {
 	int                          rc = 0;
@@ -547,7 +567,10 @@ end:
 EXPORT_SYMBOL(cam_res_mgr_gpio_request);
 
 bool cam_res_mgr_util_check_if_gpio_is_shared(
-	struct gpio *gpio_tbl, uint8_t size)
+	struct cam_gpio_request *gpio_tbl, uint8_t size);
+
+bool cam_res_mgr_util_check_if_gpio_is_shared(
+	struct cam_gpio_request *gpio_tbl, uint8_t size)
 {
 	int i = 0;
 	bool found = false;
@@ -649,12 +672,17 @@ static void cam_res_mgr_gpio_free(struct device *dev, uint gpio)
 }
 
 void cam_res_mgr_gpio_free_arry(struct device *dev,
-		const struct gpio *array, size_t num)
+		const struct cam_gpio_request *array, size_t num);
+
+void cam_res_mgr_gpio_free_arry(struct device *dev,
+		const struct cam_gpio_request *array, size_t num)
 {
 	while (num--)
 		cam_res_mgr_gpio_free(dev, (array[num]).gpio);
 }
 EXPORT_SYMBOL(cam_res_mgr_gpio_free_arry);
+
+int cam_res_mgr_gpio_set_value(unsigned int gpio, int value);
 
 int cam_res_mgr_gpio_set_value(unsigned int gpio, int value)
 {
@@ -963,10 +991,10 @@ static int cam_res_mgr_probe(struct platform_device *pdev)
 	return rc;
 }
 
-static int cam_res_mgr_remove(struct platform_device *pdev)
+static void cam_res_mgr_remove(struct platform_device *pdev)
 {
 	component_del(&pdev->dev, &cam_res_mgr_component_ops);
-	return 0;
+	return;
 }
 
 static const struct of_device_id cam_res_mgr_dt_match[] = {
@@ -986,10 +1014,14 @@ struct platform_driver cam_res_mgr_driver = {
 	},
 };
 
+int cam_res_mgr_init(void);
+
 int cam_res_mgr_init(void)
 {
 	return platform_driver_register(&cam_res_mgr_driver);
 }
+
+void cam_res_mgr_exit(void);
 
 void cam_res_mgr_exit(void)
 {

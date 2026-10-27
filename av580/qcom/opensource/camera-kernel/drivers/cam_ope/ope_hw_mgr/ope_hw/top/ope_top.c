@@ -329,6 +329,9 @@ static int cam_ope_top_isr(struct ope_hw *ope_hw_info,
 }
 
 int cam_ope_top_process(struct ope_hw *ope_hw_info,
+	int32_t ctx_id, uint32_t cmd_id, void *data);
+
+int cam_ope_top_process(struct ope_hw *ope_hw_info,
 	int32_t ctx_id, uint32_t cmd_id, void *data)
 {
 	int rc = 0;

@@ -87,6 +87,9 @@ static int cam_flash_prepare(struct cam_flash_ctrl *flash_ctrl,
 	return rc;
 }
 int cam_flash_led_prepare(struct led_trigger *trigger, int options,
+	int *max_current, bool is_wled);
+
+int cam_flash_led_prepare(struct led_trigger *trigger, int options,
 	int *max_current, bool is_wled)
 {
 	int rc = 0;
@@ -215,6 +218,9 @@ free_power_settings:
 }
 
 int cam_flash_pmic_power_ops(struct cam_flash_ctrl *fctrl,
+	bool regulator_enable);
+
+int cam_flash_pmic_power_ops(struct cam_flash_ctrl *fctrl,
 	bool regulator_enable)
 {
 	int rc = 0;
@@ -246,6 +252,9 @@ int cam_flash_pmic_power_ops(struct cam_flash_ctrl *fctrl,
 
 	return rc;
 }
+
+int cam_flash_i2c_power_ops(struct cam_flash_ctrl *fctrl,
+	bool regulator_enable);
 
 int cam_flash_i2c_power_ops(struct cam_flash_ctrl *fctrl,
 	bool regulator_enable)
@@ -314,6 +323,9 @@ free_pwr_settings:
 
 	return rc;
 }
+
+int cam_flash_pmic_flush_request(struct cam_flash_ctrl *fctrl,
+	enum cam_flash_flush_type type, uint64_t req_id);
 
 int cam_flash_pmic_flush_request(struct cam_flash_ctrl *fctrl,
 	enum cam_flash_flush_type type, uint64_t req_id)
@@ -387,6 +399,9 @@ int cam_flash_pmic_flush_request(struct cam_flash_ctrl *fctrl,
 }
 
 int cam_flash_i2c_flush_request(struct cam_flash_ctrl *fctrl,
+	enum cam_flash_flush_type type, uint64_t req_id);
+
+int cam_flash_i2c_flush_request(struct cam_flash_ctrl *fctrl,
 	enum cam_flash_flush_type type, uint64_t req_id)
 {
 	int rc = 0;
@@ -435,6 +450,8 @@ int cam_flash_i2c_flush_request(struct cam_flash_ctrl *fctrl,
 
 	return rc;
 }
+
+int cam_flash_flush_request(struct cam_req_mgr_flush_request *flush);
 
 int cam_flash_flush_request(struct cam_req_mgr_flush_request *flush)
 {
@@ -559,6 +576,8 @@ static int cam_flash_ops(struct cam_flash_ctrl *flash_ctrl,
 
 	return 0;
 }
+
+int cam_flash_off(struct cam_flash_ctrl *flash_ctrl);
 
 int cam_flash_off(struct cam_flash_ctrl *flash_ctrl)
 {
@@ -800,6 +819,9 @@ static int32_t cam_flash_slaveInfo_pkt_parser(struct cam_flash_ctrl *fctrl,
 }
 
 int cam_flash_i2c_apply_setting(struct cam_flash_ctrl *fctrl,
+	uint64_t req_id);
+
+int cam_flash_i2c_apply_setting(struct cam_flash_ctrl *fctrl,
 	uint64_t req_id)
 {
 	struct i2c_settings_list *i2c_list;
@@ -887,6 +909,9 @@ int cam_flash_i2c_apply_setting(struct cam_flash_ctrl *fctrl,
 	cam_flash_i2c_delete_req(fctrl, req_id);
 	return rc;
 }
+
+int cam_flash_pmic_apply_setting(struct cam_flash_ctrl *fctrl,
+	uint64_t req_id);
 
 int cam_flash_pmic_apply_setting(struct cam_flash_ctrl *fctrl,
 	uint64_t req_id)
@@ -1080,6 +1105,8 @@ nrt_del_req:
 apply_setting_err:
 	return rc;
 }
+
+int cam_flash_i2c_pkt_parser(struct cam_flash_ctrl *fctrl, void *arg);
 
 int cam_flash_i2c_pkt_parser(struct cam_flash_ctrl *fctrl, void *arg)
 {
@@ -1558,6 +1585,8 @@ update_req_mgr:
 	cam_mem_put_cpu_buf(config.packet_handle);
 	return rc;
 }
+
+int cam_flash_pmic_pkt_parser(struct cam_flash_ctrl *fctrl, void *arg);
 
 int cam_flash_pmic_pkt_parser(struct cam_flash_ctrl *fctrl, void *arg)
 {
@@ -2133,14 +2162,18 @@ FAILED:
 	return rc;
 }
 
+int cam_flash_publish_dev_info(struct cam_req_mgr_device_info *info);
+
 int cam_flash_publish_dev_info(struct cam_req_mgr_device_info *info)
 {
 	info->dev_id = CAM_REQ_MGR_DEVICE_FLASH;
-	strlcpy(info->name, CAM_FLASH_NAME, sizeof(info->name));
+	strscpy(info->name, CAM_FLASH_NAME, sizeof(info->name));
 	info->p_delay = CAM_FLASH_PIPELINE_DELAY;
 	info->trigger = CAM_TRIGGER_POINT_SOF;
 	return 0;
 }
+
+int cam_flash_establish_link(struct cam_req_mgr_core_dev_link_setup *link);
 
 int cam_flash_establish_link(struct cam_req_mgr_core_dev_link_setup *link)
 {
@@ -2166,6 +2199,8 @@ int cam_flash_establish_link(struct cam_req_mgr_core_dev_link_setup *link)
 
 	return 0;
 }
+
+int cam_flash_release_dev(struct cam_flash_ctrl *fctrl);
 
 int cam_flash_release_dev(struct cam_flash_ctrl *fctrl)
 {
@@ -2197,6 +2232,8 @@ int cam_flash_release_dev(struct cam_flash_ctrl *fctrl)
 	return rc;
 }
 
+void cam_flash_shutdown(struct cam_flash_ctrl *fctrl);
+
 void cam_flash_shutdown(struct cam_flash_ctrl *fctrl)
 {
 	int rc;
@@ -2226,6 +2263,8 @@ void cam_flash_shutdown(struct cam_flash_ctrl *fctrl)
 
 	fctrl->flash_state = CAM_FLASH_STATE_INIT;
 }
+
+int cam_flash_apply_request(struct cam_req_mgr_apply_request *apply);
 
 int cam_flash_apply_request(struct cam_req_mgr_apply_request *apply)
 {

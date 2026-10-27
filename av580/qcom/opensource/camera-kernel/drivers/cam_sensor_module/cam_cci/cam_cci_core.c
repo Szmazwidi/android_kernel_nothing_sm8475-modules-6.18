@@ -208,6 +208,9 @@ static int32_t cam_cci_lock_queue(struct cci_device *cci_dev,
 
 
 void cam_cci_dump_registers(struct cci_device *cci_dev,
+	enum cci_i2c_master_t master, enum cci_i2c_queue_t queue);
+
+void cam_cci_dump_registers(struct cci_device *cci_dev,
 	enum cci_i2c_master_t master, enum cci_i2c_queue_t queue)
 {
 	uint32_t dump_en = 0;
@@ -589,6 +592,9 @@ static uint32_t cam_cci_cycles_per_ms(unsigned long clk)
 
 	return cycles_per_us;
 }
+
+void cam_cci_get_clk_rates(struct cci_device *cci_dev,
+	struct cam_cci_ctrl *c_ctrl);
 
 void cam_cci_get_clk_rates(struct cci_device *cci_dev,
 	struct cam_cci_ctrl *c_ctrl)
@@ -1922,6 +1928,9 @@ static int32_t cam_cci_write(struct v4l2_subdev *sd,
 
 	return rc;
 }
+
+int32_t cam_cci_core_cfg(struct v4l2_subdev *sd,
+	struct cam_cci_ctrl *cci_ctrl);
 
 int32_t cam_cci_core_cfg(struct v4l2_subdev *sd,
 	struct cam_cci_ctrl *cci_ctrl)

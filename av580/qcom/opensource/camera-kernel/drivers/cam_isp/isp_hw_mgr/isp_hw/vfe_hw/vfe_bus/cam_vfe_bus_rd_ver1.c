@@ -1238,6 +1238,13 @@ int cam_vfe_bus_rd_ver1_init(
 	struct cam_hw_intf                   *hw_intf,
 	void                                 *bus_hw_info,
 	void                                 *vfe_irq_controller,
+	struct cam_vfe_bus                  **vfe_bus);
+
+int cam_vfe_bus_rd_ver1_init(
+	struct cam_hw_soc_info               *soc_info,
+	struct cam_hw_intf                   *hw_intf,
+	void                                 *bus_hw_info,
+	void                                 *vfe_irq_controller,
 	struct cam_vfe_bus                  **vfe_bus)
 {
 	int i, rc = 0;
@@ -1349,6 +1356,9 @@ free_bus_local:
 end:
 	return rc;
 }
+
+int cam_vfe_bus_rd_bus_ver1_deinit(
+	struct cam_vfe_bus                  **vfe_bus);
 
 int cam_vfe_bus_rd_bus_ver1_deinit(
 	struct cam_vfe_bus                  **vfe_bus)

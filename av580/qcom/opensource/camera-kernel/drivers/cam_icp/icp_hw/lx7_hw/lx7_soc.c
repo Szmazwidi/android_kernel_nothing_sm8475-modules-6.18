@@ -104,6 +104,9 @@ static int cam_lx7_dt_properties_get(struct cam_hw_soc_info *soc_info)
 }
 
 int cam_lx7_soc_resources_init(struct cam_hw_soc_info *soc_info,
+			irq_handler_t handler, void *data);
+
+int cam_lx7_soc_resources_init(struct cam_hw_soc_info *soc_info,
 			irq_handler_t handler, void *data)
 {
 	int rc;
@@ -122,6 +125,8 @@ int cam_lx7_soc_resources_init(struct cam_hw_soc_info *soc_info,
 	return 0;
 }
 
+int cam_lx7_soc_resources_deinit(struct cam_hw_soc_info *soc_info);
+
 int cam_lx7_soc_resources_deinit(struct cam_hw_soc_info *soc_info)
 {
 	int rc;
@@ -133,6 +138,8 @@ int cam_lx7_soc_resources_deinit(struct cam_hw_soc_info *soc_info)
 
 	return rc;
 }
+
+int cam_lx7_soc_resources_enable(struct cam_hw_soc_info *soc_info);
 
 int cam_lx7_soc_resources_enable(struct cam_hw_soc_info *soc_info)
 {
@@ -152,6 +159,8 @@ int cam_lx7_soc_resources_enable(struct cam_hw_soc_info *soc_info)
 	return rc;
 }
 
+int cam_lx7_soc_resources_disable(struct cam_hw_soc_info *soc_info);
+
 int cam_lx7_soc_resources_disable(struct cam_hw_soc_info *soc_info)
 {
 	int rc = 0;
@@ -164,6 +173,9 @@ int cam_lx7_soc_resources_disable(struct cam_hw_soc_info *soc_info)
 
 	return rc;
 }
+
+int cam_lx7_update_clk_rate(struct cam_hw_soc_info *soc_info,
+	int32_t clk_level);
 
 int cam_lx7_update_clk_rate(struct cam_hw_soc_info *soc_info,
 	int32_t clk_level)

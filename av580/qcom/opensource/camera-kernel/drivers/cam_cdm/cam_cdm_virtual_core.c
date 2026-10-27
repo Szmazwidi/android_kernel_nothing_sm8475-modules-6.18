@@ -79,6 +79,10 @@ static void cam_virtual_cdm_work(struct work_struct *work)
 
 int cam_virtual_cdm_submit_bl(struct cam_hw_info *cdm_hw,
 	struct cam_cdm_hw_intf_cmd_submit_bl *req,
+	struct cam_cdm_client *client);
+
+int cam_virtual_cdm_submit_bl(struct cam_hw_info *cdm_hw,
+	struct cam_cdm_hw_intf_cmd_submit_bl *req,
 	struct cam_cdm_client *client)
 {
 	int i, rc = -EINVAL;
@@ -219,6 +223,8 @@ end:
 
 }
 
+int cam_virtual_cdm_probe(struct platform_device *pdev);
+
 int cam_virtual_cdm_probe(struct platform_device *pdev)
 {
 	struct cam_hw_info *cdm_hw = NULL;
@@ -307,7 +313,7 @@ int cam_virtual_cdm_probe(struct platform_device *pdev)
 	cpas_parms.cell_index = cdm_hw->soc_info.index;
 	cpas_parms.dev = &pdev->dev;
 	cpas_parms.userdata = cdm_hw_intf;
-	strlcpy(cpas_parms.identifier, "cam-cdm-intf",
+	strscpy(cpas_parms.identifier, "cam-cdm-intf",
 		CAM_HW_IDENTIFIER_LENGTH);
 	rc = cam_cpas_register_client(&cpas_parms);
 	if (rc) {
@@ -345,6 +351,8 @@ soc_load_failed:
 	kfree(cdm_hw_intf);
 	return rc;
 }
+
+int cam_virtual_cdm_remove(struct platform_device *pdev);
 
 int cam_virtual_cdm_remove(struct platform_device *pdev)
 {

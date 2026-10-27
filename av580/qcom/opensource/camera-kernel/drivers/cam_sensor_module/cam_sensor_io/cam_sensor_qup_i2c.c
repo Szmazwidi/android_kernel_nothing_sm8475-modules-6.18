@@ -70,6 +70,11 @@ static int32_t cam_qup_i2c_txdata(
 int32_t cam_qup_i2c_read(struct i2c_client *client,
 	uint32_t addr, uint32_t *data,
 	enum camera_sensor_i2c_type addr_type,
+	enum camera_sensor_i2c_type data_type);
+
+int32_t cam_qup_i2c_read(struct i2c_client *client,
+	uint32_t addr, uint32_t *data,
+	enum camera_sensor_i2c_type addr_type,
 	enum camera_sensor_i2c_type data_type)
 {
 	int32_t rc = -EINVAL;
@@ -126,6 +131,11 @@ read_fail:
 	buf = NULL;
 	return rc;
 }
+
+int32_t cam_qup_i2c_read_seq(struct i2c_client *client,
+	uint32_t addr, uint8_t *data,
+	enum camera_sensor_i2c_type addr_type,
+	uint32_t num_byte);
 
 int32_t cam_qup_i2c_read_seq(struct i2c_client *client,
 	uint32_t addr, uint8_t *data,
@@ -202,6 +212,12 @@ static int32_t cam_qup_i2c_compare(struct i2c_client *client,
 
 	return I2C_COMPARE_MATCH;
 }
+
+int32_t cam_qup_i2c_poll(struct i2c_client *client,
+	uint32_t addr, uint16_t data, uint16_t data_mask,
+	enum camera_sensor_i2c_type addr_type,
+	enum camera_sensor_i2c_type data_type,
+	uint32_t delay_ms);
 
 int32_t cam_qup_i2c_poll(struct i2c_client *client,
 	uint32_t addr, uint16_t data, uint16_t data_mask,
@@ -328,6 +344,9 @@ deallocate_buffer:
 	kfree(buf);
 	return rc;
 }
+
+int32_t cam_qup_i2c_write_table(struct camera_io_master *client,
+	struct cam_sensor_i2c_reg_setting *write_setting);
 
 int32_t cam_qup_i2c_write_table(struct camera_io_master *client,
 	struct cam_sensor_i2c_reg_setting *write_setting)
@@ -514,6 +533,10 @@ free_res:
 	kfree(buf);
 	return rc;
 }
+
+int32_t cam_qup_i2c_write_continuous_table(struct camera_io_master *client,
+	struct cam_sensor_i2c_reg_setting *write_settings,
+	uint8_t cam_sensor_i2c_write_flag);
 
 int32_t cam_qup_i2c_write_continuous_table(struct camera_io_master *client,
 	struct cam_sensor_i2c_reg_setting *write_settings,

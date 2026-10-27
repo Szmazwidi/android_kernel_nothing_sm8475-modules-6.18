@@ -54,7 +54,7 @@ static int cam_media_device_setup(struct device *dev)
 
 	media_device_init(g_dev.v4l2_dev->mdev);
 	g_dev.v4l2_dev->mdev->dev = dev;
-	strlcpy(g_dev.v4l2_dev->mdev->model, CAM_REQ_MGR_VNODE_NAME,
+	strscpy(g_dev.v4l2_dev->mdev->model, CAM_REQ_MGR_VNODE_NAME,
 		sizeof(g_dev.v4l2_dev->mdev->model));
 
 	rc = media_device_register(g_dev.v4l2_dev->mdev);
@@ -105,6 +105,8 @@ static void cam_v4l2_device_cleanup(void)
 	kfree(g_dev.v4l2_dev);
 	g_dev.v4l2_dev = NULL;
 }
+
+void cam_req_mgr_rwsem_read_op(enum cam_subdev_rwsem lock);
 
 void cam_req_mgr_rwsem_read_op(enum cam_subdev_rwsem lock)
 {
@@ -316,6 +318,8 @@ static int cam_subscribe_event(struct v4l2_fh *fh,
 	return v4l2_event_subscribe(fh, sub, CAM_REQ_MGR_EVENT_MAX,
 		&g_cam_v4l2_ops);
 }
+
+uint32_t cam_req_mgr_get_id_subscribed(void);
 
 uint32_t cam_req_mgr_get_id_subscribed(void)
 {
@@ -638,7 +642,7 @@ static int cam_video_device_setup(void)
 
 	g_dev.video->v4l2_dev = g_dev.v4l2_dev;
 
-	strlcpy(g_dev.video->name, "cam-req-mgr",
+	strscpy(g_dev.video->name, "cam-req-mgr",
 		sizeof(g_dev.video->name));
 	g_dev.video->release = video_device_release_empty;
 	g_dev.video->fops = &g_cam_fops;
@@ -674,6 +678,10 @@ video_fail:
 
 int cam_req_mgr_notify_message(struct cam_req_mgr_message *msg,
 	uint32_t id,
+	uint32_t type);
+
+int cam_req_mgr_notify_message(struct cam_req_mgr_message *msg,
+	uint32_t id,
 	uint32_t type)
 {
 	struct v4l2_event event;
@@ -693,6 +701,8 @@ int cam_req_mgr_notify_message(struct cam_req_mgr_message *msg,
 }
 EXPORT_SYMBOL(cam_req_mgr_notify_message);
 
+void cam_video_device_cleanup(void);
+
 void cam_video_device_cleanup(void)
 {
 	media_entity_cleanup(&g_dev.video->entity);
@@ -700,6 +710,10 @@ void cam_video_device_cleanup(void)
 	video_device_release(g_dev.video);
 	g_dev.video = NULL;
 }
+
+void cam_subdev_notify_message(u32 subdev_type,
+		enum cam_subdev_message_type_t message_type,
+		void *data);
 
 void cam_subdev_notify_message(u32 subdev_type,
 		enum cam_subdev_message_type_t message_type,
@@ -718,6 +732,8 @@ void cam_subdev_notify_message(u32 subdev_type,
 }
 EXPORT_SYMBOL(cam_subdev_notify_message);
 
+bool cam_req_mgr_is_open(void);
+
 bool cam_req_mgr_is_open(void)
 {
 	bool crm_status = false;
@@ -730,11 +746,15 @@ bool cam_req_mgr_is_open(void)
 }
 EXPORT_SYMBOL(cam_req_mgr_is_open);
 
+bool cam_req_mgr_is_shutdown(void);
+
 bool cam_req_mgr_is_shutdown(void)
 {
 	return g_dev.shutdown_state;
 }
 EXPORT_SYMBOL(cam_req_mgr_is_shutdown);
+
+int cam_register_subdev(struct cam_subdev *csd);
 
 int cam_register_subdev(struct cam_subdev *csd)
 {
@@ -756,7 +776,7 @@ int cam_register_subdev(struct cam_subdev *csd)
 	sd = &csd->sd;
 	v4l2_subdev_init(sd, csd->ops);
 	sd->internal_ops = csd->internal_ops;
-	snprintf(sd->name, V4L2_SUBDEV_NAME_SIZE, "%s", csd->name);
+	snprintf(sd->name, sizeof_field(struct v4l2_subdev, name), "%s", csd->name);
 	v4l2_set_subdevdata(sd, csd->token);
 
 	sd->flags = csd->sd_flags;
@@ -793,6 +813,8 @@ reg_fail:
 	return rc;
 }
 EXPORT_SYMBOL(cam_register_subdev);
+
+int cam_unregister_subdev(struct cam_subdev *csd);
 
 int cam_unregister_subdev(struct cam_subdev *csd)
 {
@@ -924,10 +946,10 @@ static const struct component_master_ops cam_req_mgr_component_master_ops = {
 	.unbind = cam_req_mgr_component_master_unbind,
 };
 
-static int cam_req_mgr_remove(struct platform_device *pdev)
+static void cam_req_mgr_remove(struct platform_device *pdev)
 {
 	component_master_del(&pdev->dev, &cam_req_mgr_component_master_ops);
-	return 0;
+	return;
 }
 
 static int cam_req_mgr_probe(struct platform_device *pdev)
@@ -990,11 +1012,15 @@ struct platform_driver cam_req_mgr_driver = {
 	},
 };
 
+int cam_req_mgr_init(void);
+
 int cam_req_mgr_init(void)
 {
 	return platform_driver_register(&cam_req_mgr_driver);
 }
 EXPORT_SYMBOL(cam_req_mgr_init);
+
+void cam_req_mgr_exit(void);
 
 void cam_req_mgr_exit(void)
 {

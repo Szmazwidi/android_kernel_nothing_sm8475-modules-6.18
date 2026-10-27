@@ -18,6 +18,8 @@ static int cx_default_ipeak_mask;
 static int cx_current_ipeak_mask;
 static int cam_cx_client_cnt;
 
+int cam_cx_ipeak_register_cx_ipeak(struct cam_hw_soc_info *soc_info);
+
 int cam_cx_ipeak_register_cx_ipeak(struct cam_hw_soc_info *soc_info)
 {
 	int rc = 0;
@@ -46,6 +48,9 @@ exit:
 		cx_default_ipeak_mask);
 	return rc;
 }
+
+int cam_cx_ipeak_update_vote_cx_ipeak(struct cam_hw_soc_info *soc_info,
+	int32_t apply_level);
 
 int cam_cx_ipeak_update_vote_cx_ipeak(struct cam_hw_soc_info *soc_info,
 	int32_t apply_level)
@@ -104,6 +109,8 @@ int cam_cx_ipeak_update_vote_cx_ipeak(struct cam_hw_soc_info *soc_info,
 exit:
 	return ret;
 }
+
+int cam_cx_ipeak_unvote_cx_ipeak(struct cam_hw_soc_info *soc_info);
 
 int cam_cx_ipeak_unvote_cx_ipeak(struct cam_hw_soc_info *soc_info)
 {

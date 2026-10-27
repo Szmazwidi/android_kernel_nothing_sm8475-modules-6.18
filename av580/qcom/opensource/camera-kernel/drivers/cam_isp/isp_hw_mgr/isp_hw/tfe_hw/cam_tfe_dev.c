@@ -4,6 +4,7 @@
  * Copyright (c) 2023 Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
+#include <linux/of.h>
 #include <linux/slab.h>
 #include <linux/mod_devicetable.h>
 #include <linux/of_device.h>
@@ -208,6 +209,8 @@ const static struct component_ops cam_tfe_component_ops = {
 	.unbind = cam_tfe_component_unbind,
 };
 
+void cam_tfe_get_num_tfe_hws(uint32_t *num_tfes);
+
 void cam_tfe_get_num_tfe_hws(uint32_t *num_tfes)
 {
 	if (num_tfes)
@@ -215,6 +218,8 @@ void cam_tfe_get_num_tfe_hws(uint32_t *num_tfes)
 	else
 		CAM_ERR(CAM_ISP, "Invalid argument, g_num_tfe_hws: %u", g_num_tfe_hws);
 }
+
+int cam_tfe_probe(struct platform_device *pdev);
 
 int cam_tfe_probe(struct platform_device *pdev)
 {
@@ -230,11 +235,16 @@ int cam_tfe_probe(struct platform_device *pdev)
 	return rc;
 }
 
-int cam_tfe_remove(struct platform_device *pdev)
+void cam_tfe_remove(struct platform_device *pdev);
+
+void cam_tfe_remove(struct platform_device *pdev)
 {
 	component_del(&pdev->dev, &cam_tfe_component_ops);
-	return 0;
+	return;
 }
+
+int cam_tfe_hw_init(struct cam_isp_hw_intf_data **tfe_hw_intf,
+	uint32_t hw_idx);
 
 int cam_tfe_hw_init(struct cam_isp_hw_intf_data **tfe_hw_intf,
 	uint32_t hw_idx)

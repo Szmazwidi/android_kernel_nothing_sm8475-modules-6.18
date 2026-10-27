@@ -3,6 +3,7 @@
  * Copyright (c) 2017-2021, The Linux Foundation. All rights reserved.
  */
 
+#include <linux/of.h>
 #include "cam_csiphy_soc.h"
 #include "cam_csiphy_core.h"
 #include "include/cam_csiphy_1_1_hwreg.h"
@@ -74,6 +75,8 @@ static int cam_csiphy_io_dump(void __iomem *base_addr, uint16_t num_regs, int cs
 	return 0;
 }
 
+int32_t cam_csiphy_reg_dump(struct cam_hw_soc_info *soc_info);
+
 int32_t cam_csiphy_reg_dump(struct cam_hw_soc_info *soc_info)
 {
 	int32_t rc = 0;
@@ -94,6 +97,8 @@ int32_t cam_csiphy_reg_dump(struct cam_hw_soc_info *soc_info)
 	}
 	return rc;
 }
+
+int32_t cam_csiphy_common_status_reg_dump(struct csiphy_device *csiphy_dev);
 
 int32_t cam_csiphy_common_status_reg_dump(struct csiphy_device *csiphy_dev)
 {
@@ -138,11 +143,17 @@ int32_t cam_csiphy_common_status_reg_dump(struct csiphy_device *csiphy_dev)
 }
 
 enum cam_vote_level get_clk_vote_default(struct csiphy_device *csiphy_dev,
+	int32_t index);
+
+enum cam_vote_level get_clk_vote_default(struct csiphy_device *csiphy_dev,
 	int32_t index)
 {
 	CAM_DBG(CAM_CSIPHY, "voting for SVS");
 	return CAM_SVS_VOTE;
 }
+
+enum cam_vote_level get_clk_voting_dynamic(
+	struct csiphy_device *csiphy_dev, int32_t index);
 
 enum cam_vote_level get_clk_voting_dynamic(
 	struct csiphy_device *csiphy_dev, int32_t index)
@@ -188,6 +199,8 @@ enum cam_vote_level get_clk_voting_dynamic(
 	}
 	return last_valid_vote;
 }
+
+int32_t cam_csiphy_enable_hw(struct csiphy_device *csiphy_dev, int32_t index);
 
 int32_t cam_csiphy_enable_hw(struct csiphy_device *csiphy_dev, int32_t index)
 {
@@ -248,6 +261,8 @@ csiphy_disable_platform_resource:
 	return rc;
 }
 
+int32_t cam_csiphy_disable_hw(struct csiphy_device *csiphy_dev);
+
 int32_t cam_csiphy_disable_hw(struct csiphy_device *csiphy_dev)
 {
 	struct cam_hw_soc_info   *soc_info;
@@ -270,6 +285,9 @@ int32_t cam_csiphy_disable_hw(struct csiphy_device *csiphy_dev)
 
 	return 0;
 }
+
+int32_t cam_csiphy_parse_dt_info(struct platform_device *pdev,
+	struct csiphy_device *csiphy_dev);
 
 int32_t cam_csiphy_parse_dt_info(struct platform_device *pdev,
 	struct csiphy_device *csiphy_dev)
@@ -576,6 +594,8 @@ int32_t cam_csiphy_parse_dt_info(struct platform_device *pdev,
 
 	return rc;
 }
+
+int32_t cam_csiphy_soc_release(struct csiphy_device *csiphy_dev);
 
 int32_t cam_csiphy_soc_release(struct csiphy_device *csiphy_dev)
 {

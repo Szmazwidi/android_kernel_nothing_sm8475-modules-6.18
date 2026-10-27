@@ -89,6 +89,8 @@ static void hfi_queue_dump(uint32_t *dwords, int count)
 			rows * 4, dwords[0], dwords[1], dwords[2]);
 }
 
+void cam_hfi_mini_dump(struct hfi_mini_dump_info *dst);
+
 void cam_hfi_mini_dump(struct hfi_mini_dump_info *dst)
 {
 	struct hfi_mem_info *hfi_mem = &g_hfi->map;
@@ -114,6 +116,8 @@ void cam_hfi_mini_dump(struct hfi_mini_dump_info *dst)
 	dst->msg_q_state = g_hfi->msg_q_state;
 	dst->cmd_q_state = g_hfi->cmd_q_state;
 }
+
+void cam_hfi_queue_dump(bool dump_queue_data);
 
 void cam_hfi_queue_dump(bool dump_queue_data)
 {
@@ -164,6 +168,8 @@ void cam_hfi_queue_dump(bool dump_queue_data)
 	if (dump_queue_data)
 		hfi_queue_dump(dwords, num_dwords);
 }
+
+int hfi_write_cmd(void *cmd_ptr);
 
 int hfi_write_cmd(void *cmd_ptr)
 {
@@ -251,6 +257,9 @@ err:
 	mutex_unlock(&hfi_cmd_q_mutex);
 	return rc;
 }
+
+int hfi_read_message(uint32_t *pmsg, uint8_t q_id,
+	uint32_t *words_read);
 
 int hfi_read_message(uint32_t *pmsg, uint8_t q_id,
 	uint32_t *words_read)
@@ -352,6 +361,8 @@ err:
 	return rc;
 }
 
+int hfi_cmd_ubwc_config(uint32_t *ubwc_cfg);
+
 int hfi_cmd_ubwc_config(uint32_t *ubwc_cfg)
 {
 	uint8_t *prop;
@@ -384,6 +395,9 @@ int hfi_cmd_ubwc_config(uint32_t *ubwc_cfg)
 
 	return 0;
 }
+
+int hfi_cmd_ubwc_config_ext(uint32_t *ubwc_ipe_cfg,
+	uint32_t *ubwc_bps_cfg);
 
 int hfi_cmd_ubwc_config_ext(uint32_t *ubwc_ipe_cfg,
 	uint32_t *ubwc_bps_cfg)
@@ -422,6 +436,8 @@ int hfi_cmd_ubwc_config_ext(uint32_t *ubwc_ipe_cfg,
 }
 
 
+int hfi_enable_ipe_bps_pc(bool enable, uint32_t core_info);
+
 int hfi_enable_ipe_bps_pc(bool enable, uint32_t core_info)
 {
 	uint8_t *prop;
@@ -450,6 +466,8 @@ int hfi_enable_ipe_bps_pc(bool enable, uint32_t core_info)
 
 	return 0;
 }
+
+int hfi_set_debug_level(u64 icp_dbg_type, uint32_t lvl);
 
 int hfi_set_debug_level(u64 icp_dbg_type, uint32_t lvl)
 {
@@ -495,6 +513,8 @@ int hfi_set_debug_level(u64 icp_dbg_type, uint32_t lvl)
 	return 0;
 }
 
+int hfi_set_fw_dump_level(uint32_t lvl);
+
 int hfi_set_fw_dump_level(uint32_t lvl)
 {
 	uint8_t *prop = NULL;
@@ -532,6 +552,8 @@ int hfi_set_fw_dump_level(uint32_t lvl)
 	kfree(prop);
 	return 0;
 }
+
+int hfi_send_freq_info(int32_t freq);
 
 int hfi_send_freq_info(int32_t freq)
 {
@@ -578,6 +600,8 @@ int hfi_send_freq_info(int32_t freq)
 	kfree(prop);
 	return 0;
 }
+
+void hfi_send_system_cmd(uint32_t type, uint64_t data, uint32_t size);
 
 void hfi_send_system_cmd(uint32_t type, uint64_t data, uint32_t size)
 {
@@ -651,6 +675,8 @@ void hfi_send_system_cmd(uint32_t type, uint64_t data, uint32_t size)
 }
 
 
+int hfi_get_hw_caps(void *query_buf);
+
 int hfi_get_hw_caps(void *query_buf)
 {
 	int i = 0;
@@ -681,6 +707,8 @@ int hfi_get_hw_caps(void *query_buf)
 	}
 	return 0;
 }
+
+int cam_hfi_resume(struct hfi_mem_info *hfi_mem);
 
 int cam_hfi_resume(struct hfi_mem_info *hfi_mem)
 {
@@ -755,6 +783,9 @@ int cam_hfi_resume(struct hfi_mem_info *hfi_mem)
 
 	return rc;
 }
+
+int cam_hfi_init(struct hfi_mem_info *hfi_mem, const struct hfi_ops *hfi_ops,
+		void *priv, uint8_t event_driven_mode);
 
 int cam_hfi_init(struct hfi_mem_info *hfi_mem, const struct hfi_ops *hfi_ops,
 		void *priv, uint8_t event_driven_mode)
@@ -996,6 +1027,8 @@ alloc_fail:
 	mutex_unlock(&hfi_msg_q_mutex);
 	return rc;
 }
+
+void cam_hfi_deinit(void);
 
 void cam_hfi_deinit(void)
 {

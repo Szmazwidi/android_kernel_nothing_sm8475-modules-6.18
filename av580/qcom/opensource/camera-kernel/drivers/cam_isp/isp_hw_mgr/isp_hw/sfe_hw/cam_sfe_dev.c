@@ -4,6 +4,7 @@
  * Copyright (c) 2023 Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
+#include <linux/of.h>
 #include <linux/slab.h>
 #include <linux/mod_devicetable.h>
 #include <linux/of_device.h>
@@ -209,6 +210,8 @@ const static struct component_ops cam_sfe_component_ops = {
 	.unbind = cam_sfe_component_unbind,
 };
 
+void cam_sfe_get_num_hws(uint32_t *sfe_num);
+
 void cam_sfe_get_num_hws(uint32_t *sfe_num)
 {
 	if (sfe_num)
@@ -216,6 +219,8 @@ void cam_sfe_get_num_hws(uint32_t *sfe_num)
 	else
 		CAM_ERR(CAM_SFE, "Invalid argument, g_num_sfe_hws: %u", g_num_sfe_hws);
 }
+
+int cam_sfe_probe(struct platform_device *pdev);
 
 int cam_sfe_probe(struct platform_device *pdev)
 {
@@ -231,11 +236,15 @@ int cam_sfe_probe(struct platform_device *pdev)
 	return rc;
 }
 
-int cam_sfe_remove(struct platform_device *pdev)
+void cam_sfe_remove(struct platform_device *pdev);
+
+void cam_sfe_remove(struct platform_device *pdev)
 {
 	component_del(&pdev->dev, &cam_sfe_component_ops);
-	return 0;
+	return;
 }
+
+int cam_sfe_hw_init(struct cam_isp_hw_intf_data **sfe_hw, uint32_t hw_idx);
 
 int cam_sfe_hw_init(struct cam_isp_hw_intf_data **sfe_hw, uint32_t hw_idx)
 {
@@ -276,11 +285,15 @@ struct platform_driver cam_sfe_driver = {
 	},
 };
 
+int cam_sfe_init_module(void);
+
 int cam_sfe_init_module(void)
 {
 	return platform_driver_register(&cam_sfe_driver);
 }
 
+
+void cam_sfe_exit_module(void);
 
 void cam_sfe_exit_module(void)
 {

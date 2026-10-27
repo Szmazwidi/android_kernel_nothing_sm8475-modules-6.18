@@ -3,6 +3,7 @@
  * Copyright (c) 2020-2021, The Linux Foundation. All rights reserved.
  */
 
+#include <linux/of.h>
 #include <linux/slab.h>
 #include "cam_cpas_api.h"
 #include "cam_sfe_soc.h"
@@ -74,6 +75,9 @@ static int cam_sfe_release_platform_resource(struct cam_hw_soc_info *soc_info)
 }
 
 int cam_sfe_init_soc_resources(struct cam_hw_soc_info *soc_info,
+	irq_handler_t irq_handler_func, void *irq_data);
+
+int cam_sfe_init_soc_resources(struct cam_hw_soc_info *soc_info,
 	irq_handler_t irq_handler_func, void *irq_data)
 {
 	int rc = 0;
@@ -108,7 +112,7 @@ int cam_sfe_init_soc_resources(struct cam_hw_soc_info *soc_info,
 	}
 
 	memset(&cpas_register_param, 0, sizeof(cpas_register_param));
-	strlcpy(cpas_register_param.identifier, "sfe",
+	strscpy(cpas_register_param.identifier, "sfe",
 		CAM_HW_IDENTIFIER_LENGTH);
 	cpas_register_param.cell_index = soc_info->index;
 	cpas_register_param.dev = soc_info->dev;
@@ -130,6 +134,8 @@ free_soc_private:
 	kfree(soc_private);
 	return rc;
 }
+
+int cam_sfe_deinit_soc_resources(struct cam_hw_soc_info *soc_info);
 
 int cam_sfe_deinit_soc_resources(struct cam_hw_soc_info *soc_info)
 {
@@ -159,6 +165,8 @@ int cam_sfe_deinit_soc_resources(struct cam_hw_soc_info *soc_info)
 	kfree(soc_private);
 	return rc;
 }
+
+int cam_sfe_enable_soc_resources(struct cam_hw_soc_info *soc_info);
 
 int cam_sfe_enable_soc_resources(struct cam_hw_soc_info *soc_info)
 {
@@ -207,16 +215,24 @@ end:
 }
 
 int cam_sfe_soc_enable_clk(struct cam_hw_soc_info *soc_info,
+	const char *clk_name);
+
+int cam_sfe_soc_enable_clk(struct cam_hw_soc_info *soc_info,
 	const char *clk_name)
 {
 	return -EPERM;
 }
 
 int cam_sfe_soc_disable_clk(struct cam_hw_soc_info *soc_info,
+	const char *clk_name);
+
+int cam_sfe_soc_disable_clk(struct cam_hw_soc_info *soc_info,
 	const char *clk_name)
 {
 	return -EPERM;
 }
+
+int cam_sfe_disable_soc_resources(struct cam_hw_soc_info *soc_info);
 
 int cam_sfe_disable_soc_resources(struct cam_hw_soc_info *soc_info)
 {

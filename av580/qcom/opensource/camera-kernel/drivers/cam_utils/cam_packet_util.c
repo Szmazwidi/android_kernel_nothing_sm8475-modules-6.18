@@ -23,6 +23,9 @@ struct cam_patch_unique_src_buf_tbl {
 };
 
 int cam_packet_util_get_cmd_mem_addr(int handle, uint32_t **buf_addr,
+	size_t *len);
+
+int cam_packet_util_get_cmd_mem_addr(int handle, uint32_t **buf_addr,
 	size_t *len)
 {
 	int rc = 0;
@@ -43,6 +46,8 @@ int cam_packet_util_get_cmd_mem_addr(int handle, uint32_t **buf_addr,
 	return rc;
 }
 
+int cam_packet_util_validate_cmd_desc(struct cam_cmd_buf_desc *cmd_desc);
+
 int cam_packet_util_validate_cmd_desc(struct cam_cmd_buf_desc *cmd_desc)
 {
 
@@ -61,6 +66,9 @@ int cam_packet_util_validate_cmd_desc(struct cam_cmd_buf_desc *cmd_desc)
 
 	return 0;
 }
+
+int cam_packet_util_validate_packet(struct cam_packet *packet,
+	size_t remain_len);
 
 int cam_packet_util_validate_packet(struct cam_packet *packet,
 	size_t remain_len)
@@ -106,6 +114,9 @@ int cam_packet_util_validate_packet(struct cam_packet *packet,
 
 	return 0;
 }
+
+int cam_packet_util_get_kmd_buffer(struct cam_packet *packet,
+	struct cam_kmd_buf_info *kmd_buf);
 
 int cam_packet_util_get_kmd_buffer(struct cam_packet *packet,
 	struct cam_kmd_buf_info *kmd_buf)
@@ -182,6 +193,9 @@ rel_kmd_buf:
 	cam_mem_put_cpu_buf(cmd_desc->mem_handle);
 	return rc;
 }
+
+void cam_packet_dump_patch_info(struct cam_packet *packet,
+	int32_t iommu_hdl, int32_t sec_mmu_hdl);
 
 void cam_packet_dump_patch_info(struct cam_packet *packet,
 	int32_t iommu_hdl, int32_t sec_mmu_hdl)
@@ -301,6 +315,9 @@ static int cam_packet_util_get_patch_iova(
 }
 
 int cam_packet_util_process_patches(struct cam_packet *packet,
+	int32_t iommu_hdl, int32_t sec_mmu_hdl);
+
+int cam_packet_util_process_patches(struct cam_packet *packet,
 	int32_t iommu_hdl, int32_t sec_mmu_hdl)
 {
 	struct cam_patch_desc *patch_desc = NULL;
@@ -390,6 +407,10 @@ int cam_packet_util_process_patches(struct cam_packet *packet,
 
 	return rc;
 }
+
+int cam_packet_util_process_generic_cmd_buffer(
+	struct cam_cmd_buf_desc *cmd_buf,
+	cam_packet_generic_blob_handler blob_handler_cb, void *user_data);
 
 int cam_packet_util_process_generic_cmd_buffer(
 	struct cam_cmd_buf_desc *cmd_buf,
@@ -490,6 +511,9 @@ end:
 }
 
 int cam_presil_retrieve_buffers_from_packet(struct cam_packet *packet, int iommu_hdl,
+	int out_res_id);
+
+int cam_presil_retrieve_buffers_from_packet(struct cam_packet *packet, int iommu_hdl,
 	int out_res_id)
 {
 	int rc = 0, i, j;
@@ -568,6 +592,9 @@ static void cam_presil_add_unique_buf_hdl_to_list(int32_t buf_hdl,
 	if (!hdl_found)
 		hdl_list[(*num_hdls)++] = buf_hdl;
 }
+
+int cam_presil_send_buffers_from_packet(struct cam_packet *packet, int img_iommu_hdl,
+	int cdm_iommu_hdl);
 
 int cam_presil_send_buffers_from_packet(struct cam_packet *packet, int img_iommu_hdl,
 	int cdm_iommu_hdl)

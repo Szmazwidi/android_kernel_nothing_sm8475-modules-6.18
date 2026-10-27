@@ -208,10 +208,10 @@ const static struct component_ops cam_jpeg_dev_component_ops = {
 	.unbind = cam_jpeg_dev_component_unbind,
 };
 
-static int cam_jpeg_dev_remove(struct platform_device *pdev)
+static void cam_jpeg_dev_remove(struct platform_device *pdev)
 {
 	component_del(&pdev->dev, &cam_jpeg_dev_component_ops);
-	return 0;
+	return;
 }
 
 static int cam_jpeg_dev_probe(struct platform_device *pdev)
@@ -238,10 +238,14 @@ struct platform_driver jpeg_driver = {
 	},
 };
 
+int cam_jpeg_dev_init_module(void);
+
 int cam_jpeg_dev_init_module(void)
 {
 	return platform_driver_register(&jpeg_driver);
 }
+
+void cam_jpeg_dev_exit_module(void);
 
 void cam_jpeg_dev_exit_module(void)
 {

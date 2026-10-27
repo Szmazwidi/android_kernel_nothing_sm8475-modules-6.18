@@ -201,10 +201,10 @@ const static struct component_ops cam_cre_subdev_component_ops = {
 	.unbind = cam_cre_subdev_component_unbind,
 };
 
-static int cam_cre_subdev_remove(struct platform_device *pdev)
+static void cam_cre_subdev_remove(struct platform_device *pdev)
 {
 	component_del(&pdev->dev, &cam_cre_subdev_component_ops);
-	return 0;
+	return;
 }
 
 static int cam_cre_subdev_probe(struct platform_device *pdev)
@@ -236,10 +236,14 @@ struct platform_driver cam_cre_subdev_driver = {
 	},
 };
 
+int cam_cre_subdev_init_module(void);
+
 int cam_cre_subdev_init_module(void)
 {
 	return platform_driver_register(&cam_cre_subdev_driver);
 }
+
+void cam_cre_subdev_exit_module(void);
 
 void cam_cre_subdev_exit_module(void)
 {

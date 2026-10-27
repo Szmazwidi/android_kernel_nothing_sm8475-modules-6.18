@@ -282,6 +282,10 @@ static enum cam_sfe_bus_sfe_out_type
 
 bool cam_sfe_is_mipi_pcking_needed(
 	struct cam_sfe_bus_wr_priv *bus_priv,
+	int wm_index);
+
+bool cam_sfe_is_mipi_pcking_needed(
+	struct cam_sfe_bus_wr_priv *bus_priv,
 	int wm_index)
 {
 	int i;
@@ -386,6 +390,8 @@ static void cam_sfe_bus_wr_print_constraint_errors(
 		}
 	}
 }
+
+void cam_sfe_bus_wr_get_constraint_errors(void *bus_pvt, void *args);
 
 void cam_sfe_bus_wr_get_constraint_errors(void *bus_pvt, void *args)
 {
@@ -741,13 +747,13 @@ static int cam_sfe_bus_acquire_wm(
 
 	switch (rsrc_data->en_cfg) {
 	case 0x1:
-		strlcpy(wm_mode, "line-based", sizeof(wm_mode));
+		strscpy(wm_mode, "line-based", sizeof(wm_mode));
 		break;
 	case ((0x1 << 16) | 0x1):
-		strlcpy(wm_mode, "frame-based", sizeof(wm_mode));
+		strscpy(wm_mode, "frame-based", sizeof(wm_mode));
 		break;
 	case ((0x2 << 16) | 0x1):
-		strlcpy(wm_mode, "index-based", sizeof(wm_mode));
+		strscpy(wm_mode, "index-based", sizeof(wm_mode));
 		break;
 	}
 
@@ -2109,6 +2115,8 @@ static int cam_sfe_bus_wr_err_irq_top_half(uint32_t evt_id,
 	return rc;
 }
 
+void cam_sfe_bus_wr_print_ccif_violation_status(void *bus_pvt, void *args);
+
 void cam_sfe_bus_wr_print_ccif_violation_status(void *bus_pvt, void *args)
 {
 	struct cam_sfe_bus_wr_priv             *bus_priv = bus_pvt;
@@ -2117,6 +2125,8 @@ void cam_sfe_bus_wr_print_ccif_violation_status(void *bus_pvt, void *args)
 			bus_priv->common_data.core_index,
 			bus_priv->common_data.image_size_violation_status);
 }
+
+void cam_sfe_bus_wr_print_violation_info(void *bus_pvt, void *args);
 
 void cam_sfe_bus_wr_print_violation_info(void *bus_pvt, void *args)
 {
@@ -3213,6 +3223,13 @@ int cam_sfe_bus_wr_init(
 	struct cam_hw_intf                   *hw_intf,
 	void                                 *bus_hw_info,
 	void                                 *sfe_irq_controller,
+	struct cam_sfe_bus                  **sfe_bus);
+
+int cam_sfe_bus_wr_init(
+	struct cam_hw_soc_info               *soc_info,
+	struct cam_hw_intf                   *hw_intf,
+	void                                 *bus_hw_info,
+	void                                 *sfe_irq_controller,
 	struct cam_sfe_bus                  **sfe_bus)
 {
 	int i, rc = 0;
@@ -3379,6 +3396,9 @@ free_bus_local:
 end:
 	return rc;
 }
+
+int cam_sfe_bus_wr_deinit(
+	struct cam_sfe_bus                  **sfe_bus);
 
 int cam_sfe_bus_wr_deinit(
 	struct cam_sfe_bus                  **sfe_bus)

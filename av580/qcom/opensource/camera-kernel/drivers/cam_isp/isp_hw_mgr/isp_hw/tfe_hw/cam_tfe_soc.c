@@ -4,6 +4,7 @@
  * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
+#include <linux/of.h>
 #include <linux/slab.h>
 #include "cam_cpas_api.h"
 #include "cam_tfe_soc.h"
@@ -22,6 +23,9 @@ static bool cam_tfe_cpas_cb(uint32_t client_handle, void *userdata,
 
 	return error_handled;
 }
+
+int cam_tfe_init_soc_resources(struct cam_hw_soc_info *soc_info,
+	irq_handler_t tfe_irq_handler, void *irq_data);
 
 int cam_tfe_init_soc_resources(struct cam_hw_soc_info *soc_info,
 	irq_handler_t tfe_irq_handler, void *irq_data)
@@ -80,7 +84,7 @@ clk_option:
 	}
 
 	memset(&cpas_register_param, 0, sizeof(cpas_register_param));
-	strlcpy(cpas_register_param.identifier, "tfe",
+	strscpy(cpas_register_param.identifier, "tfe",
 		CAM_HW_IDENTIFIER_LENGTH);
 	cpas_register_param.cell_index = soc_info->index;
 	cpas_register_param.dev = soc_info->dev;
@@ -103,6 +107,8 @@ free_soc_private:
 
 	return rc;
 }
+
+int cam_tfe_deinit_soc_resources(struct cam_hw_soc_info *soc_info);
 
 int cam_tfe_deinit_soc_resources(struct cam_hw_soc_info *soc_info)
 {
@@ -141,6 +147,10 @@ int cam_tfe_deinit_soc_resources(struct cam_hw_soc_info *soc_info)
 
 	return rc;
 }
+
+int cam_tfe_enable_soc_resources(
+	struct cam_hw_soc_info  *soc_info,
+	unsigned long           max_clk_rate);
 
 int cam_tfe_enable_soc_resources(
 	struct cam_hw_soc_info  *soc_info,
@@ -199,6 +209,9 @@ end:
 }
 
 int cam_tfe_soc_enable_clk(struct cam_hw_soc_info *soc_info,
+	const char *clk_name);
+
+int cam_tfe_soc_enable_clk(struct cam_hw_soc_info *soc_info,
 	const char *clk_name)
 {
 	int  rc = 0;
@@ -221,6 +234,9 @@ int cam_tfe_soc_enable_clk(struct cam_hw_soc_info *soc_info,
 
 	return rc;
 }
+
+int cam_tfe_soc_disable_clk(struct cam_hw_soc_info *soc_info,
+	const char *clk_name);
 
 int cam_tfe_soc_disable_clk(struct cam_hw_soc_info *soc_info,
 	const char *clk_name)
@@ -246,6 +262,8 @@ int cam_tfe_soc_disable_clk(struct cam_hw_soc_info *soc_info,
 	return rc;
 }
 
+
+int cam_tfe_disable_soc_resources(struct cam_hw_soc_info *soc_info);
 
 int cam_tfe_disable_soc_resources(struct cam_hw_soc_info *soc_info)
 {

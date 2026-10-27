@@ -11,6 +11,8 @@
 #include "cam_res_mgr_api.h"
 #include <dt-bindings/msm-camera.h>
 
+void cam_flash_put_source_node_data(struct cam_flash_ctrl *fctrl);
+
 void cam_flash_put_source_node_data(struct cam_flash_ctrl *fctrl)
 {
 	uint32_t count = 0, i = 0;
@@ -280,6 +282,9 @@ static int32_t cam_get_source_node_info(
 	return rc;
 }
 #endif
+
+int cam_flash_get_dt_data(struct cam_flash_ctrl *fctrl,
+	struct cam_hw_soc_info *soc_info);
 
 int cam_flash_get_dt_data(struct cam_flash_ctrl *fctrl,
 	struct cam_hw_soc_info *soc_info)

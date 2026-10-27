@@ -13,6 +13,8 @@
 #include "cam_debug_util.h"
 
 
+int cam_ipe_transfer_gdsc_control(struct cam_hw_soc_info *soc_info);
+
 int cam_ipe_transfer_gdsc_control(struct cam_hw_soc_info *soc_info)
 {
 	int i;
@@ -37,6 +39,8 @@ rgltr_set_mode_failed:
 
 	return rc;
 }
+
+int cam_ipe_get_gdsc_control(struct cam_hw_soc_info *soc_info);
 
 int cam_ipe_get_gdsc_control(struct cam_hw_soc_info *soc_info)
 {
@@ -87,6 +91,9 @@ static int cam_ipe_request_platform_resource(
 }
 
 int cam_ipe_init_soc_resources(struct cam_hw_soc_info *soc_info,
+	irq_handler_t ipe_irq_handler, void *irq_data);
+
+int cam_ipe_init_soc_resources(struct cam_hw_soc_info *soc_info,
 	irq_handler_t ipe_irq_handler, void *irq_data)
 {
 	int rc = 0;
@@ -103,6 +110,8 @@ int cam_ipe_init_soc_resources(struct cam_hw_soc_info *soc_info,
 	return rc;
 }
 
+void cam_ipe_deinit_soc_resources(struct cam_hw_soc_info *soc_info);
+
 void cam_ipe_deinit_soc_resources(struct cam_hw_soc_info *soc_info)
 {
 	int rc = 0;
@@ -111,6 +120,8 @@ void cam_ipe_deinit_soc_resources(struct cam_hw_soc_info *soc_info)
 	if (rc)
 		CAM_WARN(CAM_ICP, "release platform resources fail");
 }
+
+int cam_ipe_enable_soc_resources(struct cam_hw_soc_info *soc_info);
 
 int cam_ipe_enable_soc_resources(struct cam_hw_soc_info *soc_info)
 {
@@ -127,6 +138,9 @@ int cam_ipe_enable_soc_resources(struct cam_hw_soc_info *soc_info)
 }
 
 int cam_ipe_disable_soc_resources(struct cam_hw_soc_info *soc_info,
+	bool disable_clk);
+
+int cam_ipe_disable_soc_resources(struct cam_hw_soc_info *soc_info,
 	bool disable_clk)
 {
 	int rc = 0;
@@ -138,6 +152,9 @@ int cam_ipe_disable_soc_resources(struct cam_hw_soc_info *soc_info,
 
 	return rc;
 }
+
+int cam_ipe_update_clk_rate(struct cam_hw_soc_info *soc_info,
+	uint32_t *clk_rate);
 
 int cam_ipe_update_clk_rate(struct cam_hw_soc_info *soc_info,
 	uint32_t *clk_rate)
@@ -160,6 +177,8 @@ int cam_ipe_update_clk_rate(struct cam_hw_soc_info *soc_info,
 
 	return cam_soc_util_set_src_clk_rate(soc_info, *clk_rate);
 }
+
+int cam_ipe_toggle_clk(struct cam_hw_soc_info *soc_info, bool clk_enable);
 
 int cam_ipe_toggle_clk(struct cam_hw_soc_info *soc_info, bool clk_enable)
 {

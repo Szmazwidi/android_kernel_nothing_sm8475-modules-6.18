@@ -55,6 +55,8 @@ struct g_csiphy_data {
 static struct g_csiphy_data g_phy_data[MAX_CSIPHY] = {{0, 0}};
 static int active_csiphy_hw_cnt;
 
+void cam_csiphy_update_auxiliary_mask(struct csiphy_device *csiphy_dev);
+
 void cam_csiphy_update_auxiliary_mask(struct csiphy_device *csiphy_dev)
 {
 	if (!csiphy_dev) {
@@ -76,6 +78,10 @@ void cam_csiphy_update_auxiliary_mask(struct csiphy_device *csiphy_dev)
 		csiphy_dev->current_data_rate,
 		g_phy_data[csiphy_dev->soc_info.index].data_rate_aux_mask);
 }
+
+int32_t cam_csiphy_get_instance_offset(
+	struct csiphy_device *csiphy_dev,
+	int32_t dev_handle);
 
 int32_t cam_csiphy_get_instance_offset(
 	struct csiphy_device *csiphy_dev,
@@ -268,6 +274,9 @@ static inline int cam_csiphy_release_from_reset_state(struct csiphy_device *csip
 }
 
 void cam_csiphy_query_cap(struct csiphy_device *csiphy_dev,
+	struct cam_csiphy_query_cap *csiphy_cap);
+
+void cam_csiphy_query_cap(struct csiphy_device *csiphy_dev,
 	struct cam_csiphy_query_cap *csiphy_cap)
 {
 	struct cam_hw_soc_info *soc_info = &csiphy_dev->soc_info;
@@ -276,6 +285,8 @@ void cam_csiphy_query_cap(struct csiphy_device *csiphy_dev,
 	csiphy_cap->version = csiphy_dev->hw_version;
 	csiphy_cap->clk_lane = csiphy_dev->clk_lane;
 }
+
+int cam_csiphy_dump_status_reg(struct csiphy_device *csiphy_dev);
 
 int cam_csiphy_dump_status_reg(struct csiphy_device *csiphy_dev)
 {
@@ -352,6 +363,8 @@ int cam_csiphy_dump_status_reg(struct csiphy_device *csiphy_dev)
 	}
 	return 0;
 }
+
+void cam_csiphy_reset(struct csiphy_device *csiphy_dev);
 
 void cam_csiphy_reset(struct csiphy_device *csiphy_dev)
 {
@@ -645,6 +658,9 @@ static int cam_csiphy_sanitize_datarate(
 }
 
 int32_t cam_cmd_buf_parser(struct csiphy_device *csiphy_dev,
+	struct cam_config_dev_cmd *cfg_dev);
+
+int32_t cam_cmd_buf_parser(struct csiphy_device *csiphy_dev,
 	struct cam_config_dev_cmd *cfg_dev)
 {
 	int                      rc = 0;
@@ -859,6 +875,8 @@ reset_settings:
 	return rc;
 }
 
+void cam_csiphy_cphy_irq_config(struct csiphy_device *csiphy_dev);
+
 void cam_csiphy_cphy_irq_config(struct csiphy_device *csiphy_dev)
 {
 	int32_t                        i;
@@ -882,6 +900,8 @@ void cam_csiphy_cphy_irq_config(struct csiphy_device *csiphy_dev)
 	}
 }
 
+void cam_csiphy_cphy_irq_disable(struct csiphy_device *csiphy_dev);
+
 void cam_csiphy_cphy_irq_disable(struct csiphy_device *csiphy_dev)
 {
 	int32_t i;
@@ -896,6 +916,8 @@ void cam_csiphy_cphy_irq_disable(struct csiphy_device *csiphy_dev)
 		cam_io_w_mb(0x0, csiphybase +
 			csiphy_dev->ctrl_reg->csiphy_irq_reg[i].reg_addr);
 }
+
+irqreturn_t cam_csiphy_irq(int irq_num, void *data);
 
 irqreturn_t cam_csiphy_irq(int irq_num, void *data)
 {
@@ -1116,6 +1138,9 @@ static int __cam_csiphy_prgm_bist_reg(struct csiphy_device *csiphy_dev, bool is_
 }
 
 int32_t cam_csiphy_config_dev(struct csiphy_device *csiphy_dev,
+	int32_t dev_handle);
+
+int32_t cam_csiphy_config_dev(struct csiphy_device *csiphy_dev,
 	int32_t dev_handle)
 {
 	int32_t      rc = 0;
@@ -1327,6 +1352,8 @@ int32_t cam_csiphy_config_dev(struct csiphy_device *csiphy_dev,
 	CAM_DBG(CAM_CSIPHY, "EXIT");
 	return rc;
 }
+
+void cam_csiphy_shutdown(struct csiphy_device *csiphy_dev);
 
 void cam_csiphy_shutdown(struct csiphy_device *csiphy_dev)
 {
@@ -1541,6 +1568,9 @@ static int __csiphy_cpas_configure_for_main_or_aon(
 }
 
 int cam_csiphy_util_update_aon_registration
+	(uint32_t phy_idx, bool is_aon_user);
+
+int cam_csiphy_util_update_aon_registration
 	(uint32_t phy_idx, bool is_aon_user)
 {
 	/* aon support enable for the sensor associated with phy idx*/
@@ -1559,6 +1589,9 @@ int cam_csiphy_util_update_aon_registration
 
 	return 0;
 }
+
+int cam_csiphy_util_update_aon_ops(
+	bool get_access, uint32_t phy_idx);
 
 int cam_csiphy_util_update_aon_ops(
 	bool get_access, uint32_t phy_idx)
@@ -1889,6 +1922,9 @@ static void __cam_csiphy_get_preamble_status(
 	}
 	return;
 }
+
+int32_t cam_csiphy_core_cfg(void *phy_dev,
+			void *arg);
 
 int32_t cam_csiphy_core_cfg(void *phy_dev,
 			void *arg)
@@ -2533,6 +2569,8 @@ release_mutex:
 
 	return rc;
 }
+
+int cam_csiphy_register_baseaddress(struct csiphy_device *csiphy_dev);
 
 int cam_csiphy_register_baseaddress(struct csiphy_device *csiphy_dev)
 {

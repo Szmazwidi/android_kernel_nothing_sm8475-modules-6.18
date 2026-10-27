@@ -152,6 +152,9 @@ static int cam_tfe_get_evt_payload(struct cam_tfe_hw_core_info *core_info,
 }
 
 int cam_tfe_put_evt_payload(void             *core_info,
+	struct cam_tfe_irq_evt_payload  **evt_payload);
+
+int cam_tfe_put_evt_payload(void             *core_info,
 	struct cam_tfe_irq_evt_payload  **evt_payload)
 {
 	struct cam_tfe_hw_core_info        *tfe_core_info = core_info;
@@ -176,10 +179,15 @@ int cam_tfe_put_evt_payload(void             *core_info,
 }
 
 int cam_tfe_get_hw_caps(void *hw_priv, void *get_hw_cap_args,
+		uint32_t arg_size);
+
+int cam_tfe_get_hw_caps(void *hw_priv, void *get_hw_cap_args,
 		uint32_t arg_size)
 {
 	return -EPERM;
 }
+
+void cam_tfe_get_timestamp(struct cam_isp_timestamp *time_stamp);
 
 void cam_tfe_get_timestamp(struct cam_isp_timestamp *time_stamp)
 {
@@ -189,6 +197,9 @@ void cam_tfe_get_timestamp(struct cam_isp_timestamp *time_stamp)
 	time_stamp->mono_time.tv_sec    = ts.tv_sec;
 	time_stamp->mono_time.tv_nsec   = ts.tv_nsec;
 }
+
+int cam_tfe_irq_config(void     *tfe_core_data,
+	uint32_t  *irq_mask, uint32_t num_reg, bool enable);
 
 int cam_tfe_irq_config(void     *tfe_core_data,
 	uint32_t  *irq_mask, uint32_t num_reg, bool enable)
@@ -809,6 +820,8 @@ static int cam_tfe_irq_err_top_half(
 
 	return 0;
 }
+
+irqreturn_t cam_tfe_irq(int irq_num, void *data);
 
 irqreturn_t cam_tfe_irq(int irq_num, void *data)
 {
@@ -1839,6 +1852,9 @@ static int cam_tfe_camif_irq_reg_dump(
 }
 
 int cam_tfe_set_top_debug(struct cam_tfe_hw_core_info    *core_info,
+	void *cmd_args, uint32_t arg_size);
+
+int cam_tfe_set_top_debug(struct cam_tfe_hw_core_info    *core_info,
 	void *cmd_args, uint32_t arg_size)
 {
 	struct cam_tfe_top_priv              *top_priv;
@@ -1860,6 +1876,9 @@ int cam_tfe_set_top_debug(struct cam_tfe_hw_core_info    *core_info,
 	return 0;
 }
 
+
+int cam_tfe_top_reserve(void *device_priv,
+	void *reserve_args, uint32_t arg_size);
 
 int cam_tfe_top_reserve(void *device_priv,
 	void *reserve_args, uint32_t arg_size)
@@ -1970,6 +1989,9 @@ int cam_tfe_top_reserve(void *device_priv,
 
 	return rc;
 }
+
+int cam_tfe_top_release(void *device_priv,
+	void *release_args, uint32_t arg_size);
 
 int cam_tfe_top_release(void *device_priv,
 	void *release_args, uint32_t arg_size)
@@ -2164,6 +2186,9 @@ static int cam_tfe_camif_resource_start(
 }
 
 int cam_tfe_top_start(struct cam_tfe_hw_core_info *core_info,
+	void *start_args, uint32_t arg_size);
+
+int cam_tfe_top_start(struct cam_tfe_hw_core_info *core_info,
 	void *start_args, uint32_t arg_size)
 {
 	struct cam_tfe_top_priv                 *top_priv;
@@ -2268,6 +2293,9 @@ end:
 }
 
 int cam_tfe_top_stop(struct cam_tfe_hw_core_info *core_info,
+	void *stop_args, uint32_t arg_size);
+
+int cam_tfe_top_stop(struct cam_tfe_hw_core_info *core_info,
 	void *stop_args, uint32_t arg_size)
 {
 	struct cam_tfe_top_priv                 *top_priv;
@@ -2353,6 +2381,12 @@ int cam_tfe_top_stop(struct cam_tfe_hw_core_info *core_info,
 
 	return rc;
 }
+
+int cam_tfe_top_init(
+	struct cam_hw_soc_info                 *soc_info,
+	struct cam_hw_intf                     *hw_intf,
+	void                                   *top_hw_info,
+	struct cam_tfe_hw_core_info            *core_info);
 
 int cam_tfe_top_init(
 	struct cam_hw_soc_info                 *soc_info,
@@ -2489,6 +2523,8 @@ end:
 }
 
 
+int cam_tfe_top_deinit(struct cam_tfe_top_priv  *top_priv);
+
 int cam_tfe_top_deinit(struct cam_tfe_top_priv  *top_priv)
 {
 	int i, rc = 0;
@@ -2519,6 +2555,8 @@ int cam_tfe_top_deinit(struct cam_tfe_top_priv  *top_priv)
 
 	return rc;
 }
+
+int cam_tfe_reset(void *hw_priv, void *reset_core_args, uint32_t arg_size);
 
 int cam_tfe_reset(void *hw_priv, void *reset_core_args, uint32_t arg_size)
 {
@@ -2606,6 +2644,8 @@ int cam_tfe_reset(void *hw_priv, void *reset_core_args, uint32_t arg_size)
 	return rc;
 }
 
+int cam_tfe_init_hw(void *hw_priv, void *init_hw_args, uint32_t arg_size);
+
 int cam_tfe_init_hw(void *hw_priv, void *init_hw_args, uint32_t arg_size)
 {
 	struct cam_hw_info                *tfe_hw = hw_priv;
@@ -2687,6 +2727,8 @@ decrement_open_cnt:
 	return rc;
 }
 
+int cam_tfe_deinit_hw(void *hw_priv, void *deinit_hw_args, uint32_t arg_size);
+
 int cam_tfe_deinit_hw(void *hw_priv, void *deinit_hw_args, uint32_t arg_size)
 {
 	struct cam_hw_info                *tfe_hw = hw_priv;
@@ -2742,6 +2784,8 @@ int cam_tfe_deinit_hw(void *hw_priv, void *deinit_hw_args, uint32_t arg_size)
 	return rc;
 }
 
+int cam_tfe_reserve(void *hw_priv, void *reserve_args, uint32_t arg_size);
+
 int cam_tfe_reserve(void *hw_priv, void *reserve_args, uint32_t arg_size)
 {
 	struct cam_tfe_hw_core_info       *core_info = NULL;
@@ -2778,6 +2822,8 @@ int cam_tfe_reserve(void *hw_priv, void *reserve_args, uint32_t arg_size)
 }
 
 
+int cam_tfe_release(void *hw_priv, void *release_args, uint32_t arg_size);
+
 int cam_tfe_release(void *hw_priv, void *release_args, uint32_t arg_size)
 {
 	struct cam_tfe_hw_core_info       *core_info = NULL;
@@ -2811,6 +2857,8 @@ int cam_tfe_release(void *hw_priv, void *release_args, uint32_t arg_size)
 
 	return rc;
 }
+
+int cam_tfe_start(void *hw_priv, void *start_args, uint32_t arg_size);
 
 int cam_tfe_start(void *hw_priv, void *start_args, uint32_t arg_size)
 {
@@ -2851,6 +2899,8 @@ int cam_tfe_start(void *hw_priv, void *start_args, uint32_t arg_size)
 	return rc;
 }
 
+int cam_tfe_stop(void *hw_priv, void *stop_args, uint32_t arg_size);
+
 int cam_tfe_stop(void *hw_priv, void *stop_args, uint32_t arg_size)
 {
 	struct cam_tfe_hw_core_info       *core_info = NULL;
@@ -2887,15 +2937,22 @@ int cam_tfe_stop(void *hw_priv, void *stop_args, uint32_t arg_size)
 	return rc;
 }
 
+int cam_tfe_read(void *hw_priv, void *read_args, uint32_t arg_size);
+
 int cam_tfe_read(void *hw_priv, void *read_args, uint32_t arg_size)
 {
 	return -EPERM;
 }
 
+int cam_tfe_write(void *hw_priv, void *write_args, uint32_t arg_size);
+
 int cam_tfe_write(void *hw_priv, void *write_args, uint32_t arg_size)
 {
 	return -EPERM;
 }
+
+int cam_tfe_process_cmd(void *hw_priv, uint32_t cmd_type,
+	void *cmd_args, uint32_t arg_size);
 
 int cam_tfe_process_cmd(void *hw_priv, uint32_t cmd_type,
 	void *cmd_args, uint32_t arg_size)
@@ -2986,6 +3043,11 @@ int cam_tfe_process_cmd(void *hw_priv, uint32_t cmd_type,
 int cam_tfe_core_init(struct cam_tfe_hw_core_info  *core_info,
 	struct cam_hw_soc_info                     *soc_info,
 	struct cam_hw_intf                         *hw_intf,
+	struct cam_tfe_hw_info                     *tfe_hw_info);
+
+int cam_tfe_core_init(struct cam_tfe_hw_core_info  *core_info,
+	struct cam_hw_soc_info                     *soc_info,
+	struct cam_hw_intf                         *hw_intf,
 	struct cam_tfe_hw_info                     *tfe_hw_info)
 {
 	int rc = -EINVAL;
@@ -3028,6 +3090,9 @@ deinit_top:
 end:
 	return rc;
 }
+
+int cam_tfe_core_deinit(struct cam_tfe_hw_core_info  *core_info,
+	struct cam_tfe_hw_info                       *tfe_hw_info);
 
 int cam_tfe_core_deinit(struct cam_tfe_hw_core_info  *core_info,
 	struct cam_tfe_hw_info                       *tfe_hw_info)

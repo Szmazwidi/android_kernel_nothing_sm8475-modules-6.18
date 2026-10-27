@@ -8,12 +8,12 @@ package(
 
 filegroup(
     name = "camera_dt_bindings",
-    srcs = glob(["dt-bindings/**"]),
+    srcs = glob(["dt-bindings/**"], allow_empty = True),
 )
 
 ddk_headers(
     name = "camera_uapi_headers",
-    hdrs = glob(["include/uapi/camera/**/*.h"]),
+    hdrs = glob(["include/uapi/camera/**/*.h"], allow_empty = True),
     includes = [
         "include/uapi/camera",
         "include/uapi/camera/media",
@@ -118,7 +118,7 @@ driver_includes = [
 
 ddk_headers(
     name = "camera_src_headers",
-    hdrs = glob(driver_header_globs),
+    hdrs = glob(driver_header_globs, allow_empty = True),
     includes = driver_includes + [
         ".",
     ],

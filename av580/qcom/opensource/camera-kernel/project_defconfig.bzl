@@ -20,13 +20,13 @@ Return a label which defines a project-specific defconfig snippet to be
 applied on top of the platform defconfig.
 """
 
-def get_project_defconfig(target, variant):
-    rule_name = "{}_{}_project_defconfig".format(target, variant)
+def get_project_defconfig(target, variant, host_native = False):
+    rule_name = "{}_{}_project_defconfig".format(target, variant) + ("_host_native" if host_native else "")
 
     write_file(
         name = rule_name,
         out = "{}.generated".format(rule_name),
-        content = common_configs + project_configs.get(target, []) + [""],
+        content = [x for x in common_configs if not host_native or x != "CONFIG_MSM_MMRM=y"] + project_configs.get(target, []) + [""],
     )
 
     return rule_name

@@ -135,7 +135,7 @@ static int cam_sensor_init_subdev_params(struct cam_sensor_ctrl_t *s_ctrl)
 		&cam_sensor_internal_ops;
 	s_ctrl->v4l2_dev_str.ops =
 		&cam_sensor_subdev_ops;
-	strlcpy(s_ctrl->device_name, CAMX_SENSOR_DEV_NAME,
+	strscpy(s_ctrl->device_name, CAMX_SENSOR_DEV_NAME,
 		sizeof(s_ctrl->device_name));
 	s_ctrl->v4l2_dev_str.name =
 		s_ctrl->device_name;
@@ -338,17 +338,19 @@ static int cam_sensor_i2c_driver_probe(struct i2c_client *client,
 #endif
 
 #if KERNEL_VERSION(6, 1, 0) <= LINUX_VERSION_CODE
+void cam_sensor_i2c_driver_remove(struct i2c_client *client);
+
 void cam_sensor_i2c_driver_remove(struct i2c_client *client)
 {
 	component_del(&client->dev, &cam_sensor_i2c_component_ops);
 }
 
 #else
-static int cam_sensor_i2c_driver_remove(struct i2c_client *client)
+static void cam_sensor_i2c_driver_remove(struct i2c_client *client)
 {
 	component_del(&client->dev, &cam_sensor_i2c_component_ops);
 
-	return 0;
+	return;
 }
 #endif
 
@@ -483,10 +485,10 @@ const static struct component_ops cam_sensor_component_ops = {
 	.unbind = cam_sensor_component_unbind,
 };
 
-static int cam_sensor_platform_remove(struct platform_device *pdev)
+static void cam_sensor_platform_remove(struct platform_device *pdev)
 {
 	component_del(&pdev->dev, &cam_sensor_component_ops);
-	return 0;
+	return;
 }
 
 static const struct of_device_id cam_sensor_driver_dt_match[] = {
@@ -544,6 +546,8 @@ struct i2c_driver cam_sensor_i2c_driver = {
 	},
 };
 
+int cam_sensor_driver_init(void);
+
 int cam_sensor_driver_init(void)
 {
 	int32_t rc = 0;
@@ -561,6 +565,8 @@ int cam_sensor_driver_init(void)
 
 	return rc;
 }
+
+void cam_sensor_driver_exit(void);
 
 void cam_sensor_driver_exit(void)
 {

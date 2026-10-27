@@ -23,6 +23,8 @@ module_param(debug_priority, uint, 0644);
 
 struct camera_debug_settings cam_debug;
 
+const struct camera_debug_settings *cam_debug_get_settings(void);
+
 const struct camera_debug_settings *cam_debug_get_settings(void)
 {
 	return &cam_debug;
@@ -59,6 +61,9 @@ static int cam_debug_parse_cpas_settings(const char *setting, u64 value)
 
 	return 0;
 }
+
+ssize_t cam_debug_sysfs_node_store(struct device *dev,
+		struct device_attribute *attr, const char *buf, size_t count);
 
 ssize_t cam_debug_sysfs_node_store(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t count)
@@ -136,6 +141,9 @@ static inline void __cam_print_to_buffer(char *buf, const size_t buf_size, size_
 }
 
 void cam_print_to_buffer(char *buf, const size_t buf_size, size_t *len, unsigned int tag,
+	unsigned long long module_id, const char *fmt, ...);
+
+void cam_print_to_buffer(char *buf, const size_t buf_size, size_t *len, unsigned int tag,
 	unsigned long long module_id, const char *fmt, ...)
 {
 	va_list args;
@@ -160,6 +168,8 @@ static void __cam_print_log(int type, const char *fmt, va_list args)
 	va_end(args2);
 	va_end(args1);
 }
+
+void cam_print_log(int type, const char *fmt, ...);
 
 void cam_print_log(int type, const char *fmt, ...)
 {

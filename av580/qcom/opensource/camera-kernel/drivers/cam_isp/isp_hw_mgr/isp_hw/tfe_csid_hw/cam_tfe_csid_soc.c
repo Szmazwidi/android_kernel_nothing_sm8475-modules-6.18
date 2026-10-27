@@ -9,6 +9,9 @@
 
 
 int cam_tfe_csid_init_soc_resources(struct cam_hw_soc_info *soc_info,
+	irq_handler_t csid_irq_handler, void *irq_data);
+
+int cam_tfe_csid_init_soc_resources(struct cam_hw_soc_info *soc_info,
 	irq_handler_t csid_irq_handler, void *irq_data)
 {
 	int rc = 0;
@@ -38,7 +41,7 @@ int cam_tfe_csid_init_soc_resources(struct cam_hw_soc_info *soc_info,
 	}
 
 	memset(&cpas_register_param, 0, sizeof(cpas_register_param));
-	strlcpy(cpas_register_param.identifier, "csid",
+	strscpy(cpas_register_param.identifier, "csid",
 		CAM_HW_IDENTIFIER_LENGTH);
 	cpas_register_param.cell_index = soc_info->index;
 	cpas_register_param.dev = soc_info->dev;
@@ -61,6 +64,9 @@ free_soc_private:
 }
 
 int cam_tfe_csid_deinit_soc_resources(
+	struct cam_hw_soc_info *soc_info);
+
+int cam_tfe_csid_deinit_soc_resources(
 	struct cam_hw_soc_info *soc_info)
 {
 	int rc = 0;
@@ -80,6 +86,9 @@ int cam_tfe_csid_deinit_soc_resources(
 
 	return rc;
 }
+
+int cam_tfe_csid_enable_soc_resources(
+	struct cam_hw_soc_info *soc_info, enum cam_vote_level clk_level);
 
 int cam_tfe_csid_enable_soc_resources(
 	struct cam_hw_soc_info *soc_info, enum cam_vote_level clk_level)
@@ -128,6 +137,8 @@ end:
 	return rc;
 }
 
+int cam_tfe_csid_disable_soc_resources(struct cam_hw_soc_info *soc_info);
+
 int cam_tfe_csid_disable_soc_resources(struct cam_hw_soc_info *soc_info)
 {
 	int rc = 0;
@@ -151,6 +162,9 @@ int cam_tfe_csid_disable_soc_resources(struct cam_hw_soc_info *soc_info)
 
 	return rc;
 }
+
+int cam_tfe_csid_enable_tfe_force_clock_on(struct cam_hw_soc_info  *soc_info,
+	uint32_t cpas_tfe_base_offset);
 
 int cam_tfe_csid_enable_tfe_force_clock_on(struct cam_hw_soc_info  *soc_info,
 	uint32_t cpas_tfe_base_offset)
@@ -179,6 +193,9 @@ int cam_tfe_csid_enable_tfe_force_clock_on(struct cam_hw_soc_info  *soc_info,
 
 	return rc;
 }
+
+int cam_tfe_csid_disable_tfe_force_clock_on(struct cam_hw_soc_info *soc_info,
+	uint32_t cpas_tfe_base_offset);
 
 int cam_tfe_csid_disable_tfe_force_clock_on(struct cam_hw_soc_info *soc_info,
 	uint32_t cpas_tfe_base_offset)

@@ -14,6 +14,8 @@
 #include "cam_lrme_hw_soc.h"
 
 
+int cam_lrme_soc_enable_resources(struct cam_hw_info *lrme_hw);
+
 int cam_lrme_soc_enable_resources(struct cam_hw_info *lrme_hw)
 {
 	struct cam_hw_soc_info *soc_info = &lrme_hw->soc_info;
@@ -62,6 +64,8 @@ stop_cpas:
 	return rc;
 }
 
+int cam_lrme_soc_disable_resources(struct cam_hw_info *lrme_hw);
+
 int cam_lrme_soc_disable_resources(struct cam_hw_info *lrme_hw)
 {
 	struct cam_hw_soc_info *soc_info = &lrme_hw->soc_info;
@@ -83,6 +87,9 @@ int cam_lrme_soc_disable_resources(struct cam_hw_info *lrme_hw)
 
 	return rc;
 }
+
+int cam_lrme_soc_init_resources(struct cam_hw_soc_info *soc_info,
+	irq_handler_t irq_handler, void *private_data);
 
 int cam_lrme_soc_init_resources(struct cam_hw_soc_info *soc_info,
 	irq_handler_t irq_handler, void *private_data)
@@ -113,7 +120,7 @@ int cam_lrme_soc_init_resources(struct cam_hw_soc_info *soc_info,
 	soc_info->soc_private = soc_private;
 
 	memset(&cpas_register_param, 0, sizeof(cpas_register_param));
-	strlcpy(cpas_register_param.identifier,
+	strscpy(cpas_register_param.identifier,
 		"lrmecpas", CAM_HW_IDENTIFIER_LENGTH);
 	cpas_register_param.cell_index = soc_info->index;
 	cpas_register_param.dev = &soc_info->pdev->dev;
@@ -138,6 +145,8 @@ release_res:
 
 	return rc;
 }
+
+int cam_lrme_soc_deinit_resources(struct cam_hw_soc_info *soc_info);
 
 int cam_lrme_soc_deinit_resources(struct cam_hw_soc_info *soc_info)
 {

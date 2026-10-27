@@ -16,6 +16,14 @@ int cam_vfe_bus_init(uint32_t          bus_version,
 	struct cam_hw_intf            *hw_intf,
 	void                          *bus_hw_info,
 	void                          *vfe_irq_controller,
+	struct cam_vfe_bus           **vfe_bus);
+
+int cam_vfe_bus_init(uint32_t          bus_version,
+	int                            bus_type,
+	struct cam_hw_soc_info        *soc_info,
+	struct cam_hw_intf            *hw_intf,
+	void                          *bus_hw_info,
+	void                          *vfe_irq_controller,
 	struct cam_vfe_bus           **vfe_bus)
 {
 	int rc = -ENODEV;
@@ -57,6 +65,9 @@ int cam_vfe_bus_init(uint32_t          bus_version,
 
 	return rc;
 }
+
+int cam_vfe_bus_deinit(uint32_t        bus_version,
+	struct cam_vfe_bus           **vfe_bus);
 
 int cam_vfe_bus_deinit(uint32_t        bus_version,
 	struct cam_vfe_bus           **vfe_bus)

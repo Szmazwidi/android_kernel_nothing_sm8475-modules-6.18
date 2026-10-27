@@ -6874,7 +6874,7 @@ static int __cam_isp_ctx_get_dev_info_in_acquired(struct cam_context *ctx,
 	int rc = 0;
 
 	dev_info->dev_hdl = ctx->dev_hdl;
-	strlcpy(dev_info->name, CAM_ISP_DEV_NAME, sizeof(dev_info->name));
+	strscpy(dev_info->name, CAM_ISP_DEV_NAME, sizeof(dev_info->name));
 	dev_info->dev_id = CAM_REQ_MGR_DEVICE_IFE;
 	dev_info->p_delay = 1;
 	dev_info->trigger = CAM_TRIGGER_POINT_SOF;
@@ -7863,6 +7863,14 @@ int cam_isp_context_init(struct cam_isp_context *ctx,
 	struct cam_hw_mgr_intf *hw_intf,
 	uint32_t ctx_id,
 	uint32_t isp_device_type,
+	int img_iommu_hdl);
+
+int cam_isp_context_init(struct cam_isp_context *ctx,
+	struct cam_context *ctx_base,
+	struct cam_req_mgr_kmd_ops *crm_node_intf,
+	struct cam_hw_mgr_intf *hw_intf,
+	uint32_t ctx_id,
+	uint32_t isp_device_type,
 	int img_iommu_hdl)
 {
 	int rc = -1;
@@ -7927,6 +7935,8 @@ int cam_isp_context_init(struct cam_isp_context *ctx,
 err:
 	return rc;
 }
+
+int cam_isp_context_deinit(struct cam_isp_context *ctx);
 
 int cam_isp_context_deinit(struct cam_isp_context *ctx)
 {

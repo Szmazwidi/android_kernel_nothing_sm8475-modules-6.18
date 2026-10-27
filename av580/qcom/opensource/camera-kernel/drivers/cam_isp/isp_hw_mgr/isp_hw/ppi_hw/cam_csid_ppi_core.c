@@ -240,6 +240,9 @@ end:
 }
 
 int cam_csid_ppi_hw_probe_init(struct cam_hw_intf  *ppi_hw_intf,
+	uint32_t ppi_idx);
+
+int cam_csid_ppi_hw_probe_init(struct cam_hw_intf  *ppi_hw_intf,
 	uint32_t ppi_idx)
 {
 	int rc = -EINVAL;
@@ -275,6 +278,9 @@ err:
 }
 
 int cam_csid_ppi_init_soc_resources(struct cam_hw_soc_info *soc_info,
+	irq_handler_t ppi_irq_handler, void *irq_data);
+
+int cam_csid_ppi_init_soc_resources(struct cam_hw_soc_info *soc_info,
 	irq_handler_t ppi_irq_handler, void *irq_data)
 {
 	int rc = 0;
@@ -299,6 +305,8 @@ err:
 	cam_soc_util_release_platform_resource(soc_info);
 	return rc;
 }
+
+irqreturn_t cam_csid_ppi_irq(int irq_num, void *data);
 
 irqreturn_t cam_csid_ppi_irq(int irq_num, void *data)
 {
@@ -359,6 +367,8 @@ ret:
 	CAM_DBG(CAM_ISP, "IRQ Handling exit");
 	return IRQ_HANDLED;
 }
+
+int cam_csid_ppi_hw_deinit(struct cam_csid_ppi_hw *csid_ppi_hw);
 
 int cam_csid_ppi_hw_deinit(struct cam_csid_ppi_hw *csid_ppi_hw)
 {

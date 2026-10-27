@@ -3,6 +3,7 @@
  * Copyright (c) 2021, The Linux Foundation. All rights reserved.
  * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
  */
+#include <linux/vmalloc.h>
 #include <linux/delay.h>
 #include "cam_hw.h"
 #include "cam_hw_intf.h"
@@ -488,6 +489,9 @@ static int cam_cre_bus_rd_isr(struct cam_cre_hw *cam_cre_hw_info,
 
 	return 0;
 }
+
+int cam_cre_bus_rd_process(struct cam_cre_hw *cam_cre_hw_info,
+	int32_t ctx_id, uint32_t cmd_id, void *data);
 
 int cam_cre_bus_rd_process(struct cam_cre_hw *cam_cre_hw_info,
 	int32_t ctx_id, uint32_t cmd_id, void *data)

@@ -6,6 +6,9 @@
 #include "cam_icp_utils.h"
 
 int32_t cam_icp_validate_fw(const uint8_t *elf,
+	uint32_t machine_id);
+
+int32_t cam_icp_validate_fw(const uint8_t *elf,
 	uint32_t machine_id)
 {
 	struct elf32_hdr *elf_hdr;
@@ -36,6 +39,9 @@ int32_t cam_icp_validate_fw(const uint8_t *elf,
 
 	return 0;
 }
+
+int32_t cam_icp_get_fw_size(
+	const uint8_t *elf, uint32_t *fw_size);
 
 int32_t cam_icp_get_fw_size(
 	const uint8_t *elf, uint32_t *fw_size)
@@ -88,6 +94,9 @@ int32_t cam_icp_get_fw_size(
 
 	return rc;
 }
+
+int32_t cam_icp_program_fw(const uint8_t *elf,
+	uintptr_t fw_kva_addr);
 
 int32_t cam_icp_program_fw(const uint8_t *elf,
 	uintptr_t fw_kva_addr)

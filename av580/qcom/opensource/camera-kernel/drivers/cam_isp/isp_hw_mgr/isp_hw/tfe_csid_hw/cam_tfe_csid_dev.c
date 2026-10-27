@@ -4,6 +4,7 @@
  * Copyright (c) 2023 Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
+#include <linux/of.h>
 #include <linux/slab.h>
 #include <linux/mod_devicetable.h>
 #include <linux/of_device.h>
@@ -112,6 +113,9 @@ err:
 }
 
 void cam_tfe_csid_component_unbind(struct device *dev,
+	struct device *master_dev, void *data);
+
+void cam_tfe_csid_component_unbind(struct device *dev,
 	struct device *master_dev, void *data)
 {
 	struct cam_tfe_csid_hw         *csid_dev = NULL;
@@ -139,6 +143,8 @@ const static struct component_ops cam_tfe_csid_component_ops = {
 	.unbind = cam_tfe_csid_component_unbind,
 };
 
+int cam_tfe_csid_probe(struct platform_device *pdev);
+
 int cam_tfe_csid_probe(struct platform_device *pdev)
 {
 	int rc = 0;
@@ -150,11 +156,16 @@ int cam_tfe_csid_probe(struct platform_device *pdev)
 	return rc;
 }
 
-int cam_tfe_csid_remove(struct platform_device *pdev)
+void cam_tfe_csid_remove(struct platform_device *pdev);
+
+void cam_tfe_csid_remove(struct platform_device *pdev)
 {
 	component_del(&pdev->dev, &cam_tfe_csid_component_ops);
-	return 0;
+	return;
 }
+
+int cam_tfe_csid_hw_init(struct cam_hw_intf **tfe_csid_hw,
+	uint32_t hw_idx);
 
 int cam_tfe_csid_hw_init(struct cam_hw_intf **tfe_csid_hw,
 	uint32_t hw_idx)

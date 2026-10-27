@@ -4,6 +4,7 @@
  * Copyright (c) 2022,2024, Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
+#include <linux/of.h>
 #include <linux/of_address.h>
 #include <linux/firmware/qcom/qcom_scm.h>
 #include <linux/soc/qcom/mdt_loader.h>
@@ -125,6 +126,8 @@ static bool cam_lx7_cpas_cb(uint32_t handle, void *user_data,
 	return ret;
 }
 
+int cam_lx7_cpas_register(struct cam_hw_intf *lx7_intf);
+
 int cam_lx7_cpas_register(struct cam_hw_intf *lx7_intf)
 {
 	struct cam_cpas_register_params params;
@@ -142,7 +145,7 @@ int cam_lx7_cpas_register(struct cam_hw_intf *lx7_intf)
 	params.cam_cpas_client_cb = cam_lx7_cpas_cb;
 	params.userdata = NULL;
 
-	strlcpy(params.identifier, "icp", CAM_HW_IDENTIFIER_LENGTH);
+	strscpy(params.identifier, "icp", CAM_HW_IDENTIFIER_LENGTH);
 
 	rc = cam_cpas_register_client(&params);
 	if (rc)
@@ -153,6 +156,8 @@ int cam_lx7_cpas_register(struct cam_hw_intf *lx7_intf)
 
 	return rc;
 }
+
+int cam_lx7_cpas_unregister(struct cam_hw_intf *lx7_intf);
 
 int cam_lx7_cpas_unregister(struct cam_hw_intf *lx7_intf)
 {
@@ -225,6 +230,8 @@ static int cam_lx7_cpas_stop(struct cam_lx7_core_info *core_info)
 	return 0;
 }
 
+int cam_lx7_hw_init(void *priv, void *args, uint32_t arg_size);
+
 int cam_lx7_hw_init(void *priv, void *args, uint32_t arg_size)
 {
 	struct cam_hw_info *lx7 = priv;
@@ -263,6 +270,8 @@ soc_fail:
 	cam_lx7_cpas_stop(lx7->core_info);
 	return rc;
 }
+
+int cam_lx7_hw_deinit(void *priv, void *args, uint32_t arg_size);
 
 int cam_lx7_hw_deinit(void *priv, void *args, uint32_t arg_size)
 {
@@ -825,6 +834,9 @@ static int __cam_lx7_fw_mini_dump(
 }
 
 int cam_lx7_process_cmd(void *priv, uint32_t cmd_type,
+			void *args, uint32_t arg_size);
+
+int cam_lx7_process_cmd(void *priv, uint32_t cmd_type,
 			void *args, uint32_t arg_size)
 {
 	struct cam_hw_info *lx7_info = priv;
@@ -893,6 +905,8 @@ int cam_lx7_process_cmd(void *priv, uint32_t cmd_type,
 	return rc;
 }
 
+irqreturn_t cam_lx7_handle_irq(int irq_num, void *data);
+
 irqreturn_t cam_lx7_handle_irq(int irq_num, void *data)
 {
 	struct cam_hw_info *lx7_info = data;
@@ -936,6 +950,8 @@ irqreturn_t cam_lx7_handle_irq(int irq_num, void *data)
 	return IRQ_HANDLED;
 }
 
+void cam_lx7_irq_raise(void *priv);
+
 void cam_lx7_irq_raise(void *priv)
 {
 	struct cam_hw_info *lx7_info = priv;
@@ -950,6 +966,8 @@ void cam_lx7_irq_raise(void *priv)
 		ICP_LX7_CIRQ_HOST2ICPINT);
 }
 
+void cam_lx7_irq_enable(void *priv);
+
 void cam_lx7_irq_enable(void *priv)
 {
 	struct cam_hw_info *lx7_info = priv;
@@ -963,6 +981,8 @@ void cam_lx7_irq_enable(void *priv)
 		lx7_info->soc_info.reg_map[LX7_CIRQ_BASE].mem_base +
 		ICP_LX7_CIRQ_OB_MASK);
 }
+
+void __iomem *cam_lx7_iface_addr(void *priv);
 
 void __iomem *cam_lx7_iface_addr(void *priv)
 {

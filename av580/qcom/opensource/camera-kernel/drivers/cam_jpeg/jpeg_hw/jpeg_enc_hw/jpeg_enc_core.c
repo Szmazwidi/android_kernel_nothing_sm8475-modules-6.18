@@ -37,6 +37,9 @@
 #define CAM_JPEG_ENC_RESET_TIMEOUT msecs_to_jiffies(500)
 
 int cam_jpeg_enc_init_hw(void *device_priv,
+	void *init_hw_args, uint32_t arg_size);
+
+int cam_jpeg_enc_init_hw(void *device_priv,
 	void *init_hw_args, uint32_t arg_size)
 {
 	struct cam_hw_info *jpeg_enc_dev = device_priv;
@@ -113,6 +116,9 @@ cpas_failed:
 }
 
 int cam_jpeg_enc_deinit_hw(void *device_priv,
+	void *init_hw_args, uint32_t arg_size);
+
+int cam_jpeg_enc_deinit_hw(void *device_priv,
 	void *init_hw_args, uint32_t arg_size)
 {
 	struct cam_hw_info *jpeg_enc_dev = device_priv;
@@ -163,6 +169,8 @@ int cam_jpeg_enc_deinit_hw(void *device_priv,
 
 	return 0;
 }
+
+irqreturn_t cam_jpeg_enc_irq(int irq_num, void *data);
 
 irqreturn_t cam_jpeg_enc_irq(int irq_num, void *data)
 {
@@ -265,6 +273,9 @@ irqreturn_t cam_jpeg_enc_irq(int irq_num, void *data)
 }
 
 int cam_jpeg_enc_reset_hw(void *data,
+	void *start_args, uint32_t arg_size);
+
+int cam_jpeg_enc_reset_hw(void *data,
 	void *start_args, uint32_t arg_size)
 {
 	struct cam_hw_info *jpeg_enc_dev = data;
@@ -327,6 +338,9 @@ int cam_jpeg_enc_reset_hw(void *data,
 }
 
 int cam_jpeg_enc_start_hw(void *data,
+	void *start_args, uint32_t arg_size);
+
+int cam_jpeg_enc_start_hw(void *data,
 	void *start_args, uint32_t arg_size)
 {
 	struct cam_hw_info *jpeg_enc_dev = data;
@@ -366,6 +380,9 @@ int cam_jpeg_enc_start_hw(void *data,
 
 	return 0;
 }
+
+int cam_jpeg_enc_stop_hw(void *data,
+	void *stop_args, uint32_t arg_size);
 
 int cam_jpeg_enc_stop_hw(void *data,
 	void *stop_args, uint32_t arg_size)
@@ -421,6 +438,10 @@ int cam_jpeg_enc_stop_hw(void *data,
 	mutex_unlock(&core_info->core_mutex);
 	return 0;
 }
+
+int cam_jpeg_enc_hw_dump(
+	struct cam_hw_info           *jpeg_enc_dev,
+	struct cam_jpeg_hw_dump_args *dump_args);
 
 int cam_jpeg_enc_hw_dump(
 	struct cam_hw_info           *jpeg_enc_dev,
@@ -524,6 +545,9 @@ static int  cam_jpeg_enc_mini_dump(struct cam_hw_info *dev, void *args) {
 }
 
 int cam_jpeg_enc_dump_camnoc_misr_val(struct cam_jpeg_enc_device_hw_info *hw_info,
+	struct cam_hw_soc_info *soc_info, void *cmd_args);
+
+int cam_jpeg_enc_dump_camnoc_misr_val(struct cam_jpeg_enc_device_hw_info *hw_info,
 	struct cam_hw_soc_info *soc_info, void *cmd_args)
 {
 	void __iomem                         *enc_mem_base = NULL;
@@ -586,6 +610,9 @@ int cam_jpeg_enc_dump_camnoc_misr_val(struct cam_jpeg_enc_device_hw_info *hw_inf
 		camnoc_mem_base + hw_info->camnoc_misr_reg_offset.misc_ctl);
 	return 0;
 }
+
+int cam_jpeg_enc_dump_hw_misr_val(struct cam_jpeg_enc_device_hw_info *hw_info,
+	struct cam_hw_soc_info *soc_info, void *cmd_args);
 
 int cam_jpeg_enc_dump_hw_misr_val(struct cam_jpeg_enc_device_hw_info *hw_info,
 	struct cam_hw_soc_info *soc_info, void *cmd_args)
@@ -653,6 +680,9 @@ int cam_jpeg_enc_dump_hw_misr_val(struct cam_jpeg_enc_device_hw_info *hw_info,
 }
 
 int cam_jpeg_enc_config_cmanoc_hw_misr(struct cam_jpeg_enc_device_hw_info *hw_info,
+	struct cam_hw_soc_info *soc_info, void *cmd_args);
+
+int cam_jpeg_enc_config_cmanoc_hw_misr(struct cam_jpeg_enc_device_hw_info *hw_info,
 	struct cam_hw_soc_info *soc_info, void *cmd_args)
 {
 	void __iomem                         *enc_mem_base = NULL;
@@ -713,6 +743,9 @@ int cam_jpeg_enc_config_cmanoc_hw_misr(struct cam_jpeg_enc_device_hw_info *hw_in
 
 	return 0;
 }
+
+int cam_jpeg_enc_process_cmd(void *device_priv, uint32_t cmd_type,
+	void *cmd_args, uint32_t arg_size);
 
 int cam_jpeg_enc_process_cmd(void *device_priv, uint32_t cmd_type,
 	void *cmd_args, uint32_t arg_size)

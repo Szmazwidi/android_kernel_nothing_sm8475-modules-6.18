@@ -4,6 +4,7 @@
  * Copyright (c) 2022,2024 Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
+#include <linux/of.h>
 #include <linux/iopoll.h>
 #include <linux/slab.h>
 #include <media/cam_tfe.h>
@@ -2685,6 +2686,9 @@ end:
 }
 
 int cam_tfe_csid_halt(struct cam_tfe_csid_hw *csid_hw,
+	void *halt_args);
+
+int cam_tfe_csid_halt(struct cam_tfe_csid_hw *csid_hw,
 	void *halt_args)
 {
 	struct cam_isp_resource_node         *res;
@@ -3421,6 +3425,8 @@ static int cam_tfe_csid_handle_hw_err_irq(
 	return rc;
 }
 
+irqreturn_t cam_tfe_csid_irq(int irq_num, void *data);
+
 irqreturn_t cam_tfe_csid_irq(int irq_num, void *data)
 {
 	struct cam_tfe_csid_hw                         *csid_hw;
@@ -3908,6 +3914,9 @@ handle_fatal_error:
 }
 
 int cam_tfe_csid_hw_probe_init(struct cam_hw_intf  *csid_hw_intf,
+	uint32_t csid_idx);
+
+int cam_tfe_csid_hw_probe_init(struct cam_hw_intf  *csid_hw_intf,
 	uint32_t csid_idx)
 {
 	int rc = -EINVAL;
@@ -4105,6 +4114,8 @@ err:
 	return rc;
 }
 
+
+int cam_tfe_csid_hw_deinit(struct cam_tfe_csid_hw *tfe_csid_hw);
 
 int cam_tfe_csid_hw_deinit(struct cam_tfe_csid_hw *tfe_csid_hw)
 {

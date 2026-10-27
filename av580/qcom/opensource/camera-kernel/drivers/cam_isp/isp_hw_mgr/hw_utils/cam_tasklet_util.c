@@ -83,6 +83,10 @@ struct cam_irq_bh_api tasklet_bh_api = {
 
 int cam_tasklet_get_cmd(
 	void                         *bottom_half,
+	void                        **bh_cmd);
+
+int cam_tasklet_get_cmd(
+	void                         *bottom_half,
 	void                        **bh_cmd)
 {
 	int           rc = 0;
@@ -121,6 +125,10 @@ spin_unlock:
 	spin_unlock_irqrestore(&tasklet->tasklet_lock, flags);
 	return rc;
 }
+
+void cam_tasklet_put_cmd(
+	void                         *bottom_half,
+	void                        **bh_cmd);
 
 void cam_tasklet_put_cmd(
 	void                         *bottom_half,
@@ -193,6 +201,13 @@ void cam_tasklet_enqueue_cmd(
 	void                              *bh_cmd,
 	void                              *handler_priv,
 	void                              *evt_payload_priv,
+	CAM_IRQ_HANDLER_BOTTOM_HALF        bottom_half_handler);
+
+void cam_tasklet_enqueue_cmd(
+	void                              *bottom_half,
+	void                              *bh_cmd,
+	void                              *handler_priv,
+	void                              *evt_payload_priv,
 	CAM_IRQ_HANDLER_BOTTOM_HALF        bottom_half_handler)
 {
 	unsigned long                  flags;
@@ -230,6 +245,11 @@ void cam_tasklet_enqueue_cmd(
 int cam_tasklet_init(
 	void                    **tasklet_info,
 	void                     *hw_mgr_ctx,
+	uint32_t                  idx);
+
+int cam_tasklet_init(
+	void                    **tasklet_info,
+	void                     *hw_mgr_ctx,
 	uint32_t                  idx)
 {
 	int i;
@@ -263,6 +283,8 @@ int cam_tasklet_init(
 	return 0;
 }
 
+void cam_tasklet_deinit(void    **tasklet_info);
+
 void cam_tasklet_deinit(void    **tasklet_info)
 {
 	struct cam_tasklet_info *tasklet = *tasklet_info;
@@ -280,6 +302,8 @@ static inline void cam_tasklet_flush(struct cam_tasklet_info *tasklet_info)
 {
 	cam_tasklet_action((unsigned long) tasklet_info);
 }
+
+int cam_tasklet_start(void  *tasklet_info);
 
 int cam_tasklet_start(void  *tasklet_info)
 {
@@ -305,6 +329,8 @@ int cam_tasklet_start(void  *tasklet_info)
 
 	return 0;
 }
+
+void cam_tasklet_stop(void  *tasklet_info);
 
 void cam_tasklet_stop(void  *tasklet_info)
 {

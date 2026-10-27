@@ -45,6 +45,9 @@ static int cam_ipe_cpas_vote(struct cam_ipe_device_core_info *core_info,
 }
 
 int cam_ipe_init_hw(void *device_priv,
+	void *init_hw_args, uint32_t arg_size);
+
+int cam_ipe_init_hw(void *device_priv,
 	void *init_hw_args, uint32_t arg_size)
 {
 	struct cam_hw_info *ipe_dev = device_priv;
@@ -107,6 +110,9 @@ int cam_ipe_init_hw(void *device_priv,
 error:
 	return rc;
 }
+
+int cam_ipe_deinit_hw(void *device_priv,
+	void *init_hw_args, uint32_t arg_size);
 
 int cam_ipe_deinit_hw(void *device_priv,
 	void *init_hw_args, uint32_t arg_size)
@@ -357,6 +363,9 @@ static int cam_ipe_cmd_reset(struct cam_hw_soc_info *soc_info,
 }
 
 int cam_ipe_process_cmd(void *device_priv, uint32_t cmd_type,
+	void *cmd_args, uint32_t arg_size);
+
+int cam_ipe_process_cmd(void *device_priv, uint32_t cmd_type,
 	void *cmd_args, uint32_t arg_size)
 {
 	struct cam_hw_info *ipe_dev = device_priv;
@@ -480,6 +489,8 @@ int cam_ipe_process_cmd(void *device_priv, uint32_t cmd_type,
 	}
 	return rc;
 }
+
+irqreturn_t cam_ipe_irq(int irq_num, void *data);
 
 irqreturn_t cam_ipe_irq(int irq_num, void *data)
 {

@@ -3879,6 +3879,8 @@ static int __cam_vfe_bus_process_cmd(void *priv,
 	return cam_vfe_bus_process_cmd(priv, cmd_type, cmd_args, arg_size);
 }
 
+int cam_vfe_bus_dump_wm_data(void *priv, void *cmd_args, uint32_t arg_size);
+
 int cam_vfe_bus_dump_wm_data(void *priv, void *cmd_args, uint32_t arg_size)
 {
 	struct cam_vfe_bus_ver2_priv  *bus_priv =
@@ -4034,6 +4036,13 @@ static int cam_vfe_bus_process_cmd(
 
 	return rc;
 }
+
+int cam_vfe_bus_ver2_init(
+	struct cam_hw_soc_info               *soc_info,
+	struct cam_hw_intf                   *hw_intf,
+	void                                 *bus_hw_info,
+	void                                 *vfe_irq_controller,
+	struct cam_vfe_bus                  **vfe_bus);
 
 int cam_vfe_bus_ver2_init(
 	struct cam_hw_soc_info               *soc_info,
@@ -4197,6 +4206,9 @@ free_bus_local:
 end:
 	return rc;
 }
+
+int cam_vfe_bus_ver2_deinit(
+	struct cam_vfe_bus                  **vfe_bus);
 
 int cam_vfe_bus_ver2_deinit(
 	struct cam_vfe_bus                  **vfe_bus)

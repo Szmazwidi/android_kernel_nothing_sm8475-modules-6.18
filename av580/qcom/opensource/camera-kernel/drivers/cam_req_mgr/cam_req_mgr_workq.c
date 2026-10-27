@@ -23,6 +23,9 @@
 }
 
 struct crm_workq_task *cam_req_mgr_workq_get_task(
+	struct cam_req_mgr_core_workq *workq);
+
+struct crm_workq_task *cam_req_mgr_workq_get_task(
 	struct cam_req_mgr_core_workq *workq)
 {
 	struct crm_workq_task *task = NULL;
@@ -65,6 +68,8 @@ static void cam_req_mgr_workq_put_task(struct crm_workq_task *task)
 	WORKQ_RELEASE_LOCK(workq, flags);
 }
 
+void cam_req_mgr_workq_flush(struct cam_req_mgr_core_workq *workq);
+
 void cam_req_mgr_workq_flush(struct cam_req_mgr_core_workq *workq)
 {
 	if (!workq) {
@@ -102,6 +107,8 @@ static int cam_req_mgr_process_task(struct crm_workq_task *task)
  * cam_req_mgr_process_workq() - main loop handling
  * @w: workqueue task pointer
  */
+void cam_req_mgr_process_workq(struct work_struct *w);
+
 void cam_req_mgr_process_workq(struct work_struct *w)
 {
 	struct cam_req_mgr_core_workq *workq = NULL;
@@ -144,6 +151,9 @@ void cam_req_mgr_process_workq(struct work_struct *w)
 		sched_start_time,
 		CAM_WORKQ_EXE_TIME_THRESHOLD);
 }
+
+int cam_req_mgr_workq_enqueue_task(struct crm_workq_task *task,
+	void *priv, int32_t prio);
 
 int cam_req_mgr_workq_enqueue_task(struct crm_workq_task *task,
 	void *priv, int32_t prio)
@@ -198,6 +208,10 @@ abort:
 
 int cam_req_mgr_workq_create(char *name, int32_t num_tasks,
 	struct cam_req_mgr_core_workq **workq, enum crm_workq_context in_irq,
+	int flags, void (*func)(struct work_struct *w));
+
+int cam_req_mgr_workq_create(char *name, int32_t num_tasks,
+	struct cam_req_mgr_core_workq **workq, enum crm_workq_context in_irq,
 	int flags, void (*func)(struct work_struct *w))
 {
 	int32_t i, wq_flags = 0, max_active_tasks = 0;
@@ -228,7 +242,7 @@ int cam_req_mgr_workq_create(char *name, int32_t num_tasks,
 		}
 
 		/* Workq attributes initialization */
-		strlcpy(crm_workq->workq_name, buf, sizeof(crm_workq->workq_name));
+		strscpy(crm_workq->workq_name, buf, sizeof(crm_workq->workq_name));
 		INIT_WORK(&crm_workq->work, func);
 		spin_lock_init(&crm_workq->lock_bh);
 		CAM_DBG(CAM_CRM, "LOCK_DBG workq %s lock %pK",
@@ -267,6 +281,8 @@ int cam_req_mgr_workq_create(char *name, int32_t num_tasks,
 
 	return 0;
 }
+
+void cam_req_mgr_workq_destroy(struct cam_req_mgr_core_workq **crm_workq);
 
 void cam_req_mgr_workq_destroy(struct cam_req_mgr_core_workq **crm_workq)
 {

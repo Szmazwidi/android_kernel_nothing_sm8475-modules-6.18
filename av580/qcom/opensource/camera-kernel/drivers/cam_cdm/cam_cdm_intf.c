@@ -119,6 +119,9 @@ static int get_cdm_index_by_id(char *identifier,
 }
 
 int cam_cdm_get_iommu_handle(char *identifier,
+	struct cam_iommu_handle *cdm_handles);
+
+int cam_cdm_get_iommu_handle(char *identifier,
 	struct cam_iommu_handle *cdm_handles)
 {
 	int i, j, rc = -EPERM;
@@ -162,6 +165,8 @@ int cam_cdm_get_iommu_handle(char *identifier,
 	return rc;
 }
 EXPORT_SYMBOL(cam_cdm_get_iommu_handle);
+
+int cam_cdm_acquire(struct cam_cdm_acquire_data *data);
 
 int cam_cdm_acquire(struct cam_cdm_acquire_data *data)
 {
@@ -222,6 +227,8 @@ end:
 }
 EXPORT_SYMBOL(cam_cdm_acquire);
 
+struct cam_cdm_utils_ops *cam_cdm_publish_ops(void);
+
 struct cam_cdm_utils_ops *cam_cdm_publish_ops(void)
 {
 	struct cam_hw_version cdm_version;
@@ -234,6 +241,8 @@ struct cam_cdm_utils_ops *cam_cdm_publish_ops(void)
 	return cam_cdm_get_ops(0, &cdm_version, true);
 }
 EXPORT_SYMBOL(cam_cdm_publish_ops);
+
+int cam_cdm_release(uint32_t handle);
 
 int cam_cdm_release(uint32_t handle)
 {
@@ -269,6 +278,8 @@ int cam_cdm_release(uint32_t handle)
 }
 EXPORT_SYMBOL(cam_cdm_release);
 
+
+int cam_cdm_submit_bls(uint32_t handle, struct cam_cdm_bl_request *data);
 
 int cam_cdm_submit_bls(uint32_t handle, struct cam_cdm_bl_request *data)
 {
@@ -311,6 +322,8 @@ int cam_cdm_submit_bls(uint32_t handle, struct cam_cdm_bl_request *data)
 }
 EXPORT_SYMBOL(cam_cdm_submit_bls);
 
+int cam_cdm_stream_on(uint32_t handle);
+
 int cam_cdm_stream_on(uint32_t handle)
 {
 	uint32_t hw_index;
@@ -345,6 +358,8 @@ int cam_cdm_stream_on(uint32_t handle)
 }
 EXPORT_SYMBOL(cam_cdm_stream_on);
 
+int cam_cdm_stream_off(uint32_t handle);
+
 int cam_cdm_stream_off(uint32_t handle)
 {
 	uint32_t hw_index;
@@ -376,6 +391,8 @@ int cam_cdm_stream_off(uint32_t handle)
 	return rc;
 }
 EXPORT_SYMBOL(cam_cdm_stream_off);
+
+int cam_cdm_reset_hw(uint32_t handle);
 
 int cam_cdm_reset_hw(uint32_t handle)
 {
@@ -411,6 +428,8 @@ int cam_cdm_reset_hw(uint32_t handle)
 }
 EXPORT_SYMBOL(cam_cdm_reset_hw);
 
+int cam_cdm_flush_hw(uint32_t handle);
+
 int cam_cdm_flush_hw(uint32_t handle)
 {
 	uint32_t hw_index;
@@ -444,6 +463,8 @@ int cam_cdm_flush_hw(uint32_t handle)
 	return rc;
 }
 EXPORT_SYMBOL(cam_cdm_flush_hw);
+
+int cam_cdm_handle_error(uint32_t handle);
 
 int cam_cdm_handle_error(uint32_t handle)
 {
@@ -480,6 +501,8 @@ int cam_cdm_handle_error(uint32_t handle)
 }
 EXPORT_SYMBOL(cam_cdm_handle_error);
 
+int cam_cdm_detect_hang_error(uint32_t handle);
+
 int cam_cdm_detect_hang_error(uint32_t handle)
 {
 	uint32_t hw_index;
@@ -507,6 +530,8 @@ int cam_cdm_detect_hang_error(uint32_t handle)
 }
 EXPORT_SYMBOL(cam_cdm_detect_hang_error);
 
+int cam_cdm_dump_debug_registers(uint32_t handle);
+
 int cam_cdm_dump_debug_registers(uint32_t handle)
 {
 	uint32_t hw_index;
@@ -532,6 +557,10 @@ int cam_cdm_dump_debug_registers(uint32_t handle)
 
 	return rc;
 }
+
+int cam_cdm_intf_register_hw_cdm(struct cam_hw_intf *hw,
+	struct cam_cdm_private_dt_data *data, enum cam_cdm_type type,
+	uint32_t *index);
 
 int cam_cdm_intf_register_hw_cdm(struct cam_hw_intf *hw,
 	struct cam_cdm_private_dt_data *data, enum cam_cdm_type type,
@@ -574,6 +603,10 @@ int cam_cdm_intf_register_hw_cdm(struct cam_hw_intf *hw,
 
 	return rc;
 }
+
+int cam_cdm_intf_deregister_hw_cdm(struct cam_hw_intf *hw,
+	struct cam_cdm_private_dt_data *data, enum cam_cdm_type type,
+	uint32_t index);
 
 int cam_cdm_intf_deregister_hw_cdm(struct cam_hw_intf *hw,
 	struct cam_cdm_private_dt_data *data, enum cam_cdm_type type,
@@ -718,10 +751,10 @@ static int cam_cdm_intf_probe(struct platform_device *pdev)
 	return rc;
 }
 
-static int cam_cdm_intf_remove(struct platform_device *pdev)
+static void cam_cdm_intf_remove(struct platform_device *pdev)
 {
 	component_del(&pdev->dev, &cam_cdm_intf_component_ops);
-	return 0;
+	return;
 }
 
 struct platform_driver cam_cdm_intf_driver = {
@@ -735,10 +768,14 @@ struct platform_driver cam_cdm_intf_driver = {
 	},
 };
 
+int cam_cdm_intf_init_module(void);
+
 int cam_cdm_intf_init_module(void)
 {
 	return platform_driver_register(&cam_cdm_intf_driver);
 }
+
+void cam_cdm_intf_exit_module(void);
 
 void cam_cdm_intf_exit_module(void)
 {

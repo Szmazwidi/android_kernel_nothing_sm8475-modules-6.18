@@ -47,6 +47,8 @@ static void cam_sync_print_fence_table(void)
 	}
 }
 
+int cam_sync_create(int32_t *sync_obj, const char *name);
+
 int cam_sync_create(int32_t *sync_obj, const char *name)
 {
 	int rc;
@@ -83,6 +85,9 @@ int cam_sync_create(int32_t *sync_obj, const char *name)
 
 	return rc;
 }
+
+int cam_sync_register_callback(sync_callback cb_func,
+	void *userdata, int32_t sync_obj);
 
 int cam_sync_register_callback(sync_callback cb_func,
 	void *userdata, int32_t sync_obj)
@@ -155,6 +160,9 @@ int cam_sync_register_callback(sync_callback cb_func,
 }
 
 int cam_sync_deregister_callback(sync_callback cb_func,
+	void *userdata, int32_t sync_obj);
+
+int cam_sync_deregister_callback(sync_callback cb_func,
 	void *userdata, int32_t sync_obj)
 {
 	struct sync_table_row *row = NULL;
@@ -191,6 +199,8 @@ int cam_sync_deregister_callback(sync_callback cb_func,
 	spin_unlock_bh(&sync_dev->row_spinlocks[sync_obj]);
 	return found ? 0 : -ENOENT;
 }
+
+int cam_sync_signal(int32_t sync_obj, uint32_t status, uint32_t event_cause);
 
 int cam_sync_signal(int32_t sync_obj, uint32_t status, uint32_t event_cause)
 {
@@ -297,6 +307,8 @@ int cam_sync_signal(int32_t sync_obj, uint32_t status, uint32_t event_cause)
 	return 0;
 }
 
+int cam_sync_merge(int32_t *sync_obj, uint32_t num_objs, int32_t *merged_obj);
+
 int cam_sync_merge(int32_t *sync_obj, uint32_t num_objs, int32_t *merged_obj)
 {
 	int rc;
@@ -353,6 +365,8 @@ int cam_sync_merge(int32_t *sync_obj, uint32_t num_objs, int32_t *merged_obj)
 	return 0;
 }
 
+int cam_sync_get_obj_ref(int32_t sync_obj);
+
 int cam_sync_get_obj_ref(int32_t sync_obj)
 {
 	struct sync_table_row *row = NULL;
@@ -380,6 +394,8 @@ int cam_sync_get_obj_ref(int32_t sync_obj)
 	return 0;
 }
 
+int cam_sync_put_obj_ref(int32_t sync_obj);
+
 int cam_sync_put_obj_ref(int32_t sync_obj)
 {
 	struct sync_table_row *row = NULL;
@@ -393,6 +409,8 @@ int cam_sync_put_obj_ref(int32_t sync_obj)
 
 	return 0;
 }
+
+int cam_sync_destroy(int32_t sync_obj);
 
 int cam_sync_destroy(int32_t sync_obj)
 {
@@ -426,6 +444,8 @@ int cam_sync_destroy(int32_t sync_obj)
 	return cam_sync_put_wait_ref(sync_obj);
 }
 
+int cam_sync_check_valid(int32_t sync_obj);
+
 int cam_sync_check_valid(int32_t sync_obj)
 {
 	struct sync_table_row *row = NULL;
@@ -451,6 +471,8 @@ int cam_sync_check_valid(int32_t sync_obj)
 	}
 	return 0;
 }
+
+int cam_sync_wait(int32_t sync_obj, uint64_t timeout_ms);
 
 int cam_sync_wait(int32_t sync_obj, uint64_t timeout_ms)
 {
@@ -987,6 +1009,9 @@ static struct v4l2_subscribed_event_ops cam_sync_v4l2_ops = {
 };
 
 int cam_sync_subscribe_event(struct v4l2_fh *fh,
+		const struct v4l2_event_subscription *sub);
+
+int cam_sync_subscribe_event(struct v4l2_fh *fh,
 		const struct v4l2_event_subscription *sub)
 {
 	if (!((sub->type == CAM_SYNC_V4L_EVENT) ||
@@ -1000,6 +1025,9 @@ int cam_sync_subscribe_event(struct v4l2_fh *fh,
 	return v4l2_event_subscribe(fh, sub, CAM_SYNC_MAX_V4L2_EVENTS,
 		&cam_sync_v4l2_ops);
 }
+
+int cam_sync_unsubscribe_event(struct v4l2_fh *fh,
+		const struct v4l2_event_subscription *sub);
 
 int cam_sync_unsubscribe_event(struct v4l2_fh *fh,
 		const struct v4l2_event_subscription *sub)
@@ -1042,7 +1070,7 @@ static int cam_sync_media_controller_init(struct sync_device *sync_dev,
 		return -ENOMEM;
 
 	media_device_init(sync_dev->v4l2_dev.mdev);
-	strlcpy(sync_dev->v4l2_dev.mdev->model, CAM_SYNC_DEVICE_NAME,
+	strscpy(sync_dev->v4l2_dev.mdev->model, CAM_SYNC_DEVICE_NAME,
 			sizeof(sync_dev->v4l2_dev.mdev->model));
 	sync_dev->v4l2_dev.mdev->dev = &(pdev->dev);
 
@@ -1115,6 +1143,8 @@ end:
 }
 
 #if IS_REACHABLE(CONFIG_MSM_GLOBAL_SYNX)
+int cam_synx_sync_signal(int32_t sync_obj, uint32_t synx_status);
+
 int cam_synx_sync_signal(int32_t sync_obj, uint32_t synx_status)
 {
 	int rc = 0;
@@ -1218,7 +1248,7 @@ static int cam_sync_component_bind(struct device *dev,
 	if (rc < 0)
 		goto register_fail;
 
-	strlcpy(sync_dev->vdev->name, CAM_SYNC_NAME,
+	strscpy(sync_dev->vdev->name, CAM_SYNC_NAME,
 				sizeof(sync_dev->vdev->name));
 	sync_dev->vdev->release  = video_device_release_empty;
 	sync_dev->vdev->fops     = &cam_sync_v4l2_fops;
@@ -1320,10 +1350,10 @@ static int cam_sync_probe(struct platform_device *pdev)
 	return rc;
 }
 
-static int cam_sync_remove(struct platform_device *pdev)
+static void cam_sync_remove(struct platform_device *pdev)
 {
 	component_del(&pdev->dev, &cam_sync_component_ops);
-	return 0;
+	return;
 }
 
 static const struct of_device_id cam_sync_dt_match[] = {
@@ -1344,10 +1374,14 @@ struct platform_driver cam_sync_driver = {
 	},
 };
 
+int cam_sync_init(void);
+
 int cam_sync_init(void)
 {
 	return platform_driver_register(&cam_sync_driver);
 }
+
+void cam_sync_exit(void);
 
 void cam_sync_exit(void)
 {

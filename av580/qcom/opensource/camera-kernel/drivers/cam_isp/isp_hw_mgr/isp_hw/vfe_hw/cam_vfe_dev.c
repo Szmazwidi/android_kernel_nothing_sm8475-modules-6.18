@@ -5,6 +5,7 @@
  */
 
 
+#include <linux/of.h>
 #include <linux/slab.h>
 #include <linux/mod_devicetable.h>
 #include <linux/of_device.h>
@@ -202,6 +203,8 @@ const static struct component_ops cam_vfe_component_ops = {
 	.unbind = cam_vfe_component_unbind,
 };
 
+void cam_vfe_get_num_ifes(uint32_t *num_ifes);
+
 void cam_vfe_get_num_ifes(uint32_t *num_ifes)
 {
 	if (num_ifes)
@@ -210,6 +213,8 @@ void cam_vfe_get_num_ifes(uint32_t *num_ifes)
 		CAM_ERR(CAM_ISP, "Invalid argument, g_num_ife_hws: %u", g_num_ife_hws);
 }
 
+void cam_vfe_get_num_ife_lites(uint32_t *num_ife_lites);
+
 void cam_vfe_get_num_ife_lites(uint32_t *num_ife_lites)
 {
 	if (num_ife_lites)
@@ -217,6 +222,8 @@ void cam_vfe_get_num_ife_lites(uint32_t *num_ife_lites)
 	else
 		CAM_ERR(CAM_ISP, "Invalid argument, g_num_ife_lite_hws: %u", g_num_ife_lite_hws);
 }
+
+int cam_vfe_probe(struct platform_device *pdev);
 
 int cam_vfe_probe(struct platform_device *pdev)
 {
@@ -247,11 +254,16 @@ int cam_vfe_probe(struct platform_device *pdev)
 	return rc;
 }
 
-int cam_vfe_remove(struct platform_device *pdev)
+void cam_vfe_remove(struct platform_device *pdev);
+
+void cam_vfe_remove(struct platform_device *pdev)
 {
 	component_del(&pdev->dev, &cam_vfe_component_ops);
-	return 0;
+	return;
 }
+
+int cam_vfe_hw_init(struct cam_isp_hw_intf_data **vfe_hw_intf,
+	uint32_t hw_idx);
 
 int cam_vfe_hw_init(struct cam_isp_hw_intf_data **vfe_hw_intf,
 	uint32_t hw_idx)

@@ -14,6 +14,9 @@
 #include "cam_soc_util.h"
 
 int32_t cam_sensor_get_sub_module_index(struct device_node *of_node,
+	struct cam_sensor_board_info *s_info);
+
+int32_t cam_sensor_get_sub_module_index(struct device_node *of_node,
 	struct cam_sensor_board_info *s_info)
 {
 	int rc = 0, i = 0;
@@ -276,6 +279,8 @@ FREE_SENSOR_DATA:
 
 	return rc;
 }
+
+int32_t cam_sensor_parse_dt(struct cam_sensor_ctrl_t *s_ctrl);
 
 int32_t cam_sensor_parse_dt(struct cam_sensor_ctrl_t *s_ctrl)
 {

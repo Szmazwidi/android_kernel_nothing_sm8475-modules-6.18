@@ -203,6 +203,12 @@ int cam_jpeg_context_init(struct cam_jpeg_context *ctx,
 	struct cam_context *ctx_base,
 	struct cam_hw_mgr_intf *hw_intf,
 	uint32_t ctx_id,
+	int img_iommu_hdl);
+
+int cam_jpeg_context_init(struct cam_jpeg_context *ctx,
+	struct cam_context *ctx_base,
+	struct cam_hw_mgr_intf *hw_intf,
+	uint32_t ctx_id,
 	int img_iommu_hdl)
 {
 	int rc;
@@ -237,6 +243,8 @@ int cam_jpeg_context_init(struct cam_jpeg_context *ctx,
 err:
 	return rc;
 }
+
+int cam_jpeg_context_deinit(struct cam_jpeg_context *ctx);
 
 int cam_jpeg_context_deinit(struct cam_jpeg_context *ctx)
 {

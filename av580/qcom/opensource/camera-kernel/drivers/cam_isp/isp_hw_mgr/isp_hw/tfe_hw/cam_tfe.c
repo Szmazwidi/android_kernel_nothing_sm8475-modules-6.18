@@ -40,10 +40,14 @@ struct platform_driver cam_tfe_driver = {
 	},
 };
 
+int cam_tfe_init_module(void);
+
 int cam_tfe_init_module(void)
 {
 	return platform_driver_register(&cam_tfe_driver);
 }
+
+void cam_tfe_exit_module(void);
 
 void cam_tfe_exit_module(void)
 {

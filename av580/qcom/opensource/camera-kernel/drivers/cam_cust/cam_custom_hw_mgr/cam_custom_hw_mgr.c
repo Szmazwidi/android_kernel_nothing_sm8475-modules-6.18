@@ -74,6 +74,10 @@ static int cam_custom_mgr_get_hw_caps(void *hw_mgr_priv,
 
 enum cam_custom_hw_resource_state
 	cam_custom_hw_mgr_get_custom_res_state(
+	uint32_t						in_rsrc_state);
+
+enum cam_custom_hw_resource_state
+	cam_custom_hw_mgr_get_custom_res_state(
 	uint32_t						in_rsrc_state)
 {
 	enum cam_custom_hw_resource_state     rsrc_state;
@@ -107,6 +111,10 @@ enum cam_custom_hw_resource_state
 
 enum cam_isp_resource_state
 	cam_custom_hw_mgr_get_isp_res_state(
+	uint32_t						in_rsrc_state);
+
+enum cam_isp_resource_state
+	cam_custom_hw_mgr_get_isp_res_state(
 	uint32_t						in_rsrc_state)
 {
 	enum cam_isp_resource_state     rsrc_state;
@@ -137,6 +145,10 @@ enum cam_isp_resource_state
 
 	return rsrc_state;
 }
+
+enum cam_isp_resource_type
+	cam_custom_hw_mgr_get_isp_res_type(
+	enum cam_custom_hw_mgr_res_type res_type);
 
 enum cam_isp_resource_type
 	cam_custom_hw_mgr_get_isp_res_type(
@@ -1478,6 +1490,9 @@ static int cam_custom_mgr_cmd(void *hw_mgr_priv, void *cmd_args)
 
 	return rc;
 }
+
+int cam_custom_hw_mgr_init(struct device_node *of_node,
+	struct cam_hw_mgr_intf *hw_mgr_intf, int *iommu_hdl);
 
 int cam_custom_hw_mgr_init(struct device_node *of_node,
 	struct cam_hw_mgr_intf *hw_mgr_intf, int *iommu_hdl)

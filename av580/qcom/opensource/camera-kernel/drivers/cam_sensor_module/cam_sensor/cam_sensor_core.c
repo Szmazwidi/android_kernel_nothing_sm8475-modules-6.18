@@ -480,6 +480,9 @@ static int32_t cam_sensor_i2c_modes_util(
 }
 
 int32_t cam_sensor_update_i2c_info(struct cam_cmd_i2c_info *i2c_info,
+	struct cam_sensor_ctrl_t *s_ctrl);
+
+int32_t cam_sensor_update_i2c_info(struct cam_cmd_i2c_info *i2c_info,
 	struct cam_sensor_ctrl_t *s_ctrl)
 {
 	int32_t rc = 0;
@@ -506,6 +509,9 @@ int32_t cam_sensor_update_i2c_info(struct cam_cmd_i2c_info *i2c_info,
 		i2c_info->slave_addr;
 	return rc;
 }
+
+int32_t cam_sensor_update_slave_info(void *probe_info,
+	uint32_t cmd, struct cam_sensor_ctrl_t *s_ctrl, uint8_t probe_ver);
 
 int32_t cam_sensor_update_slave_info(void *probe_info,
 	uint32_t cmd, struct cam_sensor_ctrl_t *s_ctrl, uint8_t probe_ver)
@@ -558,6 +564,12 @@ int32_t cam_sensor_update_slave_info(void *probe_info,
 		s_ctrl->pipeline_delay);
 	return rc;
 }
+
+int32_t cam_handle_cmd_buffers_for_probe(void *cmd_buf,
+	struct cam_sensor_ctrl_t *s_ctrl,
+	int32_t cmd_buf_num, uint32_t cmd,
+	uint32_t cmd_buf_length, size_t remain_len,
+	uint32_t probe_ver, struct cam_cmd_buf_desc *cmd_desc);
 
 int32_t cam_handle_cmd_buffers_for_probe(void *cmd_buf,
 	struct cam_sensor_ctrl_t *s_ctrl,
@@ -656,6 +668,9 @@ int32_t cam_handle_cmd_buffers_for_probe(void *cmd_buf,
 	}
 	return rc;
 }
+
+int32_t cam_handle_mem_ptr(uint64_t handle, uint32_t cmd,
+	struct cam_sensor_ctrl_t *s_ctrl);
 
 int32_t cam_handle_mem_ptr(uint64_t handle, uint32_t cmd,
 	struct cam_sensor_ctrl_t *s_ctrl)
@@ -757,6 +772,9 @@ end:
 }
 
 void cam_sensor_query_cap(struct cam_sensor_ctrl_t *s_ctrl,
+	struct  cam_sensor_query_cap *query_cap);
+
+void cam_sensor_query_cap(struct cam_sensor_ctrl_t *s_ctrl,
 	struct  cam_sensor_query_cap *query_cap)
 {
 	query_cap->pos_roll = s_ctrl->sensordata->pos_roll;
@@ -795,6 +813,8 @@ static uint16_t cam_sensor_id_by_mask(struct cam_sensor_ctrl_t *s_ctrl,
 	}
 	return sensor_id;
 }
+
+void cam_sensor_shutdown(struct cam_sensor_ctrl_t *s_ctrl);
 
 void cam_sensor_shutdown(struct cam_sensor_ctrl_t *s_ctrl)
 {
@@ -835,6 +855,8 @@ void cam_sensor_shutdown(struct cam_sensor_ctrl_t *s_ctrl)
 	s_ctrl->sensor_state = CAM_SENSOR_INIT;
 }
 
+int cam_sensor_match_id(struct cam_sensor_ctrl_t *s_ctrl);
+
 int cam_sensor_match_id(struct cam_sensor_ctrl_t *s_ctrl)
 {
 	int rc = 0;
@@ -869,6 +891,9 @@ int cam_sensor_match_id(struct cam_sensor_ctrl_t *s_ctrl)
 	}
 	return rc;
 }
+
+int32_t cam_sensor_driver_cmd(struct cam_sensor_ctrl_t *s_ctrl,
+	void *arg);
 
 int32_t cam_sensor_driver_cmd(struct cam_sensor_ctrl_t *s_ctrl,
 	void *arg)
@@ -1374,6 +1399,8 @@ free_power_settings:
 	return rc;
 }
 
+int cam_sensor_publish_dev_info(struct cam_req_mgr_device_info *info);
+
 int cam_sensor_publish_dev_info(struct cam_req_mgr_device_info *info)
 {
 	int rc = 0;
@@ -1391,7 +1418,7 @@ int cam_sensor_publish_dev_info(struct cam_req_mgr_device_info *info)
 	}
 
 	info->dev_id = CAM_REQ_MGR_DEVICE_SENSOR;
-	strlcpy(info->name, CAM_SENSOR_NAME, sizeof(info->name));
+	strscpy(info->name, CAM_SENSOR_NAME, sizeof(info->name));
 
 	if (s_ctrl->batch_number >= 2)
 		info->p_delay = 1;
@@ -1407,6 +1434,8 @@ int cam_sensor_publish_dev_info(struct cam_req_mgr_device_info *info)
 
 	return rc;
 }
+
+int cam_sensor_establish_link(struct cam_req_mgr_core_dev_link_setup *link);
 
 int cam_sensor_establish_link(struct cam_req_mgr_core_dev_link_setup *link)
 {
@@ -1435,6 +1464,8 @@ int cam_sensor_establish_link(struct cam_req_mgr_core_dev_link_setup *link)
 	return 0;
 }
 
+int cam_sensor_power(struct v4l2_subdev *sd, int on);
+
 int cam_sensor_power(struct v4l2_subdev *sd, int on)
 {
 	struct cam_sensor_ctrl_t *s_ctrl = v4l2_get_subdevdata(sd);
@@ -1448,6 +1479,8 @@ int cam_sensor_power(struct v4l2_subdev *sd, int on)
 
 	return 0;
 }
+
+int cam_sensor_power_up(struct cam_sensor_ctrl_t *s_ctrl);
 
 int cam_sensor_power_up(struct cam_sensor_ctrl_t *s_ctrl)
 {
@@ -1519,6 +1552,8 @@ cci_failure:
 
 }
 
+int cam_sensor_power_down(struct cam_sensor_ctrl_t *s_ctrl);
+
 int cam_sensor_power_down(struct cam_sensor_ctrl_t *s_ctrl)
 {
 	struct cam_sensor_power_ctrl_t *power_info;
@@ -1578,6 +1613,9 @@ int cam_sensor_power_down(struct cam_sensor_ctrl_t *s_ctrl)
 
 	return rc;
 }
+
+int cam_sensor_apply_settings(struct cam_sensor_ctrl_t *s_ctrl,
+	uint64_t req_id, enum cam_sensor_packet_opcodes opcode);
 
 int cam_sensor_apply_settings(struct cam_sensor_ctrl_t *s_ctrl,
 	uint64_t req_id, enum cam_sensor_packet_opcodes opcode)
@@ -1710,6 +1748,8 @@ int cam_sensor_apply_settings(struct cam_sensor_ctrl_t *s_ctrl,
 	return rc;
 }
 
+int32_t cam_sensor_apply_request(struct cam_req_mgr_apply_request *apply);
+
 int32_t cam_sensor_apply_request(struct cam_req_mgr_apply_request *apply)
 {
 	int32_t rc = 0;
@@ -1737,6 +1777,8 @@ int32_t cam_sensor_apply_request(struct cam_req_mgr_apply_request *apply)
 	return rc;
 }
 
+int32_t cam_sensor_notify_frame_skip(struct cam_req_mgr_apply_request *apply);
+
 int32_t cam_sensor_notify_frame_skip(struct cam_req_mgr_apply_request *apply)
 {
 	int32_t rc = 0;
@@ -1763,6 +1805,8 @@ int32_t cam_sensor_notify_frame_skip(struct cam_req_mgr_apply_request *apply)
 	mutex_unlock(&(s_ctrl->cam_sensor_mutex));
 	return rc;
 }
+
+int32_t cam_sensor_flush_request(struct cam_req_mgr_flush_request *flush_req);
 
 int32_t cam_sensor_flush_request(struct cam_req_mgr_flush_request *flush_req)
 {

@@ -14,6 +14,9 @@
 #include "cam_debug_util.h"
 
 int cam_cre_init_soc_resources(struct cam_hw_soc_info *soc_info,
+	irq_handler_t cre_irq_handler, void *irq_data);
+
+int cam_cre_init_soc_resources(struct cam_hw_soc_info *soc_info,
 	irq_handler_t cre_irq_handler, void *irq_data)
 {
 	int rc;
@@ -31,6 +34,8 @@ int cam_cre_init_soc_resources(struct cam_hw_soc_info *soc_info,
 	return rc;
 }
 
+int cam_cre_enable_soc_resources(struct cam_hw_soc_info *soc_info);
+
 int cam_cre_enable_soc_resources(struct cam_hw_soc_info *soc_info)
 {
 	int rc;
@@ -43,6 +48,8 @@ int cam_cre_enable_soc_resources(struct cam_hw_soc_info *soc_info)
 	return rc;
 }
 
+int cam_cre_disable_soc_resources(struct cam_hw_soc_info *soc_info);
+
 int cam_cre_disable_soc_resources(struct cam_hw_soc_info *soc_info)
 {
 	int rc;
@@ -53,6 +60,9 @@ int cam_cre_disable_soc_resources(struct cam_hw_soc_info *soc_info)
 
 	return rc;
 }
+
+int cam_cre_update_clk_rate(struct cam_hw_soc_info *soc_info,
+	uint32_t clk_rate);
 
 int cam_cre_update_clk_rate(struct cam_hw_soc_info *soc_info,
 	uint32_t clk_rate)

@@ -3,6 +3,7 @@
  * Copyright (c) 2017-2021, The Linux Foundation. All rights reserved.
  */
 
+#include <linux/of.h>
 #include <linux/module.h>
 #include <linux/slab.h>
 #include <linux/mod_devicetable.h>
@@ -44,6 +45,10 @@ static struct cam_ipe_device_hw_info cam_ipe680_hw_info[] = {
 		.cdm_rst_val = 0x7F,
 	},
 };
+
+int cam_ipe_register_cpas(struct cam_hw_soc_info *soc_info,
+	struct cam_ipe_device_core_info *core_info,
+	uint32_t hw_idx);
 
 int cam_ipe_register_cpas(struct cam_hw_soc_info *soc_info,
 	struct cam_ipe_device_core_info *core_info,
@@ -202,6 +207,8 @@ const static struct component_ops cam_ipe_component_ops = {
 	.unbind = cam_ipe_component_unbind,
 };
 
+int cam_ipe_probe(struct platform_device *pdev);
+
 int cam_ipe_probe(struct platform_device *pdev)
 {
 	int rc = 0;
@@ -214,10 +221,10 @@ int cam_ipe_probe(struct platform_device *pdev)
 	return rc;
 }
 
-static int cam_ipe_remove(struct platform_device *pdev)
+static void cam_ipe_remove(struct platform_device *pdev)
 {
 	component_del(&pdev->dev, &cam_ipe_component_ops);
-	return 0;
+	return;
 }
 
 static const struct of_device_id cam_ipe_dt_match[] = {
@@ -244,10 +251,14 @@ struct platform_driver cam_ipe_driver = {
 	},
 };
 
+int cam_ipe_init_module(void);
+
 int cam_ipe_init_module(void)
 {
 	return platform_driver_register(&cam_ipe_driver);
 }
+
+void cam_ipe_exit_module(void);
 
 void cam_ipe_exit_module(void)
 {

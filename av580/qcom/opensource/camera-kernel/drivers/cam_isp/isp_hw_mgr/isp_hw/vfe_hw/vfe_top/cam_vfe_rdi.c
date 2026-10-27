@@ -265,6 +265,10 @@ static int cam_vfe_rdi_get_reg_update(
 
 int cam_vfe_rdi_ver2_acquire_resource(
 	struct cam_isp_resource_node  *rdi_res,
+	void                          *acquire_param);
+
+int cam_vfe_rdi_ver2_acquire_resource(
+	struct cam_isp_resource_node  *rdi_res,
 	void                          *acquire_param)
 {
 	struct cam_vfe_mux_rdi_data   *rdi_data;
@@ -585,6 +589,13 @@ int cam_vfe_rdi_ver2_init(
 	struct cam_hw_soc_info        *soc_info,
 	void                          *rdi_hw_info,
 	struct cam_isp_resource_node  *rdi_node,
+	void                          *vfe_irq_controller);
+
+int cam_vfe_rdi_ver2_init(
+	struct cam_hw_intf            *hw_intf,
+	struct cam_hw_soc_info        *soc_info,
+	void                          *rdi_hw_info,
+	struct cam_isp_resource_node  *rdi_node,
 	void                          *vfe_irq_controller)
 {
 	struct cam_vfe_mux_rdi_data     *rdi_priv = NULL;
@@ -651,6 +662,9 @@ err_init:
 	kfree(rdi_priv);
 	return -EINVAL;
 }
+
+int cam_vfe_rdi_ver2_deinit(
+	struct cam_isp_resource_node  *rdi_node);
 
 int cam_vfe_rdi_ver2_deinit(
 	struct cam_isp_resource_node  *rdi_node)

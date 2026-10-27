@@ -20,6 +20,8 @@
 static struct cam_req_mgr_util_hdl_tbl *hdl_tbl;
 static DEFINE_SPINLOCK(hdl_tbl_lock);
 
+int cam_req_mgr_util_init(void);
+
 int cam_req_mgr_util_init(void)
 {
 	int rc = 0;
@@ -66,6 +68,8 @@ hdl_tbl_check_failed:
 	return rc;
 }
 
+int cam_req_mgr_util_deinit(void);
+
 int cam_req_mgr_util_deinit(void)
 {
 	spin_lock_bh(&hdl_tbl_lock);
@@ -83,6 +87,8 @@ int cam_req_mgr_util_deinit(void)
 
 	return 0;
 }
+
+int cam_handle_validate(int32_t session_hdl, int32_t handle);
 
 int cam_handle_validate(int32_t session_hdl, int32_t handle)
 {
@@ -122,6 +128,8 @@ out:
 	spin_unlock_bh(&hdl_tbl_lock);
 	return rc;
 }
+
+int cam_req_mgr_util_free_hdls(void);
 
 int cam_req_mgr_util_free_hdls(void)
 {
@@ -177,6 +185,8 @@ static void cam_dump_tbl_info(void)
 			hdl_tbl->hdl[i].type, hdl_tbl->hdl[i].state, hdl_tbl->hdl[i].dev_id);
 }
 
+int32_t cam_create_session_hdl(void *priv);
+
 int32_t cam_create_session_hdl(void *priv)
 {
 	int idx;
@@ -211,6 +221,8 @@ int32_t cam_create_session_hdl(void *priv)
 
 	return handle;
 }
+
+int32_t cam_create_device_hdl(struct cam_create_dev_hdl *hdl_data);
 
 int32_t cam_create_device_hdl(struct cam_create_dev_hdl *hdl_data)
 {
@@ -256,6 +268,8 @@ int32_t cam_create_device_hdl(struct cam_create_dev_hdl *hdl_data)
 	return handle;
 }
 
+int32_t cam_create_link_hdl(struct cam_create_dev_hdl *hdl_data);
+
 int32_t cam_create_link_hdl(struct cam_create_dev_hdl *hdl_data)
 {
 	int idx;
@@ -291,6 +305,8 @@ int32_t cam_create_link_hdl(struct cam_create_dev_hdl *hdl_data)
 	CAM_DBG(CAM_CRM, "handle = %x", handle);
 	return handle;
 }
+
+void *cam_get_priv(int32_t dev_hdl, int handle_type);
 
 void *cam_get_priv(int32_t dev_hdl, int handle_type)
 {
@@ -338,6 +354,8 @@ device_priv_fail:
 	return NULL;
 }
 
+void *cam_get_device_priv(int32_t dev_hdl);
+
 void *cam_get_device_priv(int32_t dev_hdl)
 {
 	void *priv;
@@ -345,6 +363,8 @@ void *cam_get_device_priv(int32_t dev_hdl)
 	priv = cam_get_priv(dev_hdl, HDL_TYPE_DEV);
 	return priv;
 }
+
+struct cam_req_mgr_core_session *cam_get_session_priv(int32_t dev_hdl);
 
 struct cam_req_mgr_core_session *cam_get_session_priv(int32_t dev_hdl)
 {
@@ -356,6 +376,8 @@ struct cam_req_mgr_core_session *cam_get_session_priv(int32_t dev_hdl)
 	return priv;
 }
 
+struct cam_req_mgr_core_link *cam_get_link_priv(int32_t dev_hdl);
+
 struct cam_req_mgr_core_link *cam_get_link_priv(int32_t dev_hdl)
 {
 	struct cam_req_mgr_core_link *priv;
@@ -365,6 +387,8 @@ struct cam_req_mgr_core_link *cam_get_link_priv(int32_t dev_hdl)
 
 	return priv;
 }
+
+void *cam_get_device_ops(int32_t dev_hdl);
 
 void *cam_get_device_ops(int32_t dev_hdl)
 {
@@ -456,16 +480,22 @@ destroy_hdl_fail:
 	return -EINVAL;
 }
 
+int cam_destroy_device_hdl(int32_t dev_hdl);
+
 int cam_destroy_device_hdl(int32_t dev_hdl)
 {
 	return cam_destroy_hdl(dev_hdl, HDL_TYPE_DEV);
 }
+
+int cam_destroy_link_hdl(int32_t dev_hdl);
 
 int cam_destroy_link_hdl(int32_t dev_hdl)
 {
 	CAM_DBG(CAM_CRM, "handle = %x", dev_hdl);
 	return cam_destroy_hdl(dev_hdl, HDL_TYPE_LINK);
 }
+
+int cam_destroy_session_hdl(int32_t dev_hdl);
 
 int cam_destroy_session_hdl(int32_t dev_hdl)
 {

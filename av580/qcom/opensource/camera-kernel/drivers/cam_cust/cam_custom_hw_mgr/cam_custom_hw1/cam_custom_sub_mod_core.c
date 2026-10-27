@@ -11,6 +11,9 @@
 #include "cam_custom_sub_mod_core.h"
 
 int cam_custom_hw_sub_mod_get_hw_caps(void *hw_priv,
+	void *get_hw_cap_args, uint32_t arg_size);
+
+int cam_custom_hw_sub_mod_get_hw_caps(void *hw_priv,
 	void *get_hw_cap_args, uint32_t arg_size)
 {
 	int rc = 0;
@@ -22,6 +25,9 @@ int cam_custom_hw_sub_mod_get_hw_caps(void *hw_priv,
 	/* Add HW Capabilities to be published */
 	return rc;
 }
+
+int cam_custom_hw_sub_mod_init_hw(void *hw_priv,
+	void *init_hw_args, uint32_t arg_size);
 
 int cam_custom_hw_sub_mod_init_hw(void *hw_priv,
 	void *init_hw_args, uint32_t arg_size)
@@ -83,6 +89,9 @@ decrement_open_cnt:
 }
 
 int cam_custom_hw_sub_mod_deinit_hw(void *hw_priv,
+	void *deinit_hw_args, uint32_t arg_size);
+
+int cam_custom_hw_sub_mod_deinit_hw(void *hw_priv,
 	void *deinit_hw_args, uint32_t arg_size)
 {
 	struct cam_hw_info                *custom_hw = hw_priv;
@@ -133,6 +142,9 @@ int cam_custom_hw_sub_mod_deinit_hw(void *hw_priv,
 }
 
 int cam_custom_hw_sub_mod_reset(void *hw_priv,
+	void *reserve_args, uint32_t arg_size);
+
+int cam_custom_hw_sub_mod_reset(void *hw_priv,
 	void *reserve_args, uint32_t arg_size)
 {
 	struct cam_hw_info                *custom_hw  = hw_priv;
@@ -150,6 +162,9 @@ int cam_custom_hw_sub_mod_reset(void *hw_priv,
 }
 
 int cam_custom_hw_sub_mod_reserve(void *hw_priv,
+	void *reserve_args, uint32_t arg_size);
+
+int cam_custom_hw_sub_mod_reserve(void *hw_priv,
 	void *reserve_args, uint32_t arg_size)
 {
 	int rc = 0;
@@ -163,6 +178,9 @@ int cam_custom_hw_sub_mod_reserve(void *hw_priv,
 	return rc;
 }
 
+
+int cam_custom_hw_sub_mod_release(void *hw_priv,
+	void *release_args, uint32_t arg_size);
 
 int cam_custom_hw_sub_mod_release(void *hw_priv,
 	void *release_args, uint32_t arg_size)
@@ -184,6 +202,9 @@ int cam_custom_hw_sub_mod_release(void *hw_priv,
 
 
 int cam_custom_hw_sub_mod_start(void *hw_priv,
+	void *start_args, uint32_t arg_size);
+
+int cam_custom_hw_sub_mod_start(void *hw_priv,
 	void *start_args, uint32_t arg_size)
 {
 	struct cam_hw_info                *custom_hw  = hw_priv;
@@ -200,6 +221,9 @@ int cam_custom_hw_sub_mod_start(void *hw_priv,
 
 	return rc;
 }
+
+int cam_custom_hw_sub_mod_stop(void *hw_priv,
+	void *stop_args, uint32_t arg_size);
 
 int cam_custom_hw_sub_mod_stop(void *hw_priv,
 	void *stop_args, uint32_t arg_size)
@@ -220,16 +244,25 @@ int cam_custom_hw_sub_mod_stop(void *hw_priv,
 }
 
 int cam_custom_hw_sub_mod_read(void *hw_priv,
+	void *read_args, uint32_t arg_size);
+
+int cam_custom_hw_sub_mod_read(void *hw_priv,
 	void *read_args, uint32_t arg_size)
 {
 	return -EPERM;
 }
 
 int cam_custom_hw_sub_mod_write(void *hw_priv,
+	void *write_args, uint32_t arg_size);
+
+int cam_custom_hw_sub_mod_write(void *hw_priv,
 	void *write_args, uint32_t arg_size)
 {
 	return -EPERM;
 }
+
+int cam_custom_hw_submit_req(void *hw_priv, void *hw_submit_args,
+	uint32_t arg_size);
 
 int cam_custom_hw_submit_req(void *hw_priv, void *hw_submit_args,
 	uint32_t arg_size)
@@ -257,6 +290,8 @@ int cam_custom_hw_submit_req(void *hw_priv, void *hw_submit_args,
 	/* Do other submit procedures */
 	return 0;
 }
+
+irqreturn_t cam_custom_hw_sub_mod_irq(int irq_num, void *data);
 
 irqreturn_t cam_custom_hw_sub_mod_irq(int irq_num, void *data)
 {
@@ -291,6 +326,9 @@ irqreturn_t cam_custom_hw_sub_mod_irq(int irq_num, void *data)
 
 	return IRQ_HANDLED;
 }
+
+int cam_custom_hw_sub_mod_process_cmd(void *hw_priv, uint32_t cmd_type,
+	void *cmd_args, uint32_t arg_size);
 
 int cam_custom_hw_sub_mod_process_cmd(void *hw_priv, uint32_t cmd_type,
 	void *cmd_args, uint32_t arg_size)

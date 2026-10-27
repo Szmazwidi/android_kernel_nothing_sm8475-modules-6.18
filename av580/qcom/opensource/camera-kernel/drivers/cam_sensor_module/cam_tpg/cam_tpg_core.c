@@ -9,6 +9,8 @@
 #include <cam_mem_mgr.h>
 #include "tpg_hw/tpg_hw.h"
 
+int cam_tpg_shutdown(struct cam_tpg_device *tpg_dev);
+
 int cam_tpg_shutdown(struct cam_tpg_device *tpg_dev)
 {
 	if (tpg_dev != NULL) {
@@ -19,6 +21,9 @@ int cam_tpg_shutdown(struct cam_tpg_device *tpg_dev)
 	}
 	return 0;
 }
+
+int cam_tpg_publish_dev_info(
+	struct cam_req_mgr_device_info *info);
 
 int cam_tpg_publish_dev_info(
 	struct cam_req_mgr_device_info *info)
@@ -38,13 +43,16 @@ int cam_tpg_publish_dev_info(
 	}
 
 	info->dev_id = CAM_REQ_MGR_DEVICE_TPG;
-	strlcpy(info->name, CAM_TPG_NAME, sizeof(info->name));
+	strscpy(info->name, CAM_TPG_NAME, sizeof(info->name));
 	/* Hard code for now */
 	info->p_delay = 2;
 	info->trigger = CAM_TRIGGER_POINT_SOF;
 
 	return rc;
 }
+
+int cam_tpg_setup_link(
+	struct cam_req_mgr_core_dev_link_setup *link);
 
 int cam_tpg_setup_link(
 	struct cam_req_mgr_core_dev_link_setup *link)
@@ -133,6 +141,9 @@ static int cam_tpg_dump_req(
 	CAM_DBG(CAM_TPG, "Got dump request from CRM");
 	return 0;
 }
+
+int tpg_crm_intf_init(
+	struct cam_tpg_device *tpg_dev);
 
 int tpg_crm_intf_init(
 	struct cam_tpg_device *tpg_dev)
@@ -625,6 +636,10 @@ static int validate_ioctl_params(
 exit:
 	return rc;
 }
+
+int cam_tpg_core_cfg(
+	struct cam_tpg_device *tpg_dev,
+	void *arg);
 
 int cam_tpg_core_cfg(
 	struct cam_tpg_device *tpg_dev,

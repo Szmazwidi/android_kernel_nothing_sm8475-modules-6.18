@@ -92,6 +92,8 @@ static int cam_ois_get_dt_data(struct cam_ois_ctrl_t *o_ctrl)
  * This function is called from cam_ois_platform/i2c_driver_probe, it parses
  * the ois dt node.
  */
+int cam_ois_driver_soc_init(struct cam_ois_ctrl_t *o_ctrl);
+
 int cam_ois_driver_soc_init(struct cam_ois_ctrl_t *o_ctrl)
 {
 	int                             rc = 0;

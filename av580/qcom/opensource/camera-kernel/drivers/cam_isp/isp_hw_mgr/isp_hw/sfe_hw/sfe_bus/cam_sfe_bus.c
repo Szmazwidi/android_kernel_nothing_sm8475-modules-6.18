@@ -15,6 +15,15 @@ int cam_sfe_bus_init(
 	struct cam_hw_intf            *hw_intf,
 	void                          *bus_hw_info,
 	void                          *sfe_irq_controller,
+	struct cam_sfe_bus           **sfe_bus);
+
+int cam_sfe_bus_init(
+	uint32_t                       bus_version,
+	int                            bus_type,
+	struct cam_hw_soc_info        *soc_info,
+	struct cam_hw_intf            *hw_intf,
+	void                          *bus_hw_info,
+	void                          *sfe_irq_controller,
 	struct cam_sfe_bus           **sfe_bus)
 {
 	int rc = -ENODEV;
@@ -51,6 +60,11 @@ int cam_sfe_bus_init(
 
 	return rc;
 }
+
+int cam_sfe_bus_deinit(
+	uint32_t              bus_version,
+	int                   bus_type,
+	struct cam_sfe_bus  **sfe_bus);
 
 int cam_sfe_bus_deinit(
 	uint32_t              bus_version,
@@ -99,6 +113,11 @@ static inline int __cam_sfe_bus_validate_alloc_type(
 	else
 		return 0;
 }
+
+void cam_sfe_bus_parse_cache_cfg(
+	bool is_read,
+	uint32_t debug_val,
+	struct cam_sfe_bus_cache_dbg_cfg *dbg_cfg);
 
 void cam_sfe_bus_parse_cache_cfg(
 	bool is_read,

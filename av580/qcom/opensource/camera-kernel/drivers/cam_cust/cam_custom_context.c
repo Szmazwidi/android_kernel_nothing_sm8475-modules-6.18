@@ -545,7 +545,7 @@ static int __cam_custom_ctx_get_dev_info_in_acquired(struct cam_context *ctx,
 	struct cam_req_mgr_device_info *dev_info)
 {
 	dev_info->dev_hdl = ctx->dev_hdl;
-	strlcpy(dev_info->name, CAM_CUSTOM_DEV_NAME, sizeof(dev_info->name));
+	strscpy(dev_info->name, CAM_CUSTOM_DEV_NAME, sizeof(dev_info->name));
 	dev_info->dev_id = CAM_REQ_MGR_DEVICE_CUSTOM_HW;
 	dev_info->p_delay = 1;
 	dev_info->trigger = CAM_TRIGGER_POINT_SOF;
@@ -1682,6 +1682,12 @@ int cam_custom_dev_context_init(struct cam_custom_context *ctx,
 	struct cam_context *ctx_base,
 	struct cam_req_mgr_kmd_ops *crm_node_intf,
 	struct cam_hw_mgr_intf *hw_intf,
+	uint32_t ctx_id, int img_iommu_hdl);
+
+int cam_custom_dev_context_init(struct cam_custom_context *ctx,
+	struct cam_context *ctx_base,
+	struct cam_req_mgr_kmd_ops *crm_node_intf,
+	struct cam_hw_mgr_intf *hw_intf,
 	uint32_t ctx_id, int img_iommu_hdl)
 {
 	int rc = -1, i = 0;
@@ -1721,6 +1727,8 @@ int cam_custom_dev_context_init(struct cam_custom_context *ctx,
 
 	return rc;
 }
+
+int cam_custom_dev_context_deinit(struct cam_custom_context *ctx);
 
 int cam_custom_dev_context_deinit(struct cam_custom_context *ctx)
 {

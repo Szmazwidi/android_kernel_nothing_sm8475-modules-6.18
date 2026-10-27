@@ -259,6 +259,9 @@ static int cam_cre_top_isr(struct cam_cre_hw *cre_hw_info,
 }
 
 int cam_cre_top_process(struct cam_cre_hw *cre_hw_info,
+	int32_t ctx_id, uint32_t cmd_id, void *data);
+
+int cam_cre_top_process(struct cam_cre_hw *cre_hw_info,
 	int32_t ctx_id, uint32_t cmd_id, void *data)
 {
 	int rc = 0;

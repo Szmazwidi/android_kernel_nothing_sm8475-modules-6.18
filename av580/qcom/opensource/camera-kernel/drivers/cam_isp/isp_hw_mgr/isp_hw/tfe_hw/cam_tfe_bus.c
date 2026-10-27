@@ -2621,6 +2621,13 @@ int cam_tfe_bus_init(
 	struct cam_hw_intf                   *hw_intf,
 	void                                 *bus_hw_info,
 	void                                 *core_data,
+	struct cam_tfe_bus                  **tfe_bus);
+
+int cam_tfe_bus_init(
+	struct cam_hw_soc_info               *soc_info,
+	struct cam_hw_intf                   *hw_intf,
+	void                                 *bus_hw_info,
+	void                                 *core_data,
 	struct cam_tfe_bus                  **tfe_bus)
 {
 	int i, rc = 0;
@@ -2764,6 +2771,9 @@ free_bus_local:
 end:
 	return rc;
 }
+
+int cam_tfe_bus_deinit(
+	struct cam_tfe_bus                  **tfe_bus);
 
 int cam_tfe_bus_deinit(
 	struct cam_tfe_bus                  **tfe_bus)

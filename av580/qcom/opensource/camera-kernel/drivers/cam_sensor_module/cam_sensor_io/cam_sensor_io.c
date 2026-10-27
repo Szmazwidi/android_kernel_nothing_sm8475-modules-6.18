@@ -10,6 +10,12 @@ int32_t camera_io_dev_poll(struct camera_io_master *io_master_info,
 	uint32_t addr, uint16_t data, uint32_t data_mask,
 	enum camera_sensor_i2c_type addr_type,
 	enum camera_sensor_i2c_type data_type,
+	uint32_t delay_ms);
+
+int32_t camera_io_dev_poll(struct camera_io_master *io_master_info,
+	uint32_t addr, uint16_t data, uint32_t data_mask,
+	enum camera_sensor_i2c_type addr_type,
+	enum camera_sensor_i2c_type data_type,
 	uint32_t delay_ms)
 {
 	int16_t mask = data_mask & 0xFF;
@@ -32,6 +38,9 @@ int32_t camera_io_dev_poll(struct camera_io_master *io_master_info,
 		return -EINVAL;
 	}
 }
+
+int32_t camera_io_dev_erase(struct camera_io_master *io_master_info,
+	uint32_t addr, uint32_t size);
 
 int32_t camera_io_dev_erase(struct camera_io_master *io_master_info,
 	uint32_t addr, uint32_t size)
@@ -66,6 +75,11 @@ int32_t camera_io_dev_erase(struct camera_io_master *io_master_info,
 int32_t camera_io_dev_read(struct camera_io_master *io_master_info,
 	uint32_t addr, uint32_t *data,
 	enum camera_sensor_i2c_type addr_type,
+	enum camera_sensor_i2c_type data_type);
+
+int32_t camera_io_dev_read(struct camera_io_master *io_master_info,
+	uint32_t addr, uint32_t *data,
+	enum camera_sensor_i2c_type addr_type,
 	enum camera_sensor_i2c_type data_type)
 {
 	if (!io_master_info) {
@@ -93,6 +107,11 @@ int32_t camera_io_dev_read(struct camera_io_master *io_master_info,
 int32_t camera_io_dev_read_seq(struct camera_io_master *io_master_info,
 	uint32_t addr, uint8_t *data,
 	enum camera_sensor_i2c_type addr_type,
+	enum camera_sensor_i2c_type data_type, int32_t num_bytes);
+
+int32_t camera_io_dev_read_seq(struct camera_io_master *io_master_info,
+	uint32_t addr, uint8_t *data,
+	enum camera_sensor_i2c_type addr_type,
 	enum camera_sensor_i2c_type data_type, int32_t num_bytes)
 {
 	if (io_master_info->master_type == CCI_MASTER) {
@@ -114,6 +133,9 @@ int32_t camera_io_dev_read_seq(struct camera_io_master *io_master_info,
 	}
 	return 0;
 }
+
+int32_t camera_io_dev_write(struct camera_io_master *io_master_info,
+	struct cam_sensor_i2c_reg_setting *write_setting);
 
 int32_t camera_io_dev_write(struct camera_io_master *io_master_info,
 	struct cam_sensor_i2c_reg_setting *write_setting)
@@ -148,6 +170,10 @@ int32_t camera_io_dev_write(struct camera_io_master *io_master_info,
 
 int32_t camera_io_dev_write_continuous(struct camera_io_master *io_master_info,
 	struct cam_sensor_i2c_reg_setting *write_setting,
+	uint8_t cam_sensor_i2c_write_flag);
+
+int32_t camera_io_dev_write_continuous(struct camera_io_master *io_master_info,
+	struct cam_sensor_i2c_reg_setting *write_setting,
 	uint8_t cam_sensor_i2c_write_flag)
 {
 	if (!write_setting || !io_master_info) {
@@ -178,6 +204,8 @@ int32_t camera_io_dev_write_continuous(struct camera_io_master *io_master_info,
 	}
 }
 
+int32_t camera_io_init(struct camera_io_master *io_master_info);
+
 int32_t camera_io_init(struct camera_io_master *io_master_info)
 {
 	if (!io_master_info) {
@@ -197,6 +225,8 @@ int32_t camera_io_init(struct camera_io_master *io_master_info)
 
 	return -EINVAL;
 }
+
+int32_t camera_io_release(struct camera_io_master *io_master_info);
 
 int32_t camera_io_release(struct camera_io_master *io_master_info)
 {

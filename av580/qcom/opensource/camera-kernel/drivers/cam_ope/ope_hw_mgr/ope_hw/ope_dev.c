@@ -3,6 +3,7 @@
  * Copyright (c) 2019-2021, The Linux Foundation. All rights reserved.
  */
 
+#include <linux/of.h>
 #include <linux/module.h>
 #include <linux/slab.h>
 #include <linux/mod_devicetable.h>
@@ -83,6 +84,10 @@ static int cam_ope_init_hw_version(struct cam_hw_soc_info *soc_info,
 
 	return rc;
 }
+
+int cam_ope_register_cpas(struct cam_hw_soc_info *soc_info,
+	struct cam_ope_device_core_info *core_info,
+	uint32_t hw_idx);
 
 int cam_ope_register_cpas(struct cam_hw_soc_info *soc_info,
 	struct cam_ope_device_core_info *core_info,
@@ -267,6 +272,9 @@ static void cam_ope_component_unbind(struct device *dev,
 }
 
 int cam_ope_hw_init(struct cam_ope_hw_intf_data **ope_hw_intf_data,
+		uint32_t hw_idx);
+
+int cam_ope_hw_init(struct cam_ope_hw_intf_data **ope_hw_intf_data,
 		uint32_t hw_idx)
 {
 	int rc = 0;
@@ -286,6 +294,8 @@ const static struct component_ops cam_ope_component_ops = {
 	.bind = cam_ope_component_bind,
 	.unbind = cam_ope_component_unbind,
 };
+
+int cam_ope_probe(struct platform_device *pdev);
 
 int cam_ope_probe(struct platform_device *pdev)
 {
@@ -317,10 +327,14 @@ struct platform_driver cam_ope_driver = {
 	},
 };
 
+int cam_ope_init_module(void);
+
 int cam_ope_init_module(void)
 {
 	return platform_driver_register(&cam_ope_driver);
 }
+
+void cam_ope_exit_module(void);
 
 void cam_ope_exit_module(void)
 {

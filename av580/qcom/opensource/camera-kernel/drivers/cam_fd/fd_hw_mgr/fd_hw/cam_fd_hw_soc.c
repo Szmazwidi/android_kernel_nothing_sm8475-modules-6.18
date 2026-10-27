@@ -72,6 +72,9 @@ static int cam_fd_hw_soc_util_setup_regbase_indices(
 }
 
 void cam_fd_soc_register_write(struct cam_hw_soc_info *soc_info,
+	enum cam_fd_reg_base reg_base, uint32_t reg_offset, uint32_t reg_value);
+
+void cam_fd_soc_register_write(struct cam_hw_soc_info *soc_info,
 	enum cam_fd_reg_base reg_base, uint32_t reg_offset, uint32_t reg_value)
 {
 	struct cam_fd_soc_private *soc_private =
@@ -84,6 +87,9 @@ void cam_fd_soc_register_write(struct cam_hw_soc_info *soc_info,
 	cam_io_w_mb(reg_value,
 		soc_info->reg_map[reg_index].mem_base + reg_offset);
 }
+
+uint32_t cam_fd_soc_register_read(struct cam_hw_soc_info *soc_info,
+	enum cam_fd_reg_base reg_base, uint32_t reg_offset);
 
 uint32_t cam_fd_soc_register_read(struct cam_hw_soc_info *soc_info,
 	enum cam_fd_reg_base reg_base, uint32_t reg_offset)
@@ -101,6 +107,8 @@ uint32_t cam_fd_soc_register_read(struct cam_hw_soc_info *soc_info,
 
 	return reg_value;
 }
+
+int cam_fd_soc_enable_resources(struct cam_hw_soc_info *soc_info);
 
 int cam_fd_soc_enable_resources(struct cam_hw_soc_info *soc_info)
 {
@@ -147,6 +155,8 @@ stop_cpas:
 }
 
 
+int cam_fd_soc_disable_resources(struct cam_hw_soc_info *soc_info);
+
 int cam_fd_soc_disable_resources(struct cam_hw_soc_info *soc_info)
 {
 	struct cam_fd_soc_private *soc_private;
@@ -173,6 +183,9 @@ int cam_fd_soc_disable_resources(struct cam_hw_soc_info *soc_info)
 
 	return rc;
 }
+
+int cam_fd_soc_init_resources(struct cam_hw_soc_info *soc_info,
+	irq_handler_t irq_handler, void *private_data);
 
 int cam_fd_soc_init_resources(struct cam_hw_soc_info *soc_info,
 	irq_handler_t irq_handler, void *private_data)
@@ -209,7 +222,7 @@ int cam_fd_soc_init_resources(struct cam_hw_soc_info *soc_info,
 	}
 
 	memset(&cpas_register_param, 0, sizeof(cpas_register_param));
-	strlcpy(cpas_register_param.identifier, "fd", CAM_HW_IDENTIFIER_LENGTH);
+	strscpy(cpas_register_param.identifier, "fd", CAM_HW_IDENTIFIER_LENGTH);
 	cpas_register_param.cell_index = soc_info->index;
 	cpas_register_param.dev = &soc_info->pdev->dev;
 	cpas_register_param.userdata = private_data;
@@ -233,6 +246,8 @@ release_res:
 
 	return rc;
 }
+
+int cam_fd_soc_deinit_resources(struct cam_hw_soc_info *soc_info);
 
 int cam_fd_soc_deinit_resources(struct cam_hw_soc_info *soc_info)
 {

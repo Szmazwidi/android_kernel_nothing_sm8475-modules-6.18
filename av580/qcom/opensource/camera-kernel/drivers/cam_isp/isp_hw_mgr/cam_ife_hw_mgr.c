@@ -4540,6 +4540,9 @@ err:
 }
 
 void cam_ife_cam_cdm_callback(uint32_t handle, void *userdata,
+	enum cam_cdm_cb_status status, uint64_t cookie);
+
+void cam_ife_cam_cdm_callback(uint32_t handle, void *userdata,
 	enum cam_cdm_cb_status status, uint64_t cookie)
 {
 	struct cam_isp_prepare_hw_update_data   *hw_update_data = NULL;
@@ -5134,6 +5137,9 @@ err:
 	CAM_DBG(CAM_ISP, "Exit...(rc=%d)", rc);
 	return rc;
 }
+
+void cam_ife_mgr_acquire_get_unified_dev_str(struct cam_isp_in_port_info *in,
+	struct cam_isp_in_port_generic_info *gen_port_info);
 
 void cam_ife_mgr_acquire_get_unified_dev_str(struct cam_isp_in_port_info *in,
 	struct cam_isp_in_port_generic_info *gen_port_info)
@@ -11503,6 +11509,9 @@ outportlog:
 }
 
 int cam_isp_config_csid_rup_aup(
+	struct cam_ife_hw_mgr_ctx *ctx);
+
+int cam_isp_config_csid_rup_aup(
 	struct cam_ife_hw_mgr_ctx *ctx)
 {
 	int rc = 0, i, j, hw_idx;
@@ -13773,6 +13782,8 @@ end:
 	return dumped_len;
 }
 
+int cam_ife_hw_mgr_init(struct cam_hw_mgr_intf *hw_mgr_intf, int *iommu_hdl);
+
 int cam_ife_hw_mgr_init(struct cam_hw_mgr_intf *hw_mgr_intf, int *iommu_hdl)
 {
 	int rc = -EFAULT;
@@ -14083,6 +14094,8 @@ secure_fail:
 	g_ife_hw_mgr.mgr_common.img_iommu_hdl = -1;
 	return rc;
 }
+
+void cam_ife_hw_mgr_deinit(void);
 
 void cam_ife_hw_mgr_deinit(void)
 {

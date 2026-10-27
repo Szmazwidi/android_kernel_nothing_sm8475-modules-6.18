@@ -4,6 +4,8 @@
  * Copyright (c) 2022-2024 Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
+#include <linux/of_platform.h>
+#include <linux/of.h>
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <media/cam_cpas.h>
@@ -1968,6 +1970,8 @@ put_free_list:
 	return rc;
 }
 
+int cam_fd_hw_mgr_deinit(struct device_node *of_node);
+
 int cam_fd_hw_mgr_deinit(struct device_node *of_node)
 {
 	CAM_DBG(CAM_FD, "HW Mgr Deinit");
@@ -1988,6 +1992,9 @@ static void cam_req_mgr_process_workq_cam_fd_worker(struct work_struct *w)
 {
 	cam_req_mgr_process_workq(w);
 }
+
+int cam_fd_hw_mgr_init(struct device_node *of_node,
+	struct cam_hw_mgr_intf *hw_mgr_intf);
 
 int cam_fd_hw_mgr_init(struct device_node *of_node,
 	struct cam_hw_mgr_intf *hw_mgr_intf)

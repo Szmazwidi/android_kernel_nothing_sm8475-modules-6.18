@@ -187,6 +187,8 @@ end:
 	return rc;
 }
 
+int cam_mem_mgr_init(void);
+
 int cam_mem_mgr_init(void)
 {
 	int i;
@@ -283,6 +285,9 @@ static void cam_mem_put_slot(int32_t idx)
 }
 
 int cam_mem_get_io_buf(int32_t buf_handle, int32_t mmu_handle,
+	dma_addr_t *iova_ptr, size_t *len_ptr, uint32_t *flags);
+
+int cam_mem_get_io_buf(int32_t buf_handle, int32_t mmu_handle,
 	dma_addr_t *iova_ptr, size_t *len_ptr, uint32_t *flags)
 {
 	int rc = 0, idx;
@@ -335,6 +340,8 @@ handle_mismatch:
 	return rc;
 }
 EXPORT_SYMBOL(cam_mem_get_io_buf);
+
+int cam_mem_get_cpu_buf(int32_t buf_handle, uintptr_t *vaddr_ptr, size_t *len);
 
 int cam_mem_get_cpu_buf(int32_t buf_handle, uintptr_t *vaddr_ptr, size_t *len)
 {
@@ -396,6 +403,8 @@ end:
 	return rc;
 }
 EXPORT_SYMBOL(cam_mem_get_cpu_buf);
+
+int cam_mem_mgr_cache_ops(struct cam_mem_cache_ops_cmd *cmd);
 
 int cam_mem_mgr_cache_ops(struct cam_mem_cache_ops_cmd *cmd)
 {
@@ -531,11 +540,8 @@ static int cam_mem_mgr_get_dma_heaps(void)
 
 	tbl.secure_display_heap = dma_heap_find("qcom,display");
 	if (IS_ERR_OR_NULL(tbl.secure_display_heap)) {
-		rc = PTR_ERR(tbl.secure_display_heap);
-		CAM_ERR(CAM_MEM, "qcom,display heap not found, rc=%d",
-			rc);
+		CAM_WARN(CAM_MEM, "qcom,display absent: protected allocations unavailable");
 		tbl.secure_display_heap = NULL;
-		goto put_heaps;
 	}
 
 	tbl.camera_heap = dma_heap_find("qcom,camera");
@@ -577,6 +583,7 @@ static int cam_mem_util_get_dma_buf(size_t len,
 	struct timespec64 ts1, ts2;
 	long microsec = 0;
 	bool use_cached_heap = false;
+	bool cpu_heap_ref = false;
 	struct mem_buf_lend_kernel_arg arg;
 	int vmids[CAM_MAX_VMIDS];
 	int perms[CAM_MAX_VMIDS];
@@ -633,6 +640,15 @@ static int cam_mem_util_get_dma_buf(size_t len,
 		vmids[num_vmids] = VMID_CP_NON_PIXEL;
 		perms[num_vmids] = PERM_READ | PERM_WRITE;
 		num_vmids++;
+	} else if (cam_flags & CAM_MEM_FLAG_KMD_ACCESS) {
+		/* Command/HFI buffers need vmap. The LAB qcom,system exporter
+		 * deliberately has no CPU mapping operations. Keep protected and
+		 * EVA allocations on their original secure-only path above.
+		 */
+		heap = dma_heap_find("system");
+		if (IS_ERR_OR_NULL(heap))
+			return IS_ERR(heap) ? PTR_ERR(heap) : -ENODEV;
+		cpu_heap_ref = true;
 	} else if (use_cached_heap) {
 		try_heap = tbl.camera_heap;
 		heap = tbl.system_heap;
@@ -663,6 +679,8 @@ static int cam_mem_util_get_dma_buf(size_t len,
 
 	if (*buf == NULL) {
 		*buf = dma_heap_buffer_alloc(heap, len, O_RDWR, 0);
+		if (cpu_heap_ref)
+			dma_heap_put(heap);
 		if (IS_ERR(*buf)) {
 			rc = PTR_ERR(*buf);
 			CAM_ERR(CAM_MEM,
@@ -921,6 +939,8 @@ multi_map_fail:
 	return rc;
 }
 
+int cam_mem_mgr_alloc_and_map(struct cam_mem_mgr_alloc_cmd *cmd);
+
 int cam_mem_mgr_alloc_and_map(struct cam_mem_mgr_alloc_cmd *cmd)
 {
 	int rc;
@@ -1098,6 +1118,8 @@ static bool cam_mem_util_is_map_internal(int32_t fd, unsigned i_ino)
 
 	return is_internal;
 }
+
+int cam_mem_mgr_map(struct cam_mem_mgr_map_cmd *cmd);
 
 int cam_mem_mgr_map(struct cam_mem_mgr_map_cmd *cmd)
 {
@@ -1356,6 +1378,8 @@ static int cam_mem_mgr_cleanup_table(void)
 	return 0;
 }
 
+void cam_mem_mgr_deinit(void);
+
 void cam_mem_mgr_deinit(void)
 {
 	atomic_set(&cam_mem_mgr_state, CAM_MEM_MGR_UNINITIALIZED);
@@ -1474,6 +1498,8 @@ static void cam_mem_util_unmap_wrapper(struct kref *kref)
 	cam_mem_util_unmap(idx);
 }
 
+void cam_mem_put_cpu_buf(int32_t buf_handle);
+
 void cam_mem_put_cpu_buf(int32_t buf_handle)
 {
 	int idx;
@@ -1554,6 +1580,8 @@ end:
 EXPORT_SYMBOL(cam_mem_put_cpu_buf);
 
 
+int cam_mem_mgr_release(struct cam_mem_mgr_release_cmd *cmd);
+
 int cam_mem_mgr_release(struct cam_mem_mgr_release_cmd *cmd)
 {
 	int idx;
@@ -1631,6 +1659,9 @@ end:
 	mutex_unlock(&tbl.bufq[idx].q_lock);
 	return rc;
 }
+
+int cam_mem_mgr_request_mem(struct cam_mem_mgr_request_desc *inp,
+	struct cam_mem_mgr_memory_desc *out);
 
 int cam_mem_mgr_request_mem(struct cam_mem_mgr_request_desc *inp,
 	struct cam_mem_mgr_memory_desc *out)
@@ -1769,6 +1800,8 @@ ion_fail:
 }
 EXPORT_SYMBOL(cam_mem_mgr_request_mem);
 
+int cam_mem_mgr_release_mem(struct cam_mem_mgr_memory_desc *inp);
+
 int cam_mem_mgr_release_mem(struct cam_mem_mgr_memory_desc *inp)
 {
 	int32_t idx;
@@ -1823,6 +1856,10 @@ EXPORT_SYMBOL(cam_mem_mgr_release_mem);
 
 int cam_mem_mgr_reserve_memory_region(struct cam_mem_mgr_request_desc *inp,
 	enum cam_smmu_region_id region,
+	struct cam_mem_mgr_memory_desc *out);
+
+int cam_mem_mgr_reserve_memory_region(struct cam_mem_mgr_request_desc *inp,
+	enum cam_smmu_region_id region,
 	struct cam_mem_mgr_memory_desc *out)
 {
 	struct dma_buf *buf = NULL;
@@ -1858,7 +1895,8 @@ int cam_mem_mgr_reserve_memory_region(struct cam_mem_mgr_request_desc *inp,
 		return -EINVAL;
 	}
 
-	rc = cam_mem_util_get_dma_buf(inp->size, 0, &buf, &i_ino);
+	rc = cam_mem_util_get_dma_buf(inp->size,
+		inp->flags & CAM_MEM_FLAG_KMD_ACCESS, &buf, &i_ino);
 
 	if (rc) {
 		CAM_ERR(CAM_MEM, "ION alloc failed for sec heap buffer");
@@ -1937,6 +1975,8 @@ ion_fail:
 	return rc;
 }
 EXPORT_SYMBOL(cam_mem_mgr_reserve_memory_region);
+
+int cam_mem_mgr_free_memory_region(struct cam_mem_mgr_memory_desc *inp);
 
 int cam_mem_mgr_free_memory_region(struct cam_mem_mgr_memory_desc *inp)
 {
@@ -2023,6 +2063,8 @@ end:
 EXPORT_SYMBOL(cam_mem_mgr_free_memory_region);
 
 #ifdef CONFIG_CAM_PRESIL
+struct dma_buf *cam_mem_mgr_get_dma_buf(int fd);
+
 struct dma_buf *cam_mem_mgr_get_dma_buf(int fd)
 {
 	struct dma_buf *dmabuf = NULL;
@@ -2037,6 +2079,8 @@ struct dma_buf *cam_mem_mgr_get_dma_buf(int fd)
 
 	return dmabuf;
 }
+
+int cam_presil_put_dmabuf_from_fd(uint64_t input_dmabuf);
 
 int cam_presil_put_dmabuf_from_fd(uint64_t input_dmabuf)
 {
@@ -2068,6 +2112,8 @@ int cam_presil_put_dmabuf_from_fd(uint64_t input_dmabuf)
 	return 0;
 }
 EXPORT_SYMBOL(cam_presil_put_dmabuf_from_fd);
+
+int cam_presil_get_fd_from_dmabuf(uint64_t input_dmabuf);
 
 int cam_presil_get_fd_from_dmabuf(uint64_t input_dmabuf)
 {
@@ -2121,6 +2167,8 @@ int cam_presil_get_fd_from_dmabuf(uint64_t input_dmabuf)
 	return (int)fd_for_dmabuf;
 }
 EXPORT_SYMBOL(cam_presil_get_fd_from_dmabuf);
+
+int cam_mem_mgr_send_buffer_to_presil(int32_t iommu_hdl, int32_t buf_handle);
 
 int cam_mem_mgr_send_buffer_to_presil(int32_t iommu_hdl, int32_t buf_handle)
 {
@@ -2195,6 +2243,8 @@ int cam_mem_mgr_send_buffer_to_presil(int32_t iommu_hdl, int32_t buf_handle)
 	return rc;
 }
 
+int cam_mem_mgr_send_all_buffers_to_presil(int32_t iommu_hdl);
+
 int cam_mem_mgr_send_all_buffers_to_presil(int32_t iommu_hdl)
 {
 	int idx = 0;
@@ -2244,6 +2294,9 @@ int cam_mem_mgr_send_all_buffers_to_presil(int32_t iommu_hdl)
 	return rc;
 }
 EXPORT_SYMBOL(cam_mem_mgr_send_all_buffers_to_presil);
+
+int cam_mem_mgr_retrieve_buffer_from_presil(int32_t buf_handle, uint32_t buf_size,
+	uint32_t offset, int32_t iommu_hdl);
 
 int cam_mem_mgr_retrieve_buffer_from_presil(int32_t buf_handle, uint32_t buf_size,
 	uint32_t offset, int32_t iommu_hdl)
@@ -2303,20 +2356,31 @@ int cam_mem_mgr_retrieve_buffer_from_presil(int32_t buf_handle, uint32_t buf_siz
 }
 
 #else /* ifdef CONFIG_CAM_PRESIL */
+struct dma_buf * cam_mem_mgr_get_dma_buf(int fd);
+
 struct dma_buf * cam_mem_mgr_get_dma_buf(int fd)
 {
 	return NULL;
 }
+
+int cam_mem_mgr_send_all_buffers_to_presil(int32_t iommu_hdl);
 
 int cam_mem_mgr_send_all_buffers_to_presil(int32_t iommu_hdl)
 {
        return 0;
 }
 
+int cam_mem_mgr_send_buffer_to_presil(int32_t iommu_hdl, int32_t buf_handle);
+
 int cam_mem_mgr_send_buffer_to_presil(int32_t iommu_hdl, int32_t buf_handle)
 {
 	return 0;
 }
+
+int cam_mem_mgr_retrieve_buffer_from_presil(int32_t buf_handle,
+	uint32_t buf_size,
+	uint32_t offset,
+	int32_t iommu_hdl);
 
 int cam_mem_mgr_retrieve_buffer_from_presil(int32_t buf_handle,
 	uint32_t buf_size,

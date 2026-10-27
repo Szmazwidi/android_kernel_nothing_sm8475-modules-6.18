@@ -3,6 +3,7 @@
  * Copyright (c) 2017-2021, The Linux Foundation. All rights reserved.
  */
 
+#include <linux/of.h>
 #include <linux/module.h>
 #include <linux/slab.h>
 #include <linux/mod_devicetable.h>
@@ -219,10 +220,10 @@ const static struct component_ops cam_jpeg_enc_component_ops = {
 	.unbind = cam_jpeg_enc_component_unbind,
 };
 
-static int cam_jpeg_enc_remove(struct platform_device *pdev)
+static void cam_jpeg_enc_remove(struct platform_device *pdev)
 {
 	component_del(&pdev->dev, &cam_jpeg_enc_component_ops);
-	return 0;
+	return;
 }
 
 static int cam_jpeg_enc_probe(struct platform_device *pdev)
@@ -269,10 +270,14 @@ struct platform_driver cam_jpeg_enc_driver = {
 	},
 };
 
+int cam_jpeg_enc_init_module(void);
+
 int cam_jpeg_enc_init_module(void)
 {
 	return platform_driver_register(&cam_jpeg_enc_driver);
 }
+
+void cam_jpeg_enc_exit_module(void);
 
 void cam_jpeg_enc_exit_module(void)
 {

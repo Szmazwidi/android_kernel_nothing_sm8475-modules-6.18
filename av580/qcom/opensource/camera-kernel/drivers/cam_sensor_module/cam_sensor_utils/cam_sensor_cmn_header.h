@@ -7,6 +7,7 @@
 #ifndef _CAM_SENSOR_CMN_HEADER_
 #define _CAM_SENSOR_CMN_HEADER_
 
+#include "cam_gpio_request.h"
 #include <linux/i2c.h>
 #include <linux/types.h>
 #include <linux/kernel.h>
@@ -336,9 +337,9 @@ enum msm_camera_vreg_name_t {
 struct msm_camera_gpio_conf {
 	void *cam_gpiomux_conf_tbl;
 	uint8_t cam_gpiomux_conf_tbl_size;
-	struct gpio *cam_gpio_common_tbl;
+	struct cam_gpio_request *cam_gpio_common_tbl;
 	uint8_t cam_gpio_common_tbl_size;
-	struct gpio *cam_gpio_req_tbl;
+	struct cam_gpio_request *cam_gpio_req_tbl;
 	uint8_t cam_gpio_req_tbl_size;
 	uint32_t gpio_no_mux;
 	uint32_t *camera_off_table;

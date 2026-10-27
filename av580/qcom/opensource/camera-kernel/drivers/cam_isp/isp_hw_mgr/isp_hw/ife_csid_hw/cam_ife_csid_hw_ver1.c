@@ -268,6 +268,9 @@ static int cam_ife_csid_ver1_set_debug(
 }
 
 int cam_ife_csid_ver1_get_hw_caps(void *hw_priv,
+	void *get_hw_cap_args, uint32_t arg_size);
+
+int cam_ife_csid_ver1_get_hw_caps(void *hw_priv,
 	void *get_hw_cap_args, uint32_t arg_size)
 {
 	int rc = 0;
@@ -669,6 +672,9 @@ static int cam_ife_csid_path_reset(
 
 	return rc;
 }
+
+int cam_ife_csid_ver1_reset(void *hw_priv,
+	void *reset_args, uint32_t arg_size);
 
 int cam_ife_csid_ver1_reset(void *hw_priv,
 	void *reset_args, uint32_t arg_size)
@@ -1491,6 +1497,12 @@ int cam_ife_csid_hw_ver1_hw_cfg(
 	struct cam_ife_csid_ver1_hw *csid_hw,
 	struct cam_ife_csid_ver1_path_cfg *path_cfg,
 	struct cam_csid_hw_reserve_resource_args  *reserve,
+	uint32_t cid);
+
+int cam_ife_csid_hw_ver1_hw_cfg(
+	struct cam_ife_csid_ver1_hw *csid_hw,
+	struct cam_ife_csid_ver1_path_cfg *path_cfg,
+	struct cam_csid_hw_reserve_resource_args  *reserve,
 	uint32_t cid)
 {
 	int rc = 0;
@@ -1602,6 +1614,10 @@ static bool cam_ife_csid_ver1_is_width_valid_by_dt(
 
 bool cam_ife_csid_ver1_is_width_valid(
 	struct cam_csid_hw_reserve_resource_args  *reserve,
+	struct cam_ife_csid_ver1_hw *csid_hw);
+
+bool cam_ife_csid_ver1_is_width_valid(
+	struct cam_csid_hw_reserve_resource_args  *reserve,
 	struct cam_ife_csid_ver1_hw *csid_hw)
 {
 	uint32_t width = 0;
@@ -1704,6 +1720,9 @@ err:
 
 
 int cam_ife_csid_ver1_reserve(void *hw_priv,
+	void *reserve_args, uint32_t arg_size);
+
+int cam_ife_csid_ver1_reserve(void *hw_priv,
 	void *reserve_args, uint32_t arg_size)
 {
 
@@ -1778,6 +1797,9 @@ int cam_ife_csid_ver1_reserve(void *hw_priv,
 
 	return 0;
 }
+
+int cam_ife_csid_ver1_release(void *hw_priv,
+	void *release_args, uint32_t arg_size);
 
 int cam_ife_csid_ver1_release(void *hw_priv,
 	void *release_args, uint32_t arg_size)
@@ -2734,6 +2756,9 @@ err:
 }
 
 int cam_ife_csid_ver1_init_hw(void *hw_priv,
+	void *init_args, uint32_t arg_size);
+
+int cam_ife_csid_ver1_init_hw(void *hw_priv,
 	void *init_args, uint32_t arg_size)
 {
 	struct cam_ife_csid_ver1_hw *csid_hw  = NULL;
@@ -2902,6 +2927,9 @@ static int cam_ife_csid_ver1_disable_hw(
 }
 
 int cam_ife_csid_ver1_deinit_hw(void *hw_priv,
+	void *deinit_args, uint32_t arg_size);
+
+int cam_ife_csid_ver1_deinit_hw(void *hw_priv,
 	void *deinit_args, uint32_t arg_size)
 {
 	struct cam_ife_csid_ver1_hw *csid_hw  = NULL;
@@ -2963,6 +2991,9 @@ int cam_ife_csid_ver1_deinit_hw(void *hw_priv,
 
 	return rc;
 }
+
+int cam_ife_csid_ver1_start(void *hw_priv, void *args,
+			uint32_t arg_size);
 
 int cam_ife_csid_ver1_start(void *hw_priv, void *args,
 			uint32_t arg_size)
@@ -3148,6 +3179,9 @@ static int cam_ife_csid_change_pxl_halt_mode(
 }
 
 int cam_ife_csid_halt(struct cam_ife_csid_ver1_hw *csid_hw,
+		void *halt_args);
+
+int cam_ife_csid_halt(struct cam_ife_csid_ver1_hw *csid_hw,
 		void *halt_args)
 {
 	struct cam_isp_resource_node         *res;
@@ -3187,6 +3221,9 @@ int cam_ife_csid_halt(struct cam_ife_csid_ver1_hw *csid_hw,
 
 	return rc;
 }
+
+int cam_ife_csid_ver1_stop(void *hw_priv,
+	void *stop_args, uint32_t arg_size);
 
 int cam_ife_csid_ver1_stop(void *hw_priv,
 	void *stop_args, uint32_t arg_size)
@@ -3271,12 +3308,18 @@ int cam_ife_csid_ver1_stop(void *hw_priv,
 }
 
 int cam_ife_csid_ver1_read(void *hw_priv,
+	void *read_args, uint32_t arg_size);
+
+int cam_ife_csid_ver1_read(void *hw_priv,
 	void *read_args, uint32_t arg_size)
 {
 	CAM_ERR(CAM_ISP, "CSID: un supported");
 
 	return -EINVAL;
 }
+
+int cam_ife_csid_ver1_write(void *hw_priv,
+	void *write_args, uint32_t arg_size);
 
 int cam_ife_csid_ver1_write(void *hw_priv,
 	void *write_args, uint32_t arg_size)
@@ -3553,6 +3596,10 @@ static int cam_ife_csid_ver1_set_csid_clock(
 
 	return 0;
 }
+
+int cam_ife_csid_ver1_set_csid_qcfa(
+	struct cam_ife_csid_ver1_hw  *csid_hw,
+	void *cmd_args);
 
 int cam_ife_csid_ver1_set_csid_qcfa(
 	struct cam_ife_csid_ver1_hw  *csid_hw,
@@ -4717,6 +4764,10 @@ free_res:
 
 int cam_ife_csid_hw_ver1_init(struct cam_hw_intf  *hw_intf,
 	struct cam_ife_csid_core_info *csid_core_info,
+	bool is_custom);
+
+int cam_ife_csid_hw_ver1_init(struct cam_hw_intf  *hw_intf,
+	struct cam_ife_csid_core_info *csid_core_info,
 	bool is_custom)
 {
 	int                             rc = -EINVAL;
@@ -4816,6 +4867,8 @@ err:
 	return rc;
 }
 EXPORT_SYMBOL(cam_ife_csid_hw_ver1_init);
+
+int cam_ife_csid_hw_ver1_deinit(struct cam_hw_info *hw_priv);
 
 int cam_ife_csid_hw_ver1_deinit(struct cam_hw_info *hw_priv)
 {

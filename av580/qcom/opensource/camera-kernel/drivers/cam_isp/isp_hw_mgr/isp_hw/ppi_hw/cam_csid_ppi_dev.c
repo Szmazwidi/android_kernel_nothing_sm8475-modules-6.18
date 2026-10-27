@@ -3,6 +3,7 @@
  * Copyright (c) 2020-2021, The Linux Foundation. All rights reserved.
  */
 
+#include <linux/of.h>
 #include <linux/slab.h>
 #include <linux/mod_devicetable.h>
 #include <linux/of_device.h>
@@ -121,6 +122,9 @@ static void cam_ppi_component_unbind(struct device *dev,
 }
 
 int cam_csid_ppi_hw_init(struct cam_hw_intf **csid_ppi_hw,
+	uint32_t hw_idx);
+
+int cam_csid_ppi_hw_init(struct cam_hw_intf **csid_ppi_hw,
 	uint32_t hw_idx)
 {
 	int rc = 0;
@@ -141,6 +145,8 @@ const static struct component_ops cam_ppi_component_ops = {
 	.unbind = cam_ppi_component_unbind,
 };
 
+int cam_csid_ppi_probe(struct platform_device *pdev);
+
 int cam_csid_ppi_probe(struct platform_device *pdev)
 {
 	int rc = 0;
@@ -153,8 +159,10 @@ int cam_csid_ppi_probe(struct platform_device *pdev)
 	return rc;
 }
 
-int cam_csid_ppi_remove(struct platform_device *pdev)
+void cam_csid_ppi_remove(struct platform_device *pdev);
+
+void cam_csid_ppi_remove(struct platform_device *pdev)
 {
 	component_del(&pdev->dev, &cam_ppi_component_ops);
-	return 0;
+	return;
 }

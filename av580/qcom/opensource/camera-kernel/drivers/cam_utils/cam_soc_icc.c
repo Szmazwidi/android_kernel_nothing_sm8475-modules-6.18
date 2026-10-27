@@ -17,6 +17,8 @@ struct cam_soc_bus_client_data {
 	struct icc_path *icc_data;
 };
 
+int cam_soc_bus_client_update_request(void *client, unsigned int idx);
+
 int cam_soc_bus_client_update_request(void *client, unsigned int idx)
 {
 	int rc = 0;
@@ -52,6 +54,8 @@ end:
 	return rc;
 }
 
+int cam_soc_bus_client_update_bw(void *client, uint64_t ab, uint64_t ib);
+
 int cam_soc_bus_client_update_bw(void *client, uint64_t ab, uint64_t ib)
 {
 	struct cam_soc_bus_client *bus_client =
@@ -73,6 +77,10 @@ int cam_soc_bus_client_update_bw(void *client, uint64_t ab, uint64_t ib)
 end:
 	return rc;
 }
+
+int cam_soc_bus_client_register(struct platform_device *pdev,
+	struct device_node *dev_node, void **client,
+	struct cam_soc_bus_client_common_data *common_data, bool use_path_name);
 
 int cam_soc_bus_client_register(struct platform_device *pdev,
 	struct device_node *dev_node, void **client,
@@ -137,6 +145,8 @@ end:
 	return rc;
 
 }
+
+void cam_soc_bus_client_unregister(void **client);
 
 void cam_soc_bus_client_unregister(void **client)
 {

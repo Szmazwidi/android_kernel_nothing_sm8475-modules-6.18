@@ -9,6 +9,9 @@
 #include "cam_cpas_soc.h"
 
 int cam_camsstop_get_hw_info(struct cam_hw_info *cpas_hw,
+	struct cam_cpas_hw_caps *hw_caps);
+
+int cam_camsstop_get_hw_info(struct cam_hw_info *cpas_hw,
 	struct cam_cpas_hw_caps *hw_caps)
 {
 	struct cam_cpas *cpas_core = (struct cam_cpas *) cpas_hw->core_info;
@@ -35,6 +38,9 @@ int cam_camsstop_get_hw_info(struct cam_hw_info *cpas_hw,
 
 	return 0;
 }
+
+int cam_camsstop_setup_regbase_indices(struct cam_hw_soc_info *soc_info,
+	int32_t regbase_index[], int32_t num_reg_map);
 
 int cam_camsstop_setup_regbase_indices(struct cam_hw_soc_info *soc_info,
 	int32_t regbase_index[], int32_t num_reg_map)
@@ -64,6 +70,8 @@ int cam_camsstop_setup_regbase_indices(struct cam_hw_soc_info *soc_info,
 
 	return 0;
 }
+
+int cam_camsstop_get_internal_ops(struct cam_cpas_internal_ops *internal_ops);
 
 int cam_camsstop_get_internal_ops(struct cam_cpas_internal_ops *internal_ops)
 {

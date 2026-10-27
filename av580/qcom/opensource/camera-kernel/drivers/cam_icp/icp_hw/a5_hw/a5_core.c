@@ -213,6 +213,9 @@ static int cam_a5_fw_mini_dump(
 }
 
 int cam_a5_init_hw(void *device_priv,
+	void *init_hw_args, uint32_t arg_size);
+
+int cam_a5_init_hw(void *device_priv,
 	void *init_hw_args, uint32_t arg_size)
 {
 	struct cam_hw_info *a5_dev = device_priv;
@@ -294,6 +297,9 @@ int cam_a5_init_hw(void *device_priv,
 error:
 	return rc;
 }
+
+int cam_a5_deinit_hw(void *device_priv,
+	void *init_hw_args, uint32_t arg_size);
 
 int cam_a5_deinit_hw(void *device_priv,
 	void *init_hw_args, uint32_t arg_size)
@@ -488,6 +494,8 @@ static int cam_a5_shutdown(struct cam_hw_info *a5_dev)
 	return 0;
 }
 
+irqreturn_t cam_a5_irq(int irq_num, void *data);
+
 irqreturn_t cam_a5_irq(int irq_num, void *data)
 {
 	struct cam_hw_info *a5_dev = data;
@@ -536,6 +544,8 @@ irqreturn_t cam_a5_irq(int irq_num, void *data)
 	return IRQ_HANDLED;
 }
 
+void cam_a5_irq_raise(void *priv);
+
 void cam_a5_irq_raise(void *priv)
 {
 	struct cam_hw_info *a5_info = priv;
@@ -549,6 +559,8 @@ void cam_a5_irq_raise(void *priv)
 		a5_info->soc_info.reg_map[A5_SIERRA_BASE].mem_base +
 		ICP_SIERRA_A5_CSR_HOST2ICPINT);
 }
+
+void cam_a5_irq_enable(void *priv);
 
 void cam_a5_irq_enable(void *priv)
 {
@@ -564,6 +576,8 @@ void cam_a5_irq_enable(void *priv)
 		ICP_SIERRA_A5_CSR_A2HOSTINTEN);
 }
 
+void __iomem *cam_a5_iface_addr(void *priv);
+
 void __iomem *cam_a5_iface_addr(void *priv)
 {
 	struct cam_hw_info *a5_info = priv;
@@ -578,6 +592,9 @@ void __iomem *cam_a5_iface_addr(void *priv)
 
 	return base + A5_GEN_PURPOSE_REG_OFFSET;
 }
+
+int cam_a5_process_cmd(void *device_priv, uint32_t cmd_type,
+	void *cmd_args, uint32_t arg_size);
 
 int cam_a5_process_cmd(void *device_priv, uint32_t cmd_type,
 	void *cmd_args, uint32_t arg_size)

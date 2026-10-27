@@ -269,10 +269,10 @@ const static struct component_ops cam_isp_dev_component_ops = {
 	.unbind = cam_isp_dev_component_unbind,
 };
 
-static int cam_isp_dev_remove(struct platform_device *pdev)
+static void cam_isp_dev_remove(struct platform_device *pdev)
 {
 	component_del(&pdev->dev, &cam_isp_dev_component_ops);
-	return 0;
+	return;
 }
 
 static int cam_isp_dev_probe(struct platform_device *pdev)
@@ -298,10 +298,14 @@ struct platform_driver isp_driver = {
 	},
 };
 
+int cam_isp_dev_init_module(void);
+
 int cam_isp_dev_init_module(void)
 {
 	return platform_driver_register(&isp_driver);
 }
+
+void cam_isp_dev_exit_module(void);
 
 void cam_isp_dev_exit_module(void)
 {

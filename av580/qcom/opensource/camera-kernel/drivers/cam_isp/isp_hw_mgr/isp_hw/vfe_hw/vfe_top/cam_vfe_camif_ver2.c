@@ -244,6 +244,10 @@ static int cam_vfe_camif_get_reg_update(
 
 int cam_vfe_camif_ver2_acquire_resource(
 	struct cam_isp_resource_node  *camif_res,
+	void                          *acquire_param);
+
+int cam_vfe_camif_ver2_acquire_resource(
+	struct cam_isp_resource_node  *camif_res,
 	void                          *acquire_param)
 {
 	struct cam_vfe_mux_camif_data    *camif_data;
@@ -661,6 +665,9 @@ static int cam_vfe_camif_sof_irq_debug(
 }
 
 int cam_vfe_camif_dump_timestamps(
+	struct cam_isp_resource_node *rsrc_node, void *cmd_args);
+
+int cam_vfe_camif_dump_timestamps(
 	struct cam_isp_resource_node *rsrc_node, void *cmd_args)
 {
 	struct cam_vfe_mux_camif_data *camif_priv =
@@ -955,6 +962,13 @@ int cam_vfe_camif_ver2_init(
 	struct cam_hw_soc_info        *soc_info,
 	void                          *camif_hw_info,
 	struct cam_isp_resource_node  *camif_node,
+	void                          *vfe_irq_controller);
+
+int cam_vfe_camif_ver2_init(
+	struct cam_hw_intf            *hw_intf,
+	struct cam_hw_soc_info        *soc_info,
+	void                          *camif_hw_info,
+	struct cam_isp_resource_node  *camif_node,
 	void                          *vfe_irq_controller)
 {
 	struct cam_vfe_mux_camif_data     *camif_priv = NULL;
@@ -996,6 +1010,9 @@ int cam_vfe_camif_ver2_init(
 
 	return 0;
 }
+
+int cam_vfe_camif_ver2_deinit(
+	struct cam_isp_resource_node  *camif_node);
 
 int cam_vfe_camif_ver2_deinit(
 	struct cam_isp_resource_node  *camif_node)

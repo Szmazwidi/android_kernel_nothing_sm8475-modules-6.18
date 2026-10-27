@@ -11,6 +11,8 @@
 #include "cam_io_util.h"
 #include "cam_debug_util.h"
 
+int cam_io_w(uint32_t data, void __iomem *addr);
+
 int cam_io_w(uint32_t data, void __iomem *addr)
 {
 	if (!addr)
@@ -22,6 +24,8 @@ int cam_io_w(uint32_t data, void __iomem *addr)
 	return 0;
 }
 
+int cam_io_w_mb(uint32_t data, void __iomem *addr);
+
 int cam_io_w_mb(uint32_t data, void __iomem *addr)
 {
 	if (!addr)
@@ -32,6 +36,8 @@ int cam_io_w_mb(uint32_t data, void __iomem *addr)
 
 	return 0;
 }
+
+uint32_t cam_io_r(void __iomem *addr);
 
 uint32_t cam_io_r(void __iomem *addr)
 {
@@ -48,6 +54,8 @@ uint32_t cam_io_r(void __iomem *addr)
 	return data;
 }
 
+uint32_t cam_io_r_mb(void __iomem *addr);
+
 uint32_t cam_io_r_mb(void __iomem *addr)
 {
 	uint32_t data;
@@ -62,6 +70,9 @@ uint32_t cam_io_r_mb(void __iomem *addr)
 
 	return data;
 }
+
+int cam_io_memcpy(void __iomem *dest_addr,
+	void __iomem *src_addr, uint32_t len);
 
 int cam_io_memcpy(void __iomem *dest_addr,
 	void __iomem *src_addr, uint32_t len)
@@ -82,6 +93,9 @@ int cam_io_memcpy(void __iomem *dest_addr,
 
 	return 0;
 }
+
+int  cam_io_memcpy_mb(void __iomem *dest_addr,
+	void __iomem *src_addr, uint32_t len);
 
 int  cam_io_memcpy_mb(void __iomem *dest_addr,
 	void __iomem *src_addr, uint32_t len)
@@ -111,6 +125,9 @@ int  cam_io_memcpy_mb(void __iomem *dest_addr,
 }
 
 int cam_io_poll_value(void __iomem *addr, uint32_t wait_data, uint32_t retry,
+	unsigned long min_usecs, unsigned long max_usecs);
+
+int cam_io_poll_value(void __iomem *addr, uint32_t wait_data, uint32_t retry,
 	unsigned long min_usecs, unsigned long max_usecs)
 {
 	uint32_t tmp, cnt = 0;
@@ -133,6 +150,10 @@ int cam_io_poll_value(void __iomem *addr, uint32_t wait_data, uint32_t retry,
 
 	return rc;
 }
+
+int cam_io_poll_value_wmask(void __iomem *addr, uint32_t wait_data,
+	uint32_t bmask, uint32_t retry, unsigned long min_usecs,
+	unsigned long max_usecs);
 
 int cam_io_poll_value_wmask(void __iomem *addr, uint32_t wait_data,
 	uint32_t bmask, uint32_t retry, unsigned long min_usecs,
@@ -160,6 +181,9 @@ int cam_io_poll_value_wmask(void __iomem *addr, uint32_t wait_data,
 }
 
 int cam_io_w_same_offset_block(const uint32_t *data, void __iomem *addr,
+	uint32_t len);
+
+int cam_io_w_same_offset_block(const uint32_t *data, void __iomem *addr,
 	uint32_t len)
 {
 	int i;
@@ -175,6 +199,9 @@ int cam_io_w_same_offset_block(const uint32_t *data, void __iomem *addr,
 
 	return 0;
 }
+
+int cam_io_w_mb_same_offset_block(const uint32_t *data, void __iomem *addr,
+	uint32_t len);
 
 int cam_io_w_mb_same_offset_block(const uint32_t *data, void __iomem *addr,
 	uint32_t len)
@@ -198,6 +225,9 @@ int cam_io_w_mb_same_offset_block(const uint32_t *data, void __iomem *addr,
 #define __OFFSET(__i)   (data[__i][0])
 #define __VAL(__i)      (data[__i][1])
 int cam_io_w_offset_val_block(const uint32_t data[][2],
+	void __iomem *addr_base, uint32_t len);
+
+int cam_io_w_offset_val_block(const uint32_t data[][2],
 	void __iomem *addr_base, uint32_t len)
 {
 	int i;
@@ -214,6 +244,9 @@ int cam_io_w_offset_val_block(const uint32_t data[][2],
 
 	return 0;
 }
+
+int cam_io_w_mb_offset_val_block(const uint32_t data[][2],
+	void __iomem *addr_base, uint32_t len);
 
 int cam_io_w_mb_offset_val_block(const uint32_t data[][2],
 	void __iomem *addr_base, uint32_t len)
@@ -238,6 +271,8 @@ int cam_io_w_mb_offset_val_block(const uint32_t data[][2],
 #define BYTES_PER_REGISTER           4
 #define NUM_REGISTER_PER_LINE        4
 #define REG_OFFSET(__start, __i)    (__start + (__i * BYTES_PER_REGISTER))
+int cam_io_dump(void __iomem *base_addr, uint32_t start_offset, int size);
+
 int cam_io_dump(void __iomem *base_addr, uint32_t start_offset, int size)
 {
 	char          line_str[128];

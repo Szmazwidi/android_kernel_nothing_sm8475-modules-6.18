@@ -3,6 +3,7 @@
  * Copyright (c) 2019-2021, The Linux Foundation. All rights reserved.
  */
 
+#include <linux/of.h>
 #include <linux/slab.h>
 #include <linux/mod_devicetable.h>
 #include <linux/module.h>
@@ -23,6 +24,8 @@ struct cam_custom_device_hw_info cam_custom_hw_info = {
 	.irq_clear = 0x0,
 };
 EXPORT_SYMBOL(cam_custom_hw_info);
+
+int cam_custom_hw_sub_mod_init(struct cam_hw_intf **custom_hw, uint32_t hw_idx);
 
 int cam_custom_hw_sub_mod_init(struct cam_hw_intf **custom_hw, uint32_t hw_idx)
 {
@@ -136,6 +139,8 @@ const static struct component_ops cam_custom_hw_sub_mod_component_ops = {
 	.unbind = cam_custom_hw_sub_mod_component_unbind,
 };
 
+int cam_custom_hw_sub_mod_probe(struct platform_device *pdev);
+
 int cam_custom_hw_sub_mod_probe(struct platform_device *pdev)
 {
 	int rc = 0;
@@ -167,10 +172,14 @@ struct platform_driver cam_custom_hw_sub_mod_driver = {
 	},
 };
 
+int cam_custom_hw_sub_module_init(void);
+
 int cam_custom_hw_sub_module_init(void)
 {
 	return platform_driver_register(&cam_custom_hw_sub_mod_driver);
 }
+
+void cam_custom_hw_sub_module_exit(void);
 
 void cam_custom_hw_sub_module_exit(void)
 {

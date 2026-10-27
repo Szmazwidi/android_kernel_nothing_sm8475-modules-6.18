@@ -22,6 +22,8 @@
 
 static const char drv_name[] = "vfe";
 
+int cam_vfe_get_hw_caps(void *hw_priv, void *get_hw_cap_args, uint32_t arg_size);
+
 int cam_vfe_get_hw_caps(void *hw_priv, void *get_hw_cap_args, uint32_t arg_size)
 {
 	struct cam_hw_info                *vfe_dev = hw_priv;
@@ -46,6 +48,9 @@ int cam_vfe_get_hw_caps(void *hw_priv, void *get_hw_cap_args, uint32_t arg_size)
 }
 
 int cam_vfe_reset_irq_top_half(uint32_t    evt_id,
+	struct cam_irq_th_payload         *th_payload);
+
+int cam_vfe_reset_irq_top_half(uint32_t    evt_id,
 	struct cam_irq_th_payload         *th_payload)
 {
 	int32_t                            rc = -EINVAL;
@@ -60,6 +65,8 @@ int cam_vfe_reset_irq_top_half(uint32_t    evt_id,
 
 	return rc;
 }
+
+int cam_vfe_init_hw(void *hw_priv, void *init_hw_args, uint32_t arg_size);
 
 int cam_vfe_init_hw(void *hw_priv, void *init_hw_args, uint32_t arg_size)
 {
@@ -155,6 +162,8 @@ decrement_open_cnt:
 	return rc;
 }
 
+int cam_vfe_deinit_hw(void *hw_priv, void *deinit_hw_args, uint32_t arg_size);
+
 int cam_vfe_deinit_hw(void *hw_priv, void *deinit_hw_args, uint32_t arg_size)
 {
 	struct cam_hw_info                *vfe_hw = hw_priv;
@@ -221,6 +230,8 @@ int cam_vfe_deinit_hw(void *hw_priv, void *deinit_hw_args, uint32_t arg_size)
 	CAM_DBG(CAM_ISP, "Exit");
 	return rc;
 }
+
+int cam_vfe_reset(void *hw_priv, void *reset_core_args, uint32_t arg_size);
 
 int cam_vfe_reset(void *hw_priv, void *reset_core_args, uint32_t arg_size)
 {
@@ -290,6 +301,8 @@ skip_reset:
 	return rc;
 }
 
+void cam_isp_hw_get_timestamp(struct cam_isp_timestamp *time_stamp);
+
 void cam_isp_hw_get_timestamp(struct cam_isp_timestamp *time_stamp)
 {
 	struct timespec64 ts;
@@ -298,6 +311,8 @@ void cam_isp_hw_get_timestamp(struct cam_isp_timestamp *time_stamp)
 	time_stamp->mono_time.tv_sec    = ts.tv_sec;
 	time_stamp->mono_time.tv_nsec   = ts.tv_nsec;
 }
+
+int cam_vfe_reserve(void *hw_priv, void *reserve_args, uint32_t arg_size);
 
 int cam_vfe_reserve(void *hw_priv, void *reserve_args, uint32_t arg_size)
 {
@@ -336,6 +351,8 @@ int cam_vfe_reserve(void *hw_priv, void *reserve_args, uint32_t arg_size)
 
 	return rc;
 }
+
+int cam_vfe_release(void *hw_priv, void *release_args, uint32_t arg_size);
 
 int cam_vfe_release(void *hw_priv, void *release_args, uint32_t arg_size)
 {
@@ -376,6 +393,8 @@ int cam_vfe_release(void *hw_priv, void *release_args, uint32_t arg_size)
 	return rc;
 }
 
+
+int cam_vfe_start(void *hw_priv, void *start_args, uint32_t arg_size);
 
 int cam_vfe_start(void *hw_priv, void *start_args, uint32_t arg_size)
 {
@@ -427,6 +446,8 @@ int cam_vfe_start(void *hw_priv, void *start_args, uint32_t arg_size)
 	return rc;
 }
 
+int cam_vfe_stop(void *hw_priv, void *stop_args, uint32_t arg_size);
+
 int cam_vfe_stop(void *hw_priv, void *stop_args, uint32_t arg_size)
 {
 	struct cam_vfe_hw_core_info       *core_info = NULL;
@@ -472,15 +493,22 @@ int cam_vfe_stop(void *hw_priv, void *stop_args, uint32_t arg_size)
 	return rc;
 }
 
+int cam_vfe_read(void *hw_priv, void *read_args, uint32_t arg_size);
+
 int cam_vfe_read(void *hw_priv, void *read_args, uint32_t arg_size)
 {
 	return -EPERM;
 }
 
+int cam_vfe_write(void *hw_priv, void *write_args, uint32_t arg_size);
+
 int cam_vfe_write(void *hw_priv, void *write_args, uint32_t arg_size)
 {
 	return -EPERM;
 }
+
+int cam_vfe_process_cmd(void *hw_priv, uint32_t cmd_type,
+	void *cmd_args, uint32_t arg_size);
 
 int cam_vfe_process_cmd(void *hw_priv, uint32_t cmd_type,
 	void *cmd_args, uint32_t arg_size)
@@ -565,6 +593,8 @@ int cam_vfe_process_cmd(void *hw_priv, uint32_t cmd_type,
 	return rc;
 }
 
+irqreturn_t cam_vfe_irq(int irq_num, void *data);
+
 irqreturn_t cam_vfe_irq(int irq_num, void *data)
 {
 	struct cam_hw_info            *vfe_hw;
@@ -579,6 +609,11 @@ irqreturn_t cam_vfe_irq(int irq_num, void *data)
 	return cam_irq_controller_handle_irq(irq_num,
 		core_info->vfe_irq_controller, CAM_IRQ_EVT_GROUP_0);
 }
+
+int cam_vfe_core_init(struct cam_vfe_hw_core_info  *core_info,
+	struct cam_hw_soc_info                     *soc_info,
+	struct cam_hw_intf                         *hw_intf,
+	struct cam_vfe_hw_info                     *vfe_hw_info);
 
 int cam_vfe_core_init(struct cam_vfe_hw_core_info  *core_info,
 	struct cam_hw_soc_info                     *soc_info,
@@ -648,6 +683,9 @@ deinit_controller:
 
 	return rc;
 }
+
+int cam_vfe_core_deinit(struct cam_vfe_hw_core_info  *core_info,
+	struct cam_vfe_hw_info                       *vfe_hw_info);
 
 int cam_vfe_core_deinit(struct cam_vfe_hw_core_info  *core_info,
 	struct cam_vfe_hw_info                       *vfe_hw_info)

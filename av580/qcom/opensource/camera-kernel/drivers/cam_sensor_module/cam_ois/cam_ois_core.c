@@ -4,6 +4,7 @@
  * Copyright (c) 2022-2024 Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
+#include <linux/vmalloc.h>
 #include <linux/module.h>
 #include <linux/firmware.h>
 
@@ -15,6 +16,9 @@
 #include "cam_res_mgr_api.h"
 #include "cam_common_util.h"
 #include "cam_packet_util.h"
+
+int32_t cam_ois_construct_default_power_setting(
+	struct cam_sensor_power_ctrl_t *power_info);
 
 int32_t cam_ois_construct_default_power_setting(
 	struct cam_sensor_power_ctrl_t *power_info)
@@ -960,6 +964,8 @@ put_ref:
 	return rc;
 }
 
+void cam_ois_shutdown(struct cam_ois_ctrl_t *o_ctrl);
+
 void cam_ois_shutdown(struct cam_ois_ctrl_t *o_ctrl)
 {
 	int rc = 0;
@@ -1015,6 +1021,8 @@ void cam_ois_shutdown(struct cam_ois_ctrl_t *o_ctrl)
  *
  * Returns success or failure
  */
+int cam_ois_driver_cmd(struct cam_ois_ctrl_t *o_ctrl, void *arg);
+
 int cam_ois_driver_cmd(struct cam_ois_ctrl_t *o_ctrl, void *arg)
 {
 	int                              rc = 0;

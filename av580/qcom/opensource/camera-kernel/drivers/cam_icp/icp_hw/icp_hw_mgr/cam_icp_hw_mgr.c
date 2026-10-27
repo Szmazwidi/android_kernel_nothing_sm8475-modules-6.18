@@ -6555,6 +6555,8 @@ cmd_work_failed:
 	return rc;
 }
 
+void cam_icp_mgr_destroy_wq(void);
+
 void cam_icp_mgr_destroy_wq(void)
 {
 	cam_req_mgr_workq_destroy(&icp_hw_mgr.timer_work);
@@ -6589,6 +6591,9 @@ static int cam_icp_mgr_cmd(void *hw_mgr_priv, void *cmd_args)
 
 	return rc;
 }
+
+int cam_icp_hw_mgr_init(struct device_node *of_node, uint64_t *hw_mgr_hdl,
+	int *iommu_hdl, cam_icp_mini_dump_cb mini_dump_cb);
 
 int cam_icp_hw_mgr_init(struct device_node *of_node, uint64_t *hw_mgr_hdl,
 	int *iommu_hdl, cam_icp_mini_dump_cb mini_dump_cb)
@@ -6709,6 +6714,8 @@ destroy_mutex:
 
 	return rc;
 }
+
+void cam_icp_hw_mgr_deinit(void);
 
 void cam_icp_hw_mgr_deinit(void)
 {

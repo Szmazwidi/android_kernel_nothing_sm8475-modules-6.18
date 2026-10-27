@@ -17,6 +17,12 @@ int cam_isp_add_change_base(
 	struct cam_hw_prepare_update_args      *prepare,
 	struct list_head                       *res_list_isp_src,
 	struct cam_isp_change_base_args        *change_base_args,
+	struct cam_kmd_buf_info                *kmd_buf_info);
+
+int cam_isp_add_change_base(
+	struct cam_hw_prepare_update_args      *prepare,
+	struct list_head                       *res_list_isp_src,
+	struct cam_isp_change_base_args        *change_base_args,
 	struct cam_kmd_buf_info                *kmd_buf_info)
 {
 	int rc = -EINVAL;
@@ -201,6 +207,16 @@ int cam_isp_add_cmd_buf_update(
 	uint32_t                             *cmd_buf_addr,
 	uint32_t                              kmd_buf_remain_size,
 	void                                 *cmd_update_data,
+	uint32_t                             *bytes_used);
+
+int cam_isp_add_cmd_buf_update(
+	struct cam_isp_hw_mgr_res            *hw_mgr_res,
+	uint32_t                              cmd_type,
+	uint32_t                              hw_cmd_type,
+	uint32_t                              base_idx,
+	uint32_t                             *cmd_buf_addr,
+	uint32_t                              kmd_buf_remain_size,
+	void                                 *cmd_update_data,
 	uint32_t                             *bytes_used)
 {
 	int rc = 0;
@@ -253,6 +269,15 @@ int cam_isp_add_cmd_buf_update(
 	CAM_DBG(CAM_ISP, "total_used_bytes %u", total_used_bytes);
 	return rc;
 }
+
+int cam_isp_add_command_buffers(
+	struct cam_hw_prepare_update_args  *prepare,
+	struct cam_kmd_buf_info            *kmd_buf_info,
+	struct cam_isp_ctx_base_info       *base_info,
+	cam_packet_generic_blob_handler     blob_handler_cb,
+	struct cam_isp_hw_mgr_res          *res_list_isp_out,
+	uint32_t                            out_base,
+	uint32_t                            out_max);
 
 int cam_isp_add_command_buffers(
 	struct cam_hw_prepare_update_args  *prepare,
@@ -480,6 +505,15 @@ int cam_isp_add_command_buffers(
 
 	return rc;
 }
+
+int cam_sfe_add_command_buffers(
+	struct cam_hw_prepare_update_args  *prepare,
+	struct cam_kmd_buf_info            *kmd_buf_info,
+	struct cam_isp_ctx_base_info       *base_info,
+	cam_packet_generic_blob_handler     blob_handler_cb,
+	struct cam_isp_hw_mgr_res          *res_list_sfe_out,
+	uint32_t                            out_base,
+	uint32_t                            out_max);
 
 int cam_sfe_add_command_buffers(
 	struct cam_hw_prepare_update_args  *prepare,
@@ -720,6 +754,21 @@ static void cam_isp_validate_for_ife_scratch(
 		}
 	}
 }
+
+int cam_isp_add_io_buffers(
+	int                                      iommu_hdl,
+	int                                      sec_iommu_hdl,
+	struct cam_hw_prepare_update_args       *prepare,
+	uint32_t                                 base_idx,
+	struct cam_kmd_buf_info                 *kmd_buf_info,
+	struct cam_isp_hw_mgr_res               *res_list_isp_out,
+	struct list_head                        *res_list_in_rd,
+	uint32_t                                 out_base,
+	uint32_t                                 out_max,
+	bool                                     fill_fence,
+	enum cam_isp_hw_type                     hw_type,
+	struct cam_isp_frame_header_info        *frame_header_info,
+	struct cam_isp_check_io_cfg_for_scratch *scratch_check_cfg);
 
 int cam_isp_add_io_buffers(
 	int                                      iommu_hdl,
@@ -1215,6 +1264,12 @@ int cam_isp_add_reg_update(
 	struct cam_hw_prepare_update_args    *prepare,
 	struct list_head                     *res_list_isp_src,
 	uint32_t                              base_idx,
+	struct cam_kmd_buf_info              *kmd_buf_info);
+
+int cam_isp_add_reg_update(
+	struct cam_hw_prepare_update_args    *prepare,
+	struct list_head                     *res_list_isp_src,
+	uint32_t                              base_idx,
 	struct cam_kmd_buf_info              *kmd_buf_info)
 {
 	int rc = -EINVAL;
@@ -1313,6 +1368,12 @@ int cam_isp_add_go_cmd(
 	struct cam_hw_prepare_update_args    *prepare,
 	struct list_head                     *res_list_isp_rd,
 	uint32_t                              base_idx,
+	struct cam_kmd_buf_info              *kmd_buf_info);
+
+int cam_isp_add_go_cmd(
+	struct cam_hw_prepare_update_args    *prepare,
+	struct list_head                     *res_list_isp_rd,
+	uint32_t                              base_idx,
 	struct cam_kmd_buf_info              *kmd_buf_info)
 {
 	int rc = -EINVAL;
@@ -1402,6 +1463,12 @@ int cam_isp_add_go_cmd(
 
 	return rc;
 }
+
+int cam_isp_add_comp_wait(
+	struct cam_hw_prepare_update_args    *prepare,
+	struct list_head                     *res_list_isp_src,
+	uint32_t                              base_idx,
+	struct cam_kmd_buf_info              *kmd_buf_info);
 
 int cam_isp_add_comp_wait(
 	struct cam_hw_prepare_update_args    *prepare,
@@ -1505,6 +1572,13 @@ int cam_isp_add_wait_trigger(
 	struct list_head                     *res_list_isp_src,
 	uint32_t                              base_idx,
 	struct cam_kmd_buf_info              *kmd_buf_info,
+	bool                                  trigger_cdm_en);
+
+int cam_isp_add_wait_trigger(
+	struct cam_hw_prepare_update_args    *prepare,
+	struct list_head                     *res_list_isp_src,
+	uint32_t                              base_idx,
+	struct cam_kmd_buf_info              *kmd_buf_info,
 	bool                                  trigger_cdm_en)
 {
 	int rc = -EINVAL;
@@ -1600,6 +1674,11 @@ int cam_isp_add_wait_trigger(
 
 	return rc;
 }
+
+int cam_isp_add_csid_command_buffers(
+	struct cam_hw_prepare_update_args   *prepare,
+	struct cam_kmd_buf_info             *kmd_buf_info,
+	struct cam_isp_ctx_base_info        *base_info);
 
 int cam_isp_add_csid_command_buffers(
 	struct cam_hw_prepare_update_args   *prepare,
@@ -1738,6 +1817,11 @@ int cam_isp_add_csid_command_buffers(
 int cam_isp_add_csid_reg_update(
 	struct cam_hw_prepare_update_args    *prepare,
 	struct cam_kmd_buf_info              *kmd_buf_info,
+	void                                 *args);
+
+int cam_isp_add_csid_reg_update(
+	struct cam_hw_prepare_update_args    *prepare,
+	struct cam_kmd_buf_info              *kmd_buf_info,
 	void                                 *args)
 {
 	int rc = 0;
@@ -1821,6 +1905,12 @@ int cam_isp_add_csid_reg_update(
 
 	return rc;
 }
+
+int cam_isp_add_csid_offline_cmd(
+	struct cam_hw_prepare_update_args    *prepare,
+	struct list_head                     *res_list,
+	uint32_t                              base_idx,
+	struct cam_kmd_buf_info              *kmd_buf_info);
 
 int cam_isp_add_csid_offline_cmd(
 	struct cam_hw_prepare_update_args    *prepare,
@@ -1921,6 +2011,10 @@ go_cmd_added:
 end:
 	return rc;
 }
+
+int cam_isp_get_cmd_buf_count(
+	struct cam_hw_prepare_update_args    *prepare,
+	struct cam_isp_cmd_buf_count         *cmd_buf_count);
 
 int cam_isp_get_cmd_buf_count(
 	struct cam_hw_prepare_update_args    *prepare,

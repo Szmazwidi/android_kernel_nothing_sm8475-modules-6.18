@@ -112,6 +112,8 @@ static const struct file_operations session_info = {
 };
 
 static struct dentry *debugfs_root;
+int cam_req_mgr_debug_register(struct cam_req_mgr_core_device *core_dev);
+
 int cam_req_mgr_debug_register(struct cam_req_mgr_core_device *core_dev)
 {
 	int rc = 0;
@@ -138,12 +140,16 @@ end:
 	return rc;
 }
 
+int cam_req_mgr_debug_unregister(void);
+
 int cam_req_mgr_debug_unregister(void)
 {
 	debugfs_remove_recursive(debugfs_root);
 	debugfs_root = NULL;
 	return 0;
 }
+
+void cam_req_mgr_debug_delay_detect(void);
 
 void cam_req_mgr_debug_delay_detect(void)
 {

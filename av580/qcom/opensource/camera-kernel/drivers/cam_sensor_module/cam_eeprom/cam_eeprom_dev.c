@@ -73,6 +73,9 @@ static long cam_eeprom_subdev_ioctl(struct v4l2_subdev *sd,
 }
 
 int32_t cam_eeprom_update_i2c_info(struct cam_eeprom_ctrl_t *e_ctrl,
+	struct cam_eeprom_i2c_info_t *i2c_info);
+
+int32_t cam_eeprom_update_i2c_info(struct cam_eeprom_ctrl_t *e_ctrl,
 	struct cam_eeprom_i2c_info_t *i2c_info)
 {
 	struct cam_sensor_cci_client        *cci_client = NULL;
@@ -163,7 +166,7 @@ static int cam_eeprom_init_subdev(struct cam_eeprom_ctrl_t *e_ctrl)
 
 	e_ctrl->v4l2_dev_str.internal_ops = &cam_eeprom_internal_ops;
 	e_ctrl->v4l2_dev_str.ops = &cam_eeprom_subdev_ops;
-	strlcpy(e_ctrl->device_name, CAM_EEPROM_NAME,
+	strscpy(e_ctrl->device_name, CAM_EEPROM_NAME,
 		sizeof(e_ctrl->device_name));
 	e_ctrl->v4l2_dev_str.name = e_ctrl->device_name;
 	e_ctrl->v4l2_dev_str.sd_flags =
@@ -366,16 +369,18 @@ static int cam_eeprom_i2c_driver_probe(struct i2c_client *client,
 #endif
 
 #if KERNEL_VERSION(6, 1, 0) <= LINUX_VERSION_CODE
+void cam_eeprom_i2c_driver_remove(struct i2c_client *client);
+
 void cam_eeprom_i2c_driver_remove(struct i2c_client *client)
 {
 	component_del(&client->dev, &cam_eeprom_i2c_component_ops);
 }
 #else
-static int cam_eeprom_i2c_driver_remove(struct i2c_client *client)
+static void cam_eeprom_i2c_driver_remove(struct i2c_client *client)
 {
 	component_del(&client->dev, &cam_eeprom_i2c_component_ops);
 
-	return 0;
+	return;
 }
 #endif
 
@@ -598,10 +603,10 @@ static int32_t cam_eeprom_platform_driver_probe(
 	return rc;
 }
 
-static int cam_eeprom_platform_driver_remove(struct platform_device *pdev)
+static void cam_eeprom_platform_driver_remove(struct platform_device *pdev)
 {
 	component_del(&pdev->dev, &cam_eeprom_component_ops);
-	return 0;
+	return;
 }
 
 static const struct of_device_id cam_eeprom_dt_match[] = {
@@ -656,6 +661,8 @@ static struct spi_driver cam_eeprom_spi_driver = {
 	.probe = cam_eeprom_spi_driver_probe,
 	.remove = cam_eeprom_spi_driver_remove,
 };
+int cam_eeprom_driver_init(void);
+
 int cam_eeprom_driver_init(void)
 {
 	int rc = 0;
@@ -681,6 +688,8 @@ int cam_eeprom_driver_init(void)
 
 	return rc;
 }
+
+void cam_eeprom_driver_exit(void);
 
 void cam_eeprom_driver_exit(void)
 {

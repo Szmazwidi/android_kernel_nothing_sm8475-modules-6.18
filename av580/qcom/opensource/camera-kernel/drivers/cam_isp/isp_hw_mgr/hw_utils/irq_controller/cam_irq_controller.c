@@ -193,6 +193,8 @@ static inline void cam_irq_controller_unlock(struct cam_irq_controller *controll
 
 
 
+int cam_irq_controller_unregister_dependent(void *primary_controller, void *secondary_controller);
+
 int cam_irq_controller_unregister_dependent(void *primary_controller, void *secondary_controller)
 {
 	struct cam_irq_controller *ctrl_primary, *ctrl_secondary;
@@ -229,6 +231,9 @@ int cam_irq_controller_unregister_dependent(void *primary_controller, void *seco
 
 	return 0;
 }
+
+int cam_irq_controller_register_dependent(void *primary_controller, void *secondary_controller,
+	uint32_t *mask);
 
 int cam_irq_controller_register_dependent(void *primary_controller, void *secondary_controller,
 	uint32_t *mask)
@@ -299,6 +304,8 @@ static inline void cam_irq_controller_clear_irq(
 				controller->global_clear_offset);
 }
 
+int cam_irq_controller_deinit(void **irq_controller);
+
 int cam_irq_controller_deinit(void **irq_controller)
 {
 	struct cam_irq_controller *controller = *irq_controller;
@@ -325,6 +332,11 @@ int cam_irq_controller_deinit(void **irq_controller)
 	*irq_controller = NULL;
 	return 0;
 }
+
+int cam_irq_controller_init(const char       *name,
+	void __iomem                         *mem_base,
+	struct cam_irq_controller_reg_info   *register_info,
+	void                                **irq_controller);
 
 int cam_irq_controller_init(const char       *name,
 	void __iomem                         *mem_base,
@@ -477,6 +489,16 @@ int cam_irq_controller_subscribe_irq(void *irq_controller,
 	CAM_IRQ_HANDLER_BOTTOM_HALF        bottom_half_handler,
 	void                              *bottom_half,
 	struct cam_irq_bh_api             *irq_bh_api,
+	enum cam_irq_event_group           evt_grp);
+
+int cam_irq_controller_subscribe_irq(void *irq_controller,
+	enum cam_irq_priority_level        priority,
+	uint32_t                          *evt_bit_mask_arr,
+	void                              *handler_priv,
+	CAM_IRQ_HANDLER_TOP_HALF           top_half_handler,
+	CAM_IRQ_HANDLER_BOTTOM_HALF        bottom_half_handler,
+	void                              *bottom_half,
+	struct cam_irq_bh_api             *irq_bh_api,
 	enum cam_irq_event_group           evt_grp)
 {
 	struct cam_irq_controller  *controller  = irq_controller;
@@ -598,6 +620,8 @@ static inline int cam_irq_controller_find_event_handle(struct cam_irq_controller
 	return rc;
 }
 
+int cam_irq_controller_enable_irq(void *irq_controller, uint32_t handle);
+
 int cam_irq_controller_enable_irq(void *irq_controller, uint32_t handle)
 {
 	struct cam_irq_controller   *controller  = irq_controller;
@@ -623,6 +647,8 @@ end:
 
 	return rc;
 }
+
+int cam_irq_controller_disable_irq(void *irq_controller, uint32_t handle);
 
 int cam_irq_controller_disable_irq(void *irq_controller, uint32_t handle)
 {
@@ -650,6 +676,9 @@ end:
 
 	return rc;
 }
+
+int cam_irq_controller_unsubscribe_irq(void *irq_controller,
+	uint32_t handle);
 
 int cam_irq_controller_unsubscribe_irq(void *irq_controller,
 	uint32_t handle)
@@ -794,6 +823,8 @@ static void __cam_irq_controller_th_processing(
 	CAM_DBG(CAM_IRQ_CTRL, "Exit");
 }
 
+void cam_irq_controller_disable_all(void *priv);
+
 void cam_irq_controller_disable_all(void *priv)
 {
 	struct cam_irq_controller  *controller  = priv;
@@ -919,6 +950,8 @@ static void cam_irq_controller_process_th(struct cam_irq_controller *controller,
 	}
 }
 
+irqreturn_t cam_irq_controller_handle_irq(int irq_num, void *priv, int evt_grp);
+
 irqreturn_t cam_irq_controller_handle_irq(int irq_num, void *priv, int evt_grp)
 {
 	struct cam_irq_controller *controller  = priv;
@@ -943,6 +976,9 @@ irqreturn_t cam_irq_controller_handle_irq(int irq_num, void *priv, int evt_grp)
 
 	return IRQ_HANDLED;
 }
+
+int cam_irq_controller_update_irq(void *irq_controller, uint32_t handle,
+	bool enable, uint32_t *irq_mask);
 
 int cam_irq_controller_update_irq(void *irq_controller, uint32_t handle,
 	bool enable, uint32_t *irq_mask)

@@ -9,6 +9,9 @@
 #include "cam_debug_util.h"
 
 int cam_custom_hw_sub_mod_init_soc_resources(struct cam_hw_soc_info *soc_info,
+	irq_handler_t irq_handler, void *irq_data);
+
+int cam_custom_hw_sub_mod_init_soc_resources(struct cam_hw_soc_info *soc_info,
 	irq_handler_t irq_handler, void *irq_data)
 {
 	int                               rc = 0;
@@ -41,7 +44,7 @@ int cam_custom_hw_sub_mod_init_soc_resources(struct cam_hw_soc_info *soc_info,
 
 	memset(&cpas_register_param, 0, sizeof(cpas_register_param));
 
-	strlcpy(cpas_register_param.identifier, "custom",
+	strscpy(cpas_register_param.identifier, "custom",
 		CAM_HW_IDENTIFIER_LENGTH);
 	cpas_register_param.cell_index = soc_info->index;
 	cpas_register_param.dev = soc_info->dev;
@@ -73,6 +76,8 @@ release_soc:
 	return rc;
 }
 
+int cam_custom_hw_sub_mod_deinit_soc_resources(struct cam_hw_soc_info *soc_info);
+
 int cam_custom_hw_sub_mod_deinit_soc_resources(struct cam_hw_soc_info *soc_info)
 {
 	int                               rc = 0;
@@ -101,6 +106,8 @@ int cam_custom_hw_sub_mod_deinit_soc_resources(struct cam_hw_soc_info *soc_info)
 
 	return rc;
 }
+
+int cam_custom_hw_sub_mod_enable_soc_resources(struct cam_hw_soc_info *soc_info);
 
 int cam_custom_hw_sub_mod_enable_soc_resources(struct cam_hw_soc_info *soc_info)
 {
@@ -144,6 +151,9 @@ stop_cpas:
 end:
 	return rc;
 }
+
+int cam_custom_hw_sub_mod_disable_soc_resources(
+	struct cam_hw_soc_info *soc_info);
 
 int cam_custom_hw_sub_mod_disable_soc_resources(
 	struct cam_hw_soc_info *soc_info)

@@ -101,6 +101,9 @@ static void cam_cpas_process_bw_overrides(
 }
 
 int cam_cpas_util_reg_read(struct cam_hw_info *cpas_hw,
+	enum cam_cpas_reg_base reg_base, struct cam_cpas_reg *reg_info);
+
+int cam_cpas_util_reg_read(struct cam_hw_info *cpas_hw,
 	enum cam_cpas_reg_base reg_base, struct cam_cpas_reg *reg_info)
 {
 	struct cam_cpas *cpas_core = (struct cam_cpas *) cpas_hw->core_info;
@@ -123,6 +126,9 @@ int cam_cpas_util_reg_read(struct cam_hw_info *cpas_hw,
 
 	return 0;
 }
+
+int cam_cpas_util_reg_update(struct cam_hw_info *cpas_hw,
+	enum cam_cpas_reg_base reg_base, struct cam_cpas_reg *reg_info);
 
 int cam_cpas_util_reg_update(struct cam_hw_info *cpas_hw,
 	enum cam_cpas_reg_base reg_base, struct cam_cpas_reg *reg_info)
@@ -2313,7 +2319,7 @@ static void cam_cpas_update_monitor_array(struct cam_hw_info *cpas_hw,
 	entry = &cpas_core->monitor_entries[iterator];
 
 	CAM_GET_TIMESTAMP(entry->timestamp);
-	strlcpy(entry->identifier_string, identifier_string,
+	strscpy(entry->identifier_string, identifier_string,
 		sizeof(entry->identifier_string));
 
 	entry->identifier_value = identifier_value;
@@ -2928,6 +2934,8 @@ static int cam_cpas_util_client_setup(struct cam_hw_info *cpas_hw)
 	return 0;
 }
 
+int cam_cpas_util_client_cleanup(struct cam_hw_info *cpas_hw);
+
 int cam_cpas_util_client_cleanup(struct cam_hw_info *cpas_hw)
 {
 	struct cam_cpas *cpas_core = (struct cam_cpas *) cpas_hw->core_info;
@@ -3111,6 +3119,9 @@ end:
 	mutex_unlock(&cpas_hw->hw_mutex);
 	return rc;
 }
+
+int cam_cpas_hw_probe(struct platform_device *pdev,
+	struct cam_hw_intf **hw_intf);
 
 int cam_cpas_hw_probe(struct platform_device *pdev,
 	struct cam_hw_intf **hw_intf)
@@ -3306,6 +3317,8 @@ release_mem:
 	CAM_ERR(CAM_CPAS, "failed in hw probe");
 	return rc;
 }
+
+int cam_cpas_hw_remove(struct cam_hw_intf *cpas_hw_intf);
 
 int cam_cpas_hw_remove(struct cam_hw_intf *cpas_hw_intf)
 {

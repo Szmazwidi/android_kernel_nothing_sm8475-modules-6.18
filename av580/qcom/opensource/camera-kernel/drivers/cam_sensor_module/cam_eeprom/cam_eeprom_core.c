@@ -4,6 +4,7 @@
  * Copyright (c) 2022-2024 Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
+#include <linux/vmalloc.h>
 #include <linux/module.h>
 #include <linux/crc32.h>
 #include <media/cam_sensor.h>
@@ -277,6 +278,9 @@ static int cam_eeprom_match_id(struct cam_eeprom_ctrl_t *e_ctrl)
  *
  * Returns success or failure
  */
+int32_t cam_eeprom_parse_read_memory_map(struct device_node *of_node,
+	struct cam_eeprom_ctrl_t *e_ctrl);
+
 int32_t cam_eeprom_parse_read_memory_map(struct device_node *of_node,
 	struct cam_eeprom_ctrl_t *e_ctrl)
 {
@@ -1379,6 +1383,10 @@ static int32_t cam_eeprom_pkt_parse(struct cam_eeprom_ctrl_t *e_ctrl, void *arg)
 		e_ctrl->cal_data.num_map = 0;
 		break;
 	case CAM_EEPROM_WRITE: {
+        /* LAB bring-up does not authorize erasing factory calibration. */
+        CAM_ERR(CAM_EEPROM, "Persistent EEPROM write rejected during bring-up");
+        cam_mem_put_cpu_buf(dev_config.packet_handle);
+        return -EPERM;
 		struct i2c_settings_array *i2c_reg_settings =
 			&e_ctrl->wr_settings;
 
@@ -1457,6 +1465,8 @@ error:
 	return rc;
 }
 
+void cam_eeprom_shutdown(struct cam_eeprom_ctrl_t *e_ctrl);
+
 void cam_eeprom_shutdown(struct cam_eeprom_ctrl_t *e_ctrl)
 {
 	int rc;
@@ -1501,6 +1511,8 @@ void cam_eeprom_shutdown(struct cam_eeprom_ctrl_t *e_ctrl)
  *
  * Returns success or failure
  */
+int32_t cam_eeprom_driver_cmd(struct cam_eeprom_ctrl_t *e_ctrl, void *arg);
+
 int32_t cam_eeprom_driver_cmd(struct cam_eeprom_ctrl_t *e_ctrl, void *arg)
 {
 	int                            rc = 0;

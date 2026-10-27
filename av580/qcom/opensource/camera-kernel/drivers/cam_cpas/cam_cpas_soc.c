@@ -24,6 +24,11 @@ module_param(cpas_dump, uint, 0644);
 void cam_cpas_dump_axi_vote_info(
 	const struct cam_cpas_client *cpas_client,
 	const char *identifier,
+	struct cam_axi_vote *axi_vote);
+
+void cam_cpas_dump_axi_vote_info(
+	const struct cam_cpas_client *cpas_client,
+	const char *identifier,
 	struct cam_axi_vote *axi_vote)
 {
 	int i;
@@ -51,6 +56,9 @@ void cam_cpas_dump_axi_vote_info(
 	}
 
 }
+
+void cam_cpas_util_debug_parse_data(
+	struct cam_cpas_private_soc *soc_private);
 
 void cam_cpas_util_debug_parse_data(
 	struct cam_cpas_private_soc *soc_private)
@@ -90,6 +98,9 @@ void cam_cpas_util_debug_parse_data(
 
 	CAM_INFO(CAM_CPAS, "NUMBER OF NODES PARSED: %d", i);
 }
+
+int cam_cpas_node_tree_cleanup(struct cam_cpas *cpas_core,
+	struct cam_cpas_private_soc *soc_private);
 
 int cam_cpas_node_tree_cleanup(struct cam_cpas *cpas_core,
 	struct cam_cpas_private_soc *soc_private)
@@ -563,6 +574,9 @@ static int cam_cpas_parse_node_tree(struct cam_cpas *cpas_core,
 }
 
 int cam_cpas_get_hw_features(struct platform_device *pdev,
+	struct cam_cpas_private_soc *soc_private);
+
+int cam_cpas_get_hw_features(struct platform_device *pdev,
 	struct cam_cpas_private_soc *soc_private)
 {
 	struct device_node *of_node;
@@ -811,6 +825,9 @@ end:
 }
 
 int cam_cpas_get_custom_dt_info(struct cam_hw_info *cpas_hw,
+	struct platform_device *pdev, struct cam_cpas_private_soc *soc_private);
+
+int cam_cpas_get_custom_dt_info(struct cam_hw_info *cpas_hw,
 	struct platform_device *pdev, struct cam_cpas_private_soc *soc_private)
 {
 	struct device_node *of_node;
@@ -859,11 +876,11 @@ int cam_cpas_get_custom_dt_info(struct cam_hw_info *cpas_hw,
 
 	soc_private->client_id_based = of_property_read_bool(of_node,
 		"client-id-based");
-	soc_private->bus_icc_based = of_property_read_bool(of_node,
+	soc_private->bus_icc_based = of_property_present(of_node,
 		"interconnects");
 
 	if (soc_private->bus_icc_based) {
-		soc_private->use_cam_icc_path_str = of_property_read_bool(of_node,
+		soc_private->use_cam_icc_path_str = of_property_present(of_node,
 			"cam-icc-path-names");
 		if (soc_private->use_cam_icc_path_str) {
 			rc = of_property_read_string(of_node, "cam-icc-path-names",
@@ -1231,6 +1248,9 @@ cleanup_clients:
 }
 
 int cam_cpas_soc_init_resources(struct cam_hw_soc_info *soc_info,
+	irq_handler_t irq_handler, struct cam_hw_info *cpas_hw);
+
+int cam_cpas_soc_init_resources(struct cam_hw_soc_info *soc_info,
 	irq_handler_t irq_handler, struct cam_hw_info *cpas_hw)
 {
 	int rc = 0;
@@ -1277,6 +1297,8 @@ release_res:
 	return rc;
 }
 
+int cam_cpas_soc_deinit_resources(struct cam_hw_soc_info *soc_info);
+
 int cam_cpas_soc_deinit_resources(struct cam_hw_soc_info *soc_info)
 {
 	int rc, i;
@@ -1298,6 +1320,9 @@ int cam_cpas_soc_deinit_resources(struct cam_hw_soc_info *soc_info)
 }
 
 int cam_cpas_soc_enable_resources(struct cam_hw_soc_info *soc_info,
+	enum cam_vote_level default_level);
+
+int cam_cpas_soc_enable_resources(struct cam_hw_soc_info *soc_info,
 	enum cam_vote_level default_level)
 {
 	int rc = 0;
@@ -1311,6 +1336,9 @@ int cam_cpas_soc_enable_resources(struct cam_hw_soc_info *soc_info,
 }
 
 int cam_cpas_soc_disable_resources(struct cam_hw_soc_info *soc_info,
+	bool disable_clocks, bool disable_irq);
+
+int cam_cpas_soc_disable_resources(struct cam_hw_soc_info *soc_info,
 	bool disable_clocks, bool disable_irq)
 {
 	int rc = 0;
@@ -1322,6 +1350,8 @@ int cam_cpas_soc_disable_resources(struct cam_hw_soc_info *soc_info,
 
 	return rc;
 }
+
+int cam_cpas_soc_disable_irq(struct cam_hw_soc_info *soc_info);
 
 int cam_cpas_soc_disable_irq(struct cam_hw_soc_info *soc_info)
 {

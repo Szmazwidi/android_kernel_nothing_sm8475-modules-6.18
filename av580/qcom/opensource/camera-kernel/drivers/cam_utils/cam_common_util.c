@@ -27,6 +27,9 @@ static uint timeout_multiplier = 1;
 module_param(timeout_multiplier, uint, 0644);
 
 int cam_common_util_get_string_index(const char **strings,
+	uint32_t num_strings, const char *matching_string, uint32_t *index);
+
+int cam_common_util_get_string_index(const char **strings,
 	uint32_t num_strings, const char *matching_string, uint32_t *index)
 {
 	int i;
@@ -42,6 +45,8 @@ int cam_common_util_get_string_index(const char **strings,
 
 	return -EINVAL;
 }
+
+uint32_t cam_common_util_remove_duplicate_arr(int32_t *arr, uint32_t num);
 
 uint32_t cam_common_util_remove_duplicate_arr(int32_t *arr, uint32_t num)
 {
@@ -67,6 +72,10 @@ uint32_t cam_common_util_remove_duplicate_arr(int32_t *arr, uint32_t num)
 
 unsigned long cam_common_wait_for_completion_timeout(
 	struct completion   *complete,
+	unsigned long        timeout_jiffies);
+
+unsigned long cam_common_wait_for_completion_timeout(
+	struct completion   *complete,
 	unsigned long        timeout_jiffies)
 {
 	unsigned long wait_jiffies;
@@ -85,6 +94,14 @@ unsigned long cam_common_wait_for_completion_timeout(
 
 	return rem_jiffies;
 }
+
+int cam_common_read_poll_timeout(
+	void __iomem        *addr,
+	unsigned long        delay,
+	unsigned long        timeout,
+	uint32_t             mask,
+	uint32_t             check_val,
+	uint32_t            *status);
 
 int cam_common_read_poll_timeout(
 	void __iomem        *addr,
@@ -119,6 +136,8 @@ int cam_common_read_poll_timeout(
 	return rc;
 }
 
+int cam_common_modify_timer(struct timer_list *timer, int32_t timeout_val);
+
 int cam_common_modify_timer(struct timer_list *timer, int32_t timeout_val)
 {
 	if (!timer) {
@@ -136,6 +155,9 @@ int cam_common_modify_timer(struct timer_list *timer, int32_t timeout_val)
 
 	return 0;
 }
+
+void cam_common_util_thread_switch_delay_detect(
+	const char *token, ktime_t scheduled_time, uint32_t threshold);
 
 void cam_common_util_thread_switch_delay_detect(
 	const char *token, ktime_t scheduled_time, uint32_t threshold)
@@ -210,7 +232,7 @@ static int cam_common_md_notify_handler(struct notifier_block *this,
 	int rc = 0;
 
 	cbentry.vaddr = 0x0;
-	strlcpy(cbentry.owner, "Camera", sizeof(cbentry.owner));
+	strscpy(cbentry.owner, "Camera", sizeof(cbentry.owner));
 	cbentry.size = CAM_COMMON_MINI_DUMP_SIZE;
 	cbentry.cb = cam_common_mini_dump_handler;
 	rc = qcom_va_md_add_region(&cbentry);
@@ -226,6 +248,10 @@ static struct notifier_block cam_common_md_notify_blk = {
 	.notifier_call = cam_common_md_notify_handler,
 	.priority = INT_MAX,
 };
+
+int cam_common_register_mini_dump_cb(
+	cam_common_mini_dump_cb mini_dump_cb,
+	uint8_t *dev_name);
 
 int cam_common_register_mini_dump_cb(
 	cam_common_mini_dump_cb mini_dump_cb,
@@ -262,6 +288,9 @@ end:
 #endif
 
 void *cam_common_user_dump_clock(
+	void *dump_struct, uint8_t *addr_ptr);
+
+void *cam_common_user_dump_clock(
 	void *dump_struct, uint8_t *addr_ptr)
 {
 	struct cam_hw_info  *hw_info = NULL;
@@ -278,6 +307,13 @@ void *cam_common_user_dump_clock(
 	*addr++ = hw_info->soc_info.applied_src_clk_rate;
 	return addr;
 }
+
+int cam_common_user_dump_helper(
+	void *cmd_args,
+	void *(*func)(void *dump_struct, uint8_t *addr_ptr),
+	void *dump_struct,
+	size_t size,
+	const char *tag, ...);
 
 int cam_common_user_dump_helper(
 	void *cmd_args,
@@ -339,6 +375,9 @@ int cam_common_user_dump_helper(
 }
 
 int cam_common_mem_kdup(void **dst,
+	void *src, size_t size);
+
+int cam_common_mem_kdup(void **dst,
 	void *src, size_t size)
 {
 	gfp_t flag = GFP_KERNEL;
@@ -364,6 +403,8 @@ int cam_common_mem_kdup(void **dst,
 	return 0;
 }
 EXPORT_SYMBOL(cam_common_mem_kdup);
+
+void cam_common_mem_free(void *memory);
 
 void cam_common_mem_free(void *memory)
 {

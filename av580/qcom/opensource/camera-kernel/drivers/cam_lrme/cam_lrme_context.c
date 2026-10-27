@@ -227,6 +227,12 @@ int cam_lrme_context_init(struct cam_lrme_context *lrme_ctx,
 	struct cam_context *base_ctx,
 	struct cam_hw_mgr_intf *hw_intf,
 	uint32_t index
+	int img_iommu_hdl);
+
+int cam_lrme_context_init(struct cam_lrme_context *lrme_ctx,
+	struct cam_context *base_ctx,
+	struct cam_hw_mgr_intf *hw_intf,
+	uint32_t index
 	int img_iommu_hdl)
 {
 	int rc = 0;
@@ -257,6 +263,8 @@ int cam_lrme_context_init(struct cam_lrme_context *lrme_ctx,
 
 	return rc;
 }
+
+int cam_lrme_context_deinit(struct cam_lrme_context *lrme_ctx);
 
 int cam_lrme_context_deinit(struct cam_lrme_context *lrme_ctx)
 {

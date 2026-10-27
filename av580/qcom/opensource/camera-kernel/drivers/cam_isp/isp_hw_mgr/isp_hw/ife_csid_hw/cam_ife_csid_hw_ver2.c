@@ -1155,6 +1155,9 @@ end:
 }
 
 void cam_ife_csid_hw_ver2_rdi_line_buffer_conflict_handler(
+	void *csid);
+
+void cam_ife_csid_hw_ver2_rdi_line_buffer_conflict_handler(
 	void *csid)
 {
 	struct cam_ife_csid_ver2_hw       *csid_hw  = csid;
@@ -1188,6 +1191,9 @@ void cam_ife_csid_hw_ver2_rdi_line_buffer_conflict_handler(
 }
 
 void cam_ife_csid_hw_ver2_mup_mismatch_handler(
+	void *csid, void *resource);
+
+void cam_ife_csid_hw_ver2_mup_mismatch_handler(
 	void *csid, void *resource)
 {
 	struct cam_ife_csid_ver2_hw       *csid_hw = csid;
@@ -1209,6 +1215,9 @@ void cam_ife_csid_hw_ver2_mup_mismatch_handler(
 	}
 
 }
+
+void cam_ife_csid_ver2_print_illegal_programming_irq_status(
+	void *csid, void *resource);
 
 void cam_ife_csid_ver2_print_illegal_programming_irq_status(
 	void *csid, void *resource)
@@ -1463,6 +1472,9 @@ static int cam_ife_csid_ver2_top_err_irq_bottom_half(
 
 	return 0;
 }
+
+void cam_ife_csid_ver2_print_format_measure_info(
+	void *csid, void *resource);
 
 void cam_ife_csid_ver2_print_format_measure_info(
 	void *csid, void *resource)
@@ -1817,6 +1829,9 @@ end:
 }
 
 int cam_ife_csid_ver2_get_hw_caps(void *hw_priv,
+	void *get_hw_cap_args, uint32_t arg_size);
+
+int cam_ife_csid_ver2_get_hw_caps(void *hw_priv,
 	void *get_hw_cap_args, uint32_t arg_size)
 {
 	int rc = 0;
@@ -1971,6 +1986,9 @@ wait_only:
 	reinit_completion(&csid_hw->hw_info->hw_complete);
 	return rc;
 }
+
+int cam_ife_csid_ver2_reset(void *hw_priv,
+	void *reset_args, uint32_t arg_size);
 
 int cam_ife_csid_ver2_reset(void *hw_priv,
 	void *reset_args, uint32_t arg_size)
@@ -2427,6 +2445,12 @@ int cam_ife_csid_hw_ver2_hw_cfg(
 	struct cam_ife_csid_ver2_hw *csid_hw,
 	struct cam_ife_csid_ver2_path_cfg *path_cfg,
 	struct cam_csid_hw_reserve_resource_args  *reserve,
+	uint32_t cid);
+
+int cam_ife_csid_hw_ver2_hw_cfg(
+	struct cam_ife_csid_ver2_hw *csid_hw,
+	struct cam_ife_csid_ver2_path_cfg *path_cfg,
+	struct cam_csid_hw_reserve_resource_args  *reserve,
 	uint32_t cid)
 {
 	int rc = 0;
@@ -2507,6 +2531,10 @@ static bool cam_ife_csid_ver2_is_width_valid_by_dt(
 
 	return true;
 }
+
+bool cam_ife_csid_ver2_is_width_valid(
+	struct cam_csid_hw_reserve_resource_args  *reserve,
+	struct cam_ife_csid_ver2_hw *csid_hw);
 
 bool cam_ife_csid_ver2_is_width_valid(
 	struct cam_csid_hw_reserve_resource_args  *reserve,
@@ -2622,6 +2650,9 @@ err:
 }
 
 int cam_ife_csid_ver2_reserve(void *hw_priv,
+	void *reserve_args, uint32_t arg_size);
+
+int cam_ife_csid_ver2_reserve(void *hw_priv,
 	void *reserve_args, uint32_t arg_size)
 {
 
@@ -2718,6 +2749,9 @@ release:
 		path_cfg->cid);
 	return rc;
 }
+
+int cam_ife_csid_ver2_release(void *hw_priv,
+	void *release_args, uint32_t arg_size);
 
 int cam_ife_csid_ver2_release(void *hw_priv,
 	void *release_args, uint32_t arg_size)
@@ -4184,6 +4218,9 @@ unsubscribe_buf_done:
 }
 
 int cam_ife_csid_ver2_init_hw(void *hw_priv,
+	void *init_args, uint32_t arg_size);
+
+int cam_ife_csid_ver2_init_hw(void *hw_priv,
 	void *init_args, uint32_t arg_size)
 {
 	struct cam_ife_csid_ver2_hw *csid_hw  = NULL;
@@ -4293,6 +4330,9 @@ static int cam_ife_csid_ver2_disable_core(
 }
 
 int cam_ife_csid_ver2_deinit_hw(void *hw_priv,
+	void *deinit_args, uint32_t arg_size);
+
+int cam_ife_csid_ver2_deinit_hw(void *hw_priv,
 	void *deinit_args, uint32_t arg_size)
 {
 	struct cam_ife_csid_ver2_hw *csid_hw  = NULL;
@@ -4360,6 +4400,9 @@ disable_hw:
 
 	return rc;
 }
+
+int cam_ife_csid_ver2_start(void *hw_priv, void *args,
+			uint32_t arg_size);
 
 int cam_ife_csid_ver2_start(void *hw_priv, void *args,
 			uint32_t arg_size)
@@ -4475,6 +4518,9 @@ end:
 }
 
 int cam_ife_csid_ver2_stop(void *hw_priv,
+	void *stop_args, uint32_t arg_size);
+
+int cam_ife_csid_ver2_stop(void *hw_priv,
 	void *stop_args, uint32_t arg_size)
 {
 	struct cam_ife_csid_ver2_hw *csid_hw  = NULL;
@@ -4555,12 +4601,18 @@ int cam_ife_csid_ver2_stop(void *hw_priv,
 }
 
 int cam_ife_csid_ver2_read(void *hw_priv,
+	void *read_args, uint32_t arg_size);
+
+int cam_ife_csid_ver2_read(void *hw_priv,
 	void *read_args, uint32_t arg_size)
 {
 	CAM_ERR(CAM_ISP, "CSID: un supported");
 
 	return -EINVAL;
 }
+
+int cam_ife_csid_ver2_write(void *hw_priv,
+	void *write_args, uint32_t arg_size);
 
 int cam_ife_csid_ver2_write(void *hw_priv,
 	void *write_args, uint32_t arg_size)
@@ -5643,6 +5695,10 @@ static int cam_ife_csid_hw_init_irq(
 
 int cam_ife_csid_hw_ver2_init(struct cam_hw_intf *hw_intf,
 	struct cam_ife_csid_core_info *core_info,
+	bool is_custom);
+
+int cam_ife_csid_hw_ver2_init(struct cam_hw_intf *hw_intf,
+	struct cam_ife_csid_core_info *core_info,
 	bool is_custom)
 {
 	int rc = -EINVAL;
@@ -5723,6 +5779,8 @@ int cam_ife_csid_hw_ver2_init(struct cam_hw_intf *hw_intf,
 
 }
 EXPORT_SYMBOL(cam_ife_csid_hw_ver2_init);
+
+int cam_ife_csid_hw_ver2_deinit(struct cam_hw_info *hw_priv);
 
 int cam_ife_csid_hw_ver2_deinit(struct cam_hw_info *hw_priv)
 {

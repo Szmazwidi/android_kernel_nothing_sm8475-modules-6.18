@@ -4,6 +4,7 @@
  * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
+#include <linux/of.h>
 #include "cam_cci_dev.h"
 #include "cam_cci_core.h"
 
@@ -98,6 +99,9 @@ MASTER_INIT_ERR:
 
 	return rc;
 }
+
+int cam_cci_init(struct v4l2_subdev *sd,
+	struct cam_cci_ctrl *c_ctrl);
 
 int cam_cci_init(struct v4l2_subdev *sd,
 	struct cam_cci_ctrl *c_ctrl)
@@ -227,6 +231,9 @@ platform_enable_failed:
 
 	return rc;
 }
+
+void cam_cci_soc_remove(struct platform_device *pdev,
+	struct cci_device *cci_dev);
 
 void cam_cci_soc_remove(struct platform_device *pdev,
 	struct cci_device *cci_dev)
@@ -384,6 +391,9 @@ static void cam_cci_init_clk_params(struct cci_device *cci_dev)
 }
 
 int cam_cci_parse_dt_info(struct platform_device *pdev,
+	struct cci_device *new_cci_dev);
+
+int cam_cci_parse_dt_info(struct platform_device *pdev,
 	struct cci_device *new_cci_dev)
 {
 	int rc = 0, i = 0;
@@ -417,6 +427,9 @@ int cam_cci_parse_dt_info(struct platform_device *pdev,
 	CAM_DBG(CAM_CCI, "Exit");
 	return 0;
 }
+
+int cam_cci_soc_release(struct cci_device *cci_dev,
+	enum cci_i2c_master_t master);
 
 int cam_cci_soc_release(struct cci_device *cci_dev,
 	enum cci_i2c_master_t master)

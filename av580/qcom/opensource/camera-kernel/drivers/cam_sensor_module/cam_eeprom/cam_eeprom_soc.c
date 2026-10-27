@@ -3,6 +3,7 @@
  * Copyright (c) 2017-2021, The Linux Foundation. All rights reserved.
  */
 
+#include <linux/vmalloc.h>
 #include <linux/of.h>
 #include <linux/of_gpio.h>
 #include <cam_sensor_cmn_header.h>
@@ -21,6 +22,8 @@
 		spi_dev->cmd_tbl.name.delay_intv = out[3];    \
 		spi_dev->cmd_tbl.name.delay_count = out[4];   \
 	}
+
+int cam_eeprom_spi_parse_of(struct cam_sensor_spi_client *spi_dev);
 
 int cam_eeprom_spi_parse_of(struct cam_sensor_spi_client *spi_dev)
 {
@@ -112,6 +115,9 @@ int cam_eeprom_spi_parse_of(struct cam_sensor_spi_client *spi_dev)
  * the @of node, calculate total data length, and allocates required buffer.
  * It only fills the map, but does not perform actual reading.
  */
+int cam_eeprom_parse_dt_memory_map(struct device_node *node,
+	struct cam_eeprom_memory_block_t *data);
+
 int cam_eeprom_parse_dt_memory_map(struct device_node *node,
 	struct cam_eeprom_memory_block_t *data)
 {
@@ -279,6 +285,8 @@ static int cam_eeprom_cmm_dts(struct cam_eeprom_soc_private *eb_info,
  * This function is called from cam_eeprom_platform/i2c/spi_driver_probe
  * it parses the eeprom dt node and decides for userspace or kernel probe.
  */
+int cam_eeprom_parse_dt(struct cam_eeprom_ctrl_t *e_ctrl);
+
 int cam_eeprom_parse_dt(struct cam_eeprom_ctrl_t *e_ctrl)
 {
 	int                             i, rc = 0;

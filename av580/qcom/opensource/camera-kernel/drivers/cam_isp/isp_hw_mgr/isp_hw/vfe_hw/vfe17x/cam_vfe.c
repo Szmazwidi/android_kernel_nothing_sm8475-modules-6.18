@@ -111,11 +111,15 @@ struct platform_driver cam_vfe_driver = {
 	},
 };
 
+int cam_vfe_init_module(void);
+
 int cam_vfe_init_module(void)
 {
 	return platform_driver_register(&cam_vfe_driver);
 }
 
+
+void cam_vfe_exit_module(void);
 
 void cam_vfe_exit_module(void)
 {

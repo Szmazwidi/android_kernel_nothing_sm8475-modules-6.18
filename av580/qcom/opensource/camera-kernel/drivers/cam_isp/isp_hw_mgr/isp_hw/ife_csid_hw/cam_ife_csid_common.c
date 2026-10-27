@@ -68,6 +68,9 @@ static int cam_ife_csid_get_cid(struct cam_ife_csid_cid_data *cid_data,
 }
 
 int cam_ife_csid_is_pix_res_format_supported(
+	uint32_t in_format);
+
+int cam_ife_csid_is_pix_res_format_supported(
 	uint32_t in_format)
 {
 	int rc = -EINVAL;
@@ -210,6 +213,11 @@ static int cam_ife_csid_validate_rdi_format(uint32_t in_format,
 int cam_ife_csid_get_format_rdi(
 	uint32_t in_format, uint32_t out_format,
 	struct cam_ife_csid_path_format *path_format, bool mipi_pack_supported,
+	bool mipi_unpacked);
+
+int cam_ife_csid_get_format_rdi(
+	uint32_t in_format, uint32_t out_format,
+	struct cam_ife_csid_path_format *path_format, bool mipi_pack_supported,
 	bool mipi_unpacked)
 {
 	int rc = 0;
@@ -322,6 +330,10 @@ err:
 
 int cam_ife_csid_get_format_ipp_ppp(
 	uint32_t in_format,
+	struct cam_ife_csid_path_format *path_format);
+
+int cam_ife_csid_get_format_ipp_ppp(
+	uint32_t in_format,
 	struct cam_ife_csid_path_format *path_format)
 {
 	int rc = 0;
@@ -408,6 +420,9 @@ int cam_ife_csid_get_format_ipp_ppp(
 }
 
 int cam_ife_csid_hw_probe_init(struct cam_hw_intf *hw_intf,
+	struct cam_ife_csid_core_info *core_info, bool is_custom);
+
+int cam_ife_csid_hw_probe_init(struct cam_hw_intf *hw_intf,
 	struct cam_ife_csid_core_info *core_info, bool is_custom)
 {
 
@@ -425,6 +440,9 @@ int cam_ife_csid_hw_probe_init(struct cam_hw_intf *hw_intf,
 }
 
 int cam_ife_csid_hw_deinit(struct cam_hw_intf *hw_intf,
+	struct cam_ife_csid_core_info *core_info);
+
+int cam_ife_csid_hw_deinit(struct cam_hw_intf *hw_intf,
 	struct cam_ife_csid_core_info *core_info)
 {
 	int rc = -EINVAL;
@@ -437,6 +455,8 @@ int cam_ife_csid_hw_deinit(struct cam_hw_intf *hw_intf,
 
 	return rc;
 }
+
+int cam_ife_csid_is_vc_full_width(struct cam_ife_csid_cid_data *cid_data);
 
 int cam_ife_csid_is_vc_full_width(struct cam_ife_csid_cid_data *cid_data)
 {
@@ -469,6 +489,11 @@ int cam_ife_csid_is_vc_full_width(struct cam_ife_csid_cid_data *cid_data)
 end:
 	return rc;
 }
+
+int cam_ife_csid_cid_reserve(struct cam_ife_csid_cid_data *cid_data,
+	uint32_t *cid_value,
+	uint32_t hw_idx,
+	struct cam_csid_hw_reserve_resource_args  *reserve);
 
 int cam_ife_csid_cid_reserve(struct cam_ife_csid_cid_data *cid_data,
 	uint32_t *cid_value,
@@ -512,6 +537,11 @@ int cam_ife_csid_cid_reserve(struct cam_ife_csid_cid_data *cid_data,
 int cam_ife_csid_cid_release(
 	struct cam_ife_csid_cid_data *cid_data,
 	uint32_t hw_idx,
+	uint32_t cid);
+
+int cam_ife_csid_cid_release(
+	struct cam_ife_csid_cid_data *cid_data,
+	uint32_t hw_idx,
 	uint32_t cid)
 {
 	int i;
@@ -534,6 +564,10 @@ int cam_ife_csid_cid_release(
 
 	return 0;
 }
+
+int cam_ife_csid_check_in_port_args(
+	struct cam_csid_hw_reserve_resource_args  *reserve,
+	uint32_t hw_idx);
 
 int cam_ife_csid_check_in_port_args(
 	struct cam_csid_hw_reserve_resource_args  *reserve,
@@ -591,6 +625,10 @@ int cam_ife_csid_check_in_port_args(
 
 int cam_ife_csid_get_rt_irq_idx(
 	uint32_t irq_reg, uint32_t num_ipp,
+	uint32_t num_ppp, uint32_t num_rdi);
+
+int cam_ife_csid_get_rt_irq_idx(
+	uint32_t irq_reg, uint32_t num_ipp,
 	uint32_t num_ppp, uint32_t num_rdi)
 {
 	int rt_irq_reg_idx = -EINVAL;
@@ -626,6 +664,8 @@ int cam_ife_csid_get_rt_irq_idx(
 	return rt_irq_reg_idx;
 }
 
+int cam_ife_csid_convert_res_to_irq_reg(uint32_t res_id);
+
 int cam_ife_csid_convert_res_to_irq_reg(uint32_t res_id)
 {
 	switch (res_id) {
@@ -655,6 +695,8 @@ int cam_ife_csid_convert_res_to_irq_reg(uint32_t res_id)
 	}
 }
 
+const char *cam_ife_csid_reset_type_to_string(enum cam_ife_csid_reset_type reset_type);
+
 const char *cam_ife_csid_reset_type_to_string(enum cam_ife_csid_reset_type reset_type)
 {
 	switch (reset_type) {
@@ -663,6 +705,9 @@ const char *cam_ife_csid_reset_type_to_string(enum cam_ife_csid_reset_type reset
 	default: return "invalid";
 	}
 }
+
+int cam_ife_csid_get_base(struct cam_hw_soc_info *soc_info,
+	uint32_t base_id, void *cmd_args, size_t arg_size);
 
 int cam_ife_csid_get_base(struct cam_hw_soc_info *soc_info,
 	uint32_t base_id, void *cmd_args, size_t arg_size)
@@ -724,6 +769,8 @@ int cam_ife_csid_get_base(struct cam_hw_soc_info *soc_info,
 
 	return 0;
 }
+const uint8_t **cam_ife_csid_get_irq_reg_tag_ptr(void);
+
 const uint8_t **cam_ife_csid_get_irq_reg_tag_ptr(void)
 {
 	return cam_ife_csid_irq_reg_tag;

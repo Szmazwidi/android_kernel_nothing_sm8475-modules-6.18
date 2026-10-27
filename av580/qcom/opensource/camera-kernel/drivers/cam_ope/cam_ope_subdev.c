@@ -283,10 +283,10 @@ static int cam_ope_subdev_probe(struct platform_device *pdev)
 	return rc;
 }
 
-static int cam_ope_subdev_remove(struct platform_device *pdev)
+static void cam_ope_subdev_remove(struct platform_device *pdev)
 {
 	component_del(&pdev->dev, &cam_ope_subdev_component_ops);
-	return 0;
+	return;
 }
 
 static const struct of_device_id cam_ope_dt_match[] = {
@@ -305,10 +305,14 @@ struct platform_driver cam_ope_subdev_driver = {
 	},
 };
 
+int cam_ope_subdev_init_module(void);
+
 int cam_ope_subdev_init_module(void)
 {
 	return platform_driver_register(&cam_ope_subdev_driver);
 }
+
+void cam_ope_subdev_exit_module(void);
 
 void cam_ope_subdev_exit_module(void)
 {

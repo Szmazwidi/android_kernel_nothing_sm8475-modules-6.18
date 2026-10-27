@@ -318,6 +318,10 @@ static struct cam_axi_vote *cam_sfe_top_delay_bw_reduction(
 
 int cam_sfe_top_calc_axi_bw_vote(struct cam_sfe_top_priv *top_priv,
 	bool start_stop, struct cam_axi_vote **to_be_applied_axi_vote,
+	uint64_t *total_bw_new_vote, uint64_t request_id);
+
+int cam_sfe_top_calc_axi_bw_vote(struct cam_sfe_top_priv *top_priv,
+	bool start_stop, struct cam_axi_vote **to_be_applied_axi_vote,
 	uint64_t *total_bw_new_vote, uint64_t request_id)
 {
 	int rc = 0;
@@ -458,6 +462,10 @@ end:
 
 int cam_sfe_top_bw_update(struct cam_sfe_soc_private *soc_private,
 	struct cam_sfe_top_priv *top_priv, void *cmd_args,
+	uint32_t arg_size);
+
+int cam_sfe_top_bw_update(struct cam_sfe_soc_private *soc_private,
+	struct cam_sfe_top_priv *top_priv, void *cmd_args,
 	uint32_t arg_size)
 {
 	struct cam_sfe_bw_update_args        *bw_update = NULL;
@@ -495,6 +503,10 @@ int cam_sfe_top_bw_update(struct cam_sfe_soc_private *soc_private,
 
 	return rc;
 }
+
+int cam_sfe_top_bw_control(struct cam_sfe_soc_private *soc_private,
+	struct cam_sfe_top_priv *top_priv, void *cmd_args,
+	uint32_t arg_size);
 
 int cam_sfe_top_bw_control(struct cam_sfe_soc_private *soc_private,
 	struct cam_sfe_top_priv *top_priv, void *cmd_args,
@@ -575,6 +587,10 @@ static inline void cam_sfe_top_delay_clk_reduction(
 			*max_clk = top_priv->last_clk_vote[i];
 	}
 }
+
+int cam_sfe_top_calc_hw_clk_rate(
+	struct cam_sfe_top_priv *top_priv, bool start_stop,
+	uint64_t                       *final_clk_rate, uint64_t request_id);
 
 int cam_sfe_top_calc_hw_clk_rate(
 	struct cam_sfe_top_priv *top_priv, bool start_stop,
@@ -1009,6 +1025,9 @@ end:
 }
 
 int cam_sfe_top_process_cmd(void *priv, uint32_t cmd_type,
+	void *cmd_args, uint32_t arg_size);
+
+int cam_sfe_top_process_cmd(void *priv, uint32_t cmd_type,
 	void *cmd_args, uint32_t arg_size)
 {
 	int rc = 0;
@@ -1067,6 +1086,9 @@ int cam_sfe_top_process_cmd(void *priv, uint32_t cmd_type,
 
 	return rc;
 }
+
+int cam_sfe_top_reserve(void *device_priv,
+	void *reserve_args, uint32_t arg_size);
 
 int cam_sfe_top_reserve(void *device_priv,
 	void *reserve_args, uint32_t arg_size)
@@ -1129,6 +1151,9 @@ int cam_sfe_top_reserve(void *device_priv,
 
 	return rc;
 }
+
+int cam_sfe_top_release(void *device_priv,
+	void *release_args, uint32_t arg_size);
 
 int cam_sfe_top_release(void *device_priv,
 	void *release_args, uint32_t arg_size)
@@ -1286,6 +1311,11 @@ static int cam_sfe_top_handle_irq_top_half(uint32_t evt_id,
 	th_payload->evt_payload_priv = evt_payload;
 	return rc;
 }
+
+void cam_sfe_top_sel_frame_counter(
+	uint32_t res_id, uint32_t *val,
+	bool read_counter,
+	struct cam_sfe_path_data *path_data);
 
 void cam_sfe_top_sel_frame_counter(
 	uint32_t res_id, uint32_t *val,
@@ -1487,6 +1517,9 @@ static int cam_sfe_top_handle_irq_bottom_half(
 }
 
 int cam_sfe_top_start(
+	void *priv, void *start_args, uint32_t arg_size);
+
+int cam_sfe_top_start(
 	void *priv, void *start_args, uint32_t arg_size)
 {
 	int                                   rc = -EINVAL;
@@ -1664,6 +1697,9 @@ int cam_sfe_top_start(
 }
 
 int cam_sfe_top_stop(
+	void *priv, void *stop_args, uint32_t arg_size);
+
+int cam_sfe_top_stop(
 	void *priv, void *stop_args, uint32_t arg_size)
 {
 	int i;
@@ -1752,6 +1788,14 @@ int cam_sfe_top_stop(
 
 	return 0;
 }
+
+int cam_sfe_top_init(
+	uint32_t                            hw_version,
+	struct cam_hw_soc_info             *soc_info,
+	struct cam_hw_intf                 *hw_intf,
+	void                               *top_hw_info,
+	void                               *sfe_irq_controller,
+	struct cam_sfe_top                **sfe_top_ptr);
 
 int cam_sfe_top_init(
 	uint32_t                            hw_version,
@@ -1935,6 +1979,10 @@ end:
 	*sfe_top_ptr = NULL;
 	return rc;
 }
+
+int cam_sfe_top_deinit(
+	uint32_t             hw_version,
+	struct cam_sfe_top **sfe_top_ptr);
 
 int cam_sfe_top_deinit(
 	uint32_t             hw_version,

@@ -7,6 +7,7 @@
 #ifndef _CAM_SOC_UTIL_H_
 #define _CAM_SOC_UTIL_H_
 
+#include "cam_gpio_request.h"
 #include <linux/version.h>
 #include <linux/types.h>
 #include <linux/slab.h>
@@ -136,9 +137,9 @@ struct cam_soc_pinctrl_info {
  * @cam_gpio_req_tbl_size:      It is size of requested gpios
  **/
 struct cam_soc_gpio_data {
-	struct gpio *cam_gpio_common_tbl;
+	struct cam_gpio_request *cam_gpio_common_tbl;
 	uint8_t cam_gpio_common_tbl_size;
-	struct gpio *cam_gpio_req_tbl;
+	struct cam_gpio_request *cam_gpio_req_tbl;
 	uint8_t cam_gpio_req_tbl_size;
 };
 

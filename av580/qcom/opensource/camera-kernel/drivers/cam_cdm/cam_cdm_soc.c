@@ -21,6 +21,9 @@
 #define CAM_CDM_ATTR_FROM_REG(x, y) ((x)->offsets[y].attribute)
 
 bool cam_cdm_read_hw_reg(struct cam_hw_info *cdm_hw,
+	uint32_t reg, uint32_t *value);
+
+bool cam_cdm_read_hw_reg(struct cam_hw_info *cdm_hw,
 	uint32_t reg, uint32_t *value)
 {
 	void __iomem *reg_addr;
@@ -51,6 +54,9 @@ permission_error:
 }
 
 bool cam_cdm_write_hw_reg(struct cam_hw_info *cdm_hw,
+	uint32_t reg, uint32_t value);
+
+bool cam_cdm_write_hw_reg(struct cam_hw_info *cdm_hw,
 	uint32_t reg, uint32_t value)
 {
 	void __iomem *reg_addr;
@@ -76,6 +82,9 @@ permission_error:
 	return true;
 
 }
+
+int cam_cdm_soc_load_dt_private(struct platform_device *pdev,
+	struct cam_cdm_private_dt_data *cdm_pvt_data);
 
 int cam_cdm_soc_load_dt_private(struct platform_device *pdev,
 	struct cam_cdm_private_dt_data *cdm_pvt_data)
@@ -170,6 +179,9 @@ end:
 }
 
 int cam_hw_cdm_soc_get_dt_properties(struct cam_hw_info *cdm_hw,
+	const struct of_device_id *table);
+
+int cam_hw_cdm_soc_get_dt_properties(struct cam_hw_info *cdm_hw,
 	const struct of_device_id *table)
 {
 	int rc;
@@ -227,6 +239,9 @@ error:
 end:
 	return rc;
 }
+
+int cam_cdm_intf_mgr_soc_get_dt_properties(
+	struct platform_device *pdev, struct cam_cdm_intf_mgr *mgr);
 
 int cam_cdm_intf_mgr_soc_get_dt_properties(
 	struct platform_device *pdev, struct cam_cdm_intf_mgr *mgr)

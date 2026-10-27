@@ -153,10 +153,10 @@ static int cam_custom_csid_probe(struct platform_device *pdev)
 	return rc;
 }
 
-static int cam_custom_csid_remove(struct platform_device *pdev)
+static void cam_custom_csid_remove(struct platform_device *pdev)
 {
 	component_del(&pdev->dev, &cam_custom_csid_component_ops);
-	return 0;
+	return;
 }
 
 static const struct of_device_id cam_custom_csid_dt_match[] = {
@@ -183,6 +183,8 @@ struct platform_driver cam_custom_csid_driver = {
 	.remove = cam_custom_csid_remove,
 };
 
+int cam_custom_csid_driver_init(void);
+
 int cam_custom_csid_driver_init(void)
 {
 	int32_t rc = 0;
@@ -194,6 +196,9 @@ int cam_custom_csid_driver_init(void)
 
 	return rc;
 }
+
+int cam_custom_csid_hw_init(struct cam_hw_intf **custom_csid_hw,
+	uint32_t hw_idx);
 
 int cam_custom_csid_hw_init(struct cam_hw_intf **custom_csid_hw,
 	uint32_t hw_idx)
@@ -209,6 +214,8 @@ int cam_custom_csid_hw_init(struct cam_hw_intf **custom_csid_hw,
 
 	return rc;
 }
+
+void cam_custom_csid_driver_exit(void);
 
 void cam_custom_csid_driver_exit(void)
 {

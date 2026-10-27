@@ -9,6 +9,8 @@
 
 extern struct kmem_cache *g_cam_req_mgr_timer_cachep;
 
+void crm_timer_reset(struct cam_req_mgr_timer *crm_timer);
+
 void crm_timer_reset(struct cam_req_mgr_timer *crm_timer)
 {
 	if (!crm_timer)
@@ -17,6 +19,8 @@ void crm_timer_reset(struct cam_req_mgr_timer *crm_timer)
 	cam_common_modify_timer(&crm_timer->sys_timer, crm_timer->expires);
 
 }
+
+void crm_timer_callback(struct timer_list *timer_data);
 
 void crm_timer_callback(struct timer_list *timer_data)
 {
@@ -31,6 +35,9 @@ void crm_timer_callback(struct timer_list *timer_data)
 }
 
 void crm_timer_modify(struct cam_req_mgr_timer *crm_timer,
+	int32_t expires);
+
+void crm_timer_modify(struct cam_req_mgr_timer *crm_timer,
 	int32_t expires)
 {
 	CAM_DBG(CAM_CRM, "new time %d", expires);
@@ -39,6 +46,9 @@ void crm_timer_modify(struct cam_req_mgr_timer *crm_timer,
 		crm_timer_reset(crm_timer);
 	}
 }
+
+int crm_timer_init(struct cam_req_mgr_timer **timer,
+	int32_t expires, void *parent, void (*timer_cb)(struct timer_list *));
 
 int crm_timer_init(struct cam_req_mgr_timer **timer,
 	int32_t expires, void *parent, void (*timer_cb)(struct timer_list *))
@@ -80,11 +90,13 @@ int crm_timer_init(struct cam_req_mgr_timer **timer,
 end:
 	return ret;
 }
+void crm_timer_exit(struct cam_req_mgr_timer **crm_timer);
+
 void crm_timer_exit(struct cam_req_mgr_timer **crm_timer)
 {
 	CAM_DBG(CAM_CRM, "destroy timer %pK @ %pK", *crm_timer, crm_timer);
 	if (*crm_timer) {
-		del_timer_sync(&(*crm_timer)->sys_timer);
+		timer_delete_sync(&(*crm_timer)->sys_timer);
 		if (g_cam_req_mgr_timer_cachep)
 			kmem_cache_free(g_cam_req_mgr_timer_cachep, *crm_timer);
 		*crm_timer = NULL;

@@ -47,6 +47,9 @@ static int cam_cre_caps_vote(struct cam_cre_device_core_info *core_info,
 }
 
 int cam_cre_get_hw_caps(void *hw_priv, void *get_hw_cap_args,
+	uint32_t arg_size);
+
+int cam_cre_get_hw_caps(void *hw_priv, void *get_hw_cap_args,
 	uint32_t arg_size)
 {
 	struct cam_hw_info *cre_dev = hw_priv;
@@ -120,6 +123,9 @@ static int cam_cre_process_init(struct cam_cre_hw *cre_hw,
 {
 	return cam_cre_dev_process_init(cre_hw, cmd_args);
 }
+
+int cam_cre_init_hw(void *device_priv,
+	void *init_hw_args, uint32_t arg_size);
 
 int cam_cre_init_hw(void *device_priv,
 	void *init_hw_args, uint32_t arg_size)
@@ -210,6 +216,9 @@ free_cpas_vote:
 end:
 	return rc;
 }
+
+int cam_cre_deinit_hw(void *device_priv,
+	void *init_hw_args, uint32_t arg_size);
 
 int cam_cre_deinit_hw(void *device_priv,
 	void *init_hw_args, uint32_t arg_size)
@@ -428,6 +437,9 @@ static int cam_cre_process_reg_set_update(struct cam_cre_hw *cre_hw,
 }
 
 int cam_cre_process_cmd(void *device_priv, uint32_t cmd_type,
+	void *cmd_args, uint32_t arg_size);
+
+int cam_cre_process_cmd(void *device_priv, uint32_t cmd_type,
 	void *cmd_args, uint32_t arg_size)
 {
 	int rc = 0;
@@ -542,6 +554,8 @@ int cam_cre_process_cmd(void *device_priv, uint32_t cmd_type,
 
 	return rc;
 }
+
+irqreturn_t cam_cre_irq(int irq_num, void *data);
 
 irqreturn_t cam_cre_irq(int irq_num, void *data)
 {

@@ -51,6 +51,9 @@ struct cam_cpas_intf {
 static struct cam_cpas_intf *g_cpas_intf;
 
 const char *cam_cpas_axi_util_path_type_to_string(
+	uint32_t path_data_type);
+
+const char *cam_cpas_axi_util_path_type_to_string(
 	uint32_t path_data_type)
 {
 	switch (path_data_type) {
@@ -132,6 +135,9 @@ const char *cam_cpas_axi_util_path_type_to_string(
 EXPORT_SYMBOL(cam_cpas_axi_util_path_type_to_string);
 
 const char *cam_cpas_axi_util_trans_type_to_string(
+	uint32_t transac_type);
+
+const char *cam_cpas_axi_util_trans_type_to_string(
 	uint32_t transac_type)
 {
 	switch (transac_type) {
@@ -144,6 +150,8 @@ const char *cam_cpas_axi_util_trans_type_to_string(
 	}
 }
 EXPORT_SYMBOL(cam_cpas_axi_util_trans_type_to_string);
+
+int cam_cpas_dump_camnoc_buff_fill_info(uint32_t client_handle);
 
 int cam_cpas_dump_camnoc_buff_fill_info(uint32_t client_handle)
 {
@@ -169,6 +177,8 @@ int cam_cpas_dump_camnoc_buff_fill_info(uint32_t client_handle)
 	return rc;
 }
 EXPORT_SYMBOL(cam_cpas_dump_camnoc_buff_fill_info);
+
+bool cam_cpas_is_part_supported(uint32_t flag, uint32_t hw_map, uint32_t part_info);
 
 bool cam_cpas_is_part_supported(uint32_t flag, uint32_t hw_map, uint32_t part_info)
 {
@@ -200,6 +210,9 @@ bool cam_cpas_is_part_supported(uint32_t flag, uint32_t hw_map, uint32_t part_in
 	mutex_unlock(&cpas_hw->hw_mutex);
 	return true;
 }
+
+bool cam_cpas_is_feature_supported(uint32_t flag, uint32_t hw_map,
+	uint32_t *fuse_val);
 
 bool cam_cpas_is_feature_supported(uint32_t flag, uint32_t hw_map,
 	uint32_t *fuse_val)
@@ -253,6 +266,8 @@ end:
 }
 EXPORT_SYMBOL(cam_cpas_is_feature_supported);
 
+int cam_cpas_get_cpas_hw_version(uint32_t *hw_version);
+
 int cam_cpas_get_cpas_hw_version(uint32_t *hw_version)
 {
 	struct cam_hw_info *cpas_hw = NULL;
@@ -278,6 +293,12 @@ int cam_cpas_get_cpas_hw_version(uint32_t *hw_version)
 
 	return 0;
 }
+
+int cam_cpas_get_hw_info(uint32_t *camera_family,
+	struct cam_hw_version *camera_version,
+	struct cam_hw_version *cpas_version,
+	uint32_t *cam_caps,
+	struct cam_cpas_fuse_info *cam_fuse_info);
 
 int cam_cpas_get_hw_info(uint32_t *camera_family,
 	struct cam_hw_version *camera_version,
@@ -313,6 +334,10 @@ EXPORT_SYMBOL(cam_cpas_get_hw_info);
 
 int cam_cpas_reg_write(uint32_t client_handle,
 	enum cam_cpas_reg_base reg_base, uint32_t offset, bool mb,
+	uint32_t value);
+
+int cam_cpas_reg_write(uint32_t client_handle,
+	enum cam_cpas_reg_base reg_base, uint32_t offset, bool mb,
 	uint32_t value)
 {
 	int rc;
@@ -345,6 +370,10 @@ int cam_cpas_reg_write(uint32_t client_handle,
 	return rc;
 }
 EXPORT_SYMBOL(cam_cpas_reg_write);
+
+int cam_cpas_reg_read(uint32_t client_handle,
+	enum cam_cpas_reg_base reg_base, uint32_t offset, bool mb,
+	uint32_t *value);
 
 int cam_cpas_reg_read(uint32_t client_handle,
 	enum cam_cpas_reg_base reg_base, uint32_t offset, bool mb,
@@ -391,6 +420,9 @@ int cam_cpas_reg_read(uint32_t client_handle,
 EXPORT_SYMBOL(cam_cpas_reg_read);
 
 int cam_cpas_update_axi_vote(uint32_t client_handle,
+	struct cam_axi_vote *axi_vote);
+
+int cam_cpas_update_axi_vote(uint32_t client_handle,
 	struct cam_axi_vote *axi_vote)
 {
 	int rc;
@@ -427,6 +459,9 @@ int cam_cpas_update_axi_vote(uint32_t client_handle,
 EXPORT_SYMBOL(cam_cpas_update_axi_vote);
 
 int cam_cpas_update_ahb_vote(uint32_t client_handle,
+	struct cam_ahb_vote *ahb_vote);
+
+int cam_cpas_update_ahb_vote(uint32_t client_handle,
 	struct cam_ahb_vote *ahb_vote)
 {
 	int rc;
@@ -457,6 +492,8 @@ int cam_cpas_update_ahb_vote(uint32_t client_handle,
 }
 EXPORT_SYMBOL(cam_cpas_update_ahb_vote);
 
+int cam_cpas_stop(uint32_t client_handle);
+
 int cam_cpas_stop(uint32_t client_handle)
 {
 	int rc;
@@ -484,6 +521,9 @@ int cam_cpas_stop(uint32_t client_handle)
 	return rc;
 }
 EXPORT_SYMBOL(cam_cpas_stop);
+
+int cam_cpas_start(uint32_t client_handle,
+	struct cam_ahb_vote *ahb_vote, struct cam_axi_vote *axi_vote);
 
 int cam_cpas_start(uint32_t client_handle,
 	struct cam_ahb_vote *ahb_vote, struct cam_axi_vote *axi_vote)
@@ -521,6 +561,8 @@ int cam_cpas_start(uint32_t client_handle,
 }
 EXPORT_SYMBOL(cam_cpas_start);
 
+void cam_cpas_log_votes(void);
+
 void cam_cpas_log_votes(void)
 {
 	uint32_t dummy_args;
@@ -544,6 +586,8 @@ void cam_cpas_log_votes(void)
 
 }
 EXPORT_SYMBOL(cam_cpas_log_votes);
+
+int cam_cpas_select_qos_settings(uint32_t selection_mask);
 
 int cam_cpas_select_qos_settings(uint32_t selection_mask)
 {
@@ -570,6 +614,8 @@ int cam_cpas_select_qos_settings(uint32_t selection_mask)
 }
 EXPORT_SYMBOL(cam_cpas_select_qos_settings);
 
+int cam_cpas_enable_tpg_mux_sel(uint32_t tpg_mux_sel);
+
 int cam_cpas_enable_tpg_mux_sel(uint32_t tpg_mux_sel)
 {
 	int rc = 0;
@@ -594,6 +640,9 @@ int cam_cpas_enable_tpg_mux_sel(uint32_t tpg_mux_sel)
 	return rc;
 }
 EXPORT_SYMBOL(cam_cpas_enable_tpg_mux_sel);
+
+int cam_cpas_notify_event(const char *identifier_string,
+	int32_t identifier_value);
 
 int cam_cpas_notify_event(const char *identifier_string,
 	int32_t identifier_value)
@@ -626,6 +675,8 @@ int cam_cpas_notify_event(const char *identifier_string,
 }
 EXPORT_SYMBOL(cam_cpas_notify_event);
 
+int cam_cpas_unregister_client(uint32_t client_handle);
+
 int cam_cpas_unregister_client(uint32_t client_handle)
 {
 	int rc;
@@ -650,6 +701,9 @@ int cam_cpas_unregister_client(uint32_t client_handle)
 	return rc;
 }
 EXPORT_SYMBOL(cam_cpas_unregister_client);
+
+int cam_cpas_register_client(
+	struct cam_cpas_register_params *register_params);
 
 int cam_cpas_register_client(
 	struct cam_cpas_register_params *register_params)
@@ -678,6 +732,9 @@ int cam_cpas_register_client(
 EXPORT_SYMBOL(cam_cpas_register_client);
 
 int cam_cpas_get_scid(
+	enum cam_sys_cache_config_types type);
+
+int cam_cpas_get_scid(
 	enum cam_sys_cache_config_types type)
 {
 	int rc;
@@ -700,6 +757,9 @@ int cam_cpas_get_scid(
 	return rc;
 }
 EXPORT_SYMBOL(cam_cpas_get_scid);
+
+int cam_cpas_prepare_subpart_info(enum cam_subparts_index idx, uint32_t num_subpart_available,
+	uint32_t num_subpart_functional);
 
 int cam_cpas_prepare_subpart_info(enum cam_subparts_index idx, uint32_t num_subpart_available,
 	uint32_t num_subpart_functional)
@@ -759,6 +819,9 @@ int cam_cpas_prepare_subpart_info(enum cam_subparts_index idx, uint32_t num_subp
 EXPORT_SYMBOL_GPL(cam_cpas_prepare_subpart_info);
 
 int cam_cpas_activate_llcc(
+	enum cam_sys_cache_config_types type);
+
+int cam_cpas_activate_llcc(
 	enum cam_sys_cache_config_types type)
 {
 	int rc;
@@ -785,6 +848,9 @@ int cam_cpas_activate_llcc(
 EXPORT_SYMBOL(cam_cpas_activate_llcc);
 
 int cam_cpas_deactivate_llcc(
+	enum cam_sys_cache_config_types type);
+
+int cam_cpas_deactivate_llcc(
 	enum cam_sys_cache_config_types type)
 {
 	int rc;
@@ -809,6 +875,9 @@ int cam_cpas_deactivate_llcc(
 	return rc;
 }
 EXPORT_SYMBOL(cam_cpas_deactivate_llcc);
+
+int cam_cpas_subdev_cmd(struct cam_cpas_intf *cpas_intf,
+	struct cam_control *cmd);
 
 int cam_cpas_subdev_cmd(struct cam_cpas_intf *cpas_intf,
 	struct cam_control *cmd)
@@ -1153,10 +1222,10 @@ static int cam_cpas_dev_probe(struct platform_device *pdev)
 	return rc;
 }
 
-static int cam_cpas_dev_remove(struct platform_device *pdev)
+static void cam_cpas_dev_remove(struct platform_device *pdev)
 {
 	component_del(&pdev->dev, &cam_cpas_dev_component_ops);
-	return 0;
+	return;
 }
 
 static const struct of_device_id cam_cpas_dt_match[] = {
@@ -1175,10 +1244,14 @@ struct platform_driver cam_cpas_driver = {
 	},
 };
 
+int cam_cpas_dev_init_module(void);
+
 int cam_cpas_dev_init_module(void)
 {
 	return platform_driver_register(&cam_cpas_driver);
 }
+
+void cam_cpas_dev_exit_module(void);
 
 void cam_cpas_dev_exit_module(void)
 {

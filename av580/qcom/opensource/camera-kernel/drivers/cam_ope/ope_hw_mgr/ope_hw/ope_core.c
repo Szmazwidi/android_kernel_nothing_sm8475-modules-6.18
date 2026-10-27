@@ -49,6 +49,9 @@ static int cam_ope_caps_vote(struct cam_ope_device_core_info *core_info,
 }
 
 int cam_ope_get_hw_caps(void *hw_priv, void *get_hw_cap_args,
+	uint32_t arg_size);
+
+int cam_ope_get_hw_caps(void *hw_priv, void *get_hw_cap_args,
 	uint32_t arg_size)
 {
 	struct cam_hw_info *ope_dev = hw_priv;
@@ -92,10 +95,14 @@ int cam_ope_get_hw_caps(void *hw_priv, void *get_hw_cap_args,
 	return 0;
 }
 
+int cam_ope_start(void *hw_priv, void *start_args, uint32_t arg_size);
+
 int cam_ope_start(void *hw_priv, void *start_args, uint32_t arg_size)
 {
 	return 0;
 }
+
+int cam_ope_stop(void *hw_priv, void *start_args, uint32_t arg_size);
 
 int cam_ope_stop(void *hw_priv, void *start_args, uint32_t arg_size)
 {
@@ -123,6 +130,8 @@ int cam_ope_stop(void *hw_priv, void *start_args, uint32_t arg_size)
 
 	return rc;
 }
+
+int cam_ope_flush(void *hw_priv, void *flush_args, uint32_t arg_size);
 
 int cam_ope_flush(void *hw_priv, void *flush_args, uint32_t arg_size)
 {
@@ -167,6 +176,9 @@ static int cam_ope_process_init(struct ope_hw *ope_hw,
 	CAM_ERR(CAM_OPE, "hfi_en is not supported");
 	return -EINVAL;
 }
+
+int cam_ope_init_hw(void *device_priv,
+	void *init_hw_args, uint32_t arg_size);
 
 int cam_ope_init_hw(void *device_priv,
 	void *init_hw_args, uint32_t arg_size)
@@ -258,6 +270,9 @@ free_cpas_vote:
 end:
 	return rc;
 }
+
+int cam_ope_deinit_hw(void *device_priv,
+	void *init_hw_args, uint32_t arg_size);
 
 int cam_ope_deinit_hw(void *device_priv,
 	void *init_hw_args, uint32_t arg_size)
@@ -1639,6 +1654,9 @@ static int cam_ope_process_prepare(struct ope_hw *ope_hw,
 }
 
 int cam_ope_process_cmd(void *device_priv, uint32_t cmd_type,
+	void *cmd_args, uint32_t arg_size);
+
+int cam_ope_process_cmd(void *device_priv, uint32_t cmd_type,
 	void *cmd_args, uint32_t arg_size)
 {
 	int rc = 0;
@@ -1782,6 +1800,8 @@ int cam_ope_process_cmd(void *device_priv, uint32_t cmd_type,
 
 	return rc;
 }
+
+irqreturn_t cam_ope_irq(int irq_num, void *data);
 
 irqreturn_t cam_ope_irq(int irq_num, void *data)
 {

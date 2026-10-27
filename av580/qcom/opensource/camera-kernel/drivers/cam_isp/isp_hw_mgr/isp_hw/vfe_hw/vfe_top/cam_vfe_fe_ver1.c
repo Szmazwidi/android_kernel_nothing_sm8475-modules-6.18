@@ -155,6 +155,10 @@ static int cam_vfe_fe_get_reg_update(
 
 int cam_vfe_fe_ver1_acquire_resource(
 	struct cam_isp_resource_node  *fe_res,
+	void                          *acquire_param);
+
+int cam_vfe_fe_ver1_acquire_resource(
+	struct cam_isp_resource_node  *fe_res,
 	void                          *acquire_param)
 {
 	struct cam_vfe_mux_fe_data    *fe_data;
@@ -583,6 +587,12 @@ int cam_vfe_fe_ver1_init(
 	struct cam_hw_intf            *hw_intf,
 	struct cam_hw_soc_info        *soc_info,
 	void                          *fe_hw_info,
+	struct cam_isp_resource_node  *fe_node);
+
+int cam_vfe_fe_ver1_init(
+	struct cam_hw_intf            *hw_intf,
+	struct cam_hw_soc_info        *soc_info,
+	void                          *fe_hw_info,
 	struct cam_isp_resource_node  *fe_node)
 {
 	struct cam_vfe_mux_fe_data     *fe_priv = NULL;
@@ -614,6 +624,9 @@ int cam_vfe_fe_ver1_init(
 
 	return 0;
 }
+
+int cam_vfe_fe_ver1_deinit(
+	struct cam_isp_resource_node  *fe_node);
 
 int cam_vfe_fe_ver1_deinit(
 	struct cam_isp_resource_node  *fe_node)

@@ -5,6 +5,7 @@
  *
  */
 
+#include <linux/of.h>
 #include <linux/module.h>
 #include "cam_flash_dev.h"
 #include "cam_flash_soc.h"
@@ -418,7 +419,7 @@ static int cam_flash_init_subdev(struct cam_flash_ctrl *fctrl)
 {
 	int rc = 0;
 
-	strlcpy(fctrl->device_name, CAM_FLASH_NAME,
+	strscpy(fctrl->device_name, CAM_FLASH_NAME,
 		sizeof(fctrl->device_name));
 	fctrl->v4l2_dev_str.internal_ops =
 		&cam_flash_internal_ops;
@@ -632,10 +633,10 @@ const static struct component_ops cam_flash_component_ops = {
 	.unbind = cam_flash_component_unbind,
 };
 
-static int cam_flash_platform_remove(struct platform_device *pdev)
+static void cam_flash_platform_remove(struct platform_device *pdev)
 {
 	component_del(&pdev->dev, &cam_flash_component_ops);
-	return 0;
+	return;
 }
 
 static int32_t cam_flash_platform_probe(struct platform_device *pdev)
@@ -855,17 +856,19 @@ static int32_t cam_flash_i2c_driver_probe(struct i2c_client *client,
 #endif
 
 #if KERNEL_VERSION(6, 1, 0) <= LINUX_VERSION_CODE
+void cam_flash_i2c_driver_remove(struct i2c_client *client);
+
 void cam_flash_i2c_driver_remove(struct i2c_client *client)
 {
 	component_del(&client->dev, &cam_flash_i2c_component_ops);
 }
 
 #else
-static int32_t cam_flash_i2c_driver_remove(struct i2c_client *client)
+static void cam_flash_i2c_driver_remove(struct i2c_client *client)
 {
 	component_del(&client->dev, &cam_flash_i2c_component_ops);
 
-	return 0;
+	return;
 }
 #endif
 
@@ -905,6 +908,8 @@ struct i2c_driver cam_flash_i2c_driver = {
 	},
 };
 
+int32_t cam_flash_init_module(void);
+
 int32_t cam_flash_init_module(void)
 {
 	int32_t rc = 0;
@@ -921,6 +926,8 @@ int32_t cam_flash_init_module(void)
 
 	return rc;
 }
+
+void cam_flash_exit_module(void);
 
 void cam_flash_exit_module(void)
 {

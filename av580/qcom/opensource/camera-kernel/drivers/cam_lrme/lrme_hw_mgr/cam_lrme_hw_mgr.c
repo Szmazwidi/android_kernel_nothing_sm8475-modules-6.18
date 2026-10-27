@@ -1069,6 +1069,11 @@ static void cam_req_mgr_process_workq_cam_lrme_device_submit_worker(
 int cam_lrme_mgr_register_device(
 	struct cam_hw_intf *lrme_hw_intf,
 	struct cam_iommu_handle *device_iommu,
+	struct cam_iommu_handle *cdm_iommu);
+
+int cam_lrme_mgr_register_device(
+	struct cam_hw_intf *lrme_hw_intf,
+	struct cam_iommu_handle *device_iommu,
 	struct cam_iommu_handle *cdm_iommu)
 {
 	struct cam_lrme_device *hw_device;
@@ -1149,6 +1154,8 @@ destroy_workqueue:
 	return rc;
 }
 
+int cam_lrme_mgr_deregister_device(int device_index);
+
 int cam_lrme_mgr_deregister_device(int device_index)
 {
 	struct cam_lrme_device *hw_device;
@@ -1161,6 +1168,8 @@ int cam_lrme_mgr_deregister_device(int device_index)
 	return 0;
 }
 
+int cam_lrme_hw_mgr_deinit(void);
+
 int cam_lrme_hw_mgr_deinit(void)
 {
 	mutex_destroy(&g_lrme_hw_mgr.hw_mgr_mutex);
@@ -1169,6 +1178,9 @@ int cam_lrme_hw_mgr_deinit(void)
 
 	return 0;
 }
+
+int cam_lrme_hw_mgr_init(struct cam_hw_mgr_intf *hw_mgr_intf,
+	cam_hw_event_cb_func cam_lrme_dev_buf_done_cb);
 
 int cam_lrme_hw_mgr_init(struct cam_hw_mgr_intf *hw_mgr_intf,
 	cam_hw_event_cb_func cam_lrme_dev_buf_done_cb)

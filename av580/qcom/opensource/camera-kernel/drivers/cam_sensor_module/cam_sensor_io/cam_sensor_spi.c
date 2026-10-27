@@ -3,6 +3,7 @@
  * Copyright (c) 2017-2020, The Linux Foundation. All rights reserved.
  */
 
+#include <linux/vmalloc.h>
 #include "cam_sensor_spi.h"
 #include "cam_debug_util.h"
 
@@ -242,6 +243,11 @@ out:
 int cam_spi_read(struct camera_io_master *client,
 	uint32_t addr, uint32_t *data,
 	enum camera_sensor_i2c_type addr_type,
+	enum camera_sensor_i2c_type data_type);
+
+int cam_spi_read(struct camera_io_master *client,
+	uint32_t addr, uint32_t *data,
+	enum camera_sensor_i2c_type addr_type,
 	enum camera_sensor_i2c_type data_type)
 {
 	int rc = -EINVAL;
@@ -279,6 +285,10 @@ int cam_spi_read(struct camera_io_master *client,
 
 int32_t cam_spi_read_seq(struct camera_io_master *client,
 	uint32_t addr, uint8_t *data,
+	enum camera_sensor_i2c_type addr_type, int32_t num_bytes);
+
+int32_t cam_spi_read_seq(struct camera_io_master *client,
+	uint32_t addr, uint8_t *data,
 	enum camera_sensor_i2c_type addr_type, int32_t num_bytes)
 {
 	if ((addr_type <= CAMERA_SENSOR_I2C_TYPE_INVALID)
@@ -298,6 +308,10 @@ int32_t cam_spi_read_seq(struct camera_io_master *client,
 		&client->spi_client->cmd_tbl.read_seq, addr, data,
 		addr_type, num_bytes, NULL, NULL);
 }
+
+int cam_spi_query_id(struct camera_io_master *client,
+	uint32_t addr, enum camera_sensor_i2c_type addr_type,
+	uint8_t *data, uint32_t num_byte);
 
 int cam_spi_query_id(struct camera_io_master *client,
 	uint32_t addr, enum camera_sensor_i2c_type addr_type,
@@ -436,6 +450,11 @@ static int32_t cam_spi_page_program(struct camera_io_master *client,
 int cam_spi_write(struct camera_io_master *client,
 	uint32_t addr, uint32_t data,
 	enum camera_sensor_i2c_type addr_type,
+	enum camera_sensor_i2c_type data_type);
+
+int cam_spi_write(struct camera_io_master *client,
+	uint32_t addr, uint32_t data,
+	enum camera_sensor_i2c_type addr_type,
 	enum camera_sensor_i2c_type data_type)
 {
 	struct cam_camera_spi_inst *pg =
@@ -489,6 +508,10 @@ OUT:
 	kfree(tx);
 	return rc;
 }
+
+int32_t cam_spi_write_seq(struct camera_io_master *client,
+	uint32_t addr, uint8_t *data,
+	enum camera_sensor_i2c_type addr_type, uint32_t num_byte);
 
 int32_t cam_spi_write_seq(struct camera_io_master *client,
 	uint32_t addr, uint8_t *data,
@@ -548,6 +571,9 @@ OUT:
 }
 
 int cam_spi_write_table(struct camera_io_master *client,
+	struct cam_sensor_i2c_reg_setting *write_setting);
+
+int cam_spi_write_table(struct camera_io_master *client,
 	struct cam_sensor_i2c_reg_setting *write_setting)
 {
 	int i;
@@ -587,6 +613,9 @@ int cam_spi_write_table(struct camera_io_master *client,
 	addr_type = client_addr_type;
 	return rc;
 }
+
+int cam_spi_erase(struct camera_io_master *client, uint32_t addr,
+	enum camera_sensor_i2c_type addr_type, uint32_t size);
 
 int cam_spi_erase(struct camera_io_master *client, uint32_t addr,
 	enum camera_sensor_i2c_type addr_type, uint32_t size)

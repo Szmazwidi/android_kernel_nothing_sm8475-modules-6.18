@@ -95,10 +95,14 @@ struct platform_driver cam_ife_csid_lite_driver = {
 	},
 };
 
+int cam_ife_csid_lite_init_module(void);
+
 int cam_ife_csid_lite_init_module(void)
 {
 	return platform_driver_register(&cam_ife_csid_lite_driver);
 }
+
+void cam_ife_csid_lite_exit_module(void);
 
 void cam_ife_csid_lite_exit_module(void)
 {

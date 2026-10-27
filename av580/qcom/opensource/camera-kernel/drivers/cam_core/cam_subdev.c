@@ -129,6 +129,8 @@ static const struct v4l2_subdev_ops cam_subdev_ops = {
 	.core = &cam_subdev_core_ops,
 };
 
+int cam_subdev_remove(struct cam_subdev *sd);
+
 int cam_subdev_remove(struct cam_subdev *sd)
 {
 	if (!sd)
@@ -140,6 +142,9 @@ int cam_subdev_remove(struct cam_subdev *sd)
 
 	return 0;
 }
+
+int cam_subdev_probe(struct cam_subdev *sd, struct platform_device *pdev,
+	char *name, uint32_t dev_type);
 
 int cam_subdev_probe(struct cam_subdev *sd, struct platform_device *pdev,
 	char *name, uint32_t dev_type)

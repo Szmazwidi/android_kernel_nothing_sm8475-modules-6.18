@@ -40,7 +40,7 @@
 #endif
 
 #if KERNEL_VERSION(5, 18, 0) <= LINUX_VERSION_CODE
-MODULE_IMPORT_NS(DMA_BUF);
+MODULE_IMPORT_NS("DMA_BUF");
 #endif
 
 
@@ -88,7 +88,7 @@ int cam_get_subpart_info(uint32_t *part_info, uint32_t max_num_cam);
 #if KERNEL_VERSION(5, 18, 0) <= LINUX_VERSION_CODE
 void cam_eeprom_spi_driver_remove(struct spi_device *sdev);
 #else
-int cam_eeprom_spi_driver_remove(struct spi_device *sdev);
+void cam_eeprom_spi_driver_remove(struct spi_device *sdev);
 #endif
 
 int cam_compat_util_get_irq(struct cam_hw_soc_info *soc_info);
@@ -97,7 +97,7 @@ int cam_iommu_map(struct iommu_domain *domain,
 	size_t firmware_start, phys_addr_t fw_hdl, size_t firmware_len,
 	int prot);
 
-size_t cam_iommu_map_sg(struct iommu_domain *domain,
+ssize_t cam_iommu_map_sg(struct iommu_domain *domain,
 	dma_addr_t iova_start, struct scatterlist *sgl, uint64_t orig_nents,
 	int prot);
 

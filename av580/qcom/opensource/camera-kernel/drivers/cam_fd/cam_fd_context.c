@@ -223,6 +223,10 @@ static struct cam_ctx_ops
 
 int cam_fd_context_init(struct cam_fd_context *fd_ctx,
 	struct cam_context *base_ctx, struct cam_hw_mgr_intf *hw_intf,
+	uint32_t ctx_id, int img_iommu_hdl);
+
+int cam_fd_context_init(struct cam_fd_context *fd_ctx,
+	struct cam_context *base_ctx, struct cam_hw_mgr_intf *hw_intf,
 	uint32_t ctx_id, int img_iommu_hdl)
 {
 	int rc;
@@ -250,6 +254,8 @@ int cam_fd_context_init(struct cam_fd_context *fd_ctx,
 
 	return rc;
 }
+
+int cam_fd_context_deinit(struct cam_fd_context *fd_ctx);
 
 int cam_fd_context_deinit(struct cam_fd_context *fd_ctx)
 {

@@ -14,6 +14,9 @@
 #include "cam_debug_util.h"
 
 int cam_jpeg_enc_init_soc_resources(struct cam_hw_soc_info *soc_info,
+	irq_handler_t jpeg_enc_irq_handler, void *irq_data);
+
+int cam_jpeg_enc_init_soc_resources(struct cam_hw_soc_info *soc_info,
 	irq_handler_t jpeg_enc_irq_handler, void *irq_data)
 {
 	struct cam_jpeg_enc_soc_private  *soc_private;
@@ -64,6 +67,8 @@ end:
 	return rc;
 }
 
+int cam_jpeg_enc_enable_soc_resources(struct cam_hw_soc_info *soc_info);
+
 int cam_jpeg_enc_enable_soc_resources(struct cam_hw_soc_info *soc_info)
 {
 	int rc;
@@ -75,6 +80,8 @@ int cam_jpeg_enc_enable_soc_resources(struct cam_hw_soc_info *soc_info)
 
 	return rc;
 }
+
+int cam_jpeg_enc_disable_soc_resources(struct cam_hw_soc_info *soc_info);
 
 int cam_jpeg_enc_disable_soc_resources(struct cam_hw_soc_info *soc_info)
 {

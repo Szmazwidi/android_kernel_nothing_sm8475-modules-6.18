@@ -47,6 +47,8 @@ static int cam_io_tpg_dump(void __iomem *base_addr,
 	return 0;
 }
 
+int32_t cam_tpg_mem_dmp(struct cam_hw_soc_info *soc_info);
+
 int32_t cam_tpg_mem_dmp(struct cam_hw_soc_info *soc_info)
 {
 	int32_t rc = 0;
@@ -129,6 +131,9 @@ static const char *const tpg_image_format_type_strings[] = {
 #endif
 
 int dump_global_configs(int idx,
+		struct tpg_global_config_t *global);
+
+int dump_global_configs(int idx,
 		struct tpg_global_config_t *global)
 {
 #ifdef __TPG_DEBUG_DUMP__
@@ -156,6 +161,10 @@ int dump_global_configs(int idx,
 #endif
 	return 0;
 }
+
+int dump_stream_configs(int hw_idx,
+		int stream_idx,
+		struct tpg_stream_config_t *stream);
 
 int dump_stream_configs(int hw_idx,
 		int stream_idx,
@@ -352,6 +361,8 @@ static int tpg_hw_start_default_new(struct tpg_hw *hw)
 	return 0;
 }
 
+int tpg_hw_dump_status(struct tpg_hw *hw);
+
 int tpg_hw_dump_status(struct tpg_hw *hw)
 {
 	if (!hw || !hw->hw_info || !hw->hw_info->ops)
@@ -367,6 +378,8 @@ int tpg_hw_dump_status(struct tpg_hw *hw)
 	}
 	return 0;
 }
+
+int tpg_hw_start(struct tpg_hw *hw);
 
 int tpg_hw_start(struct tpg_hw *hw)
 {
@@ -398,6 +411,8 @@ int tpg_hw_start(struct tpg_hw *hw)
 	return rc;
 }
 
+int tpg_hw_stop(struct tpg_hw *hw);
+
 int tpg_hw_stop(struct tpg_hw *hw)
 {
 	int rc = 0;
@@ -426,6 +441,9 @@ int tpg_hw_stop(struct tpg_hw *hw)
 }
 
 int tpg_hw_acquire(struct tpg_hw *hw,
+		struct tpg_hw_acquire_args *acquire);
+
+int tpg_hw_acquire(struct tpg_hw *hw,
 		struct tpg_hw_acquire_args *acquire)
 {
 	int rc = 0;
@@ -451,6 +469,8 @@ int tpg_hw_acquire(struct tpg_hw *hw,
 	return rc;
 }
 
+int tpg_hw_release(struct tpg_hw *hw);
+
 int tpg_hw_release(struct tpg_hw *hw)
 {
 	int rc = 0;
@@ -473,6 +493,9 @@ int tpg_hw_release(struct tpg_hw *hw)
 	mutex_unlock(&hw->mutex);
 	return rc;
 }
+
+enum cam_vote_level get_tpg_clk_level(
+		struct tpg_hw *hw);
 
 enum cam_vote_level get_tpg_clk_level(
 		struct tpg_hw *hw)
@@ -543,6 +566,11 @@ static int tpg_hw_configure_init_settings(
 int tpg_hw_config(
 	struct tpg_hw *hw,
 	enum tpg_hw_cmd_t config_cmd,
+	void *config_args);
+
+int tpg_hw_config(
+	struct tpg_hw *hw,
+	enum tpg_hw_cmd_t config_cmd,
 	void *config_args)
 {
 	int rc = 0;
@@ -563,6 +591,8 @@ int tpg_hw_config(
 	}
 	return rc;
 }
+
+int tpg_hw_free_streams(struct tpg_hw *hw);
 
 int tpg_hw_free_streams(struct tpg_hw *hw)
 {
@@ -594,6 +624,10 @@ int tpg_hw_free_streams(struct tpg_hw *hw)
 	mutex_unlock(&hw->mutex);
 	return 0;
 }
+
+int tpg_hw_copy_global_config(
+	struct tpg_hw *hw,
+	struct tpg_global_config_t *global);
 
 int tpg_hw_copy_global_config(
 	struct tpg_hw *hw,
@@ -670,6 +704,8 @@ static int assign_vc_slot(
 	return rc;
 }
 
+int tpg_hw_reset(struct tpg_hw *hw);
+
 int tpg_hw_reset(struct tpg_hw *hw)
 {
 	int rc = 0;
@@ -695,6 +731,10 @@ int tpg_hw_reset(struct tpg_hw *hw)
 
 	return rc;
 }
+
+int tpg_hw_add_stream(
+	struct tpg_hw *hw,
+	struct tpg_stream_config_t *cmd);
 
 int tpg_hw_add_stream(
 	struct tpg_hw *hw,

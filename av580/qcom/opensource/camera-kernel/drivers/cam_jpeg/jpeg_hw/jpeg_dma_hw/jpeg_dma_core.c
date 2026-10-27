@@ -35,6 +35,9 @@
 #define CAM_JPEG_DMA_RESET_TIMEOUT msecs_to_jiffies(500)
 
 int cam_jpeg_dma_init_hw(void *device_priv,
+	void *init_hw_args, uint32_t arg_size);
+
+int cam_jpeg_dma_init_hw(void *device_priv,
 	void *init_hw_args, uint32_t arg_size)
 {
 	struct cam_hw_info *jpeg_dma_dev = device_priv;
@@ -107,6 +110,9 @@ cpas_failed:
 }
 
 int cam_jpeg_dma_deinit_hw(void *device_priv,
+	void *init_hw_args, uint32_t arg_size);
+
+int cam_jpeg_dma_deinit_hw(void *device_priv,
 	void *init_hw_args, uint32_t arg_size)
 {
 	struct cam_hw_info *jpeg_dma_dev = device_priv;
@@ -153,6 +159,8 @@ int cam_jpeg_dma_deinit_hw(void *device_priv,
 
 	return 0;
 }
+
+irqreturn_t cam_jpeg_dma_irq(int irq_num, void *data);
 
 irqreturn_t cam_jpeg_dma_irq(int irq_num, void *data)
 {
@@ -233,6 +241,9 @@ irqreturn_t cam_jpeg_dma_irq(int irq_num, void *data)
 }
 
 int cam_jpeg_dma_reset_hw(void *data,
+	void *start_args, uint32_t arg_size);
+
+int cam_jpeg_dma_reset_hw(void *data,
 	void *start_args, uint32_t arg_size)
 {
 	struct cam_hw_info *jpeg_dma_dev = data;
@@ -289,6 +300,9 @@ int cam_jpeg_dma_reset_hw(void *data,
 }
 
 int cam_jpeg_dma_start_hw(void *data,
+	void *start_args, uint32_t arg_size);
+
+int cam_jpeg_dma_start_hw(void *data,
 	void *start_args, uint32_t arg_size)
 {
 	struct cam_hw_info *jpeg_dma_dev = data;
@@ -321,6 +335,9 @@ int cam_jpeg_dma_start_hw(void *data,
 
 	return 0;
 }
+
+int cam_jpeg_dma_stop_hw(void *data,
+	void *stop_args, uint32_t arg_size);
 
 int cam_jpeg_dma_stop_hw(void *data,
 	void *stop_args, uint32_t arg_size)
@@ -397,6 +414,9 @@ static int  cam_jpeg_dma_mini_dump(struct cam_hw_info *dev, void *args) {
 }
 
 int cam_jpeg_dma_dump_camnoc_misr_val(struct cam_jpeg_dma_device_hw_info *hw_info,
+	struct cam_hw_soc_info *soc_info, void *cmd_args);
+
+int cam_jpeg_dma_dump_camnoc_misr_val(struct cam_jpeg_dma_device_hw_info *hw_info,
 	struct cam_hw_soc_info *soc_info, void *cmd_args)
 {
 	void __iomem                         *dma_mem_base = NULL;
@@ -458,6 +478,9 @@ int cam_jpeg_dma_dump_camnoc_misr_val(struct cam_jpeg_dma_device_hw_info *hw_inf
 
 	return rc;
 }
+
+int cam_jpeg_dma_dump_hw_misr_val(struct cam_jpeg_dma_device_hw_info *hw_info,
+	struct cam_hw_soc_info *soc_info, void *cmd_args);
 
 int cam_jpeg_dma_dump_hw_misr_val(struct cam_jpeg_dma_device_hw_info *hw_info,
 	struct cam_hw_soc_info *soc_info, void *cmd_args)
@@ -565,6 +588,9 @@ int cam_jpeg_dma_dump_hw_misr_val(struct cam_jpeg_dma_device_hw_info *hw_info,
 }
 
 int cam_jpeg_dma_config_cmanoc_hw_misr(struct cam_jpeg_dma_device_hw_info *hw_info,
+	struct cam_hw_soc_info *soc_info, void *cmd_args);
+
+int cam_jpeg_dma_config_cmanoc_hw_misr(struct cam_jpeg_dma_device_hw_info *hw_info,
 	struct cam_hw_soc_info *soc_info, void *cmd_args)
 {
 	void __iomem                         *dma_mem_base = NULL;
@@ -616,6 +642,9 @@ int cam_jpeg_dma_config_cmanoc_hw_misr(struct cam_jpeg_dma_device_hw_info *hw_in
 
 	return 0;
 }
+
+int cam_jpeg_dma_process_cmd(void *device_priv, uint32_t cmd_type,
+	void *cmd_args, uint32_t arg_size);
 
 int cam_jpeg_dma_process_cmd(void *device_priv, uint32_t cmd_type,
 	void *cmd_args, uint32_t arg_size)

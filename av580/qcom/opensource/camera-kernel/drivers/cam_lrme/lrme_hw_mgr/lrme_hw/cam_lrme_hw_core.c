@@ -503,6 +503,9 @@ static int cam_lrme_hw_util_reset(struct cam_hw_info *lrme_hw,
 }
 
 int cam_lrme_hw_util_get_caps(struct cam_hw_info *lrme_hw,
+	struct cam_lrme_dev_cap *hw_caps);
+
+int cam_lrme_hw_util_get_caps(struct cam_hw_info *lrme_hw,
 	struct cam_lrme_dev_cap *hw_caps)
 {
 	struct cam_hw_soc_info *soc_info = &lrme_hw->soc_info;
@@ -825,6 +828,9 @@ static int cam_lrme_hw_util_process_idle(
 }
 
 void cam_lrme_set_irq(struct cam_hw_info *lrme_hw,
+	enum cam_lrme_irq_set set);
+
+void cam_lrme_set_irq(struct cam_hw_info *lrme_hw,
 	enum cam_lrme_irq_set set)
 {
 	struct cam_hw_soc_info *soc_info = &lrme_hw->soc_info;
@@ -864,6 +870,8 @@ void cam_lrme_set_irq(struct cam_hw_info *lrme_hw,
 	}
 }
 
+
+int cam_lrme_hw_process_irq(void *priv, void *data);
 
 int cam_lrme_hw_process_irq(void *priv, void *data)
 {
@@ -944,6 +952,8 @@ end:
 	return rc;
 }
 
+int cam_lrme_hw_start(void *hw_priv, void *hw_start_args, uint32_t arg_size);
+
 int cam_lrme_hw_start(void *hw_priv, void *hw_start_args, uint32_t arg_size)
 {
 	struct cam_hw_info *lrme_hw = (struct cam_hw_info *)hw_priv;
@@ -1007,6 +1017,8 @@ unlock:
 	return rc;
 }
 
+int cam_lrme_hw_stop(void *hw_priv, void *hw_stop_args, uint32_t arg_size);
+
 int cam_lrme_hw_stop(void *hw_priv, void *hw_stop_args, uint32_t arg_size)
 {
 	struct cam_hw_info *lrme_hw = (struct cam_hw_info *)hw_priv;
@@ -1067,6 +1079,9 @@ unlock:
 	mutex_unlock(&lrme_hw->hw_mutex);
 	return rc;
 }
+
+int cam_lrme_hw_submit_req(void *hw_priv, void *hw_submit_args,
+	uint32_t arg_size);
 
 int cam_lrme_hw_submit_req(void *hw_priv, void *hw_submit_args,
 	uint32_t arg_size)
@@ -1154,6 +1169,8 @@ error:
 
 }
 
+int cam_lrme_hw_reset(void *hw_priv, void *reset_core_args, uint32_t arg_size);
+
 int cam_lrme_hw_reset(void *hw_priv, void *reset_core_args, uint32_t arg_size)
 {
 	struct cam_hw_info *lrme_hw = hw_priv;
@@ -1197,6 +1214,8 @@ int cam_lrme_hw_reset(void *hw_priv, void *reset_core_args, uint32_t arg_size)
 
 	return 0;
 }
+
+int cam_lrme_hw_flush(void *hw_priv, void *hw_flush_args, uint32_t arg_size);
 
 int cam_lrme_hw_flush(void *hw_priv, void *hw_flush_args, uint32_t arg_size)
 {
@@ -1274,6 +1293,9 @@ int cam_lrme_hw_flush(void *hw_priv, void *hw_flush_args, uint32_t arg_size)
 }
 
 int cam_lrme_hw_get_caps(void *hw_priv, void *get_hw_cap_args,
+	uint32_t arg_size);
+
+int cam_lrme_hw_get_caps(void *hw_priv, void *get_hw_cap_args,
 	uint32_t arg_size)
 {
 	struct cam_hw_info *lrme_hw;
@@ -1293,6 +1315,8 @@ int cam_lrme_hw_get_caps(void *hw_priv, void *get_hw_cap_args,
 
 	return 0;
 }
+
+irqreturn_t cam_lrme_hw_irq(int irq_num, void *data);
 
 irqreturn_t cam_lrme_hw_irq(int irq_num, void *data)
 {
@@ -1385,6 +1409,9 @@ irqreturn_t cam_lrme_hw_irq(int irq_num, void *data)
 
 	return IRQ_HANDLED;
 }
+
+int cam_lrme_hw_process_cmd(void *hw_priv, uint32_t cmd_type,
+	void *cmd_args, uint32_t arg_size);
 
 int cam_lrme_hw_process_cmd(void *hw_priv, uint32_t cmd_type,
 	void *cmd_args, uint32_t arg_size)

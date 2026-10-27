@@ -35,10 +35,14 @@ struct platform_driver cam_csid_ppi100_driver = {
 	},
 };
 
+int cam_csid_ppi100_init_module(void);
+
 int cam_csid_ppi100_init_module(void)
 {
 	return platform_driver_register(&cam_csid_ppi100_driver);
 }
+
+void cam_csid_ppi100_exit_module(void);
 
 void cam_csid_ppi100_exit_module(void)
 {

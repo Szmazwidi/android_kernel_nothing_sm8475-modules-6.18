@@ -160,6 +160,9 @@ static int cam_a5_request_platform_resource(
 }
 
 int cam_a5_init_soc_resources(struct cam_hw_soc_info *soc_info,
+	irq_handler_t a5_irq_handler, void *irq_data);
+
+int cam_a5_init_soc_resources(struct cam_hw_soc_info *soc_info,
 	irq_handler_t a5_irq_handler, void *irq_data)
 {
 	int rc = 0;
@@ -176,6 +179,8 @@ int cam_a5_init_soc_resources(struct cam_hw_soc_info *soc_info,
 	return rc;
 }
 
+void cam_a5_deinit_soc_resources(struct cam_hw_soc_info *soc_info);
+
 void cam_a5_deinit_soc_resources(struct cam_hw_soc_info *soc_info)
 {
 	int rc = 0;
@@ -184,6 +189,8 @@ void cam_a5_deinit_soc_resources(struct cam_hw_soc_info *soc_info)
 	if (rc)
 		CAM_WARN(CAM_ICP, "release platform resources fail");
 }
+
+int cam_a5_enable_soc_resources(struct cam_hw_soc_info *soc_info);
 
 int cam_a5_enable_soc_resources(struct cam_hw_soc_info *soc_info)
 {
@@ -203,6 +210,8 @@ int cam_a5_enable_soc_resources(struct cam_hw_soc_info *soc_info)
 	return rc;
 }
 
+int cam_a5_disable_soc_resources(struct cam_hw_soc_info *soc_info);
+
 int cam_a5_disable_soc_resources(struct cam_hw_soc_info *soc_info)
 {
 	int rc = 0;
@@ -215,6 +224,9 @@ int cam_a5_disable_soc_resources(struct cam_hw_soc_info *soc_info)
 
 	return rc;
 }
+
+int cam_a5_update_clk_rate(struct cam_hw_soc_info *soc_info,
+	int32_t clk_level);
 
 int cam_a5_update_clk_rate(struct cam_hw_soc_info *soc_info,
 	int32_t clk_level)

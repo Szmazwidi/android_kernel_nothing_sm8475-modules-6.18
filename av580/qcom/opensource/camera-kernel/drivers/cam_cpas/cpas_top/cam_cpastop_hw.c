@@ -1097,6 +1097,8 @@ static int cam_cpastop_setup_qos_settings(struct cam_hw_info *cpas_hw,
 	return rc;
 }
 
+int cam_cpastop_get_internal_ops(struct cam_cpas_internal_ops *internal_ops);
+
 int cam_cpastop_get_internal_ops(struct cam_cpas_internal_ops *internal_ops)
 {
 	if (!internal_ops) {

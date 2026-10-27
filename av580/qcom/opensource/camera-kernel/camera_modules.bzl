@@ -1,20 +1,21 @@
+load("//devices/pong618/build:deps.bzl", "pong_package_deps")
 load("//build/kernel/kleaf:kernel.bzl", "ddk_module")
-load("//build/bazel_common_rules/dist:dist.bzl", "copy_to_dist_dir")
-load("//vendor/nothing/pong-kernel:target_variants.bzl", "get_all_la_variants")
+load("//devices/pong618/av580:dist.bzl", "copy_to_dist_dir")
+load("//devices/pong618/av580:variants.bzl", "get_all_la_variants")
 load(":project_defconfig.bzl", "get_project_defconfig")
 
-def _define_module(target, variant):
-    tv = "{}_{}".format(target, variant)
-    deps = [
+def _define_module(target, variant, host_native = False):
+    tv = "{}_{}".format(target, variant) + ("_host_native" if host_native else "")
+    deps = pong_package_deps() + [
         ":camera_headers",
-        "//vendor/nothing/pong-kernel:all_headers",
+        "//devices/pong618/av580/providers:vendor_headers",
     ]
 
     # Generate the defconfig file dynamically
     native.genrule(
         name = "{}_defconfig_generated".format(tv),
         srcs = [
-            get_project_defconfig(target, variant),
+            get_project_defconfig(target, variant, host_native),
         ],
         outs = ["{}_defconfig.generated".format(tv)],
         cmd = "cat $(SRCS) > $@",
@@ -22,12 +23,16 @@ def _define_module(target, variant):
 
     if target == "waipio":
         deps.extend([
-            "//vendor/nothing/pong-modules/qcom/opensource/mmrm-driver:{}_mmrm_driver".format(tv),
-            "//vendor/nothing/pong-modules/qcom/opensource/synx-kernel:synx_headers",
-            "//vendor/nothing/pong-modules/qcom/opensource/synx-kernel:{}_modules".format(tv),
+            
+            "//devices/pong618/av580/qcom/opensource/synx-kernel:synx_headers",
+            "//devices/pong618/av580/qcom/opensource/synx-kernel:{}_{}_modules".format(target, variant),
         ])
 
+    if target == "waipio" and not host_native:
+        deps.append("//devices/pong618/av580/qcom/opensource/mmrm-driver:{}_mmrm_driver".format(tv))
+
     ddk_module(
+            copts = ["-ferror-limit=0", "-DCONFIG_QCOM_LLCC_MODULE=1", "-DCONFIG_QCOM_MDT_LOADER_MODULE=1"],
         name = "{}_camera".format(tv),
         out = "camera.ko",
         srcs = [
@@ -273,7 +278,7 @@ def _define_module(target, variant):
         deps = deps,
         kconfig = "Kconfig",
         defconfig = "{}_defconfig_generated".format(tv),
-        kernel_build = "//vendor/nothing/pong-kernel:{}".format(tv),
+        kernel_build = "//common:kernel_aarch64",
     )
 
     copy_to_dist_dir(
@@ -289,3 +294,4 @@ def _define_module(target, variant):
 def define_camera_module():
     for (t, v) in get_all_la_variants():
         _define_module(t, v)
+        _define_module(t, v, True)

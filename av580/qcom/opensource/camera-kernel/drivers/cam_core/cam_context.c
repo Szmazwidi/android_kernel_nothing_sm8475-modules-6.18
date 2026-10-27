@@ -33,6 +33,8 @@ static int cam_context_handle_hw_event(void *context, uint32_t evt_id,
 	return rc;
 }
 
+int cam_context_shutdown(struct cam_context *ctx);
+
 int cam_context_shutdown(struct cam_context *ctx)
 {
 	int rc = 0;
@@ -69,6 +71,9 @@ int cam_context_shutdown(struct cam_context *ctx)
 }
 
 int cam_context_handle_crm_get_dev_info(struct cam_context *ctx,
+	struct cam_req_mgr_device_info *info);
+
+int cam_context_handle_crm_get_dev_info(struct cam_context *ctx,
 	struct cam_req_mgr_device_info *info)
 {
 	int rc;
@@ -96,6 +101,9 @@ int cam_context_handle_crm_get_dev_info(struct cam_context *ctx,
 
 	return rc;
 }
+
+int cam_context_handle_crm_link(struct cam_context *ctx,
+	struct cam_req_mgr_core_dev_link_setup *link);
 
 int cam_context_handle_crm_link(struct cam_context *ctx,
 	struct cam_req_mgr_core_dev_link_setup *link)
@@ -126,6 +134,9 @@ int cam_context_handle_crm_link(struct cam_context *ctx,
 }
 
 int cam_context_handle_crm_unlink(struct cam_context *ctx,
+	struct cam_req_mgr_core_dev_link_setup *unlink);
+
+int cam_context_handle_crm_unlink(struct cam_context *ctx,
 	struct cam_req_mgr_core_dev_link_setup *unlink)
 {
 	int rc;
@@ -153,6 +164,9 @@ int cam_context_handle_crm_unlink(struct cam_context *ctx,
 
 	return rc;
 }
+
+int cam_context_handle_crm_apply_req(struct cam_context *ctx,
+	struct cam_req_mgr_apply_request *apply);
 
 int cam_context_handle_crm_apply_req(struct cam_context *ctx,
 	struct cam_req_mgr_apply_request *apply)
@@ -185,6 +199,10 @@ int cam_context_handle_crm_apply_req(struct cam_context *ctx,
 
 int cam_context_handle_crm_notify_frame_skip(
 	struct cam_context *ctx,
+	struct cam_req_mgr_apply_request *apply);
+
+int cam_context_handle_crm_notify_frame_skip(
+	struct cam_context *ctx,
 	struct cam_req_mgr_apply_request *apply)
 {
 	int rc = 0;
@@ -213,6 +231,9 @@ int cam_context_handle_crm_notify_frame_skip(
 }
 
 int cam_context_handle_crm_flush_req(struct cam_context *ctx,
+	struct cam_req_mgr_flush_request *flush);
+
+int cam_context_handle_crm_flush_req(struct cam_context *ctx,
 	struct cam_req_mgr_flush_request *flush)
 {
 	int rc = 0;
@@ -239,6 +260,9 @@ int cam_context_handle_crm_flush_req(struct cam_context *ctx,
 }
 
 int cam_context_handle_crm_process_evt(struct cam_context *ctx,
+	struct cam_req_mgr_link_evt_data *process_evt);
+
+int cam_context_handle_crm_process_evt(struct cam_context *ctx,
 	struct cam_req_mgr_link_evt_data *process_evt)
 {
 	int rc = 0;
@@ -261,6 +285,9 @@ int cam_context_handle_crm_process_evt(struct cam_context *ctx,
 
 	return rc;
 }
+
+int cam_context_handle_crm_dump_req(struct cam_context *ctx,
+	struct cam_req_mgr_dump_info *dump);
 
 int cam_context_handle_crm_dump_req(struct cam_context *ctx,
 	struct cam_req_mgr_dump_info *dump)
@@ -291,6 +318,9 @@ int cam_context_handle_crm_dump_req(struct cam_context *ctx,
 }
 
 int cam_context_mini_dump_from_hw(struct cam_context *ctx,
+	void  *args);
+
+int cam_context_mini_dump_from_hw(struct cam_context *ctx,
 	void  *args)
 {
 	int rc = 0;
@@ -310,6 +340,9 @@ int cam_context_mini_dump_from_hw(struct cam_context *ctx,
 	}
 	return rc;
 }
+
+int cam_context_dump_pf_info(struct cam_context *ctx,
+	struct cam_smmu_pf_info *pf_info);
 
 int cam_context_dump_pf_info(struct cam_context *ctx,
 	struct cam_smmu_pf_info *pf_info)
@@ -338,6 +371,9 @@ int cam_context_dump_pf_info(struct cam_context *ctx,
 }
 
 int cam_context_handle_message(struct cam_context *ctx,
+	uint32_t msg_type, void *data);
+
+int cam_context_handle_message(struct cam_context *ctx,
 	uint32_t msg_type, void *data)
 {
 	int rc = 0;
@@ -361,6 +397,9 @@ int cam_context_handle_message(struct cam_context *ctx,
 
 	return rc;
 }
+
+int cam_context_handle_acquire_dev(struct cam_context *ctx,
+	struct cam_acquire_dev_cmd *cmd);
 
 int cam_context_handle_acquire_dev(struct cam_context *ctx,
 	struct cam_acquire_dev_cmd *cmd)
@@ -404,6 +443,9 @@ int cam_context_handle_acquire_dev(struct cam_context *ctx,
 }
 
 int cam_context_handle_acquire_hw(struct cam_context *ctx,
+	void *args);
+
+int cam_context_handle_acquire_hw(struct cam_context *ctx,
 	void *args)
 {
 	int rc;
@@ -432,6 +474,9 @@ int cam_context_handle_acquire_hw(struct cam_context *ctx,
 
 	return rc;
 }
+
+int cam_context_handle_release_dev(struct cam_context *ctx,
+	struct cam_release_dev_cmd *cmd);
 
 int cam_context_handle_release_dev(struct cam_context *ctx,
 	struct cam_release_dev_cmd *cmd)
@@ -463,6 +508,9 @@ int cam_context_handle_release_dev(struct cam_context *ctx,
 }
 
 int cam_context_handle_release_hw(struct cam_context *ctx,
+	void *args);
+
+int cam_context_handle_release_hw(struct cam_context *ctx,
 	void *args)
 {
 	int rc;
@@ -492,6 +540,9 @@ int cam_context_handle_release_hw(struct cam_context *ctx,
 }
 
 int cam_context_handle_flush_dev(struct cam_context *ctx,
+	struct cam_flush_dev_cmd *cmd);
+
+int cam_context_handle_flush_dev(struct cam_context *ctx,
 	struct cam_flush_dev_cmd *cmd)
 {
 	int rc = 0;
@@ -518,6 +569,9 @@ int cam_context_handle_flush_dev(struct cam_context *ctx,
 
 	return rc;
 }
+
+int cam_context_handle_config_dev(struct cam_context *ctx,
+	struct cam_config_dev_cmd *cmd);
 
 int cam_context_handle_config_dev(struct cam_context *ctx,
 	struct cam_config_dev_cmd *cmd)
@@ -549,6 +603,9 @@ int cam_context_handle_config_dev(struct cam_context *ctx,
 }
 
 int cam_context_handle_start_dev(struct cam_context *ctx,
+	struct cam_start_stop_dev_cmd *cmd);
+
+int cam_context_handle_start_dev(struct cam_context *ctx,
 	struct cam_start_stop_dev_cmd *cmd)
 {
 	int rc = 0;
@@ -576,6 +633,9 @@ int cam_context_handle_start_dev(struct cam_context *ctx,
 
 	return rc;
 }
+
+int cam_context_handle_stop_dev(struct cam_context *ctx,
+	struct cam_start_stop_dev_cmd *cmd);
 
 int cam_context_handle_stop_dev(struct cam_context *ctx,
 	struct cam_start_stop_dev_cmd *cmd)
@@ -608,6 +668,9 @@ int cam_context_handle_stop_dev(struct cam_context *ctx,
 }
 
 int cam_context_handle_info_dump(void *context,
+	enum cam_context_dump_id id);
+
+int cam_context_handle_info_dump(void *context,
 	enum cam_context_dump_id id)
 {
 	int rc = 0;
@@ -631,6 +694,9 @@ int cam_context_handle_info_dump(void *context,
 
 	return rc;
 }
+
+int cam_context_handle_dump_dev(struct cam_context *ctx,
+	struct cam_dump_req_cmd *cmd);
 
 int cam_context_handle_dump_dev(struct cam_context *ctx,
 	struct cam_dump_req_cmd *cmd)
@@ -669,6 +735,8 @@ int cam_context_handle_dump_dev(struct cam_context *ctx,
 	return rc;
 }
 
+int cam_context_handle_hw_recovery(void *priv, void *data);
+
 int cam_context_handle_hw_recovery(void *priv, void *data)
 {
 	struct cam_context *ctx = priv;
@@ -703,6 +771,15 @@ int cam_context_init(struct cam_context *ctx,
 	struct cam_req_mgr_kmd_ops *crm_node_intf,
 	struct cam_hw_mgr_intf *hw_mgr_intf,
 	struct cam_ctx_request *req_list,
+	uint32_t req_size, int img_iommu_hdl);
+
+int cam_context_init(struct cam_context *ctx,
+	const char *dev_name,
+	uint64_t dev_id,
+	uint32_t ctx_id,
+	struct cam_req_mgr_kmd_ops *crm_node_intf,
+	struct cam_hw_mgr_intf *hw_mgr_intf,
+	struct cam_ctx_request *req_list,
 	uint32_t req_size, int img_iommu_hdl)
 {
 	int i;
@@ -722,7 +799,7 @@ int cam_context_init(struct cam_context *ctx,
 	mutex_init(&ctx->sync_mutex);
 	spin_lock_init(&ctx->lock);
 
-	strlcpy(ctx->dev_name, dev_name, CAM_CTX_DEV_NAME_MAX_LENGTH);
+	strscpy(ctx->dev_name, dev_name, CAM_CTX_DEV_NAME_MAX_LENGTH);
 	ctx->dev_id = dev_id;
 	ctx->ctx_id = ctx_id;
 	ctx->last_flush_req = 0;
@@ -751,6 +828,8 @@ int cam_context_init(struct cam_context *ctx,
 	return 0;
 }
 
+int cam_context_deinit(struct cam_context *ctx);
+
 int cam_context_deinit(struct cam_context *ctx)
 {
 	if (!ctx)
@@ -769,6 +848,8 @@ int cam_context_deinit(struct cam_context *ctx)
 	return 0;
 }
 
+void cam_context_putref(struct cam_context *ctx);
+
 void cam_context_putref(struct cam_context *ctx)
 {
 	if (kref_read(&ctx->refcount))
@@ -782,6 +863,8 @@ void cam_context_putref(struct cam_context *ctx)
 		ctx->dev_hdl, refcount_read(&(ctx->refcount.refcount)),
 		ctx->dev_name);
 }
+
+void cam_context_getref(struct cam_context *ctx);
 
 void cam_context_getref(struct cam_context *ctx)
 {

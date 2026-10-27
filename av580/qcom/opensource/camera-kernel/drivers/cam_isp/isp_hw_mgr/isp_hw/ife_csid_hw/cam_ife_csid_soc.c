@@ -2,6 +2,7 @@
 /*
  * Copyright (c) 2017-2020, The Linux Foundation. All rights reserved.
  */
+#include <linux/of.h>
 #include <linux/slab.h>
 #include "cam_ife_csid_soc.h"
 #include "cam_cpas_api.h"
@@ -64,6 +65,9 @@ static int cam_ife_csid_request_platform_resource(
 }
 
 int cam_ife_csid_init_soc_resources(struct cam_hw_soc_info *soc_info,
+	irq_handler_t csid_irq_handler, void *irq_data, bool is_custom);
+
+int cam_ife_csid_init_soc_resources(struct cam_hw_soc_info *soc_info,
 	irq_handler_t csid_irq_handler, void *irq_data, bool is_custom)
 {
 	int rc = 0;
@@ -92,10 +96,10 @@ int cam_ife_csid_init_soc_resources(struct cam_hw_soc_info *soc_info,
 
 	memset(&cpas_register_param, 0, sizeof(cpas_register_param));
 	if (is_custom)
-		strlcpy(cpas_register_param.identifier, "csid-custom",
+		strscpy(cpas_register_param.identifier, "csid-custom",
 			CAM_HW_IDENTIFIER_LENGTH);
 	else
-		strlcpy(cpas_register_param.identifier, "csid",
+		strscpy(cpas_register_param.identifier, "csid",
 			CAM_HW_IDENTIFIER_LENGTH);
 
 	cpas_register_param.cell_index = soc_info->index;
@@ -117,6 +121,9 @@ free_soc_private:
 
 	return rc;
 }
+
+int cam_ife_csid_deinit_soc_resources(
+	struct cam_hw_soc_info *soc_info);
 
 int cam_ife_csid_deinit_soc_resources(
 	struct cam_hw_soc_info *soc_info)
@@ -141,6 +148,9 @@ int cam_ife_csid_deinit_soc_resources(
 
 	return rc;
 }
+
+int cam_ife_csid_enable_soc_resources(
+	struct cam_hw_soc_info *soc_info, enum cam_vote_level clk_level);
 
 int cam_ife_csid_enable_soc_resources(
 	struct cam_hw_soc_info *soc_info, enum cam_vote_level clk_level)
@@ -189,6 +199,8 @@ end:
 	return rc;
 }
 
+int cam_ife_csid_disable_soc_resources(struct cam_hw_soc_info *soc_info);
+
 int cam_ife_csid_disable_soc_resources(struct cam_hw_soc_info *soc_info)
 {
 	int rc = 0;
@@ -212,6 +224,9 @@ int cam_ife_csid_disable_soc_resources(struct cam_hw_soc_info *soc_info)
 
 	return rc;
 }
+
+int cam_ife_csid_enable_ife_force_clock_on(struct cam_hw_soc_info  *soc_info,
+	uint32_t cpas_ife_base_offset);
 
 int cam_ife_csid_enable_ife_force_clock_on(struct cam_hw_soc_info  *soc_info,
 	uint32_t cpas_ife_base_offset)
@@ -240,6 +255,9 @@ int cam_ife_csid_enable_ife_force_clock_on(struct cam_hw_soc_info  *soc_info,
 
 	return rc;
 }
+
+int cam_ife_csid_disable_ife_force_clock_on(struct cam_hw_soc_info *soc_info,
+	uint32_t cpas_ife_base_offset);
 
 int cam_ife_csid_disable_ife_force_clock_on(struct cam_hw_soc_info *soc_info,
 	uint32_t cpas_ife_base_offset)

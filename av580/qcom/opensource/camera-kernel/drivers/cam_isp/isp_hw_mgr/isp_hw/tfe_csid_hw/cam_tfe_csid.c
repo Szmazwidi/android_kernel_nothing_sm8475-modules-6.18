@@ -43,10 +43,14 @@ struct platform_driver cam_tfe_csid_driver = {
 	},
 };
 
+int cam_tfe_csid_init_module(void);
+
 int cam_tfe_csid_init_module(void)
 {
 	return platform_driver_register(&cam_tfe_csid_driver);
 }
+
+void cam_tfe_csid_exit_module(void);
 
 void cam_tfe_csid_exit_module(void)
 {

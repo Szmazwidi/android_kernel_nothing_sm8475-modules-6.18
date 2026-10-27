@@ -13,6 +13,9 @@
 #include "cam_soc_util.h"
 
 int32_t cam_actuator_parse_dt(struct cam_actuator_ctrl_t *a_ctrl,
+	struct device *dev);
+
+int32_t cam_actuator_parse_dt(struct cam_actuator_ctrl_t *a_ctrl,
 	struct device *dev)
 {
 	int32_t                         i, rc = 0;

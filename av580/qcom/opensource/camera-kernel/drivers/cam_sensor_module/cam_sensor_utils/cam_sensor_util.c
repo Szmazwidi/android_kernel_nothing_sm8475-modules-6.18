@@ -4,6 +4,9 @@
  * Copyright (c) 2022-2025 Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
+#include <linux/vmalloc.h>
+#include "cam_gpio_request.h"
+#include <linux/of.h>
 #include <linux/kernel.h>
 #include <clocksource/arm_arch_timer.h>
 #include "cam_sensor_util.h"
@@ -42,6 +45,8 @@ static struct i2c_settings_list*
 	return tmp;
 }
 
+int32_t cam_sensor_util_get_current_qtimer_ns(uint64_t *qtime_ns);
+
 int32_t cam_sensor_util_get_current_qtimer_ns(uint64_t *qtime_ns)
 {
 	uint64_t ticks = 0;
@@ -65,6 +70,8 @@ int32_t cam_sensor_util_get_current_qtimer_ns(uint64_t *qtime_ns)
 	return rc;
 }
 
+int32_t delete_request(struct i2c_settings_array *i2c_array);
+
 int32_t delete_request(struct i2c_settings_array *i2c_array)
 {
 	struct i2c_settings_list *i2c_list = NULL, *i2c_next = NULL;
@@ -86,6 +93,13 @@ int32_t delete_request(struct i2c_settings_array *i2c_array)
 
 	return rc;
 }
+
+int32_t cam_sensor_handle_delay(
+	uint32_t **cmd_buf,
+	uint16_t generic_op_code,
+	struct i2c_settings_array *i2c_reg_settings,
+	uint32_t offset, uint32_t *byte_cnt,
+	struct list_head *list_ptr);
 
 int32_t cam_sensor_handle_delay(
 	uint32_t **cmd_buf,
@@ -131,6 +145,12 @@ int32_t cam_sensor_handle_poll(
 	uint32_t **cmd_buf,
 	struct i2c_settings_array *i2c_reg_settings,
 	uint32_t *byte_cnt, int32_t *offset,
+	struct list_head **list_ptr);
+
+int32_t cam_sensor_handle_poll(
+	uint32_t **cmd_buf,
+	struct i2c_settings_array *i2c_reg_settings,
+	uint32_t *byte_cnt, int32_t *offset,
 	struct list_head **list_ptr)
 {
 	struct i2c_settings_list  *i2c_list;
@@ -166,6 +186,12 @@ int32_t cam_sensor_handle_poll(
 
 	return rc;
 }
+
+int32_t cam_sensor_handle_random_write(
+	struct cam_cmd_i2c_random_wr *cam_cmd_i2c_random_wr,
+	struct i2c_settings_array *i2c_reg_settings,
+	uint32_t *cmd_length_in_bytes, int32_t *offset,
+	struct list_head **list);
 
 int32_t cam_sensor_handle_random_write(
 	struct cam_cmd_i2c_random_wr *cam_cmd_i2c_random_wr,
@@ -304,6 +330,9 @@ static int32_t cam_sensor_get_io_buffer(
 
 	return rc;
 }
+
+int32_t cam_sensor_util_write_qtimer_to_io_buffer(
+	uint64_t qtime_ns, struct cam_buf_io_cfg *io_cfg);
 
 int32_t cam_sensor_util_write_qtimer_to_io_buffer(
 	uint64_t qtime_ns, struct cam_buf_io_cfg *io_cfg)
@@ -498,6 +527,13 @@ static int cam_sensor_handle_slave_info(
  * WAIT + n x RND_WR with num_cmd_buf = 1. Do not exepect RD/WR
  * with different cmd_type and op_code in one command buffer.
  */
+int cam_sensor_i2c_command_parser(
+	struct camera_io_master *io_master,
+	struct i2c_settings_array *i2c_reg_settings,
+	struct cam_cmd_buf_desc   *cmd_desc,
+	int32_t num_cmd_buffers,
+	struct cam_buf_io_cfg *io_cfg);
+
 int cam_sensor_i2c_command_parser(
 	struct camera_io_master *io_master,
 	struct i2c_settings_array *i2c_reg_settings,
@@ -816,6 +852,10 @@ end:
 
 int cam_sensor_util_i2c_apply_setting(
 	struct camera_io_master *io_master_info,
+	struct i2c_settings_list *i2c_list);
+
+int cam_sensor_util_i2c_apply_setting(
+	struct camera_io_master *io_master_info,
 	struct i2c_settings_list *i2c_list)
 {
 	int32_t rc = 0;
@@ -882,6 +922,10 @@ int cam_sensor_util_i2c_apply_setting(
 
 	return rc;
 }
+
+int32_t cam_sensor_i2c_read_data(
+	struct i2c_settings_array *i2c_settings,
+	struct camera_io_master *io_master_info);
 
 int32_t cam_sensor_i2c_read_data(
 	struct i2c_settings_array *i2c_settings,
@@ -966,6 +1010,11 @@ int32_t cam_sensor_i2c_read_data(
 
 	return rc;
 }
+
+int32_t msm_camera_fill_vreg_params(
+	struct cam_hw_soc_info *soc_info,
+	struct cam_sensor_power_setting *power_setting,
+	uint16_t power_setting_size);
 
 int32_t msm_camera_fill_vreg_params(
 	struct cam_hw_soc_info *soc_info,
@@ -1178,13 +1227,16 @@ int32_t msm_camera_fill_vreg_params(
 }
 
 int cam_sensor_util_request_gpio_table(
+		struct cam_hw_soc_info *soc_info, int gpio_en);
+
+int cam_sensor_util_request_gpio_table(
 		struct cam_hw_soc_info *soc_info, int gpio_en)
 {
 	int rc = 0, i = 0;
 	uint8_t size = 0;
 	struct cam_soc_gpio_data *gpio_conf =
 			soc_info->gpio_data;
-	struct gpio *gpio_tbl = NULL;
+	struct cam_gpio_request *gpio_tbl = NULL;
 
 	if (!gpio_conf) {
 		CAM_DBG(CAM_SENSOR, "No GPIO data");
@@ -1234,13 +1286,16 @@ int cam_sensor_util_request_gpio_table(
 }
 
 bool cam_sensor_util_check_gpio_is_shared(
+	struct cam_hw_soc_info *soc_info);
+
+bool cam_sensor_util_check_gpio_is_shared(
 	struct cam_hw_soc_info *soc_info)
 {
 	int rc = 0;
 	uint8_t size = 0;
 	struct cam_soc_gpio_data *gpio_conf =
 			soc_info->gpio_data;
-	struct gpio *gpio_tbl = NULL;
+	struct cam_gpio_request *gpio_tbl = NULL;
 
 	if (!gpio_conf) {
 		CAM_DBG(CAM_SENSOR, "No GPIO data");
@@ -1294,6 +1349,10 @@ static int32_t cam_sensor_validate(void *ptr, size_t remain_buf)
 	}
 	return 0;
 }
+
+int32_t cam_sensor_update_power_settings(void *cmd_buf,
+	uint32_t cmd_length, struct cam_sensor_power_ctrl_t *power_info,
+	size_t cmd_buf_len);
 
 int32_t cam_sensor_update_power_settings(void *cmd_buf,
 	uint32_t cmd_length, struct cam_sensor_power_ctrl_t *power_info,
@@ -1536,6 +1595,10 @@ free_power_command:
 
 int cam_get_dt_power_setting_data(struct device_node *of_node,
 	struct cam_hw_soc_info *soc_info,
+	struct cam_sensor_power_ctrl_t *power_info);
+
+int cam_get_dt_power_setting_data(struct device_node *of_node,
+	struct cam_hw_soc_info *soc_info,
 	struct cam_sensor_power_ctrl_t *power_info)
 {
 	int rc = 0, i;
@@ -1642,6 +1705,10 @@ ERROR1:
 	kfree(ps);
 	return rc;
 }
+
+int cam_sensor_util_init_gpio_pin_tbl(
+	struct cam_hw_soc_info *soc_info,
+	struct msm_camera_gpio_num_info **pgpio_num_info);
 
 int cam_sensor_util_init_gpio_pin_tbl(
 	struct cam_hw_soc_info *soc_info,
@@ -1878,6 +1945,9 @@ free_gpio_info:
 }
 
 int msm_camera_pinctrl_init(
+	struct msm_pinctrl_info *sensor_pctrl, struct device *dev);
+
+int msm_camera_pinctrl_init(
 	struct msm_pinctrl_info *sensor_pctrl, struct device *dev)
 {
 
@@ -1907,6 +1977,9 @@ int msm_camera_pinctrl_init(
 }
 
 int cam_sensor_bob_pwm_mode_switch(struct cam_hw_soc_info *soc_info,
+	int bob_reg_idx, bool flag);
+
+int cam_sensor_bob_pwm_mode_switch(struct cam_hw_soc_info *soc_info,
 	int bob_reg_idx, bool flag)
 {
 	int rc = 0;
@@ -1923,6 +1996,9 @@ int cam_sensor_bob_pwm_mode_switch(struct cam_hw_soc_info *soc_info,
 
 	return rc;
 }
+
+int msm_cam_sensor_handle_reg_gpio(int seq_type,
+	struct msm_camera_gpio_num_info *gpio_num_info, int val);
 
 int msm_cam_sensor_handle_reg_gpio(int seq_type,
 	struct msm_camera_gpio_num_info *gpio_num_info, int val)
@@ -1996,6 +2072,9 @@ static int cam_config_mclk_reg(struct cam_sensor_power_ctrl_t *ctrl,
 
 	return rc;
 }
+
+int cam_sensor_core_power_up(struct cam_sensor_power_ctrl_t *ctrl,
+		struct cam_hw_soc_info *soc_info);
 
 int cam_sensor_core_power_up(struct cam_sensor_power_ctrl_t *ctrl,
 		struct cam_hw_soc_info *soc_info)
@@ -2340,6 +2419,9 @@ msm_camera_get_power_settings(struct cam_sensor_power_ctrl_t *ctrl,
 
 	return ps;
 }
+
+int cam_sensor_util_power_down(struct cam_sensor_power_ctrl_t *ctrl,
+		struct cam_hw_soc_info *soc_info);
 
 int cam_sensor_util_power_down(struct cam_sensor_power_ctrl_t *ctrl,
 		struct cam_hw_soc_info *soc_info)

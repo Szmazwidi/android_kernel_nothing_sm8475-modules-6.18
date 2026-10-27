@@ -9,6 +9,7 @@
 #include <linux/slab.h>
 
 #include "cam_compat.h"
+#include <linux/firmware/qcom/camera_scm590.h>
 #include "cam_debug_util.h"
 #include "cam_cpas_api.h"
 #include "camera_main.h"
@@ -20,6 +21,8 @@
 #endif
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
+int cam_reserve_icp_fw(struct cam_fw_alloc_info *icp_fw, size_t fw_length);
+
 int cam_reserve_icp_fw(struct cam_fw_alloc_info *icp_fw, size_t fw_length)
 {
 	int rc = 0;
@@ -53,10 +56,14 @@ end:
 	return rc;
 }
 
+void cam_unreserve_icp_fw(struct cam_fw_alloc_info *icp_fw, size_t fw_length);
+
 void cam_unreserve_icp_fw(struct cam_fw_alloc_info *icp_fw, size_t fw_length)
 {
 	iounmap(icp_fw->fw_kva);
 }
+
+int cam_ife_notify_safe_lut_scm(bool safe_trigger);
 
 int cam_ife_notify_safe_lut_scm(bool safe_trigger)
 {
@@ -83,6 +90,9 @@ int cam_ife_notify_safe_lut_scm(bool safe_trigger)
 }
 
 int cam_csiphy_notify_secure_mode(struct csiphy_device *csiphy_dev,
+	bool protect, int32_t offset);
+
+int cam_csiphy_notify_secure_mode(struct csiphy_device *csiphy_dev,
 	bool protect, int32_t offset)
 {
 	int rc = 0;
@@ -99,6 +109,8 @@ int cam_csiphy_notify_secure_mode(struct csiphy_device *csiphy_dev,
 
 	return rc;
 }
+
+void cam_cpastop_scm_write(struct cam_cpas_hw_errata_wa *errata_wa);
 
 void cam_cpastop_scm_write(struct cam_cpas_hw_errata_wa *errata_wa)
 {
@@ -119,6 +131,8 @@ static int camera_i2c_compare_dev(struct device *dev, const void *data)
 	return i2c_bus_type.match(dev, (struct device_driver *) data);
 }
 #else
+int cam_reserve_icp_fw(struct cam_fw_alloc_info *icp_fw, size_t fw_length);
+
 int cam_reserve_icp_fw(struct cam_fw_alloc_info *icp_fw, size_t fw_length)
 {
 	int rc = 0;
@@ -134,11 +148,15 @@ int cam_reserve_icp_fw(struct cam_fw_alloc_info *icp_fw, size_t fw_length)
 	return rc;
 }
 
+void cam_unreserve_icp_fw(struct cam_fw_alloc_info *icp_fw, size_t fw_length);
+
 void cam_unreserve_icp_fw(struct cam_fw_alloc_info *icp_fw, size_t fw_length)
 {
 	dma_free_coherent(icp_fw->fw_dev, fw_length, icp_fw->fw_kva,
 		icp_fw->fw_hdl);
 }
+
+int cam_ife_notify_safe_lut_scm(bool safe_trigger);
 
 int cam_ife_notify_safe_lut_scm(bool safe_trigger)
 {
@@ -170,6 +188,9 @@ int cam_ife_notify_safe_lut_scm(bool safe_trigger)
 }
 
 int cam_csiphy_notify_secure_mode(struct csiphy_device *csiphy_dev,
+	bool protect, int32_t offset);
+
+int cam_csiphy_notify_secure_mode(struct csiphy_device *csiphy_dev,
 	bool protect, int32_t offset)
 {
 	int rc = 0;
@@ -190,6 +211,8 @@ int cam_csiphy_notify_secure_mode(struct csiphy_device *csiphy_dev,
 
 	return rc;
 }
+
+void cam_cpastop_scm_write(struct cam_cpas_hw_errata_wa *errata_wa);
 
 void cam_cpastop_scm_write(struct cam_cpas_hw_errata_wa *errata_wa)
 {
@@ -212,11 +235,15 @@ static int camera_i2c_compare_dev(struct device *dev, void *data)
 #endif
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
+void cam_free_clear(const void * ptr);
+
 void cam_free_clear(const void * ptr)
 {
 	kfree_sensitive(ptr);
 }
 #else
+void cam_free_clear(const void * ptr);
+
 void cam_free_clear(const void * ptr)
 {
 	kzfree(ptr);
@@ -230,6 +257,9 @@ static inline int camera_component_compare_dev(struct device *dev, void *data)
 }
 
 /* Add component matches to list for master of aggregate driver */
+int camera_component_match_add_drivers(struct device *master_dev,
+	struct component_match **match_list);
+
 int camera_component_match_add_drivers(struct device *master_dev,
 	struct component_match **match_list)
 {
@@ -295,6 +325,9 @@ end:
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
 #include <linux/qcom-iommu-util.h>
 void cam_check_iommu_faults(struct iommu_domain *domain,
+	struct cam_smmu_pf_info *pf_info);
+
+void cam_check_iommu_faults(struct iommu_domain *domain,
 	struct cam_smmu_pf_info *pf_info)
 {
 	struct qcom_iommu_fault_ids fault_ids = {0, 0, 0};
@@ -310,6 +343,9 @@ void cam_check_iommu_faults(struct iommu_domain *domain,
 	pf_info->mid = fault_ids.mid;
 }
 #else
+void cam_check_iommu_faults(struct iommu_domain *domain,
+	struct cam_smmu_pf_info *pf_info);
+
 void cam_check_iommu_faults(struct iommu_domain *domain,
 	struct cam_smmu_pf_info *pf_info)
 {
@@ -338,6 +374,8 @@ static int inline cam_subdev_list_cmp(struct cam_subdev *entry_1, struct cam_sub
 }
 
 #if (KERNEL_VERSION(5, 18, 0) <= LINUX_VERSION_CODE)
+int cam_compat_util_get_dmabuf_va(struct dma_buf *dmabuf, uintptr_t *vaddr);
+
 int cam_compat_util_get_dmabuf_va(struct dma_buf *dmabuf, uintptr_t *vaddr)
 {
 	struct iosys_map mapping;
@@ -359,6 +397,8 @@ int cam_compat_util_get_dmabuf_va(struct dma_buf *dmabuf, uintptr_t *vaddr)
 	return error_code;
 }
 
+void cam_compat_util_put_dmabuf_va(struct dma_buf *dmabuf, void *vaddr);
+
 void cam_compat_util_put_dmabuf_va(struct dma_buf *dmabuf, void *vaddr)
 {
 	struct iosys_map mapping = IOSYS_MAP_INIT_VADDR(vaddr);
@@ -370,6 +410,8 @@ void cam_compat_util_put_dmabuf_va(struct dma_buf *dmabuf, void *vaddr)
 }
 
 #elif (KERNEL_VERSION(5, 15, 0) <= LINUX_VERSION_CODE)
+int cam_compat_util_get_dmabuf_va(struct dma_buf *dmabuf, uintptr_t *vaddr);
+
 int cam_compat_util_get_dmabuf_va(struct dma_buf *dmabuf, uintptr_t *vaddr)
 {
 	struct dma_buf_map mapping;
@@ -384,6 +426,8 @@ int cam_compat_util_get_dmabuf_va(struct dma_buf *dmabuf, uintptr_t *vaddr)
 	return error_code;
 }
 
+void cam_compat_util_put_dmabuf_va(struct dma_buf *dmabuf, void *vaddr);
+
 void cam_compat_util_put_dmabuf_va(struct dma_buf *dmabuf, void *vaddr)
 {
 	struct dma_buf_map mapping = DMA_BUF_MAP_INIT_VADDR(vaddr);
@@ -392,6 +436,8 @@ void cam_compat_util_put_dmabuf_va(struct dma_buf *dmabuf, void *vaddr)
 }
 
 #else
+int cam_compat_util_get_dmabuf_va(struct dma_buf *dmabuf, uintptr_t *vaddr);
+
 int cam_compat_util_get_dmabuf_va(struct dma_buf *dmabuf, uintptr_t *vaddr)
 {
 	int error_code = 0;
@@ -407,12 +453,17 @@ int cam_compat_util_get_dmabuf_va(struct dma_buf *dmabuf, uintptr_t *vaddr)
 	return error_code;
 }
 
+void cam_compat_util_put_dmabuf_va(struct dma_buf *dmabuf, void *vaddr);
+
 void cam_compat_util_put_dmabuf_va(struct dma_buf *dmabuf, void *vaddr)
 {
 	dma_buf_vunmap(dmabuf, vaddr);
 }
 #endif
 
+
+struct sg_table *cam_compat_dmabuf_map_attach(struct dma_buf_attachment *attach,
+	enum dma_data_direction dma_dir);
 
 struct sg_table *cam_compat_dmabuf_map_attach(struct dma_buf_attachment *attach,
 	enum dma_data_direction dma_dir)
@@ -423,6 +474,9 @@ struct sg_table *cam_compat_dmabuf_map_attach(struct dma_buf_attachment *attach,
 	return dma_buf_map_attachment(attach, dma_dir);
 #endif
 }
+
+void cam_compat_dmabuf_unmap_attach(struct dma_buf_attachment *attach,
+	struct sg_table *table, enum dma_data_direction dma_dir);
 
 void cam_compat_dmabuf_unmap_attach(struct dma_buf_attachment *attach,
 	struct sg_table *table, enum dma_data_direction dma_dir)
@@ -437,10 +491,16 @@ void cam_compat_dmabuf_unmap_attach(struct dma_buf_attachment *attach,
 
 #if (KERNEL_VERSION(5, 15, 0) <= LINUX_VERSION_CODE)
 void cam_smmu_util_iommu_custom(struct device *dev,
+	dma_addr_t discard_start, size_t discard_length);
+
+void cam_smmu_util_iommu_custom(struct device *dev,
 	dma_addr_t discard_start, size_t discard_length)
 {
 
 }
+
+int cam_req_mgr_ordered_list_cmp(void *priv,
+	const struct list_head *head_1, const struct list_head *head_2);
 
 int cam_req_mgr_ordered_list_cmp(void *priv,
 	const struct list_head *head_1, const struct list_head *head_2)
@@ -450,6 +510,9 @@ int cam_req_mgr_ordered_list_cmp(void *priv,
 }
 
 #else
+void cam_smmu_util_iommu_custom(struct device *dev,
+	dma_addr_t discard_start, size_t discard_length);
+
 void cam_smmu_util_iommu_custom(struct device *dev,
 	dma_addr_t discard_start, size_t discard_length)
 {
@@ -462,6 +525,9 @@ void cam_smmu_util_iommu_custom(struct device *dev,
 }
 
 int cam_req_mgr_ordered_list_cmp(void *priv,
+	struct list_head *head_1, struct list_head *head_2);
+
+int cam_req_mgr_ordered_list_cmp(void *priv,
 	struct list_head *head_1, struct list_head *head_2)
 {
 	return cam_subdev_list_cmp(list_entry(head_1, struct cam_subdev, list),
@@ -471,6 +537,8 @@ int cam_req_mgr_ordered_list_cmp(void *priv,
 #endif
 
 #if KERNEL_VERSION(5, 15, 0) <= LINUX_VERSION_CODE
+int cam_get_subpart_info(uint32_t *part_info, uint32_t max_num_cam);
+
 int cam_get_subpart_info(uint32_t *part_info, uint32_t max_num_cam)
 {
 	int rc = 0;
@@ -496,6 +564,8 @@ int cam_get_subpart_info(uint32_t *part_info, uint32_t max_num_cam)
 	return 0;
 }
 #else
+int cam_get_subpart_info(uint32_t *part_info, uint32_t max_num_cam);
+
 int cam_get_subpart_info(uint32_t *part_info, uint32_t max_num_cam)
 {
 	return 0;
@@ -503,6 +573,8 @@ int cam_get_subpart_info(uint32_t *part_info, uint32_t max_num_cam)
 #endif
 
 #if KERNEL_VERSION(5, 18, 0) <= LINUX_VERSION_CODE
+void cam_eeprom_spi_driver_remove(struct spi_device *sdev);
+
 void cam_eeprom_spi_driver_remove(struct spi_device *sdev)
 {
 	struct v4l2_subdev             *sd = spi_get_drvdata(sdev);
@@ -541,6 +613,8 @@ void cam_eeprom_spi_driver_remove(struct spi_device *sdev)
 	kfree(e_ctrl);
 }
 
+int cam_compat_util_get_irq(struct cam_hw_soc_info *soc_info);
+
 int cam_compat_util_get_irq(struct cam_hw_soc_info *soc_info)
 {
 	int rc = 0;
@@ -554,7 +628,9 @@ int cam_compat_util_get_irq(struct cam_hw_soc_info *soc_info)
 	return rc;
 }
 #else
-int cam_eeprom_spi_driver_remove(struct spi_device *sdev)
+void cam_eeprom_spi_driver_remove(struct spi_device *sdev);
+
+void cam_eeprom_spi_driver_remove(struct spi_device *sdev)
 {
 	struct v4l2_subdev             *sd = spi_get_drvdata(sdev);
 	struct cam_eeprom_ctrl_t       *e_ctrl;
@@ -563,13 +639,13 @@ int cam_eeprom_spi_driver_remove(struct spi_device *sdev)
 
 	if (!sd) {
 		CAM_ERR(CAM_EEPROM, "Subdevice is NULL");
-		return -EINVAL;
+		return;
 	}
 
 	e_ctrl = (struct cam_eeprom_ctrl_t *)v4l2_get_subdevdata(sd);
 	if (!e_ctrl) {
 		CAM_ERR(CAM_EEPROM, "eeprom device is NULL");
-		return -EINVAL;
+		return;
 	}
 
 	soc_info = &e_ctrl->soc_info;
@@ -591,8 +667,10 @@ int cam_eeprom_spi_driver_remove(struct spi_device *sdev)
 	v4l2_set_subdevdata(&e_ctrl->v4l2_dev_str.sd, NULL);
 	kfree(e_ctrl);
 
-	return 0;
+	return;
 }
+
+int cam_compat_util_get_irq(struct cam_hw_soc_info *soc_info);
 
 int cam_compat_util_get_irq(struct cam_hw_soc_info *soc_info)
 {
@@ -614,6 +692,10 @@ int cam_compat_util_get_irq(struct cam_hw_soc_info *soc_info)
 #if KERNEL_VERSION(6, 2, 0) <= LINUX_VERSION_CODE
 int cam_iommu_map(struct iommu_domain *domain,
 	size_t firmware_start, phys_addr_t fw_hdl,
+	size_t firmware_len, int prot);
+
+int cam_iommu_map(struct iommu_domain *domain,
+	size_t firmware_start, phys_addr_t fw_hdl,
 	size_t firmware_len, int prot)
 {
 	int rc = 0;
@@ -624,6 +706,10 @@ int cam_iommu_map(struct iommu_domain *domain,
 	return rc;
 }
 #else
+int cam_iommu_map(struct iommu_domain *domain,
+	size_t firmware_start, phys_addr_t fw_hdl,
+	size_t firmware_len, int prot);
+
 int cam_iommu_map(struct iommu_domain *domain,
 	size_t firmware_start, phys_addr_t fw_hdl,
 	size_t firmware_len, int prot)
@@ -638,11 +724,15 @@ int cam_iommu_map(struct iommu_domain *domain,
 #endif
 
 #if KERNEL_VERSION(6, 2, 0) <= LINUX_VERSION_CODE
-size_t cam_iommu_map_sg(struct iommu_domain *domain,
+ssize_t cam_iommu_map_sg(struct iommu_domain *domain,
+	dma_addr_t iova_start, struct scatterlist *sgl,
+	uint64_t orig_nents, int prot);
+
+ssize_t cam_iommu_map_sg(struct iommu_domain *domain,
 	dma_addr_t iova_start, struct scatterlist *sgl,
 	uint64_t orig_nents, int prot)
 {
-	size_t size = 0;
+	ssize_t size = 0;
 
 	size = iommu_map_sg(domain,
 			iova_start,
@@ -651,11 +741,15 @@ size_t cam_iommu_map_sg(struct iommu_domain *domain,
 	return size;
 }
 #else
-size_t cam_iommu_map_sg(struct iommu_domain *domain,
+ssize_t cam_iommu_map_sg(struct iommu_domain *domain,
+	dma_addr_t iova_start, struct scatterlist *sgl,
+	uint64_t orig_nents, int prot);
+
+ssize_t cam_iommu_map_sg(struct iommu_domain *domain,
 	dma_addr_t iova_start, struct scatterlist *sgl,
 	uint64_t orig_nents, int prot)
 {
-	size_t size = 0;
+	ssize_t size = 0;
 
 	size = iommu_map_sg(domain, iova_start,
 			sgl, orig_nents,
@@ -663,6 +757,8 @@ size_t cam_iommu_map_sg(struct iommu_domain *domain,
 	return size;
 }
 #endif
+
+int16_t cam_get_gpio_counts(struct cam_hw_soc_info *soc_info);
 
 int16_t cam_get_gpio_counts(struct cam_hw_soc_info *soc_info)
 {
@@ -681,6 +777,9 @@ int16_t cam_get_gpio_counts(struct cam_hw_soc_info *soc_info)
 }
 
 uint16_t cam_get_named_gpio(struct cam_hw_soc_info *soc_info,
+	int index);
+
+uint16_t cam_get_named_gpio(struct cam_hw_soc_info *soc_info,
 	int index)
 {
 	struct device_node *of_node = NULL;
@@ -695,6 +794,9 @@ uint16_t cam_get_named_gpio(struct cam_hw_soc_info *soc_info,
 
 	return gpio_pin;
 }
+
+inline struct icc_path *cam_icc_get_path(struct device *dev,
+		const int src_id, const int dst_id, const char *path_name, bool use_path_name);
 
 inline struct icc_path *cam_icc_get_path(struct device *dev,
 		const int src_id, const int dst_id, const char *path_name, bool use_path_name)

@@ -3,6 +3,8 @@
  * Copyright (c) 2021, The Linux Foundation. All rights reserved.
  * Copyright (c) 2022,2024, Qualcomm Innovation Center, Inc. All rights reserved.
  */
+#include <linux/of_platform.h>
+#include <linux/of.h>
 #include <linux/mutex.h>
 #include <linux/spinlock.h>
 #include <linux/workqueue.h>
@@ -1296,6 +1298,8 @@ static int cam_cre_mgr_cre_clk_update(struct cam_cre_hw_mgr *hw_mgr,
 
 	return rc;
 }
+
+int32_t cam_cre_hw_mgr_cb(void *irq_data, int32_t result_size, void *data);
 
 int32_t cam_cre_hw_mgr_cb(void *irq_data, int32_t result_size, void *data)
 {
@@ -2929,6 +2933,9 @@ static int cam_cre_create_debug_fs(void)
 	return rc;
 
 }
+
+int cam_cre_hw_mgr_init(struct device_node *of_node, void *hw_mgr,
+	int *iommu_hdl);
 
 int cam_cre_hw_mgr_init(struct device_node *of_node, void *hw_mgr,
 	int *iommu_hdl)

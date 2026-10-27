@@ -3,6 +3,7 @@
  * Copyright (c) 2019-2021, The Linux Foundation. All rights reserved.
  */
 
+#include <linux/vmalloc.h>
 #include <linux/of.h>
 #include <linux/debugfs.h>
 #include <linux/videodev2.h>
@@ -753,6 +754,9 @@ static int cam_ope_bus_wr_isr(struct ope_hw *ope_hw_info,
 
 	return rc;
 }
+
+int cam_ope_bus_wr_process(struct ope_hw *ope_hw_info,
+	int32_t ctx_id, uint32_t cmd_id, void *data);
 
 int cam_ope_bus_wr_process(struct ope_hw *ope_hw_info,
 	int32_t ctx_id, uint32_t cmd_id, void *data)

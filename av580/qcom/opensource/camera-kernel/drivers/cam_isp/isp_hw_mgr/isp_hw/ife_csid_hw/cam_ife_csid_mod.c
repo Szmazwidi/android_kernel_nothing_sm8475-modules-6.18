@@ -140,10 +140,14 @@ struct platform_driver cam_ife_csid_driver = {
 	},
 };
 
+int cam_ife_csid_init_module(void);
+
 int cam_ife_csid_init_module(void)
 {
 	return platform_driver_register(&cam_ife_csid_driver);
 }
+
+void cam_ife_csid_exit_module(void);
 
 void cam_ife_csid_exit_module(void)
 {

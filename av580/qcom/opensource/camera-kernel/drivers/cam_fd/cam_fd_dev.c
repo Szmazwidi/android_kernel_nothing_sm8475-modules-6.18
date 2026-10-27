@@ -217,10 +217,10 @@ static int cam_fd_dev_probe(struct platform_device *pdev)
 	return rc;
 }
 
-static int cam_fd_dev_remove(struct platform_device *pdev)
+static void cam_fd_dev_remove(struct platform_device *pdev)
 {
 	component_del(&pdev->dev, &cam_fd_dev_component_ops);
-	return 0;
+	return;
 }
 
 static const struct of_device_id cam_fd_dt_match[] = {
@@ -241,10 +241,14 @@ struct platform_driver cam_fd_driver = {
 	},
 };
 
+int cam_fd_dev_init_module(void);
+
 int cam_fd_dev_init_module(void)
 {
 	return platform_driver_register(&cam_fd_driver);
 }
+
+void cam_fd_dev_exit_module(void);
 
 void cam_fd_dev_exit_module(void)
 {

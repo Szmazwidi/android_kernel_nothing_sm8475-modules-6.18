@@ -47,7 +47,7 @@ static int cam_lrme_hw_dev_util_cdm_acquire(struct cam_lrme_core *lrme_core,
 	}
 
 	memset(&cdm_acquire, 0, sizeof(cdm_acquire));
-	strlcpy(cdm_acquire.identifier, "lrmecdm", sizeof("lrmecdm"));
+	strscpy(cdm_acquire.identifier, "lrmecdm", sizeof("lrmecdm"));
 	cdm_acquire.cell_index = lrme_hw->soc_info.index;
 	cdm_acquire.handle = 0;
 	cdm_acquire.userdata = hw_cdm_info;
@@ -293,10 +293,10 @@ static int cam_lrme_hw_dev_probe(struct platform_device *pdev)
 	return rc;
 }
 
-static int cam_lrme_hw_dev_remove(struct platform_device *pdev)
+static void cam_lrme_hw_dev_remove(struct platform_device *pdev)
 {
 	component_del(&pdev->dev, &cam_lrme_hw_dev_component_ops);
-	return 0;
+	return;
 }
 
 static const struct of_device_id cam_lrme_hw_dt_match[] = {
@@ -320,10 +320,14 @@ struct platform_driver cam_lrme_hw_driver = {
 	},
 };
 
+int cam_lrme_hw_init_module(void);
+
 int cam_lrme_hw_init_module(void)
 {
 	return platform_driver_register(&cam_lrme_hw_driver);
 }
+
+void cam_lrme_hw_exit_module(void);
 
 void cam_lrme_hw_exit_module(void)
 {

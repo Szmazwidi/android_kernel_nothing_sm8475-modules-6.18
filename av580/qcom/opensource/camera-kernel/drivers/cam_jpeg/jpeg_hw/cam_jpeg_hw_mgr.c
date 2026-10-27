@@ -2167,6 +2167,9 @@ err:
 }
 
 int cam_jpeg_hw_mgr_init(struct device_node *of_node, uint64_t *hw_mgr_hdl,
+	int *iommu_hdl, cam_jpeg_mini_dump_cb mini_dump_cb);
+
+int cam_jpeg_hw_mgr_init(struct device_node *of_node, uint64_t *hw_mgr_hdl,
 	int *iommu_hdl, cam_jpeg_mini_dump_cb mini_dump_cb)
 {
 	int i, rc;

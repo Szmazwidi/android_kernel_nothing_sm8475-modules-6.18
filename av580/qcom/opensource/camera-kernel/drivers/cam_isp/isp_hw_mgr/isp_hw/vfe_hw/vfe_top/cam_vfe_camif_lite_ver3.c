@@ -218,6 +218,10 @@ static int cam_vfe_camif_lite_get_reg_update(
 
 int cam_vfe_camif_lite_ver3_acquire_resource(
 	struct cam_isp_resource_node          *camif_lite_res,
+	void                                  *acquire_param);
+
+int cam_vfe_camif_lite_ver3_acquire_resource(
+	struct cam_isp_resource_node          *camif_lite_res,
 	void                                  *acquire_param)
 {
 	struct cam_vfe_mux_camif_lite_data    *camif_lite_data;
@@ -1249,6 +1253,13 @@ int cam_vfe_camif_lite_ver3_init(
 	struct cam_hw_soc_info        *soc_info,
 	void                          *camif_lite_hw_info,
 	struct cam_isp_resource_node  *camif_lite_node,
+	void                          *vfe_irq_controller);
+
+int cam_vfe_camif_lite_ver3_init(
+	struct cam_hw_intf            *hw_intf,
+	struct cam_hw_soc_info        *soc_info,
+	void                          *camif_lite_hw_info,
+	struct cam_isp_resource_node  *camif_lite_node,
 	void                          *vfe_irq_controller)
 {
 	struct cam_vfe_mux_camif_lite_data       *camif_lite_priv = NULL;
@@ -1296,6 +1307,9 @@ int cam_vfe_camif_lite_ver3_init(
 
 	return 0;
 }
+
+int cam_vfe_camif_lite_ver3_deinit(
+	struct cam_isp_resource_node  *camif_lite_node);
 
 int cam_vfe_camif_lite_ver3_deinit(
 	struct cam_isp_resource_node  *camif_lite_node)

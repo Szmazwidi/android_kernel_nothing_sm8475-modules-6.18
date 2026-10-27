@@ -164,6 +164,9 @@ free_mem:
 }
 
 int cam_context_buf_done_from_hw(struct cam_context *ctx,
+	void *done_event_data, uint32_t evt_id);
+
+int cam_context_buf_done_from_hw(struct cam_context *ctx,
 	void *done_event_data, uint32_t evt_id)
 {
 	int j;
@@ -377,6 +380,9 @@ static void cam_context_sync_callback(int32_t sync_obj, int status, void *data)
 }
 
 int32_t cam_context_release_dev_to_hw(struct cam_context *ctx,
+	struct cam_release_dev_cmd *cmd);
+
+int32_t cam_context_release_dev_to_hw(struct cam_context *ctx,
 	struct cam_release_dev_cmd *cmd)
 {
 	struct cam_hw_release_args arg;
@@ -405,6 +411,9 @@ int32_t cam_context_release_dev_to_hw(struct cam_context *ctx,
 
 	return 0;
 }
+
+int32_t cam_context_config_dev_to_hw(
+	struct cam_context *ctx, struct cam_config_dev_cmd *cmd);
 
 int32_t cam_context_config_dev_to_hw(
 	struct cam_context *ctx, struct cam_config_dev_cmd *cmd)
@@ -464,6 +473,9 @@ int32_t cam_context_config_dev_to_hw(
 	cam_mem_put_cpu_buf((int32_t) cmd->packet_handle);
 	return rc;
 }
+
+int32_t cam_context_prepare_dev_to_hw(struct cam_context *ctx,
+	struct cam_config_dev_cmd *cmd);
 
 int32_t cam_context_prepare_dev_to_hw(struct cam_context *ctx,
 	struct cam_config_dev_cmd *cmd)
@@ -641,6 +653,9 @@ free_req:
 }
 
 int32_t cam_context_acquire_dev_to_hw(struct cam_context *ctx,
+	struct cam_acquire_dev_cmd *cmd);
+
+int32_t cam_context_acquire_dev_to_hw(struct cam_context *ctx,
 	struct cam_acquire_dev_cmd *cmd)
 {
 	int rc;
@@ -745,6 +760,8 @@ free_hw:
 end:
 	return rc;
 }
+
+int32_t cam_context_flush_ctx_to_hw(struct cam_context *ctx);
 
 int32_t cam_context_flush_ctx_to_hw(struct cam_context *ctx)
 {
@@ -942,6 +959,9 @@ end:
 }
 
 int32_t cam_context_flush_req_to_hw(struct cam_context *ctx,
+	struct cam_flush_dev_cmd *cmd);
+
+int32_t cam_context_flush_req_to_hw(struct cam_context *ctx,
 	struct cam_flush_dev_cmd *cmd)
 {
 	struct cam_ctx_request *req = NULL;
@@ -1077,6 +1097,9 @@ end:
 }
 
 int32_t cam_context_flush_dev_to_hw(struct cam_context *ctx,
+	struct cam_flush_dev_cmd *cmd);
+
+int32_t cam_context_flush_dev_to_hw(struct cam_context *ctx,
 	struct cam_flush_dev_cmd *cmd)
 {
 
@@ -1109,6 +1132,9 @@ int32_t cam_context_flush_dev_to_hw(struct cam_context *ctx,
 end:
 	return rc;
 }
+
+int32_t cam_context_start_dev_to_hw(struct cam_context *ctx,
+	struct cam_start_stop_dev_cmd *cmd);
 
 int32_t cam_context_start_dev_to_hw(struct cam_context *ctx,
 	struct cam_start_stop_dev_cmd *cmd)
@@ -1155,6 +1181,8 @@ end:
 	return rc;
 }
 
+int32_t cam_context_stop_dev_to_hw(struct cam_context *ctx);
+
 int32_t cam_context_stop_dev_to_hw(struct cam_context *ctx)
 {
 	int rc = 0;
@@ -1191,6 +1219,10 @@ int32_t cam_context_stop_dev_to_hw(struct cam_context *ctx)
 end:
 	return rc;
 }
+
+int32_t cam_context_dump_pf_info_to_hw(struct cam_context *ctx,
+	struct cam_hw_mgr_dump_pf_data *pf_data, bool *mem_found, bool *ctx_found,
+	uint32_t  *resource_type, struct cam_smmu_pf_info *pf_info);
 
 int32_t cam_context_dump_pf_info_to_hw(struct cam_context *ctx,
 	struct cam_hw_mgr_dump_pf_data *pf_data, bool *mem_found, bool *ctx_found,
@@ -1231,6 +1263,8 @@ int32_t cam_context_dump_pf_info_to_hw(struct cam_context *ctx,
 end:
 	return rc;
 }
+
+int32_t cam_context_dump_hw_acq_info(struct cam_context *ctx);
 
 int32_t cam_context_dump_hw_acq_info(struct cam_context *ctx)
 {
@@ -1343,6 +1377,9 @@ static int cam_context_dump_context(struct cam_context *ctx,
 }
 
 int32_t cam_context_dump_dev_to_hw(struct cam_context *ctx,
+	struct cam_dump_req_cmd *cmd);
+
+int32_t cam_context_dump_dev_to_hw(struct cam_context *ctx,
 	struct cam_dump_req_cmd *cmd)
 {
 	int                     rc = 0;
@@ -1390,6 +1427,9 @@ int32_t cam_context_dump_dev_to_hw(struct cam_context *ctx,
 	}
 	return rc;
 }
+
+size_t cam_context_parse_config_cmd(struct cam_context *ctx, struct cam_config_dev_cmd *cmd,
+	struct cam_packet **packet);
 
 size_t cam_context_parse_config_cmd(struct cam_context *ctx, struct cam_config_dev_cmd *cmd,
 	struct cam_packet **packet)
@@ -1504,6 +1544,8 @@ static void __cam_context_req_mini_dump(struct cam_ctx_request *req,
 end:
 	*bytes_updated = bytes_written;
 }
+
+int cam_context_mini_dump(struct cam_context *ctx, void *args);
 
 int cam_context_mini_dump(struct cam_context *ctx, void *args)
 {

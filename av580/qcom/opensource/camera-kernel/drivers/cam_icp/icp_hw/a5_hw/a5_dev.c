@@ -3,6 +3,7 @@
  * Copyright (c) 2017-2020, The Linux Foundation. All rights reserved.
  */
 
+#include <linux/of.h>
 #include <linux/module.h>
 #include <linux/slab.h>
 #include <linux/mod_devicetable.h>
@@ -77,6 +78,10 @@ static bool cam_a5_cpas_cb(uint32_t client_handle, void *userdata,
 
 	return error_handled;
 }
+
+int cam_a5_register_cpas(struct cam_hw_soc_info *soc_info,
+			struct cam_a5_device_core_info *core_info,
+			uint32_t hw_idx);
 
 int cam_a5_register_cpas(struct cam_hw_soc_info *soc_info,
 			struct cam_a5_device_core_info *core_info,
@@ -223,6 +228,8 @@ const static struct component_ops cam_a5_component_ops = {
 	.unbind = cam_a5_component_unbind,
 };
 
+int cam_a5_probe(struct platform_device *pdev);
+
 int cam_a5_probe(struct platform_device *pdev)
 {
 	int rc = 0;
@@ -235,10 +242,10 @@ int cam_a5_probe(struct platform_device *pdev)
 	return rc;
 }
 
-static int cam_a5_remove(struct platform_device *pdev)
+static void cam_a5_remove(struct platform_device *pdev)
 {
 	component_del(&pdev->dev, &cam_a5_component_ops);
-	return 0;
+	return;
 }
 
 static const struct of_device_id cam_a5_dt_match[] = {
@@ -261,10 +268,14 @@ struct platform_driver cam_a5_driver = {
 	},
 };
 
+int cam_a5_init_module(void);
+
 int cam_a5_init_module(void)
 {
 	return platform_driver_register(&cam_a5_driver);
 }
+
+void cam_a5_exit_module(void);
 
 void cam_a5_exit_module(void)
 {

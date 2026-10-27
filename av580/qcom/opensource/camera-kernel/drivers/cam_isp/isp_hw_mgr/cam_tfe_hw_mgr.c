@@ -1729,6 +1729,9 @@ err:
 }
 
 void cam_tfe_cam_cdm_callback(uint32_t handle, void *userdata,
+	enum cam_cdm_cb_status status, uint64_t cookie);
+
+void cam_tfe_cam_cdm_callback(uint32_t handle, void *userdata,
 	enum cam_cdm_cb_status status, uint64_t cookie)
 {
 	struct cam_isp_prepare_hw_update_data *hw_update_data = NULL;
@@ -2035,6 +2038,9 @@ static int cam_tfe_mgr_acquire_get_unified_structure(
 }
 
 int cam_tfe_hw_mgr_csiphy_clk_sync(
+	struct cam_tfe_hw_mgr_ctx *ctx, void *cmd_args);
+
+int cam_tfe_hw_mgr_csiphy_clk_sync(
 	struct cam_tfe_hw_mgr_ctx *ctx, void *cmd_args)
 {
 	int                          rc = -EINVAL;
@@ -2285,6 +2291,10 @@ err:
 	CAM_ERR_RATE_LIMIT(CAM_ISP, "Exit...(rc=%d)", rc);
 	return rc;
 }
+
+int cam_tfe_mgr_acquire_get_unified_dev_str(
+	struct cam_isp_tfe_in_port_info   *in,
+	struct cam_isp_tfe_in_port_generic_info *in_port);
 
 int cam_tfe_mgr_acquire_get_unified_dev_str(
 	struct cam_isp_tfe_in_port_info   *in,
@@ -4494,6 +4504,14 @@ int cam_tfe_add_command_buffers(
 	struct cam_isp_ctx_base_info       *base_info,
 	cam_packet_generic_blob_handler     blob_handler_cb,
 	struct cam_isp_hw_mgr_res          *res_list_isp_out,
+	uint32_t                            size_isp_out);
+
+int cam_tfe_add_command_buffers(
+	struct cam_hw_prepare_update_args  *prepare,
+	struct cam_kmd_buf_info            *kmd_buf_info,
+	struct cam_isp_ctx_base_info       *base_info,
+	cam_packet_generic_blob_handler     blob_handler_cb,
+	struct cam_isp_hw_mgr_res          *res_list_isp_out,
 	uint32_t                            size_isp_out)
 {
 	int rc = 0;
@@ -6272,6 +6290,8 @@ static void cam_req_mgr_process_tfe_worker(struct work_struct *w)
 	cam_req_mgr_process_workq(w);
 }
 
+int cam_tfe_hw_mgr_init(struct cam_hw_mgr_intf *hw_mgr_intf, int *iommu_hdl);
+
 int cam_tfe_hw_mgr_init(struct cam_hw_mgr_intf *hw_mgr_intf, int *iommu_hdl)
 {
 	int rc = -EFAULT;
@@ -6482,6 +6502,8 @@ secure_fail:
 	g_tfe_hw_mgr.mgr_common.img_iommu_hdl = -1;
 	return rc;
 }
+
+void cam_tfe_hw_mgr_deinit(void);
 
 void cam_tfe_hw_mgr_deinit(void)
 {

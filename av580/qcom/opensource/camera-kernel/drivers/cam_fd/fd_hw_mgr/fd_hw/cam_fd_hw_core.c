@@ -54,6 +54,9 @@ static void cam_fd_hw_util_enable_power_on_settings(struct cam_hw_info *fd_hw)
 }
 
 int cam_fd_hw_util_get_hw_caps(struct cam_hw_info *fd_hw,
+	struct cam_fd_hw_caps *hw_caps);
+
+int cam_fd_hw_util_get_hw_caps(struct cam_hw_info *fd_hw,
 	struct cam_fd_hw_caps *hw_caps)
 {
 	struct cam_hw_soc_info *soc_info = &fd_hw->soc_info;
@@ -609,6 +612,8 @@ static int cam_fd_hw_util_processcmd_hw_dump(
 	return 0;
 }
 
+irqreturn_t cam_fd_hw_irq(int irq_num, void *data);
+
 irqreturn_t cam_fd_hw_irq(int irq_num, void *data)
 {
 	struct cam_hw_info *fd_hw = (struct cam_hw_info *)data;
@@ -698,6 +703,9 @@ irqreturn_t cam_fd_hw_irq(int irq_num, void *data)
 }
 
 int cam_fd_hw_get_hw_caps(void *hw_priv, void *get_hw_cap_args,
+	uint32_t arg_size);
+
+int cam_fd_hw_get_hw_caps(void *hw_priv, void *get_hw_cap_args,
 	uint32_t arg_size)
 {
 	struct cam_hw_info *fd_hw = (struct cam_hw_info *)hw_priv;
@@ -724,6 +732,8 @@ int cam_fd_hw_get_hw_caps(void *hw_priv, void *get_hw_cap_args,
 
 	return 0;
 }
+
+int cam_fd_hw_init(void *hw_priv, void *init_hw_args, uint32_t arg_size);
 
 int cam_fd_hw_init(void *hw_priv, void *init_hw_args, uint32_t arg_size)
 {
@@ -812,6 +822,8 @@ unlock_return:
 	return rc;
 }
 
+int cam_fd_hw_deinit(void *hw_priv, void *deinit_hw_args, uint32_t arg_size);
+
 int cam_fd_hw_deinit(void *hw_priv, void *deinit_hw_args, uint32_t arg_size)
 {
 	struct cam_hw_info *fd_hw = hw_priv;
@@ -877,6 +889,8 @@ positive_ref_cnt:
 	return rc;
 }
 
+int cam_fd_hw_reset(void *hw_priv, void *reset_core_args, uint32_t arg_size);
+
 int cam_fd_hw_reset(void *hw_priv, void *reset_core_args, uint32_t arg_size)
 {
 	struct cam_hw_info *fd_hw = (struct cam_hw_info *)hw_priv;
@@ -932,6 +946,8 @@ int cam_fd_hw_reset(void *hw_priv, void *reset_core_args, uint32_t arg_size)
 
 	return rc;
 }
+
+int cam_fd_hw_start(void *hw_priv, void *hw_start_args, uint32_t arg_size);
 
 int cam_fd_hw_start(void *hw_priv, void *hw_start_args, uint32_t arg_size)
 {
@@ -1030,6 +1046,8 @@ error:
 	return rc;
 }
 
+int cam_fd_hw_halt_reset(void *hw_priv, void *stop_args, uint32_t arg_size);
+
 int cam_fd_hw_halt_reset(void *hw_priv, void *stop_args, uint32_t arg_size)
 {
 	struct cam_hw_info *fd_hw = (struct cam_hw_info *)hw_priv;
@@ -1087,6 +1105,8 @@ int cam_fd_hw_halt_reset(void *hw_priv, void *stop_args, uint32_t arg_size)
 	return rc;
 }
 
+int cam_fd_hw_reserve(void *hw_priv, void *hw_reserve_args, uint32_t arg_size);
+
 int cam_fd_hw_reserve(void *hw_priv, void *hw_reserve_args, uint32_t arg_size)
 {
 	struct cam_hw_info *fd_hw = (struct cam_hw_info *)hw_priv;
@@ -1123,7 +1143,7 @@ int cam_fd_hw_reserve(void *hw_priv, void *hw_reserve_args, uint32_t arg_size)
 	}
 
 	memset(&cdm_acquire, 0, sizeof(cdm_acquire));
-	strlcpy(cdm_acquire.identifier, "fd", sizeof("fd"));
+	strscpy(cdm_acquire.identifier, "fd", sizeof("fd"));
 	cdm_acquire.cell_index = fd_hw->soc_info.index;
 	cdm_acquire.handle = 0;
 	cdm_acquire.userdata = ctx_hw_private;
@@ -1160,6 +1180,8 @@ error:
 	return rc;
 }
 
+int cam_fd_hw_release(void *hw_priv, void *hw_release_args, uint32_t arg_size);
+
 int cam_fd_hw_release(void *hw_priv, void *hw_release_args, uint32_t arg_size)
 {
 	struct cam_hw_info *fd_hw = (struct cam_hw_info *)hw_priv;
@@ -1193,6 +1215,9 @@ int cam_fd_hw_release(void *hw_priv, void *hw_release_args, uint32_t arg_size)
 
 	return 0;
 }
+
+int cam_fd_hw_process_cmd(void *hw_priv, uint32_t cmd_type,
+	void *cmd_args, uint32_t arg_size);
 
 int cam_fd_hw_process_cmd(void *hw_priv, uint32_t cmd_type,
 	void *cmd_args, uint32_t arg_size)
