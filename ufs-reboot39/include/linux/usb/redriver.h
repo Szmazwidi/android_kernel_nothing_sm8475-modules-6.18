@@ -63,6 +63,8 @@ struct usb_redriver {
 
 #if IS_ENABLED(CONFIG_USB_REDRIVER)
 int usb_add_redriver(struct usb_redriver *ur);
+int usb_redriver_connect_checked(struct usb_redriver *ur, int ort);
+int usb_redriver_disconnect_checked(struct usb_redriver *ur);
 int usb_remove_redriver(struct usb_redriver *ur);
 
 struct usb_redriver *usb_get_redriver_by_phandle(

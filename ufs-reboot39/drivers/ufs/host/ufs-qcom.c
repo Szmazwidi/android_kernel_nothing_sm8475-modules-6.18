@@ -27,6 +27,7 @@
 #include <ufs/unipro.h>
 #include "ufshcd-pltfrm.h"
 #include "ufs-qcom.h"
+#include <linux/phy/phy-qcom-ufs.h>
 
 #define MCQ_QCFGPTR_MASK	GENMASK(7, 0)
 #define MCQ_QCFGPTR_UNIT	0x200
@@ -197,7 +198,9 @@ static int ufs_qcom_ice_init(struct ufs_qcom_host *host)
 
 	profile->ll_ops = ufs_qcom_crypto_ops;
 	profile->max_dun_bytes_supported = 8;
-	profile->key_types_supported = qcom_ice_get_supported_key_type(ice);
+	profile->key_types_supported = BLK_CRYPTO_KEY_TYPE_RAW;
+	if (qcom_ice_hwkm_supported(ice))
+		profile->key_types_supported |= BLK_CRYPTO_KEY_TYPE_HW_WRAPPED;
 	profile->dev = dev;
 
 	/*
@@ -238,17 +241,35 @@ static inline int ufs_qcom_ice_suspend(struct ufs_qcom_host *host)
 }
 
 static int ufs_qcom_ice_keyslot_program(struct blk_crypto_profile *profile,
-					const struct blk_crypto_key *key,
-					unsigned int slot)
+ const struct blk_crypto_key *key, unsigned int slot)
 {
-	struct ufs_hba *hba = ufs_hba_from_crypto_profile(profile);
-	struct ufs_qcom_host *host = ufshcd_get_variant(hba);
-	int err;
-
-	ufshcd_hold(hba);
-	err = qcom_ice_program_key(host->ice, slot, key);
-	ufshcd_release(hba);
-	return err;
+ struct ufs_hba *hba = ufs_hba_from_crypto_profile(profile);
+ struct ufs_qcom_host *host = ufshcd_get_variant(hba);
+ unsigned int unit = key->crypto_cfg.data_unit_size;
+ u8 mask;
+ int err;
+ if (slot > INT_MAX || key->crypto_cfg.crypto_mode != BLK_ENCRYPTION_MODE_AES_256_XTS ||
+     unit < 512 || unit > 65536 || !is_power_of_2(unit))
+  return -EINVAL;
+ if (key->crypto_cfg.key_type == BLK_CRYPTO_KEY_TYPE_RAW) {
+  if (key->size != 64) return -EINVAL;
+ } else if (key->crypto_cfg.key_type == BLK_CRYPTO_KEY_TYPE_HW_WRAPPED) {
+  if (!qcom_ice_hwkm_supported(host->ice)) return -EOPNOTSUPP;
+  if (!key->size || key->size > BLK_CRYPTO_MAX_HW_WRAPPED_KEY_SIZE) return -EINVAL;
+ } else {
+  return -EOPNOTSUPP;
+ }
+ mask = unit / 512;
+ ufshcd_hold(hba);
+ /* Legacy HWKM routine returns success without programming RAW keys. */
+ if (key->crypto_cfg.key_type == BLK_CRYPTO_KEY_TYPE_HW_WRAPPED)
+  err = qcom_ice_program_key_hwkm(host->ice, QCOM_ICE_CRYPTO_ALG_AES_XTS,
+        QCOM_ICE_CRYPTO_KEY_SIZE_WRAPPED, key, mask, slot);
+ else
+  err = qcom_ice_program_key(host->ice, QCOM_ICE_CRYPTO_ALG_AES_XTS,
+        QCOM_ICE_CRYPTO_KEY_SIZE_256, key->bytes, mask, slot);
+ ufshcd_release(hba);
+ return err;
 }
 
 static int ufs_qcom_ice_keyslot_evict(struct blk_crypto_profile *profile,
@@ -272,46 +293,23 @@ static int ufs_qcom_ice_derive_sw_secret(struct blk_crypto_profile *profile,
 	struct ufs_hba *hba = ufs_hba_from_crypto_profile(profile);
 	struct ufs_qcom_host *host = ufshcd_get_variant(hba);
 
+	if (eph_key_size > UINT_MAX)
+		return -EOVERFLOW;
 	return qcom_ice_derive_sw_secret(host->ice, eph_key, eph_key_size,
 					 sw_secret);
 }
 
-static int ufs_qcom_ice_import_key(struct blk_crypto_profile *profile,
-				   const u8 *raw_key, size_t raw_key_size,
-				   u8 lt_key[BLK_CRYPTO_MAX_HW_WRAPPED_KEY_SIZE])
-{
-	struct ufs_hba *hba = ufs_hba_from_crypto_profile(profile);
-	struct ufs_qcom_host *host = ufshcd_get_variant(hba);
 
-	return qcom_ice_import_key(host->ice, raw_key, raw_key_size, lt_key);
-}
 
-static int ufs_qcom_ice_generate_key(struct blk_crypto_profile *profile,
-				     u8 lt_key[BLK_CRYPTO_MAX_HW_WRAPPED_KEY_SIZE])
-{
-	struct ufs_hba *hba = ufs_hba_from_crypto_profile(profile);
-	struct ufs_qcom_host *host = ufshcd_get_variant(hba);
 
-	return qcom_ice_generate_key(host->ice, lt_key);
-}
 
-static int ufs_qcom_ice_prepare_key(struct blk_crypto_profile *profile,
-				    const u8 *lt_key, size_t lt_key_size,
-				    u8 eph_key[BLK_CRYPTO_MAX_HW_WRAPPED_KEY_SIZE])
-{
-	struct ufs_hba *hba = ufs_hba_from_crypto_profile(profile);
-	struct ufs_qcom_host *host = ufshcd_get_variant(hba);
 
-	return qcom_ice_prepare_key(host->ice, lt_key, lt_key_size, eph_key);
-}
 
 static const struct blk_crypto_ll_ops ufs_qcom_crypto_ops = {
 	.keyslot_program	= ufs_qcom_ice_keyslot_program,
 	.keyslot_evict		= ufs_qcom_ice_keyslot_evict,
 	.derive_sw_secret	= ufs_qcom_ice_derive_sw_secret,
-	.import_key		= ufs_qcom_ice_import_key,
-	.generate_key		= ufs_qcom_ice_generate_key,
-	.prepare_key		= ufs_qcom_ice_prepare_key,
+
 };
 
 #else
@@ -484,13 +482,26 @@ static u32 ufs_qcom_get_hs_gear(struct ufs_hba *hba)
 	return UFS_HS_G3;
 }
 
+static bool pong_ufs_legacy_phy(struct phy *phy)
+{
+ return of_device_is_compatible(phy->dev.of_node, "qcom,ufs-phy-qmp-v4-cape") ||
+        of_device_is_compatible(phy->dev.of_node, "qcom,ufs-phy-qmp-v4-waipio");
+}
+static int pong_ufs_phy_submode(unsigned int gear, bool legacy)
+{
+ if (!legacy) return gear;
+ if (!gear || gear > 4) return -EOPNOTSUPP;
+ /* Vendor PHY submode is an enum (G4=1), not the numeric UFS gear. */
+ return gear == 4 ? 1 : 0;
+}
+
 static int ufs_qcom_power_up_sequence(struct ufs_hba *hba)
 {
 	struct ufs_qcom_host *host = ufshcd_get_variant(hba);
 	struct ufs_host_params *host_params = &host->host_params;
 	struct phy *phy = host->generic_phy;
 	enum phy_mode mode;
-	int ret;
+	int ret, submode;
 
 	/*
 	 * HW ver 5 can only support up to HS-G5 Rate-A due to HW limitations.
@@ -504,27 +515,38 @@ static int ufs_qcom_power_up_sequence(struct ufs_hba *hba)
 
 	/* Reset UFS Host Controller and PHY */
 	ret = ufs_qcom_host_reset(hba);
+	dev_info(hba->dev, "PONG618_UFS35 stage=host_reset ret=%d\n", ret);
 	if (ret)
 		return ret;
 
-	if (phy->power_count)
-		phy_power_off(phy);
+	if (phy->power_count) {
+		ret = phy_power_off(phy);
+		if (ret)
+			return ret;
+	}
 
 
+	submode = pong_ufs_phy_submode(host->phy_gear, pong_ufs_legacy_phy(phy));
+	if (submode < 0) return submode;
+	if (pong_ufs_legacy_phy(phy))
+		ufs_qcom_phy_save_controller_version(phy, host->hw_ver.major, host->hw_ver.minor, host->hw_ver.step);
 	/* phy initialization - calibrate the phy */
 	ret = phy_init(phy);
+	dev_info(hba->dev, "PONG618_UFS35 stage=phy_init ret=%d\n", ret);
 	if (ret) {
 		dev_err(hba->dev, "%s: phy init failed, ret = %d\n",
 			__func__, ret);
 		return ret;
 	}
 
-	ret = phy_set_mode_ext(phy, mode, host->phy_gear);
+	ret = phy_set_mode_ext(phy, mode, submode);
+	dev_info(hba->dev, "PONG618_UFS35 stage=phy_mode ret=%d\n", ret);
 	if (ret)
 		goto out_disable_phy;
 
 	/* power on phy - start serdes and phy's power and clocks */
 	ret = phy_power_on(phy);
+	dev_info(hba->dev, "PONG618_UFS35 stage=phy_power ret=%d\n", ret);
 	if (ret) {
 		dev_err(hba->dev, "%s: phy power on failed, ret = %d\n",
 			__func__, ret);
@@ -532,15 +554,18 @@ static int ufs_qcom_power_up_sequence(struct ufs_hba *hba)
 	}
 
 	ret = phy_calibrate(phy);
+	dev_info(hba->dev, "PONG618_UFS35 stage=phy_calibrate ret=%d\n", ret);
 	if (ret) {
 		dev_err(hba->dev, "Failed to calibrate PHY: %d\n", ret);
-		goto out_disable_phy;
+		goto out_power_off;
 	}
 
 	ufs_qcom_select_unipro_mode(host);
 
 	return 0;
 
+out_power_off:
+	phy_power_off(phy);
 out_disable_phy:
 	phy_exit(phy);
 
@@ -627,12 +652,75 @@ static int ufs_qcom_hce_enable_notify(struct ufs_hba *hba,
  * @freq: target opp freq
  * Return: zero for success and non-zero in case of a failure.
  */
+
+/* Cape turbo timing contract from native5.10 commit673fc11462a0.
+ * Use actual/rounded clocks, not the nominal850MHz DT maximum of a fixed PLL.
+ * Keep native and OPP paths intact. No generic40ns rounding is substituted.
+ */
+static bool pong_turbo39(struct ufs_hba *hba)
+{
+ struct ufs_qcom_host *host = ufshcd_get_variant(hba);
+ u32 l1;
+ return !hba->use_pm_opp && host && host->generic_phy && host->hw_ver.major == 4 &&
+  of_device_is_compatible(host->generic_phy->dev.of_node, "qcom,ufs-phy-qmp-v4-cape") &&
+  of_property_read_bool(hba->dev->of_node, "multi-level-clk-scaling-support") &&
+  !of_property_read_u32(hba->dev->of_node, "axi-turbo-l1-clk-freq", &l1) && l1 > 403000000;
+}
+static long pong_rate39(struct ufs_clk_info *clki, bool pre, unsigned long freq)
+{
+ if (freq == ULONG_MAX || !pre) return clk_get_rate(clki->clk);
+ return clk_round_rate(clki->clk, clki->max_freq);
+}
+static int pong_pair39(unsigned long rate, u32 *one, u32 *forty)
+{
+ switch (DIV_ROUND_CLOSEST(rate, 1000)) {
+ case 37500: *one=38; *forty=2; break;
+ case 75000: *one=75; *forty=3; break;
+ case 100000: *one=100; *forty=4; break;
+ case 150000: *one=150; *forty=6; break;
+ case 201500: *one=202; *forty=8; break;
+ case 300000: *one=300; *forty=12; break;
+ case 550000: *one=275; *forty=11; break;
+ case 600000: *one=300; *forty=12; break;
+ case 806400: *one=202; *forty=9; break;
+ case 850000: *one=213; *forty=9; break;
+ default: return -EINVAL;
+ }
+ return 0;
+}
+static int pong_apply_turbo39(struct ufs_hba *hba, bool pre, unsigned long freq)
+{
+ struct ufs_clk_info *clki;
+ long rate=0;
+ u32 one, forty, cfg, old;
+ int err;
+ list_for_each_entry(clki, &hba->clk_list_head, list) {
+  if (!IS_ERR_OR_NULL(clki->clk) && !strcmp(clki->name,"core_clk_unipro")) {
+   rate=pong_rate39(clki,pre,freq);break;
+  }
+ }
+ if (rate<=0) return rate<0?rate:-EIO;
+ err=pong_pair39(rate,&one,&forty);if(err)return err;
+ err=ufshcd_dme_get(hba,UIC_ARG_MIB(0x9004),&cfg);if(err)return err;
+ old=ufshcd_readl(hba,UFS_TEST_BUS_CTRL_2);
+ ufshcd_rmwl(hba,BIT(4),rate>300000000?BIT(4):0,UFS_TEST_BUS_CTRL_2);
+ cfg=(cfg&~BIT(8))|(rate>300000000?BIT(8):0);
+ err=ufshcd_dme_set(hba,UIC_ARG_MIB(0x9004),cfg);
+ if(err){ufshcd_writel(hba,old,UFS_TEST_BUS_CTRL_2);return err;}
+ dev_info(hba->dev,"PONG618_TIMING39 turbo=%d rate=%ld one=%u forty=%u\n",rate>300000000,rate,one,forty);
+ return 0;
+}
+
 static int ufs_qcom_cfg_timers(struct ufs_hba *hba, bool is_pre_scale_up, unsigned long freq)
 {
 	struct ufs_qcom_host *host = ufshcd_get_variant(hba);
 	struct ufs_clk_info *clki;
 	unsigned long clk_freq = 0;
 	u32 core_clk_cycles_per_us;
+	bool cape39=pong_turbo39(hba);
+	int err39;
+	long rate39;
+	if(cape39){err39=pong_apply_turbo39(hba,is_pre_scale_up,freq);if(err39)return err39;}
 
 	/*
 	 * UTP controller uses SYS1CLK_1US_REG register for Interrupt
@@ -651,6 +739,7 @@ static int ufs_qcom_cfg_timers(struct ufs_hba *hba, bool is_pre_scale_up, unsign
 
 	list_for_each_entry(clki, &hba->clk_list_head, list) {
 		if (!strcmp(clki->name, "core_clk")) {
+			if(cape39){rate39=pong_rate39(clki,is_pre_scale_up,freq);if(rate39<=0)return rate39<0?rate39:-EIO;clk_freq=rate39;break;}
 			if (freq == ULONG_MAX) {
 				clk_freq = clki->max_freq;
 				break;
@@ -671,6 +760,8 @@ cfg_timers:
 		clk_freq = DEFAULT_CLK_RATE_HZ;
 
 	core_clk_cycles_per_us = clk_freq / USEC_PER_SEC;
+	if(cape39 && clk_freq>300000000)core_clk_cycles_per_us=DIV_ROUND_UP(core_clk_cycles_per_us,2);
+	if(cape39)dev_info(hba->dev,"PONG618_TIMING39 SYS1CLK rate=%lu cycles=%u\n",clk_freq,core_clk_cycles_per_us);
 	if (ufshcd_readl(hba, REG_UFS_SYS1CLK_1US) != core_clk_cycles_per_us) {
 		ufshcd_writel(hba, core_clk_cycles_per_us, REG_UFS_SYS1CLK_1US);
 		/*
@@ -697,8 +788,10 @@ static int ufs_qcom_link_startup_notify(struct ufs_hba *hba,
 		}
 
 		err = ufs_qcom_set_core_clk_ctrl(hba, true, ULONG_MAX);
-		if (err)
+		if (err) {
 			dev_err(hba->dev, "cfg core clk ctrl failed\n");
+			if(pong_turbo39(hba))return err;
+		}
 		/*
 		 * Some UFS devices (and may be host) have issues if LCC is
 		 * enabled. So we are setting PA_Local_TX_LCC_Enable to 0
@@ -1367,6 +1460,16 @@ static void ufs_qcom_set_caps(struct ufs_hba *hba)
  *
  * Return: 0 on success, non-zero on failure.
  */
+/* Native PHY drivers acquire resources during probe. The downstream Cape /
+ * Waipio driver acquires clocks and regulators in phy_init(), which has not
+ * run when variant init first calls setup_clocks(POST_CHANGE). Keep bandwidth
+ * and ref-clock policy, and defer only legacy PHY power callbacks until init.
+ */
+static bool pong_ufs_phy_clock_power_ready(struct phy *phy)
+{
+	return !phy || !pong_ufs_legacy_phy(phy) || phy->init_count;
+}
+
 static int ufs_qcom_setup_clocks(struct ufs_hba *hba, bool on,
 				 enum ufs_notify_change_status status)
 {
@@ -1401,19 +1504,27 @@ static int ufs_qcom_setup_clocks(struct ufs_hba *hba, bool on,
 				ufs_qcom_dev_ref_clk_ctrl(host, false);
 			}
 
-			err = phy_power_off(phy);
-			if (err) {
-				dev_err(hba->dev, "phy power off failed, ret=%d\n", err);
-				return err;
+			if (pong_ufs_phy_clock_power_ready(phy)) {
+				err = phy_power_off(phy);
+				if (err) {
+					dev_err(hba->dev, "phy power off failed, ret=%d\n", err);
+					return err;
+				}
+			} else {
+				dev_info(hba->dev, "PONG618_UFS38 stage=clock_phy_deferred on=%d init_count=%d\n", on, phy->init_count);
 			}
 		}
 		break;
 	case POST_CHANGE:
 		if (on) {
-			err = phy_power_on(phy);
-			if (err) {
-				dev_err(hba->dev, "phy power on failed, ret = %d\n", err);
-				return err;
+			if (pong_ufs_phy_clock_power_ready(phy)) {
+				err = phy_power_on(phy);
+				if (err) {
+					dev_err(hba->dev, "phy power on failed, ret = %d\n", err);
+					return err;
+				}
+			} else {
+				dev_info(hba->dev, "PONG618_UFS38 stage=clock_phy_deferred on=%d init_count=%d\n", on, phy->init_count);
 			}
 
 			/* enable the device ref clock for HS mode*/
@@ -1531,8 +1642,9 @@ static int ufs_qcom_init(struct ufs_hba *hba)
 	host->rcdev.owner = dev->driver->owner;
 	host->rcdev.nr_resets = 1;
 	err = devm_reset_controller_register(dev, &host->rcdev);
+	dev_info(dev, "PONG618_UFS35 stage=reset_provider ret=%d\n", err);
 	if (err)
-		dev_warn(dev, "Failed to register reset controller\n");
+		goto out_variant_clear;
 
 	if (!has_acpi_companion(dev)) {
 		host->generic_phy = devm_phy_get(dev, "ufsphy");
@@ -1543,6 +1655,7 @@ static int ufs_qcom_init(struct ufs_hba *hba)
 	}
 
 	err = ufs_qcom_icc_init(host);
+	dev_info(dev, "PONG618_UFS35 stage=interconnects ret=%d\n", err);
 	if (err)
 		goto out_variant_clear;
 
@@ -1576,6 +1689,7 @@ static int ufs_qcom_init(struct ufs_hba *hba)
 	ufs_qcom_parse_gear_limits(hba);
 
 	err = ufs_qcom_ice_init(host);
+	dev_info(dev, "PONG618_UFS35 stage=ice_init ret=%d\n", err);
 	if (err)
 		goto out_variant_clear;
 
@@ -1618,7 +1732,7 @@ static void ufs_qcom_exit(struct ufs_hba *hba)
  * and returns zero on success.
  */
 static int ufs_qcom_set_clk_40ns_cycles(struct ufs_hba *hba,
-					u32 cycles_in_1us)
+					u32 cycles_in_1us, u32 override39)
 {
 	struct ufs_qcom_host *host = ufshcd_get_variant(hba);
 	u32 cycles_in_40ns;
@@ -1641,6 +1755,7 @@ static int ufs_qcom_set_clk_40ns_cycles(struct ufs_hba *hba,
 	 * mandated value for cycles_in_40ns instead of calculating using
 	 * generic formulae.
 	 */
+	if(override39){cycles_in_40ns=override39;goto program39;}
 	switch (cycles_in_1us) {
 	case UNIPRO_CORE_CLK_FREQ_403_MHZ:
 		cycles_in_40ns = 16;
@@ -1669,6 +1784,7 @@ static int ufs_qcom_set_clk_40ns_cycles(struct ufs_hba *hba,
 		return -EINVAL;
 	}
 
+	program39:
 	err = ufshcd_dme_get(hba, UIC_ARG_MIB(PA_VS_CORE_CLK_40NS_CYCLES), &reg);
 	if (err)
 		return err;
@@ -1684,7 +1800,9 @@ static int ufs_qcom_set_core_clk_ctrl(struct ufs_hba *hba, bool is_scale_up, uns
 	struct ufs_qcom_host *host = ufshcd_get_variant(hba);
 	struct list_head *head = &hba->clk_list_head;
 	struct ufs_clk_info *clki;
-	u32 cycles_in_1us = 0;
+	u32 cycles_in_1us = 0, forty39=0;
+	bool cape39=pong_turbo39(hba);
+	long rate39;
 	u32 core_clk_ctrl_reg;
 	unsigned long clk_freq;
 	int err;
@@ -1700,6 +1818,10 @@ static int ufs_qcom_set_core_clk_ctrl(struct ufs_hba *hba, bool is_scale_up, uns
 	list_for_each_entry(clki, head, list) {
 		if (!IS_ERR_OR_NULL(clki->clk) &&
 		    !strcmp(clki->name, "core_clk_unipro")) {
+			if(cape39){
+				rate39=pong_rate39(clki,is_scale_up,freq);if(rate39<=0)return rate39<0?rate39:-EIO;
+				err=pong_pair39(rate39,&cycles_in_1us,&forty39);if(err)return err;break;
+			}
 			if (!clki->max_freq) {
 				cycles_in_1us = 150; /* default for backwards compatibility */
 				break;
@@ -1748,7 +1870,7 @@ set_core_clk_ctrl:
 		return err;
 
 	/* Configure unipro core clk 40ns attribute */
-	return ufs_qcom_set_clk_40ns_cycles(hba, cycles_in_1us);
+	return ufs_qcom_set_clk_40ns_cycles(hba, cycles_in_1us, forty39);
 }
 
 static int ufs_qcom_clk_scale_up_pre_change(struct ufs_hba *hba, unsigned long freq)
@@ -2815,6 +2937,7 @@ static int ufs_qcom_probe(struct platform_device *pdev)
 
 	/* Perform generic probe */
 	err = ufshcd_pltfrm_init(pdev, &ufs_hba_qcom_vops);
+	dev_info(dev, "PONG618_UFS35 stage=platform_probe ret=%d\n", err);
 	if (err)
 		return dev_err_probe(dev, err, "ufshcd_pltfrm_init() failed\n");
 
