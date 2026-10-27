@@ -1,0 +1,4 @@
+config SERIAL_MSM_GENI
+	tristate "Pong HS UART"
+config SERIAL_MSM_GENI_CONSOLE
+	bool "Pong serial console"
