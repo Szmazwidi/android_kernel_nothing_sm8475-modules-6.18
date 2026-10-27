@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: GPL-2.0-only
+config PONG618_RPMH_NATIVE25
+    tristate "Pong native multi-DRV RPMh port"
+    select QCOM_COMMAND_DB
+    select QCOM_RPMH
+
+config QCOM_RPMH_TIMEOUT
+    int "Timeout for RPMh communication in milliseconds"
+    default 5000
+    depends on QCOM_RPMH

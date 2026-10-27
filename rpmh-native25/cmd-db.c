@@ -338,6 +338,15 @@ static const struct file_operations cmd_db_debugfs_ops = {
 	.release = single_release,
 };
 
+/* Vendor standalone indication; readiness must precede dereferencing the DB. */
+bool cmd_db_is_standalone(void)
+{
+        if (cmd_db_ready())
+                return false;
+        return !!(le32_to_cpu(cmd_db_header->reserved) & BIT(0));
+}
+EXPORT_SYMBOL(cmd_db_is_standalone);
+
 static int cmd_db_dev_probe(struct platform_device *pdev)
 {
 	struct reserved_mem *rmem;

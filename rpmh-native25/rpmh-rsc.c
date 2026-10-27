@@ -34,6 +34,7 @@
 #include <dt-bindings/soc/qcom,rpmh-rsc.h>
 
 #include "rpmh-internal.h"
+#include "rpmh-validate.h"
 
 #define CREATE_TRACE_POINTS
 #include "trace-rpmh.h"
@@ -84,9 +85,9 @@ enum {
 #define DRV_HW_SOLVER_SHIFT		24
 
 /* DRV TCS Configuration Information Register */
-#define DRV_NUM_TCS_MASK		0x3F
+#define DRV_NUM_TCS_MASK		0x3FU
 #define DRV_NUM_TCS_SHIFT		6
-#define DRV_NCPT_MASK			0x1F
+#define DRV_NCPT_MASK			0x1FU
 #define DRV_NCPT_SHIFT			27
 
 /* Offsets for CONTROL TCS Registers */
@@ -1308,7 +1309,7 @@ int rpmh_rsc_mode_solver_set(struct rsc_drv *drv, bool enable)
 	return ret;
 }
 
-int rpmh_rsc_is_tcs_completed(struct rsc_drv *drv, int ch)
+static int rpmh_rsc_is_tcs_completed(struct rsc_drv *drv, int ch)
 {
 	u32 sts;
 	int retry = 10, ret = 0;
@@ -1577,70 +1578,43 @@ const struct device *rpmh_rsc_get_device(const char *name, u32 drv_id)
 	return ERR_PTR(-ENODEV);
 }
 
+/* Validate the entire channel before touching state or hardware. */
 static int rpmh_probe_channel_tcs_config(struct device_node *np,
-					 struct rsc_drv *drv,
-					 u32 max_tcs, u32 ncpt, int ch)
+                                       struct rsc_drv *drv,
+                                       u32 max_tcs, u32 ncpt, int ch)
 {
-	struct tcs_type_config {
-		u32 type;
-		u32 n;
-	} tcs_cfg[TCS_TYPE_NR] = { { 0 } };
-	struct tcs_group *tcs;
-	struct drv_channel *channel = &drv->ch[ch];
-	int i, ret, n, st = 0;
-	u32 tcs_mask;
+        struct rpmh_tcs_layout layout;
+        struct drv_channel *channel;
+        u32 cfg[2 * TCS_TYPE_NR];
+        int i, ret;
 
-	n = of_property_count_u32_elems(np, "qcom,tcs-config");
-	if (n != 2 * TCS_TYPE_NR)
-		return -EINVAL;
+        if (ch < 0 || ch >= MAX_CHANNEL)
+                return -EINVAL;
+        if (of_property_count_u32_elems(np, "qcom,tcs-config") != ARRAY_SIZE(cfg))
+                return -EINVAL;
+        ret = of_property_read_u32_array(np, "qcom,tcs-config", cfg, ARRAY_SIZE(cfg));
+        if (ret)
+                return ret;
+        ret = rpmh_validate_tcs(cfg, max_tcs, ncpt, drv->num_tcs, &layout);
+        if (ret)
+                return ret;
+        channel = &drv->ch[ch];
+        if (channel->initialized)
+                return -EINVAL;
+        for (i = 0; i < TCS_TYPE_NR; i++) {
+                struct tcs_group *tcs = &channel->tcs[i];
 
-	for (i = 0; i < TCS_TYPE_NR; i++) {
-		ret = of_property_read_u32_index(np, "qcom,tcs-config",
-						 i * 2, &tcs_cfg[i].type);
-		if (ret)
-			return ret;
-		if (tcs_cfg[i].type >= TCS_TYPE_NR)
-			return -EINVAL;
-
-		ret = of_property_read_u32_index(np, "qcom,tcs-config",
-						 i * 2 + 1, &tcs_cfg[i].n);
-		if (ret)
-			return ret;
-		if (tcs_cfg[i].n > MAX_TCS_PER_TYPE)
-			return -EINVAL;
-	}
-
-	for (i = 0; i < TCS_TYPE_NR; i++) {
-		tcs = &channel->tcs[tcs_cfg[i].type];
-		if (tcs->drv)
-			return -EINVAL;
-		tcs->drv = drv;
-		tcs->type = tcs_cfg[i].type;
-		tcs->num_tcs = tcs_cfg[i].n;
-		tcs->ncpt = ncpt;
-
-		if (!tcs->num_tcs || tcs->type == CONTROL_TCS)
-			continue;
-
-		if (st + tcs->num_tcs > max_tcs ||
-		    st + tcs->num_tcs >= BITS_PER_BYTE * sizeof(tcs->mask))
-			return -EINVAL;
-
-		tcs->mask = ((1 << tcs->num_tcs) - 1) << (st + drv->num_tcs);
-		tcs->offset = st + drv->num_tcs;
-		st += tcs->num_tcs;
-	}
-
-	/* Enable the active TCS to send requests immediately */
-	tcs_mask = readl_relaxed(drv->tcs_base + drv->regs[RSC_DRV_IRQ_ENABLE]);
-	tcs_mask |= drv->ch[ch].tcs[ACTIVE_TCS].mask;
-	writel_relaxed(tcs_mask, drv->tcs_base + drv->regs[RSC_DRV_IRQ_ENABLE]);
-
-	channel->drv = drv;
-	channel->initialized = true;
-	drv->num_tcs += st;
-
-	return 0;
+                tcs->drv = drv;
+                tcs->type = i;
+                tcs->num_tcs = layout.count[i];
+                tcs->ncpt = ncpt;
+                tcs->offset = layout.offset[i];
+                tcs->mask = layout.mask[i];
+        }
+        channel->drv = drv;
+        channel->initialized = true;
+        drv->num_tcs += layout.total;
+        return 0;
 }
 
 /**
@@ -1692,7 +1666,7 @@ static int rpmh_rsc_pd_attach(struct rsc_drv *drv, struct device *dev)
 
 static int rpmh_probe_tcs_config(struct rsc_drv *drv)
 {
-	struct device_node *cn, *np = drv->dev->of_node;
+	struct device_node *np = drv->dev->of_node;
 	int ch = 0, ret;
 	u32 offset, config;
 	u32 max_tcs, ncpt;
@@ -1700,7 +1674,9 @@ static int rpmh_probe_tcs_config(struct rsc_drv *drv)
 	ret = of_property_read_u32(np, "qcom,tcs-offset", &offset);
 	if (ret)
 		return ret;
-	drv->tcs_base = drv->base + offset;
+	if (offset >= drv->resource_size || offset & 3)
+                return -EINVAL;
+        drv->tcs_base = drv->base + offset;
 
 	ret = of_property_read_u32(np, "qcom,tcs-distance", &drv->tcs_distance);
 	if (ret)
@@ -1714,7 +1690,7 @@ static int rpmh_probe_tcs_config(struct rsc_drv *drv)
 
 	ncpt = config & (DRV_NCPT_MASK << DRV_NCPT_SHIFT);
 	ncpt = ncpt >> DRV_NCPT_SHIFT;
-	for_each_child_of_node(np, cn) {
+	for_each_available_child_of_node_scoped(np, cn) {
 
 		if (!of_node_name_eq(cn, "channel"))
 			continue;
@@ -1724,190 +1700,245 @@ static int rpmh_probe_tcs_config(struct rsc_drv *drv)
 			return ret;
 		ch++;
 	}
-	drv->num_channels = ch;
+        if (!ch)
+                return -EINVAL;
+        /* Bound all TCS command/status registers inside this DRV mapping. */
+        if ((u64)offset + (u64)(drv->num_tcs - 1) *
+            (drv->regs[RSC_DRV_TCS_OFFSET] + drv->tcs_distance) +
+            drv->regs[RSC_DRV_CMD_RESP_DATA] +
+            (u64)(ncpt - 1) * drv->regs[RSC_DRV_CMD_OFFSET] + sizeof(u32) >
+            drv->resource_size)
+                return -EINVAL;
+        drv->num_channels = ch;
 
 	return 0;
 }
 
+/* Local port: explicit rollback while parent-managed storage is still alive. */
+static void rpmh_drv_device_release(struct device *dev)
+{
+	of_node_put(dev->of_node);
+	kfree(dev);
+}
+
+static void rpmh_rsc_cleanup(void *data)
+{
+	struct rsc_drv_top *top = data;
+	int i, j;
+
+	/* Consumer removal may still issue RPMh votes: keep IRQs/cache alive. */
+	for (i = top->drv_count - 1; i >= 0; i--)
+		if (top->drv[i].device_added)
+			of_platform_depopulate(top->drv[i].dev);
+	for (i = top->drv_count - 1; i >= 0; i--) {
+		struct rsc_drv *drv = &top->drv[i];
+
+		if (drv->cpu_pm_registered)
+			cpu_pm_unregister_notifier(&drv->rsc_pm);
+		if (drv->pd_attached) {
+			dev_pm_genpd_remove_notifier(top->dev);
+			pm_runtime_disable(top->dev);
+		}
+		if (drv->irq_enabled)
+			writel_relaxed(drv->saved_irq_enable,
+				       drv->tcs_base + drv->regs[RSC_DRV_IRQ_ENABLE]);
+		if (drv->irq_requested)
+			devm_free_irq(top->dev, drv->irq, drv);
+#if IS_ENABLED(CONFIG_IPC_LOGGING)
+		if (drv->ipc_log_ctx)
+			ipc_log_context_destroy(drv->ipc_log_ctx);
+#endif
+		for (j = 0; j < __rsc_count; ) {
+			if (__rsc_drv[j] != drv) {
+				j++;
+				continue;
+			}
+			__rsc_drv[j] = __rsc_drv[--__rsc_count];
+			__rsc_drv[__rsc_count] = NULL;
+		}
+		if (drv->device_added)
+			device_unregister(drv->dev);
+	}
+	if (!list_empty(&top->list))
+		list_del_init(&top->list);
+	dev_set_drvdata(top->dev, NULL);
+}
+
 static int rpmh_rsc_probe(struct platform_device *pdev)
 {
-	struct device_node *np, *dn = pdev->dev.of_node;
+	struct device_node *dn = pdev->dev.of_node;
+	struct rsc_drv_top *top;
 	struct rsc_drv *drv;
-	struct rsc_drv_top *rsc_top;
-	int ret, irq;
-	u32 rsc_id, major_ver, minor_ver, solver_config;
-	int i, j, drv_count;
+	u32 count, id, seen = 0, resources = 0;
+	int ret, i, j, irq_count, child_count = 0;
 	const char *name;
 
-	/*
-	 * Even though RPMh doesn't directly use cmd-db, all of its children
-	 * do. To avoid adding this check to our children we'll do it now.
-	 */
 	ret = cmd_db_ready();
-	if (ret) {
-		if (ret != -EPROBE_DEFER)
-			dev_err(&pdev->dev, "Command DB not available (%d)\n",
-									ret);
-		return ret;
-	}
-
-	rpmh_standalone = cmd_db_is_standalone();
-	if (rpmh_standalone)
-		dev_info(&pdev->dev, "RPMH is running in standalone mode.\n");
-
-
-	rsc_top = devm_kzalloc(&pdev->dev, sizeof(*rsc_top), GFP_KERNEL);
-	if (!rsc_top)
-		return -ENOMEM;
-
-	ret = of_property_read_u32(dn, "qcom,drv-count", &drv_count);
 	if (ret)
-		return ret;
-
-	drv = devm_kcalloc(&pdev->dev, drv_count, sizeof(*drv), GFP_KERNEL);
+		return dev_err_probe(&pdev->dev, ret, "Command DB unavailable\n");
+	ret = of_property_read_u32(dn, "qcom,drv-count", &count);
+	if (ret || !count || count > 4)
+		return -EINVAL;
+	while (platform_get_resource(pdev, IORESOURCE_MEM, resources))
+		resources++;
+	irq_count = of_irq_count(dn);
+	if (irq_count <= 0)
+		return -EINVAL;
+	/* Validate all IDs before allocating/registering a child or mapping MMIO. */
+	for_each_available_child_of_node_scoped(dn, np) {
+		if (!of_node_name_eq(np, "drv"))
+			continue;
+		ret = of_property_read_u32(np, "qcom,drv-id", &id);
+		if (ret || rpmh_validate_drv(count, id, seen, resources, irq_count))
+			return -EINVAL;
+		seen |= BIT(id);
+		child_count++;
+	}
+	if (!child_count)
+		return -EINVAL;
+	/* genpd accepts one notifier per attached parent device. */
+	if (child_count > 1 && pdev->dev.pm_domain &&
+	    of_find_property(dn, "power-domains", NULL))
+		return dev_err_probe(&pdev->dev, -EINVAL, "multiple DRVs on one genpd unsupported\n");
+	top = devm_kzalloc(&pdev->dev, sizeof(*top), GFP_KERNEL);
+	if (!top)
+		return -ENOMEM;
+	drv = devm_kcalloc(&pdev->dev, count, sizeof(*drv), GFP_KERNEL);
 	if (!drv)
 		return -ENOMEM;
-
+	top->drv_count = count;
+	top->drv = drv;
+	top->dev = &pdev->dev;
+	INIT_LIST_HEAD(&top->list);
 	name = of_get_property(dn, "label", NULL);
 	if (!name)
 		name = dev_name(&pdev->dev);
+	scnprintf(top->name, sizeof(top->name), "%s", name);
+	rpmh_standalone = cmd_db_is_standalone();
 
-	rsc_top->drv_count = drv_count;
-	rsc_top->drv = drv;
-	rsc_top->dev = &pdev->dev;
-	scnprintf(rsc_top->name, sizeof(rsc_top->name), "%s", name);
-
-	for_each_child_of_node(dn, np) {
-		struct device *drv_dev;
+	for_each_available_child_of_node_scoped(dn, np) {
+		struct device *child;
+		struct resource *res;
+		u32 rsc_id, solver;
 
 		if (!of_node_name_eq(np, "drv"))
 			continue;
-
-		ret = of_property_read_u32(np, "qcom,drv-id", &i);
+		ret = of_property_read_u32(np, "qcom,drv-id", &id);
 		if (ret)
-			return ret;
-
-		scnprintf(drv[i].name, sizeof(drv[i].name), "%s-drv-%d", name, i);
-
-		drv[i].base = devm_platform_ioremap_resource(pdev, i);
-		if (IS_ERR(drv[i].base))
-			return PTR_ERR(drv[i].base);
-
-		drv_dev = kzalloc(sizeof(*drv_dev), GFP_KERNEL);
-		if (!drv_dev)
-			return -ENOMEM;
-
+			goto fail;
+		i = id;
 		drv[i].id = i;
 		drv[i].pdev = pdev;
-		drv[i].dev = drv_dev;
-		drv_dev->parent = &pdev->dev;
-		drv_dev->of_node = np;
-		dev_set_name(drv_dev, "%s:%pOFn%d", dev_name(drv_dev->parent), np, i);
-		ret = device_register(drv_dev);
-		if (ret)
-			return ret;
-
+		scnprintf(drv[i].name, sizeof(drv[i].name), "%s-drv-%d", name, i);
+		res = platform_get_resource(pdev, IORESOURCE_MEM, i);
+		drv[i].resource_size = resource_size(res);
+		if (drv[i].resource_size < 0x10) {
+			ret = -EINVAL;
+			goto fail;
+		}
+		drv[i].base = devm_platform_ioremap_resource(pdev, i);
+		if (IS_ERR(drv[i].base)) {
+			ret = PTR_ERR(drv[i].base);
+			goto fail;
+		}
+		child = kzalloc(sizeof(*child), GFP_KERNEL);
+		if (!child) {
+			ret = -ENOMEM;
+			goto fail;
+		}
+		device_initialize(child);
+		child->release = rpmh_drv_device_release;
+		child->parent = &pdev->dev;
+		child->of_node = of_node_get(np);
+		ret = dev_set_name(child, "%s:%pOFn%d", dev_name(child->parent), np, i);
+		if (!ret)
+			ret = device_add(child);
+		if (ret) {
+			put_device(child);
+			goto fail;
+		}
+		drv[i].dev = child;
+		drv[i].device_added = true;
 		rsc_id = readl_relaxed(drv[i].base + RSC_DRV_ID);
-		major_ver = rsc_id & (MAJOR_VER_MASK << MAJOR_VER_SHIFT);
-		major_ver >>= MAJOR_VER_SHIFT;
-		minor_ver = rsc_id & (MINOR_VER_MASK << MINOR_VER_SHIFT);
-		minor_ver >>= MINOR_VER_SHIFT;
-
-		if (major_ver >= 3)
-			drv[i].regs = rpmh_rsc_reg_offset_ver_3_0;
-		else
-			drv[i].regs = rpmh_rsc_reg_offset_ver_2_7;
-
+		drv[i].ver.major = (rsc_id >> MAJOR_VER_SHIFT) & MAJOR_VER_MASK;
+		drv[i].ver.minor = (rsc_id >> MINOR_VER_SHIFT) & MINOR_VER_MASK;
+		drv[i].regs = drv[i].ver.major >= 3 ? rpmh_rsc_reg_offset_ver_3_0 :
+						 rpmh_rsc_reg_offset_ver_2_7;
 		ret = rpmh_probe_tcs_config(&drv[i]);
 		if (ret)
-			return ret;
-
-		dev_set_drvdata(drv_dev, &drv[i]);
-		drv[i].initialized = true;
-	}
-
-	for (i = 0; i < drv_count; i++) {
-		if (!drv[i].initialized)
-			continue;
-
-		/*
-		 * CPU PM notification are not required for controllers that support
-		 * 'HW solver' mode where they can be in autonomous mode executing low
-		 * power mode to power down.
-		 */
-		solver_config = readl_relaxed(drv[i].base +
-					      drv[i].regs[DRV_SOLVER_CONFIG]);
-		solver_config &= DRV_HW_SOLVER_MASK << DRV_HW_SOLVER_SHIFT;
-		solver_config = solver_config >> DRV_HW_SOLVER_SHIFT;
-
+			goto fail;
 		spin_lock_init(&drv[i].lock);
 		spin_lock_init(&drv[i].client.cache_lock);
-
+		init_waitqueue_head(&drv[i].tcs_wait);
+		bitmap_zero(drv[i].tcs_in_use, MAX_TCS_NR);
+		drv[i].client.non_batch_cache = devm_kcalloc(&pdev->dev,
+			CMD_DB_MAX_RESOURCES, sizeof(struct cache_req), GFP_KERNEL);
+		if (!drv[i].client.non_batch_cache) {
+			ret = -ENOMEM;
+			goto fail;
+		}
+		for (j = 0; j < CMD_DB_MAX_RESOURCES; j++)
+			INIT_LIST_HEAD(&drv[i].client.non_batch_cache[j].list);
+		dev_set_drvdata(child, &drv[i]);
+		solver = (readl_relaxed(drv[i].base + drv[i].regs[DRV_SOLVER_CONFIG]) >>
+			  DRV_HW_SOLVER_SHIFT) & DRV_HW_SOLVER_MASK;
 		if (of_find_property(dn, "power-domains", NULL) && pdev->dev.pm_domain) {
 			ret = rpmh_rsc_pd_attach(&drv[i], &pdev->dev);
 			if (ret)
-				return ret;
-		} else if (!solver_config &&
-			   !of_find_property(dn, "qcom,hw-channel", NULL)) {
+				goto fail;
+			drv[i].pd_attached = true;
+		} else if (!solver && !of_find_property(dn, "qcom,hw-channel", NULL)) {
 			drv[i].rsc_pm.notifier_call = rpmh_rsc_cpu_pm_callback;
-			cpu_pm_register_notifier(&drv[i].rsc_pm);
-		} else if (solver_config) {
+			ret = cpu_pm_register_notifier(&drv[i].rsc_pm);
+			if (ret)
+				goto fail;
+			drv[i].cpu_pm_registered = true;
+		} else if (solver) {
 			drv[i].client.flags = SOLVER_PRESENT;
 		} else {
-		/*
-		 * The requets for HW channel TCSes has to be either
-		 * RPMH_SLEEP_STATE or RPMH_WAKE_ONLY_STATE.
-		 *
-		 * Assume 'solver' state which does nothing but to disallow
-		 * RPMH_ACTIVE_ONLY_STATE requests.
-		 */
 			drv[i].client.flags = SOLVER_PRESENT | HW_CHANNEL_PRESENT;
 			drv[i].client.in_solver_mode = true;
 			drv[i].in_solver_mode = true;
 			drv[i].regs = rpmh_rsc_reg_offset_ver_3_0_hw_channel;
 		}
-
-		init_waitqueue_head(&drv[i].tcs_wait);
-		bitmap_zero(drv[i].tcs_in_use, MAX_TCS_NR);
-		drv[i].client.non_batch_cache = devm_kcalloc(&pdev->dev, CMD_DB_MAX_RESOURCES,
-							     sizeof(struct cache_req), GFP_KERNEL);
-		if (!drv[i].client.non_batch_cache)
-			return -ENOMEM;
-
-		for (j = 0; j < CMD_DB_MAX_RESOURCES; j++)
-			INIT_LIST_HEAD(&drv[i].client.non_batch_cache[j].list);
-
-		irq = platform_get_irq(pdev, drv[i].id);
-		if (irq < 0)
-			return irq;
-
-		drv[i].irq = irq;
-
-		ret = devm_request_irq(&pdev->dev, irq, tcs_tx_done,
-				       IRQF_TRIGGER_HIGH | IRQF_NO_SUSPEND,
-				       drv[i].name, &drv[i]);
+		ret = platform_get_irq(pdev, i);
+		if (ret < 0)
+			goto fail;
+		drv[i].irq = ret;
+		ret = devm_request_irq(&pdev->dev, drv[i].irq, tcs_tx_done,
+			IRQF_TRIGGER_HIGH | IRQF_NO_SUSPEND, drv[i].name, &drv[i]);
 		if (ret)
-			return ret;
-
+			goto fail;
+		drv[i].irq_requested = true;
+		drv[i].saved_irq_enable = readl_relaxed(drv[i].tcs_base +
+						       drv[i].regs[RSC_DRV_IRQ_ENABLE]);
+		rpmh_rsc_tcs_irq_enable(&drv[i]);
+		drv[i].irq_enabled = true;
+		drv[i].initialized = true;
 #if IS_ENABLED(CONFIG_IPC_LOGGING)
-		drv[i].ipc_log_ctx = ipc_log_context_create(
-						RSC_DRV_IPC_LOG_SIZE,
-						drv[i].name, 0);
+		drv[i].ipc_log_ctx = ipc_log_context_create(RSC_DRV_IPC_LOG_SIZE,
+							  drv[i].name, 0);
 #endif
-
-		if (__rsc_count < MAX_RSC_COUNT)
-			__rsc_drv[__rsc_count++] = &drv[i];
-
-		ret = devm_of_platform_populate(drv[i].dev);
+		ret = of_platform_populate(np, NULL, NULL, child);
 		if (ret)
-			return ret;
+			goto fail;
+		dev_info(child, "PONG618_RSC_READY drv=%d channels=%d tcs=%d version=%u.%u\n",
+			i, drv[i].num_channels, drv[i].num_tcs,
+			drv[i].ver.major, drv[i].ver.minor);
 	}
-
-	INIT_LIST_HEAD(&rsc_top->list);
-	list_add_tail(&rsc_top->list, &rpmh_rsc_dev_list);
-	dev_set_drvdata(&pdev->dev, rsc_top);
-
-	return devm_of_platform_populate(&pdev->dev);
+	/* Register last: teardown executes before parent IRQ/cache devres release. */
+	ret = devm_add_action(&pdev->dev, rpmh_rsc_cleanup, top);
+	if (ret)
+		goto fail;
+	for (i = 0; i < count; i++)
+		if (drv[i].initialized && __rsc_count < MAX_RSC_COUNT)
+			__rsc_drv[__rsc_count++] = &drv[i];
+	list_add_tail(&top->list, &rpmh_rsc_dev_list);
+	dev_set_drvdata(&pdev->dev, top);
+	return 0;
+fail:
+	rpmh_rsc_cleanup(top);
+	return dev_err_probe(&pdev->dev, ret, "native multi-DRV initialization failed\n");
 }
 
 static const struct dev_pm_ops rpmh_rsc_dev_pm_ops = {

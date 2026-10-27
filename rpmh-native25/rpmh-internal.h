@@ -197,6 +197,13 @@ struct rsc_drv {
 	int irq;
 	bool in_solver_mode;
 	bool initialized;
+        bool device_added;
+        bool irq_requested;
+        bool irq_enabled;
+        bool cpu_pm_registered;
+        bool pd_attached;
+        u32 saved_irq_enable;
+        resource_size_t resource_size;
 	struct notifier_block rsc_pm;
 	struct notifier_block genpd_nb;
 	atomic_t cpus_in_pm;
