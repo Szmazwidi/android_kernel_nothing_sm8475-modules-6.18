@@ -67,3 +67,5 @@ const struct qcom_icc_noc_ops qcom_qnoc4_ops = {
 EXPORT_SYMBOL(qcom_qnoc4_ops);
 
 MODULE_LICENSE("GPL");
+
+MODULE_DESCRIPTION("Qualcomm NoC QoS register programming");

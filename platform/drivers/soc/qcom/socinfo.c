@@ -19,7 +19,7 @@
 #include <linux/types.h>
 #include <soc/qcom/socinfo.h>
 
-#include <asm/unaligned.h>
+#include <linux/unaligned.h>
 
 #include <dt-bindings/arm/qcom,ids.h>
 
@@ -1369,7 +1369,7 @@ static void socinfo_populate_sysfs(struct qcom_socinfo *qcom_socinfo)
 	qcom_socinfo->attr.custom_attr_group = &custom_soc_attr_group;
 }
 
-void socinfo_enumerate_partinfo_details(void)
+static void socinfo_enumerate_partinfo_details(void)
 {
 	unsigned int partinfo_array_offset;
 	unsigned int nnum_partname_mapping;
@@ -1778,7 +1778,7 @@ static int qcom_socinfo_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static int qcom_socinfo_remove(struct platform_device *pdev)
+static void qcom_socinfo_remove(struct platform_device *pdev)
 {
 	struct qcom_socinfo *qs = platform_get_drvdata(pdev);
 
@@ -1786,7 +1786,6 @@ static int qcom_socinfo_remove(struct platform_device *pdev)
 
 	socinfo_debugfs_exit(qs);
 
-	return 0;
 }
 
 static struct platform_driver qcom_socinfo_driver = {

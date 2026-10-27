@@ -403,8 +403,9 @@ static int pdc_setup_pin_mapping(struct device_node *np)
 
 #define QCOM_PDC_SIZE 0x10000
 
-static int qcom_pdc_init(struct device_node *node, struct device_node *parent)
+static int qcom_pdc_init(struct platform_device *pdev, struct device_node *parent)
 {
+	struct device_node *node = pdev->dev.of_node;
 	struct irq_domain *parent_domain, *pdc_domain;
 	resource_size_t res_size;
 	struct resource res;

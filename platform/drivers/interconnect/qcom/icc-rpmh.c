@@ -179,7 +179,7 @@ int qcom_icc_get_bw_stub(struct icc_node *node, u32 *avg, u32 *peak)
 }
 EXPORT_SYMBOL(qcom_icc_get_bw_stub);
 
-int qcom_icc_get_bw(struct icc_node *node, u32 *avg, u32 *peak)
+static int qcom_icc_get_bw(struct icc_node *node, u32 *avg, u32 *peak)
 {
 	struct qcom_icc_node *qn = node->data;
 
@@ -203,14 +203,15 @@ int qcom_icc_bcm_init(struct qcom_icc_provider *qp, struct qcom_icc_bcm *bcm,
 	const struct bcm_db *data;
 	struct bcm_voter *voter;
 	size_t data_count;
+	u32 addr;
 	int i;
 
 	/* BCM is already initialised*/
 	if (bcm->disabled || bcm->addr)
 		return 0;
 
-	bcm->addr = cmd_db_read_addr(bcm->name);
-	if (!bcm->addr) {
+	addr = cmd_db_read_addr(bcm->name);
+	if (!addr) {
 		dev_err(dev, "%s could not find RPMh address\n",
 			bcm->name);
 		return -EINVAL;
@@ -222,12 +223,13 @@ int qcom_icc_bcm_init(struct qcom_icc_provider *qp, struct qcom_icc_bcm *bcm,
 			bcm->name, PTR_ERR(data));
 		return PTR_ERR(data);
 	}
-	if (!data_count) {
+	if (data_count < sizeof(*data)) {
 		dev_err(dev, "%s command db missing or partial aux data\n",
 			bcm->name);
 		return -EINVAL;
 	}
 
+	bcm->addr = addr;
 	bcm->aux_data.unit = max_t(u32, 1, le32_to_cpu(data->unit));
 	bcm->aux_data.width = max_t(u16, 1, le16_to_cpu(data->width));
 	bcm->aux_data.vcd = data->vcd;
@@ -366,8 +368,8 @@ static struct regmap *qcom_icc_rpmh_map(struct platform_device *pdev,
 		return NULL;
 
 	base = devm_ioremap(dev, res->start, resource_size(res));
-	if (IS_ERR(base))
-		return ERR_CAST(base);
+	if (!base)
+		return ERR_PTR(-ENOMEM);
 
 	return devm_regmap_init_mmio(dev, base, desc->config);
 }
@@ -443,6 +445,10 @@ int qcom_icc_rpmh_probe(struct platform_device *pdev)
 	if (!desc)
 		return -EINVAL;
 
+	ret = cmd_db_ready();
+	if (ret)
+		return ret;
+
 	qnodes = desc->nodes;
 	num_nodes = desc->num_nodes;
 
@@ -512,8 +518,11 @@ int qcom_icc_rpmh_probe(struct platform_device *pdev)
 	if (qp->num_clks < 0)
 		return qp->num_clks;
 
-	for (i = 0; i < qp->num_bcms; i++)
-		qcom_icc_bcm_init(qp, qp->bcms[i], dev);
+	for (i = 0; i < qp->num_bcms; i++) {
+		ret = qcom_icc_bcm_init(qp, qp->bcms[i], dev);
+		if (ret)
+			return ret;
+	}
 
 	for (i = 0; i < num_nodes; i++) {
 		qn = qnodes[i];
@@ -581,17 +590,15 @@ err_remove_nodes:
 }
 EXPORT_SYMBOL_GPL(qcom_icc_rpmh_probe);
 
-int qcom_icc_rpmh_remove(struct platform_device *pdev)
+void qcom_icc_rpmh_remove(struct platform_device *pdev)
 {
 	struct qcom_icc_provider *qp = platform_get_drvdata(pdev);
 
 	qcom_icc_debug_unregister(&qp->provider);
-	clk_bulk_put_all(qp->num_clks, qp->clks);
 
 	icc_provider_deregister(&qp->provider);
 	icc_nodes_remove(&qp->provider);
 
-	return 0;
 }
 EXPORT_SYMBOL_GPL(qcom_icc_rpmh_remove);
 

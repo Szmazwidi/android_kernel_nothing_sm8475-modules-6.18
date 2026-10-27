@@ -22,5 +22,8 @@ bool msm_gpio_get_pin_address(unsigned int gpio, struct resource *res);
 int msm_spare_write(int spare_reg, u32 val);
 int msm_spare_read(int spare_reg);
 
+void debug_pintctrl_msm_enable(void);
+void debug_pintctrl_msm_disable(void);
+
 #endif /* __LINUX_PINCTRL_MSM_H__ */
 

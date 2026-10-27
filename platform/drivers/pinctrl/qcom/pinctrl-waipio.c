@@ -1948,7 +1948,7 @@ static struct platform_driver waipio_pinctrl_driver = {
 		.of_match_table = waipio_pinctrl_of_match,
 	},
 	.probe = waipio_pinctrl_probe,
-	.remove_new = msm_pinctrl_remove,
+	.remove = msm_pinctrl_remove,
 };
 
 static int __init waipio_pinctrl_init(void)

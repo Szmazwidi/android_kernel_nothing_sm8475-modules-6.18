@@ -1,0 +1,17 @@
+# SPDX-License-Identifier: GPL-2.0-only
+config PONG618_PLATFORM_BATCH
+    tristate "Pong clocks, pinctrl and interconnect host batch"
+    select COMMON_CLK_QCOM
+    select SM_GCC_8450
+    select QCOM_CLK_RPMH
+    select INTERCONNECT_CLK
+    select QCOM_SCM
+    select QCOM_SMEM
+    select QCOM_RPMH
+    select QCOM_COMMAND_DB
+    select PINCTRL_MSM
+    select QCOM_SOCINFO
+    select QCOM_PDC
+    select INTERCONNECT_QCOM_RPMH
+    select ARM_SMMU
+    select ARM_SMMU_QCOM

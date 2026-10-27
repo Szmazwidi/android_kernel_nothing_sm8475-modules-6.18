@@ -10,6 +10,7 @@
 #include <trace/events/power.h>
 
 #include "../internal.h"
+#include "icc-debug.h"
 
 static LIST_HEAD(icc_providers);
 static DEFINE_MUTEX(debug_lock);
