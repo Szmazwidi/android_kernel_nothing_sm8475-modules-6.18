@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /*
  * Copyright (c) 2021, The Linux Foundation. All rights reserved.
- * Copyright (c) 2023 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  */
 
 #undef TRACE_SYSTEM
@@ -296,7 +296,11 @@ TRACE_EVENT(process_log_info,
 		__field(uint32_t,	tzhandle)
 	),
 	TP_fast_assign(
+#if (KERNEL_VERSION(6, 10, 0) <= LINUX_VERSION_CODE)
+		__assign_str(str);
+#else
 		__assign_str(str, buf);
+#endif
 		__entry->context_type	= context_type;
 		__entry->tzhandle	= tzhandle;
 	),
@@ -350,8 +354,13 @@ TRACE_EVENT(status,
 		__string(str2,	status)
 	),
 	TP_fast_assign(
+#if (KERNEL_VERSION(6, 10, 0) <= LINUX_VERSION_CODE)
+		__assign_str(str);
+		__assign_str(str2);
+#else
 		__assign_str(str,	func);
 		__assign_str(str2,	status);
+#endif
 	),
 	TP_printk("%s status=%s", __get_str(str), __get_str(str2))
 );
@@ -491,7 +500,7 @@ TRACE_EVENT(smcinvoke_release,
  */
 #ifndef SMCINVOKE_TRACE_INCLUDE_PATH
 #define SMCINVOKE_TRACE_INCLUDE_PATH \
-	../../../../sm8450-modules/qcom/opensource/securemsm-kernel/smcinvoke/compat
+	.
 #endif
 
 #undef TRACE_INCLUDE_PATH

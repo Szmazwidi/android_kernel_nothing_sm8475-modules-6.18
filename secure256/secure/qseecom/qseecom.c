@@ -3,7 +3,7 @@
  * QTI Secure Execution Environment Communicator (QSEECOM) driver
  *
  * Copyright (c) 2012-2021, The Linux Foundation. All rights reserved.
- * Copyright (c) 2022-2025 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  */
 
 #define pr_fmt(fmt) "QSEECOM: %s: " fmt, __func__
@@ -22,7 +22,6 @@
 #include <linux/mutex.h>
 #include <linux/io.h>
 #include <linux/dma-buf.h>
-#include <linux/msm_ion.h>
 #include <linux/types.h>
 #include <linux/clk.h>
 #include <linux/elf.h>
@@ -44,9 +43,14 @@
 #include <linux/of_reserved_mem.h>
 #include <linux/qtee_shmbridge.h>
 #include <linux/mem-buf.h>
+#include <soc/qcom/secure_buffer.h>
 #include <linux/version.h>
 #include "linux/qseecom_api.h"
+#if IS_ENABLED(CONFIG_QTI_CRYPTO_FDE)
+#include <linux/crypto-qti-common.h>
+#else
 #include "ice.h"
+#endif
 #if IS_ENABLED(CONFIG_QSEECOM_PROXY)
 #include <linux/qseecom_kernel.h>
 #include "misc/qseecom_priv.h"
@@ -551,6 +555,11 @@ static int __qseecom_alloc_coherent_buf(
 static void __qseecom_free_coherent_buf(uint32_t size,
 				u8 *vaddr, phys_addr_t paddr);
 
+#if IS_ENABLED(CONFIG_QTI_CRYPTO_FDE) && IS_ENABLED(CONFIG_QSEECOM_PROXY)
+static int __qseecom_create_key_in_slot(uint8_t usage_code, uint8_t key_slot,
+					const uint8_t *key_id, const uint8_t *inhash32);
+#endif
+
 #define QSEECOM_SCM_EBUSY_WAIT_MS 30
 #define QSEECOM_SCM_EBUSY_MAX_RETRY 67
 #define QSEE_RESULT_FAIL_APP_BUSY 315
@@ -591,7 +600,7 @@ static int __qseecom_scm_call2_locked(uint32_t smc_id, struct qseecom_scm_desc *
 			}
 			/* interrupted or error */
 			else if (ret < 0){
-				pr_err("Waiting for TZ free is interrupted");
+				pr_err("Waiting for TZ free is interrupted.\n");
 				return ret;
 			} else {
 				/* timed out */
@@ -599,7 +608,7 @@ static int __qseecom_scm_call2_locked(uint32_t smc_id, struct qseecom_scm_desc *
 			}
 		}
 		if(tz_busy_timeout == 0){
-			pr_err("Secure World has been busy for 30 seconds!");
+			pr_err("Secure World has been busy for 30 seconds!\n");
 			ret = -EBUSY;
 			desc->ret[0] = -QSEE_RESULT_FAIL_APP_BUSY;
 			break;
@@ -2074,7 +2083,11 @@ static int qseecom_scale_bus_bandwidth_timer(uint32_t mode)
 			pr_err("Failed to decrease clk ref count.\n");
 			goto err_scale_timer;
 		}
+		#if (KERNEL_VERSION(6, 15, 0) > LINUX_VERSION_CODE)
 		del_timer_sync(&(qseecom.bw_scale_down_timer));
+		#else
+		timer_delete_sync(&(qseecom.bw_scale_down_timer));
+		#endif
 		qseecom.timer_running = false;
 	}
 err_scale_timer:
@@ -2127,6 +2140,52 @@ static int qseecom_perf_enable(struct qseecom_dev_handle *data)
 perf_enable_exit:
 	return ret;
 }
+
+/* PONG266: exact stock 5.10 legacy bandwidth ABI, real clock/bus operations. */
+static int qseecom_scale_bus_bandwidth(struct qseecom_dev_handle *data,
+						void __user *argp)
+{
+	int32_t ret = 0;
+	int32_t req_mode;
+
+	if (qseecom.no_clock_support)
+		return 0;
+
+	ret = copy_from_user(&req_mode, argp, sizeof(req_mode));
+	if (ret) {
+		pr_err("copy_from_user failed\n");
+		return -EFAULT;
+	}
+	if (req_mode < INACTIVE || req_mode > HIGH) {
+		pr_err("Invalid bandwidth mode (%d)\n", req_mode);
+		return -EINVAL;
+	}
+
+	/*
+	 * Register bus bandwidth needs if bus scaling feature is enabled;
+	 * otherwise, qseecom enable/disable clocks for the client directly.
+	 */
+	if (qseecom.support_bus_scaling) {
+		mutex_lock(&qsee_bw_mutex);
+		ret = __qseecom_register_bus_bandwidth_needs(data, req_mode);
+		mutex_unlock(&qsee_bw_mutex);
+	} else {
+		pr_debug("Bus scaling feature is NOT enabled\n");
+		pr_debug("request bandwidth mode %d for the client\n",
+				req_mode);
+		if (req_mode != INACTIVE) {
+			ret = qseecom_perf_enable(data);
+			if (ret)
+				pr_err("Failed to vote for clock with err %d\n",
+						ret);
+		} else {
+			qsee_disable_clock_vote(data, CLK_DFAB);
+			qsee_disable_clock_vote(data, CLK_SFPB);
+		}
+	}
+	return ret;
+}
+
 
 static void __qseecom_add_bw_scale_down_timer(uint32_t duration)
 {
@@ -4750,7 +4809,13 @@ static int __qseecom_get_fw_size(const char *appname, uint32_t *fw_size,
 	struct elf64_hdr *ehdr64;
 	int num_images = 0;
 
-	snprintf(fw_name, sizeof(fw_name), "%s.mdt", appname);
+	if (snprintf(fw_name, sizeof(fw_name), "%s.mdt", appname) >= sizeof(fw_name)) {
+		pr_err("appname: %s.mdt is too long, max %d char limit!\n",
+			appname, MAX_APP_NAME_SIZE);
+		ret = -EINVAL;
+		goto err;
+	}
+
 	rc = firmware_request_nowarn(&fw_entry, fw_name,  qseecom.pdev);
 	if (rc) {
 		pr_err("error with firmware_request_nowarn, rc = %d\n", rc);
@@ -4780,7 +4845,11 @@ static int __qseecom_get_fw_size(const char *appname, uint32_t *fw_size,
 	fw_entry = NULL;
 	for (i = 0; i < num_images; i++) {
 		memset(fw_name, 0, sizeof(fw_name));
-		snprintf(fw_name, ARRAY_SIZE(fw_name), "%s.b%02d", appname, i);
+		if (snprintf(fw_name, sizeof(fw_name), "%s.b%02d", appname, i) >= sizeof(fw_name)) {
+			pr_err("Firmware name too long: %s.b%02d\n", appname, i);
+			ret = -EINVAL;
+			goto err;
+		}
 		ret = firmware_request_nowarn(&fw_entry, fw_name, qseecom.pdev);
 		if (ret)
 			goto err;
@@ -4816,7 +4885,13 @@ static int __qseecom_get_fw_data(const char *appname, u8 *img_data,
 	int num_images = 0;
 	unsigned char app_arch = 0;
 
-	snprintf(fw_name, sizeof(fw_name), "%s.mdt", appname);
+	if (snprintf(fw_name, sizeof(fw_name), "%s.mdt", appname) >= sizeof(fw_name)) {
+		pr_err("appname: %s.mdt is too long, max %d char limit!\n",
+			appname, MAX_APP_NAME_SIZE);
+		ret = -EINVAL;
+		goto err;
+	}
+
 	rc = firmware_request_nowarn(&fw_entry, fw_name,  qseecom.pdev);
 	if (rc) {
 		ret = -EIO;
@@ -4850,7 +4925,11 @@ static int __qseecom_get_fw_data(const char *appname, u8 *img_data,
 	release_firmware(fw_entry);
 	fw_entry = NULL;
 	for (i = 0; i < num_images; i++) {
-		snprintf(fw_name, ARRAY_SIZE(fw_name), "%s.b%02d", appname, i);
+		if (snprintf(fw_name, sizeof(fw_name), "%s.b%02d", appname, i) >= sizeof(fw_name)) {
+			pr_err("Firmware name too long: %s.b%02d\n", appname, i);
+			ret = -EINVAL;
+			goto err;
+		}
 		ret = firmware_request_nowarn(&fw_entry, fw_name, qseecom.pdev);
 		if (ret) {
 			pr_err("Failed to locate blob %s\n", fw_name);
@@ -5557,6 +5636,9 @@ const static struct qseecom_drv_ops qseecom_driver_ops = {
 	.qseecom_start_app = __qseecom_start_app,
 	.qseecom_shutdown_app = __qseecom_shutdown_app,
 	.qseecom_process_listener_from_smcinvoke = __qseecom_process_listener_from_smcinvoke,
+#if IS_ENABLED(CONFIG_QTI_CRYPTO_FDE)
+	.qseecom_create_key_in_slot = __qseecom_create_key_in_slot,
+#endif
 };
 
 int get_qseecom_kernel_fun_ops(void)
@@ -6646,10 +6728,17 @@ static int qseecom_enable_ice_setup(int usage)
 	int ret = 0;
 
 	if (usage == QSEOS_KM_USAGE_UFS_ICE_DISK_ENCRYPTION)
+#if IS_ENABLED(CONFIG_QTI_CRYPTO_FDE)
+		ret = crypto_qti_ice_setup_ice_hw("ufs", true);
+#else
 		ret = qcom_ice_setup_ice_hw("ufs", true);
+#endif
 	else if (usage == QSEOS_KM_USAGE_SDCC_ICE_DISK_ENCRYPTION)
+#if IS_ENABLED(CONFIG_QTI_CRYPTO_FDE)
+		crypto_qti_ice_setup_ice_hw("sdcc", true);
+#else
 		ret = qcom_ice_setup_ice_hw("sdcc", true);
-
+#endif
 	return ret;
 }
 
@@ -6658,10 +6747,17 @@ static int qseecom_disable_ice_setup(int usage)
 	int ret = 0;
 
 	if (usage == QSEOS_KM_USAGE_UFS_ICE_DISK_ENCRYPTION)
+#if IS_ENABLED(CONFIG_QTI_CRYPTO_FDE)
+		crypto_qti_ice_setup_ice_hw("ufs", false);
+#else
 		ret = qcom_ice_setup_ice_hw("ufs", false);
+#endif
 	else if (usage == QSEOS_KM_USAGE_SDCC_ICE_DISK_ENCRYPTION)
+#if IS_ENABLED(CONFIG_QTI_CRYPTO_FDE)
+		crypto_qti_ice_setup_ice_hw("sdcc", false);
+#else
 		ret = qcom_ice_setup_ice_hw("sdcc", false);
-
+#endif
 	return ret;
 }
 
@@ -6702,6 +6798,161 @@ static int qseecom_get_ce_hw_instance(uint32_t unit, uint32_t usage)
 	}
 	return pce_info_use->num_ce_pipe_entries;
 }
+
+#if IS_ENABLED(CONFIG_QTI_CRYPTO_FDE) && IS_ENABLED(CONFIG_QSEECOM_PROXY)
+static int __qseecom_create_key_in_slot(uint8_t usage_code, uint8_t key_slot,
+					const uint8_t *key_id, const uint8_t *inhash32)
+{
+	int i;
+	uint32_t *ce_hw = NULL;
+	uint32_t pipe = 0;
+	int ret = 0;
+	uint32_t flags = 0;
+	struct qseecom_create_key_req create_key_req;
+	struct qseecom_key_generate_ireq generate_key_ireq;
+	struct qseecom_key_select_ireq set_key_ireq;
+	uint32_t entries = 0;
+	bool new_key_generated = false;
+	static struct qseecom_dev_handle local_handle = {0};
+	static struct qseecom_dev_handle *data = &local_handle;
+
+	create_key_req.usage = usage_code;
+	memset((void *)create_key_req.hash32, 0, QSEECOM_HASH_SIZE);
+
+	if (create_key_req.usage < QSEOS_KM_USAGE_DISK_ENCRYPTION ||
+		create_key_req.usage >= QSEOS_KM_USAGE_MAX) {
+		pr_err("unsupported usage %d\n", create_key_req.usage);
+		ret = -EFAULT;
+		return ret;
+	}
+	if (key_id == NULL) {
+		pr_err("Key ID is NULL\n");
+		ret = -EINVAL;
+		return ret;
+	}
+	entries = qseecom_get_ce_hw_instance(DEFAULT_CE_INFO_UNIT, create_key_req.usage);
+	if (entries <= 0) {
+		pr_err("no ce instance for usage %d instance %d\n",
+			DEFAULT_CE_INFO_UNIT, create_key_req.usage);
+		ret = -EINVAL;
+		return ret;
+	}
+
+	ce_hw = kcalloc(entries, sizeof(*ce_hw), GFP_KERNEL);
+	if (!ce_hw) {
+		ret = -ENOMEM;
+		return ret;
+	}
+	ret = __qseecom_get_ce_pipe_info(create_key_req.usage, &pipe, &ce_hw,
+					 DEFAULT_CE_INFO_UNIT);
+	if (ret) {
+		pr_err("Failed to retrieve pipe/ce_hw info: %d\n", ret);
+		ret = -EINVAL;
+		goto free_buf;
+	}
+
+	if (qseecom.fde_key_size)
+		flags |= QSEECOM_ICE_FDE_KEY_SIZE_32_BYTE;
+	else
+		flags |= QSEECOM_ICE_FDE_KEY_SIZE_16_BYTE;
+
+	if (qseecom.enable_key_wrap_in_ks)
+		flags |= ENABLE_KEY_WRAP_IN_KS;
+
+	generate_key_ireq.flags = flags;
+	generate_key_ireq.qsee_command_id = QSEOS_GENERATE_KEY;
+	memset((void *)generate_key_ireq.key_id, 0, QSEECOM_KEY_ID_SIZE);
+	memset((void *)generate_key_ireq.hash32, 0, QSEECOM_HASH_SIZE);
+	memcpy((void *)generate_key_ireq.key_id, key_id, QSEECOM_KEY_ID_SIZE);
+
+	//Copy inhash if available
+	if (inhash32 != NULL)
+		memcpy((void *)create_key_req.hash32, (void *)inhash32, QSEECOM_HASH_SIZE);
+
+	memcpy((void *)generate_key_ireq.hash32, (void *)create_key_req.hash32,
+		QSEECOM_HASH_SIZE);
+
+	ret = __qseecom_generate_and_save_key(data, create_key_req.usage,
+					      &generate_key_ireq);
+
+	if ((ret != 0) && (ret != QSEOS_RESULT_FAIL_KEY_ID_EXISTS)) {
+		pr_err("Failed to generate key on storage: %d\n", ret);
+		goto free_buf;
+	}
+	if (ret == 0) {
+		//New key was created
+		new_key_generated = true;
+	}
+
+	for (i = 0; i < entries; i++) {
+		set_key_ireq.qsee_command_id = QSEOS_SET_KEY;
+		if (create_key_req.usage == QSEOS_KM_USAGE_UFS_ICE_DISK_ENCRYPTION) {
+			set_key_ireq.ce = QSEECOM_UFS_ICE_CE_NUM;
+			set_key_ireq.pipe = key_slot;
+
+		} else if (create_key_req.usage == QSEOS_KM_USAGE_SDCC_ICE_DISK_ENCRYPTION) {
+			set_key_ireq.ce = QSEECOM_SDCC_ICE_CE_NUM;
+			set_key_ireq.pipe = key_slot;
+
+		} else {
+			set_key_ireq.ce = ce_hw[i];
+			set_key_ireq.pipe = pipe;
+		}
+		set_key_ireq.flags = flags;
+
+		/* set both PIPE_ENC and PIPE_ENC_XTS*/
+		set_key_ireq.pipe_type = QSEOS_PIPE_ENC|QSEOS_PIPE_ENC_XTS;
+		memset((void *)set_key_ireq.key_id, 0, QSEECOM_KEY_ID_SIZE);
+		memset((void *)set_key_ireq.hash32, 0, QSEECOM_HASH_SIZE);
+
+		memcpy((void *)set_key_ireq.key_id, key_id, QSEECOM_KEY_ID_SIZE);
+		memcpy((void *)set_key_ireq.hash32, (void *)create_key_req.hash32,
+			QSEECOM_HASH_SIZE);
+		/*
+		 * It will return false if it is GPCE based crypto instance or
+		 * ICE is setup properly
+		 */
+		ret = qseecom_enable_ice_setup(create_key_req.usage);
+		if (ret)
+			goto free_buf;
+
+		do {
+			ret = __qseecom_set_clear_ce_key(data, create_key_req.usage,
+							 &set_key_ireq);
+			/*
+			 * wait a little before calling scm again to let other
+			 * processes run
+			 */
+			if (ret == QSEOS_RESULT_FAIL_PENDING_OPERATION)
+				msleep(50);
+
+		} while (ret == QSEOS_RESULT_FAIL_PENDING_OPERATION);
+
+		qseecom_disable_ice_setup(create_key_req.usage);
+
+		if (ret) {
+			pr_err("Failed to create key: pipe %d, ce %d: %d\n",
+				pipe, ce_hw[i], ret);
+			goto free_buf;
+		} else {
+			pr_err("Set the key successfully\n");
+			if ((create_key_req.usage ==
+				QSEOS_KM_USAGE_UFS_ICE_DISK_ENCRYPTION) ||
+				(create_key_req.usage ==
+				QSEOS_KM_USAGE_SDCC_ICE_DISK_ENCRYPTION))
+				goto free_buf;
+		}
+	}
+
+free_buf:
+	kfree_sensitive(ce_hw);
+	if ((ret == 0) && (new_key_generated)) {
+		//Success , key already exists code
+		ret = QSEOS_RESULT_FAIL_KEY_ID_EXISTS;
+	}
+	return ret;
+}
+#endif //CONFIG_QTI_CRYPTO_FDE
 
 static int qseecom_create_key(struct qseecom_dev_handle *data,
 			void __user *argp)
@@ -6836,7 +7087,7 @@ static int qseecom_create_key(struct qseecom_dev_handle *data,
 			pr_err("Set the key successfully\n");
 			if ((create_key_req.usage ==
 				QSEOS_KM_USAGE_UFS_ICE_DISK_ENCRYPTION) ||
-			     (create_key_req.usage ==
+				(create_key_req.usage ==
 				QSEOS_KM_USAGE_SDCC_ICE_DISK_ENCRYPTION))
 				goto free_buf;
 		}
@@ -7846,15 +8097,6 @@ long qseecom_ioctl(struct file *file,
 	__wakeup_unload_app_kthread();
 
 	switch (cmd) {
-	/*
-	 * Dropped from the 6.6 UAPI but still issued by phone2's 5.10 clients
-	 * (QSEECom_set_bandwidth); 5.10 returned 0 as cape has no qseecom clocks.
-	 */
-	case _IO(QSEECOM_IOC_MAGIC, 11):		/* PERF_ENABLE_REQ */
-	case _IO(QSEECOM_IOC_MAGIC, 12):		/* PERF_DISABLE_REQ */
-	case _IOWR(QSEECOM_IOC_MAGIC, 23, int):	/* SET_BUS_SCALING_REQ */
-		ret = 0;
-		break;
 	case QSEECOM_IOCTL_REGISTER_LISTENER_REQ: {
 		mutex_lock(&listener_access_lock);
 		if (data->type != QSEECOM_GENERIC) {
@@ -8132,6 +8374,91 @@ long qseecom_ioctl(struct file *file,
 		if (ret)
 			pr_err("qseecom_get_qseos_version: %d\n", ret);
 		atomic_dec(&data->ioctl_count);
+		break;
+	}
+	case QSEECOM_IOCTL_PERF_ENABLE_REQ:{
+		mutex_lock(&app_access_lock);
+		if ((data->type != QSEECOM_GENERIC) &&
+			(data->type != QSEECOM_CLIENT_APP)) {
+			pr_err("perf enable req: invalid handle (%d)\n",
+								data->type);
+			mutex_unlock(&app_access_lock);
+			ret = -EINVAL;
+			break;
+		}
+		if ((data->type == QSEECOM_CLIENT_APP) &&
+			(data->client.app_id == 0)) {
+			pr_err("perf enable req:invalid handle(%d) appid(%d)\n",
+					data->type, data->client.app_id);
+			mutex_unlock(&app_access_lock);
+			ret = -EINVAL;
+			break;
+		}
+		atomic_inc(&data->ioctl_count);
+		if (qseecom.support_bus_scaling) {
+			mutex_lock(&qsee_bw_mutex);
+			__qseecom_register_bus_bandwidth_needs(data, HIGH);
+			mutex_unlock(&qsee_bw_mutex);
+		} else {
+			ret = qseecom_perf_enable(data);
+			if (ret)
+				pr_err("Fail to vote for clocks %d\n", ret);
+		}
+		atomic_dec(&data->ioctl_count);
+		mutex_unlock(&app_access_lock);
+		break;
+	}
+	case QSEECOM_IOCTL_PERF_DISABLE_REQ:{
+		mutex_lock(&app_access_lock);
+		if ((data->type != QSEECOM_SECURE_SERVICE) &&
+			(data->type != QSEECOM_CLIENT_APP)) {
+			pr_err("perf disable req: invalid handle (%d)\n",
+								data->type);
+			mutex_unlock(&app_access_lock);
+			ret = -EINVAL;
+			break;
+		}
+		if ((data->type == QSEECOM_CLIENT_APP) &&
+			(data->client.app_id == 0)) {
+			pr_err("perf disable: invalid handle (%d)app_id(%d)\n",
+					data->type, data->client.app_id);
+			mutex_unlock(&app_access_lock);
+			ret = -EINVAL;
+			break;
+		}
+		atomic_inc(&data->ioctl_count);
+		if (!qseecom.support_bus_scaling) {
+			qsee_disable_clock_vote(data, CLK_DFAB);
+			qsee_disable_clock_vote(data, CLK_SFPB);
+		} else {
+			mutex_lock(&qsee_bw_mutex);
+			qseecom_unregister_bus_bandwidth_needs(data);
+			mutex_unlock(&qsee_bw_mutex);
+		}
+		atomic_dec(&data->ioctl_count);
+		mutex_unlock(&app_access_lock);
+		break;
+	}
+
+	case QSEECOM_IOCTL_SET_BUS_SCALING_REQ: {
+		/* If crypto clock is not handled by HLOS, return directly. */
+		if (qseecom.no_clock_support) {
+			pr_debug("crypto clock is not handled by HLOS\n");
+			break;
+		}
+		mutex_lock(&app_access_lock);
+		if ((data->client.app_id == 0) ||
+			(data->type != QSEECOM_CLIENT_APP)) {
+			pr_err("set bus scale: invalid handle (%d) appid(%d)\n",
+					data->type, data->client.app_id);
+			mutex_unlock(&app_access_lock);
+			ret = -EINVAL;
+			break;
+		}
+		atomic_inc(&data->ioctl_count);
+		ret = qseecom_scale_bus_bandwidth(data, argp);
+		atomic_dec(&data->ioctl_count);
+		mutex_unlock(&app_access_lock);
 		break;
 	}
 	case QSEECOM_IOCTL_LOAD_EXTERNAL_ELF_REQ: {
@@ -8493,14 +8820,12 @@ long qseecom_ioctl(struct file *file,
 		break;
 	}
 	case QSEECOM_IOCTL_SET_ICE_INFO: {
-		struct qseecom_ice_data_t ice_data;
-
-		ret = copy_from_user(&ice_data, argp, sizeof(ice_data));
-		if (ret) {
-			pr_err("copy_from_user failed\n");
-			return -EFAULT;
-		}
-		qcom_ice_set_fde_flag(ice_data.flag);
+	/*
+	 * Return success for backwards compatibility
+	 * This call is redundant and not required anymore
+	 */
+		pr_info("SET_ICE_INFO is reduntant call,return success for backwards compatibility\n");
+		ret = 0;
 		break;
 	}
 	case QSEECOM_IOCTL_FBE_CLEAR_KEY: {
@@ -9448,7 +9773,11 @@ static void qseecom_deinit_bus(void)
 	qseecom_bus_scale_update_request(qseecom.qsee_perf_client, 0);
 	icc_put(qseecom.icc_path);
 	cancel_work_sync(&qseecom.bw_inactive_req_ws);
+	#if (KERNEL_VERSION(6, 15, 0) > LINUX_VERSION_CODE)
 	del_timer_sync(&qseecom.bw_scale_down_timer);
+	#else
+	timer_delete_sync(&qseecom.bw_scale_down_timer);
+	#endif
 }
 
 static int qseecom_send_app_region(struct platform_device *pdev)
@@ -9614,7 +9943,7 @@ static int qseecom_init_dev(struct platform_device *pdev)
 		goto exit_unreg_chrdev_region;
 	}
 	qseecom.dev = &pdev->dev;
-	rc = dma_set_mask(qseecom.dev, DMA_BIT_MASK(64));
+	rc = dma_set_mask(qseecom.dev, (u64) DMA_BIT_MASK(64));
 	if (rc) {
 		pr_err("qseecom failed to set dma mask %d\n", rc);
 		goto exit_del_cdev;
@@ -9627,7 +9956,7 @@ static int qseecom_init_dev(struct platform_device *pdev)
 			goto exit_del_cdev;
 		}
 	}
-	dma_set_max_seg_size(qseecom.dev, DMA_BIT_MASK(32));
+	dma_set_max_seg_size(qseecom.dev, (unsigned int) DMA_BIT_MASK(32));
 	rc = of_reserved_mem_device_init_by_idx(&pdev->dev,
 					(&pdev->dev)->of_node, 0);
 	if (rc) {
@@ -9827,7 +10156,7 @@ static int qseecom_register_shmbridge(struct platform_device *pdev)
 {
 	int ret = 0;
 	if (!qtee_shmbridge_is_enabled())
-		return 0; 
+		return 0;
 	ret = qseecom_register_heap_shmbridge(pdev, "qseecom_ta_mem",
 					&qseecom.ta_bridge_handle);
 	if (ret)
@@ -10004,8 +10333,11 @@ static int qseecom_suspend(struct platform_device *pdev, pm_message_t state)
 			else
 				qseecom.current_mode = INACTIVE;
 		}
-
+		#if (KERNEL_VERSION(6, 15, 0) > LINUX_VERSION_CODE)
 		del_timer_sync(&(qseecom.bw_scale_down_timer));
+		#else
+		timer_delete_sync(&(qseecom.bw_scale_down_timer));
+		#endif
 		qseecom.timer_running = false;
 
 		mutex_unlock(&qsee_bw_mutex);
@@ -10126,7 +10458,12 @@ static void qseecom_exit(void)
 
 MODULE_LICENSE("GPL v2");
 MODULE_DESCRIPTION("QTI Secure Execution Environment Communicator");
-MODULE_IMPORT_NS(DMA_BUF);
+
+#if (KERNEL_VERSION(6, 13, 0) <= LINUX_VERSION_CODE)
+MODULE_IMPORT_NS("DMA_BUF");
+#else
+MODULE_IMPORT_NS("DMA_BUF");
+#endif
 
 module_init(qseecom_init);
 module_exit(qseecom_exit);

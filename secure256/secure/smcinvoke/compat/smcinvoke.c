@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
  * Copyright (c) 2016-2021, The Linux Foundation. All rights reserved.
- * Copyright (c) 2022-2025 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) 2022-2024 Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
 #define pr_fmt(fmt) "smcinvoke: %s: " fmt, __func__
@@ -21,8 +21,8 @@
 #include <linux/delay.h>
 #include <linux/kref.h>
 #include <linux/signal.h>
-#include <linux/msm_ion.h>
 #include <linux/mem-buf.h>
+#include <soc/qcom/secure_buffer.h>
 #include <linux/of_platform.h>
 #include <linux/firmware.h>
 #include <linux/version.h>
@@ -36,6 +36,7 @@
 #include <asm/cacheflush.h>
 #include <linux/qtee_shmbridge.h>
 #include <linux/kthread.h>
+#include <linux/of.h>
 #include "smcinvoke.h"
 #include "smcinvoke_object.h"
 #include "IClientEnv.h"
@@ -50,6 +51,7 @@
 #define CREATE_TRACE_POINTS
 #include "trace_smcinvoke.h"
 
+#define SMCINVOKE_TZ_MIN_BUF_SIZE 4096
 #define SMCINVOKE_DEV				"smcinvoke"
 #define SMCINVOKE_TZ_ROOT_OBJ			1
 #define SMCINVOKE_TZ_OBJ_NULL			0
@@ -2485,7 +2487,7 @@ static void add_mem_obj_info_to_async_side_channel_locked(void *buf, size_t buf_
 
 	msg->count = index;
 
-	pr_debug("Added %zu memory objects to the side channel, total size = %zu\n", index, used);
+	pr_debug("Added %lu memory objects to the side channel, total size = %zu\n", index, used);
 
 	return;
 }
@@ -2664,7 +2666,7 @@ static long process_accept_req(struct file *filp, unsigned int cmd,
 		 * new cb requests.
 		 */
 		if (!cb_txn) {
-			smci_err_ratelimited("txn %llu either invalid or removed from Q\n",
+			smci_err_ratelimited("txn %u either invalid or removed from Q\n",
 					user_args.txn_id);
 			goto start_waiting_for_requests;
 		}
@@ -3089,7 +3091,7 @@ static int release_cb_server(uint16_t server_id)
 	return 0;
 }
 
-int smcinvoke_release_filp(struct file *filp)
+static int smcinvoke_release_filp(struct file *filp)
 {
 	int ret = 0;
 	struct smcinvoke_file_data *file_data = filp->private_data;
@@ -3337,5 +3339,5 @@ module_exit(smcinvoke_exit);
 
 MODULE_LICENSE("GPL v2");
 MODULE_DESCRIPTION("SMC Invoke driver (compat)");
-MODULE_IMPORT_NS(VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver);
-MODULE_IMPORT_NS(DMA_BUF);
+MODULE_IMPORT_NS("ANDROID_GKI_VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver");
+MODULE_IMPORT_NS("DMA_BUF");

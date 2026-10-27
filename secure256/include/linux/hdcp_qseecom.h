@@ -151,3 +151,7 @@ static inline int hdcp2_force_encryption(void *ctx, uint32_t enable)
 #endif /* CONFIG_HDCP_QSEECOM */
 
 #endif /* __HDCP_QSEECOM_H */
+
+/* Qualcomm OEM A16 exported retry settings; prototype matches definition. */
+void hdcp2_set_hdcp_key_verify_retries(void *, u32);
+void hdcp1_set_hdcp_key_verify_retries(void *, u32);

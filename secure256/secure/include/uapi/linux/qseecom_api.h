@@ -194,3 +194,8 @@ struct file;
 	_IOWR(QSEECOM_IOC_MAGIC, 36, struct qseecom_send_modfd_listener_resp)
 
 #endif /* _QSEECOM_API_H_ */
+
+/* Original Pong 5.10 public ABI retained for its vendor userspace. */
+#define QSEECOM_IOCTL_PERF_ENABLE_REQ _IO(QSEECOM_IOC_MAGIC, 11)
+#define QSEECOM_IOCTL_PERF_DISABLE_REQ _IO(QSEECOM_IOC_MAGIC, 12)
+#define QSEECOM_IOCTL_SET_BUS_SCALING_REQ _IOWR(QSEECOM_IOC_MAGIC, 23, int)

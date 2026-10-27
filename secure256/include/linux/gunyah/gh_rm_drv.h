@@ -799,3 +799,6 @@ static inline bool gh_rm_needs_hyp_assign(u32 *src_vm_list, int source_nelems,
 }
 #endif
 #endif
+
+int gh_rm_mem_append(gh_memparcel_handle_t handle, u8 flags,
+		struct gh_sgl_entry *sgl_entries, u32 n_sgl_entries);

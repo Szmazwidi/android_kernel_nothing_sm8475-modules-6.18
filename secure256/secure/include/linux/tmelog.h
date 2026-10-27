@@ -1,10 +1,12 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /*
- * Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) 2024-2025 Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
 #ifndef _TMELOG_H_
 #define _TMELOG_H_
+
+#include <linux/types.h>
 
 /**
  *  Send data to Tmefw via tmecom interface
@@ -15,6 +17,7 @@
  *
  *  @return  0 if successful, error code otherwise.
  */
-int tmelog_process_request(uint32_t buf, uint32_t tme_buf_size, uint32_t *buf_size);
+int tmelog_process_request(uint32_t buf, uint32_t tme_buf_size,
+			   uint32_t *buf_size);
 
-#endif  /*_TMELOG_H_ */
+#endif /*_TMELOG_H_ */

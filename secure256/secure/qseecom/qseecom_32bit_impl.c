@@ -558,6 +558,12 @@ long qseecom_ioctl_32bit(struct file *file,
 	long ret;
 
 	switch (cmd) {
+	case QSEECOM_IOCTL_PERF_ENABLE_REQ:
+	case QSEECOM_IOCTL_PERF_DISABLE_REQ:
+		return qseecom_ioctl(file, cmd, 0);
+	case QSEECOM_IOCTL_SET_BUS_SCALING_REQ:
+		return qseecom_ioctl(file, cmd, (unsigned long)compat_ptr(arg));
+
 
 	case QSEECOM_IOCTL_UNREGISTER_LISTENER_REQ_32BIT:
 	case QSEECOM_IOCTL_RECEIVE_REQ_32BIT:

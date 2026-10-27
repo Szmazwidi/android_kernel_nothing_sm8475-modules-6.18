@@ -1,0 +1,20 @@
+config QSEECOM
+    bool
+config QCOM_SMCINVOKE
+    bool
+config QTEE_SHM_BRIDGE
+    bool
+config MEM_BUF
+    tristate
+config PONG_SECURE256
+    tristate "Pong SMCI and QSEE"
+    select HDCP_QSEECOM
+    select QSEECOM
+    select QCOM_SMCINVOKE
+    select QTEE_SHM_BRIDGE
+    select MEM_BUF
+    select QCOM_SCM
+    select QCOM_TZMEM
+
+config HDCP_QSEECOM
+    bool
