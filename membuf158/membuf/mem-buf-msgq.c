@@ -427,7 +427,7 @@ static int mem_buf_msgq_name_to_msgq_label(const char *name)
 {
 	int i;
 
-	for (i = 0; i < ARRAY_SIZE(mem_buf_msgqs); i++)
+	for (i = 0; i < ARRAY_SIZE(mem_buf_msgqs) && mem_buf_msgqs[i].name; i++)
 		if (!strcmp(name, mem_buf_msgqs[i].name))
 			return mem_buf_msgqs[i].label;
 

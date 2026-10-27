@@ -15,7 +15,6 @@
 #include <linux/memory_hotplug.h>
 #include <linux/memory.h>
 #include <linux/genalloc.h>
-#include <linux/mem-buf-altmap.h>
 #include <linux/delay.h>
 
 #include <linux/mem-buf.h>
@@ -240,10 +239,9 @@ static int mem_buf_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static int mem_buf_remove(struct platform_device *pdev)
+static void mem_buf_remove(struct platform_device *pdev)
 {
 	mem_buf_dev = NULL;
-	return 0;
 }
 
 static const struct of_device_id mem_buf_match_tbl[] = {
@@ -275,4 +273,4 @@ module_exit(mem_buf_dev_exit);
 
 MODULE_DESCRIPTION("Qualcomm Technologies, Inc. Memory Buffer Sharing driver");
 MODULE_LICENSE("GPL");
-MODULE_IMPORT_NS(DMA_BUF);
+MODULE_IMPORT_NS("DMA_BUF");

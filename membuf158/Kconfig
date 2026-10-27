@@ -1,0 +1,19 @@
+# SPDX-License-Identifier: GPL-2.0-only
+config GH_ARM64_DRV
+ tristate
+ default m
+config GH_MSGQ
+ tristate
+ default m
+config GH_DBL
+ tristate
+ default m
+config GH_RM_DRV
+ tristate
+ default m
+config GH_MEM_NOTIFIER
+ tristate
+ default m
+config GH_GUEST_POPS
+ bool
+ default y

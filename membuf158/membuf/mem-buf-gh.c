@@ -20,7 +20,7 @@
 #include <linux/of.h>
 #include <linux/mem-buf-altmap.h>
 
-#include "../../../../drivers/dma-buf/heaps/qcom_sg_ops.h"
+#include "qcom_sg_ops.h"
 #include "mem-buf-gh.h"
 #include "mem-buf-msgq.h"
 #include "mem-buf-ids.h"
@@ -227,7 +227,7 @@ static int mem_buf_rmt_alloc_pages(struct sg_table *sgt, unsigned int count)
 	int ret, i = 0;
 	struct page **pages;
 	size_t size = count << PAGE_SHIFT;
-	unsigned long order_mask = (1U << MAX_ORDER) - 1;
+	unsigned long order_mask = (1U << MAX_PAGE_ORDER) - 1;
 
 	pages = kvcalloc(count, sizeof(*pages), GFP_KERNEL);
 	if (!pages)
@@ -1591,6 +1591,7 @@ int mem_buf_msgq_alloc(struct device *dev)
 		.msgq_ops = &msgq_ops,
 	};
 	int ret, i, count;
+	bool legacy_single_queue;
 	const char *name;
 
 	/* No msgq if neither a consumer nor a supplier */
@@ -1603,10 +1604,17 @@ int mem_buf_msgq_alloc(struct device *dev)
 		return -EINVAL;
 	}
 
-	count = of_property_count_strings(dev->of_node, "qcom,msgq-names");
-	if (count < 0) {
+	/* The original SM8475 5.10 DT omits qcom,msgq-names and uses
+	 * GH_MSGQ_LABEL_MEMBUF, named trusted_vm by the newer driver.
+	 * Only an absent property selects that original single queue;
+	 * malformed or empty explicit properties remain errors.
+	 */
+	legacy_single_queue = !of_find_property(dev->of_node, "qcom,msgq-names", NULL);
+	count = legacy_single_queue ? 1 :
+		of_property_count_strings(dev->of_node, "qcom,msgq-names");
+	if (count <= 0) {
 		dev_err(dev, "Invalid qcom,msgq-names property %d\n", count);
-		ret = count;
+		ret = count ? count : -EINVAL;
 		goto err_msgq_register;
 	}
 
@@ -1618,9 +1626,14 @@ int mem_buf_msgq_alloc(struct device *dev)
 	num_msgqs = count;
 
 	for (i = 0; i < num_msgqs; i++) {
-		ret = of_property_read_string_index(dev->of_node, "qcom,msgq-names", i, &name);
-		if (ret)
-			goto err_msgq_register;
+		if (legacy_single_queue) {
+			name = "trusted_vm";
+		} else {
+			ret = of_property_read_string_index(dev->of_node,
+					"qcom,msgq-names", i, &name);
+			if (ret)
+				goto err_msgq_register;
+		}
 
 		msgqs[i] = mem_buf_msgq_register(name, &info);
 		if (IS_ERR(msgqs[i])) {

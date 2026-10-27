@@ -53,7 +53,7 @@ struct gh_msgq_cap_table {
 static LIST_HEAD(gh_msgq_cap_list);
 static DEFINE_SPINLOCK(gh_msgq_cap_list_lock);
 
-struct gh_msgq_cap_table *gh_msgq_alloc_entry(int label)
+static struct gh_msgq_cap_table *gh_msgq_alloc_entry(int label)
 {
 	int ret;
 	struct gh_msgq_cap_table *cap_table_entry = NULL;
@@ -132,7 +132,7 @@ static int __gh_msgq_recv(struct gh_msgq_cap_table *cap_table_entry,
 	int ret = 0;
 
 	/* Discard the driver specific flags, and keep only HVC specifics */
-	rx_flags &= GH_MSGQ_HVC_FLAGS_MASK;
+	(void)rx_flags; /* Receive hypercall has no flags argument; retain donor behavior. */
 
 	spin_lock_irqsave(&cap_table_entry->rx_lock, flags);
 	gh_ret = gh_hcall_msgq_recv(cap_table_entry->rx_cap_id, buff,

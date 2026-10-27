@@ -109,7 +109,7 @@ int gh_update_vm_prop_table(enum gh_vm_names vm_name,
 	return 0;
 }
 
-void gh_reset_vm_prop_table_entry(gh_vmid_t vmid)
+static void gh_reset_vm_prop_table_entry(gh_vmid_t vmid)
 {
 	size_t vm_name;
 
