@@ -5,6 +5,32 @@
  */
 
 #include "phy-qcom-ufs-i.h"
+#include <linux/clk-provider.h>
+#include <linux/of.h>
+
+/* Native QMP represents variable physical symbol clocks with rate 0. */
+static int pong_ufs_register_symbol_clocks(struct device *dev, struct ufs_qcom_phy *p)
+{
+ static const char * const suffix[] = { "rx_symbol_0", "rx_symbol_1", "tx_symbol_0" };
+ struct clk_hw_onecell_data *data;
+ struct clk **outputs[] = { &p->rx_sym0_phy_clk, &p->rx_sym1_phy_clk, &p->tx_sym0_phy_clk };
+ char name[96];
+ int i, ret;
+ if (!of_device_is_compatible(dev->of_node, "qcom,ufs-phy-qmp-v4-cape") &&
+     !of_device_is_compatible(dev->of_node, "qcom,ufs-phy-qmp-v4-waipio")) return 0;
+ data = devm_kzalloc(dev, struct_size(data, hws, 3), GFP_KERNEL);
+ if (!data) return -ENOMEM;
+ data->num = 3;
+ for (i = 0; i < 3; i++) {
+  snprintf(name, sizeof(name), "%s::%s", dev_name(dev), suffix[i]);
+  data->hws[i] = devm_clk_hw_register_fixed_rate(dev, name, NULL, 0, 0);
+  if (IS_ERR(data->hws[i])) return PTR_ERR(data->hws[i]);
+  *outputs[i] = devm_clk_hw_get_clk(dev, data->hws[i], suffix[i]);
+  if (IS_ERR(*outputs[i])) { ret = PTR_ERR(*outputs[i]); *outputs[i] = NULL; return ret; }
+ }
+ return devm_of_clk_add_hw_provider(dev, of_clk_hw_onecell_get, data);
+}
+
 
 #define MAX_PROP_NAME              32
 #define VDDA_PHY_MIN_UV            880000
@@ -150,6 +176,8 @@ struct phy *ufs_qcom_phy_generic_probe(struct platform_device *pdev,
 	struct phy *generic_phy = NULL;
 	struct phy_provider *phy_provider;
 
+	err = pong_ufs_register_symbol_clocks(dev, common_cfg);
+	if (err) return ERR_PTR(err);
 	err = ufs_qcom_phy_base_init(pdev, common_cfg);
 	if (err) {
 		dev_err(dev, "%s: phy base init failed %d\n", __func__, err);
@@ -194,7 +222,7 @@ struct phy *ufs_qcom_phy_generic_probe(struct platform_device *pdev,
 	INIT_LIST_HEAD(&common_cfg->regs_list_head);
 
 out:
-	return generic_phy;
+	return err ? ERR_PTR(err) : generic_phy;
 }
 EXPORT_SYMBOL(ufs_qcom_phy_generic_probe);
 
@@ -220,7 +248,9 @@ static int __ufs_qcom_phy_clk_get(struct device *dev,
 	struct clk *clk;
 	int err = 0;
 
-	clk = devm_clk_get(dev, name);
+	if (*clk_out) return 0;
+	clk = devm_clk_get_optional(dev, name);
+	if (!clk && err_print) return -ENOENT;
 	if (IS_ERR(clk)) {
 		err = PTR_ERR(clk);
 		if (err_print)
@@ -249,15 +279,17 @@ int ufs_qcom_phy_init_clks(struct ufs_qcom_phy *phy_common)
 	 * tx_iface_clk does not exist in newer version of ufs-phy HW,
 	 * so don't return error if it is not found
 	 */
-	__ufs_qcom_phy_clk_get(phy_common->dev, "tx_iface_clk",
+	err = __ufs_qcom_phy_clk_get(phy_common->dev, "tx_iface_clk",
 				   &phy_common->tx_iface_clk, false);
+	if (err) goto out;
 
 	/*
 	 * rx_iface_clk does not exist in newer version of ufs-phy HW,
 	 * so don't return error if it is not found
 	 */
-	__ufs_qcom_phy_clk_get(phy_common->dev, "rx_iface_clk",
+	err = __ufs_qcom_phy_clk_get(phy_common->dev, "rx_iface_clk",
 				   &phy_common->rx_iface_clk, false);
+	if (err) goto out;
 
 skip_txrx_clk:
 	err = ufs_qcom_phy_clk_get(phy_common->dev, "ref_clk_src",
@@ -269,42 +301,52 @@ skip_txrx_clk:
 	 * "ref_clk_parent" is optional hence don't abort init if it's not
 	 * found.
 	 */
-	__ufs_qcom_phy_clk_get(phy_common->dev, "ref_clk_parent",
+	err = __ufs_qcom_phy_clk_get(phy_common->dev, "ref_clk_parent",
 				   &phy_common->ref_clk_parent, false);
+	if (err) goto out;
 
 	/*
 	 * Some platforms may not have the ON/OFF control for reference clock,
 	 * hence this clock may be optional.
 	 */
-	__ufs_qcom_phy_clk_get(phy_common->dev, "ref_clk",
+	err = __ufs_qcom_phy_clk_get(phy_common->dev, "ref_clk",
 				   &phy_common->ref_clk, false);
+	if (err) goto out;
 
 	/*
 	 * "ref_aux_clk" is optional and only supported by certain
 	 * phy versions, don't abort init if it's not found.
 	 */
-	 __ufs_qcom_phy_clk_get(phy_common->dev, "ref_aux_clk",
+	 err = __ufs_qcom_phy_clk_get(phy_common->dev, "ref_aux_clk",
 				   &phy_common->ref_aux_clk, false);
+	if (err) goto out;
 
 	 /*
 	  * "qref_clk_signal" is optional. It is needed for certain platforms.
 	  * No need to abort if it's not present.
 	  */
-	 __ufs_qcom_phy_clk_get(phy_common->dev, "qref_clk",
+	 err = __ufs_qcom_phy_clk_get(phy_common->dev, "qref_clk",
 				   &phy_common->qref_clk, false);
+	if (err) goto out;
 
-	 __ufs_qcom_phy_clk_get(phy_common->dev, "rx_sym0_mux_clk",
+	 err = __ufs_qcom_phy_clk_get(phy_common->dev, "rx_sym0_mux_clk",
 				   &phy_common->rx_sym0_mux_clk, false);
-	 __ufs_qcom_phy_clk_get(phy_common->dev, "rx_sym1_mux_clk",
+	if (err) goto out;
+	 err = __ufs_qcom_phy_clk_get(phy_common->dev, "rx_sym1_mux_clk",
 				   &phy_common->rx_sym1_mux_clk, false);
-	 __ufs_qcom_phy_clk_get(phy_common->dev, "tx_sym0_mux_clk",
+	if (err) goto out;
+	 err = __ufs_qcom_phy_clk_get(phy_common->dev, "tx_sym0_mux_clk",
 				   &phy_common->tx_sym0_mux_clk, false);
-	 __ufs_qcom_phy_clk_get(phy_common->dev, "rx_sym0_phy_clk",
+	if (err) goto out;
+	 err = __ufs_qcom_phy_clk_get(phy_common->dev, "rx_sym0_phy_clk",
 				   &phy_common->rx_sym0_phy_clk, false);
-	 __ufs_qcom_phy_clk_get(phy_common->dev, "rx_sym1_phy_clk",
+	if (err) goto out;
+	 err = __ufs_qcom_phy_clk_get(phy_common->dev, "rx_sym1_phy_clk",
 				   &phy_common->rx_sym1_phy_clk, false);
-	 __ufs_qcom_phy_clk_get(phy_common->dev, "tx_sym0_phy_clk",
+	if (err) goto out;
+	 err = __ufs_qcom_phy_clk_get(phy_common->dev, "tx_sym0_phy_clk",
 				   &phy_common->tx_sym0_phy_clk, false);
+	if (err) goto out;
 	if (!phy_common->rx_sym0_mux_clk ||
 		!phy_common->rx_sym1_mux_clk ||
 		!phy_common->tx_sym0_mux_clk ||

@@ -149,28 +149,31 @@ static int nb7vpq904m_reg_set(struct nb7vpq904m_redriver *redriver,
 	return 0;
 }
 
-static void nb7vpq904m_vdd_enable(struct nb7vpq904m_redriver *redriver, bool on)
+static int nb7vpq904m_vdd_enable(struct nb7vpq904m_redriver *r, bool on)
 {
-	int l, v, s;
-
-	if (!redriver->vdd) {
-		dev_dbg(redriver->dev, "no vdd regulator operation\n");
-		return;
-	}
-
-	if (on && !redriver->vdd_enable) {
-		redriver->vdd_enable = true;
-		l = regulator_set_load(redriver->vdd, CHIP_MAX_PWR_UA);
-		v = regulator_set_voltage(redriver->vdd, CHIP_MIN_PWR_UV, CHIP_MAX_PWR_UV);
-		s = regulator_enable(redriver->vdd);
-		dev_dbg(redriver->dev, "vdd regulator enable return %d-%d-%d\n", l, v, s);
-	} else if (!on && redriver->vdd_enable) {
-		redriver->vdd_enable = false;
-		s = regulator_disable(redriver->vdd);
-		v = regulator_set_voltage(redriver->vdd, 0, CHIP_MAX_PWR_UV);
-		l = regulator_set_load(redriver->vdd, 0);
-		dev_dbg(redriver->dev, "vdd regulator disable return %d-%d-%d\n", l, v, s);
-	}
+ int ret;
+ if (!r->vdd || r->vdd_enable == on) return 0;
+ if (on) {
+  ret = regulator_set_load(r->vdd, CHIP_MAX_PWR_UA);
+  if (ret < 0) return ret;
+  ret = regulator_set_voltage(r->vdd, CHIP_MIN_PWR_UV, CHIP_MAX_PWR_UV);
+  if (ret) goto load_off;
+  ret = regulator_enable(r->vdd);
+  if (ret) goto voltage_off;
+  r->vdd_enable = true;
+  return 0;
+ }
+ ret = regulator_disable(r->vdd);
+ if (ret) return ret;
+ r->vdd_enable = false;
+ ret = regulator_set_voltage(r->vdd, 0, CHIP_MAX_PWR_UV);
+ if (ret) return ret;
+ return regulator_set_load(r->vdd, 0);
+voltage_off:
+ regulator_set_voltage(r->vdd, 0, CHIP_MAX_PWR_UV);
+load_off:
+ regulator_set_load(r->vdd, 0);
+ return ret;
 }
 
 static void nb7vpq904m_dev_aux_set(struct nb7vpq904m_redriver *redriver)
@@ -479,46 +482,32 @@ static inline void orientation_set(struct nb7vpq904m_redriver *redriver, int ort
 
 static int nb7vpq904m_notify_connect(struct usb_redriver *r, int ort)
 {
-	struct nb7vpq904m_redriver *redriver =
-		container_of(r, struct nb7vpq904m_redriver, r);
-
-	dev_dbg(redriver->dev, "%s: mode %s, orientation %s, %d\n", __func__,
-		OPMODESTR(redriver->op_mode),
-		ort == ORIENTATION_CC1 ? "CC1" : "CC2",
-		redriver->lane_channel_swap);
-
-	nb7vpq904m_vdd_enable(redriver, true);
-
-	if (redriver->op_mode == OP_MODE_NONE)
-		redriver->op_mode = OP_MODE_USB;
-
-	orientation_set(redriver, ort);
-
-	nb7vpq904m_gen_dev_set(redriver);
-	nb7vpq904m_channel_update(redriver);
-
-	return 0;
+ struct nb7vpq904m_redriver *redriver = container_of(r, struct nb7vpq904m_redriver, r);
+ int ret;
+ if (ort != ORIENTATION_CC1 && ort != ORIENTATION_CC2) return -EINVAL;
+ if (redriver->op_mode != OP_MODE_NONE) return -EBUSY;
+ ret = nb7vpq904m_vdd_enable(redriver, true);
+ if (ret) return ret;
+ redriver->op_mode = OP_MODE_USB;
+ orientation_set(redriver, ort);
+ ret = nb7vpq904m_gen_dev_set(redriver);
+ if (!ret) ret = nb7vpq904m_channel_update(redriver);
+ if (!ret) return 0;
+ redriver->op_mode = OP_MODE_NONE;
+ nb7vpq904m_reg_set(redriver, GEN_DEV_SET_REG, 0);
+ nb7vpq904m_vdd_enable(redriver, false);
+ return ret;
 }
 
 static int nb7vpq904m_notify_disconnect(struct usb_redriver *r)
 {
-	int ret = 0;
-	struct nb7vpq904m_redriver *redriver =
-		container_of(r, struct nb7vpq904m_redriver, r);
-
-	dev_dbg(redriver->dev, "%s: mode %s\n", __func__,
-		OPMODESTR(redriver->op_mode));
-
-	if (redriver->op_mode == OP_MODE_NONE)
-		return 0;
-
-	redriver->op_mode = OP_MODE_NONE;
-	ret = nb7vpq904m_reg_set(redriver, GEN_DEV_SET_REG, 0);
-
-	if (!ret)
-		nb7vpq904m_vdd_enable(redriver, false);
-
-	return 0;
+ struct nb7vpq904m_redriver *redriver = container_of(r, struct nb7vpq904m_redriver, r);
+ int ret, power_ret;
+ if (redriver->op_mode == OP_MODE_NONE && !redriver->vdd_enable) return 0;
+ ret = nb7vpq904m_reg_set(redriver, GEN_DEV_SET_REG, 0);
+ power_ret = nb7vpq904m_vdd_enable(redriver, false);
+ if (!ret || (redriver->vdd && !redriver->vdd_enable)) redriver->op_mode = OP_MODE_NONE;
+ return ret ? ret : power_ret;
 }
 
 static int nb7vpq904m_release_usb_lanes(struct usb_redriver *r, int ort, int num)
@@ -646,6 +635,17 @@ static const struct regmap_config redriver_regmap = {
 	.val_bits = 8,
 };
 
+static void pong_nb7_cleanup(void *data)
+{
+ struct nb7vpq904m_redriver *r = data;
+ cancel_work_sync(&r->host_work);
+ cancel_work_sync(&r->pullup_work);
+ r->work_ongoing = false;
+ destroy_workqueue(r->pullup_wq);
+ debugfs_remove_recursive(r->debug_root);
+ if (nb7vpq904m_vdd_enable(r, false)) dev_warn(r->dev, "redriver power cleanup failed\n");
+}
+
 static int nb7vpq904m_probe(struct i2c_client *client)
 {
 	struct nb7vpq904m_redriver *redriver;
@@ -656,13 +656,6 @@ static int nb7vpq904m_probe(struct i2c_client *client)
 	if (!redriver)
 		return -ENOMEM;
 
-	redriver->pullup_wq = alloc_workqueue("%s:pullup",
-				WQ_UNBOUND | WQ_HIGHPRI, 0,
-				dev_name(&client->dev));
-	if (!redriver->pullup_wq) {
-		dev_err(&client->dev, "Failed to create pullup workqueue\n");
-		return -ENOMEM;
-	}
 
 	redriver->regmap = devm_regmap_init_i2c(client, &redriver_regmap);
 	if (IS_ERR(redriver->regmap)) {
@@ -685,28 +678,42 @@ static int nb7vpq904m_probe(struct i2c_client *client)
 	redriver->vdd = devm_regulator_get_optional(&client->dev, "vdd");
 	if (IS_ERR(redriver->vdd)) {
 		ret = PTR_ERR(redriver->vdd);
-		redriver->vdd = NULL;
 		if (ret != -ENODEV)
-			dev_err(&client->dev, "Failed to get vdd regulator %d\n", ret);
+			return dev_err_probe(&client->dev, ret, "redriver vdd supplier\n");
+		redriver->vdd = NULL;
 	}
 
 	INIT_WORK(&redriver->pullup_work, nb7vpq904m_gadget_pullup_work);
 	INIT_WORK(&redriver->host_work, nb7vpq904m_host_work);
+
+	redriver->pullup_wq = alloc_workqueue("%s:pullup",
+				WQ_UNBOUND | WQ_HIGHPRI, 0,
+				dev_name(&client->dev));
+	if (!redriver->pullup_wq) {
+		dev_err(&client->dev, "Failed to create pullup workqueue\n");
+		return -ENOMEM;
+	}
+
+	ret = devm_add_action_or_reset(&client->dev, pong_nb7_cleanup, redriver);
+	if (ret) return ret;
 
 	redriver->lane_channel_swap =
 	    of_property_read_bool(redriver->dev->of_node, "lane-channel-swap");
 
 	/* disable it at start, one i2c register write time is acceptable */
 	redriver->op_mode = OP_MODE_NONE;
-	nb7vpq904m_vdd_enable(redriver, true);
-	nb7vpq904m_gen_dev_set(redriver);
+	ret = nb7vpq904m_vdd_enable(redriver, true);
+	if (ret) return ret;
+	ret = nb7vpq904m_gen_dev_set(redriver);
+	if (ret) return ret;
 	/* when private vdd present and change to none mode, it can simply disable vdd regulator,
 	 * but to keep things simple and avoid if/else operation, keep one same rule as,
 	 * allow original register write operation then control vdd regulator.
 	 * also it will keep consistent behavior if it still need vdd control when multiple
 	 * clients share the same vdd regulator.
 	 */
-	nb7vpq904m_vdd_enable(redriver, false);
+	ret = nb7vpq904m_vdd_enable(redriver, false);
+	if (ret) return ret;
 
 	nb7vpq904m_debugfs_entries(redriver);
 
@@ -717,24 +724,18 @@ static int nb7vpq904m_probe(struct i2c_client *client)
 	redriver->r.gadget_pullup_enter = nb7vpq904m_gadget_pullup_enter;
 	redriver->r.gadget_pullup_exit = nb7vpq904m_gadget_pullup_exit;
 	redriver->r.host_powercycle = nb7vpq904m_host_powercycle;
-	usb_add_redriver(&redriver->r);
+	ret = usb_add_redriver(&redriver->r);
+	if (ret) return ret;
 
 	return 0;
 }
 
 static void nb7vpq904m_remove(struct i2c_client *client)
 {
-	struct nb7vpq904m_redriver *redriver = i2c_get_clientdata(client);
-
-	if (usb_remove_redriver(&redriver->r))
-		return;
-
-	debugfs_remove_recursive(redriver->debug_root);
-	redriver->work_ongoing = false;
-	destroy_workqueue(redriver->pullup_wq);
-
-	if (redriver->vdd)
-		regulator_disable(redriver->vdd);
+ struct nb7vpq904m_redriver *redriver = i2c_get_clientdata(client);
+ int ret = usb_remove_redriver(&redriver->r);
+ if (ret) dev_err(&client->dev, "redriver still bound during remove: %d\n", ret);
+ /* Managed USB consumer link unbinds the consumer first; devres drains work. */
 }
 
 static ssize_t channel_config_write(struct file *file,
@@ -1035,3 +1036,5 @@ module_i2c_driver(nb7vpq904m_driver);
 
 MODULE_DESCRIPTION("USB Super Speed Linear Re-Driver");
 MODULE_LICENSE("GPL");
+
+MODULE_DEVICE_TABLE(of, nb7vpq904m_match_table);

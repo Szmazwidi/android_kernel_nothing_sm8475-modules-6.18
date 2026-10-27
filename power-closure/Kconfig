@@ -1,0 +1,6 @@
+config USB_REDRIVER
+    tristate
+config PONG618_POWER_CLOSURE
+    tristate "Pong power and lifecycle closure"
+    select USB_REDRIVER
+    select SM_GCC_8450

@@ -113,6 +113,11 @@ struct usb_redriver *usb_get_redriver_by_phandle(const struct device_node *np,
 	}
 
 	pr_debug("get redriver %s\n", of_node_full_name(redriver->of_node));
+	if (redriver->bounded) {
+		of_node_put(node);
+		spin_unlock(&usb_rediver_lock);
+		return ERR_PTR(-EBUSY);
+	}
 	redriver->bounded = true;
 
 	spin_unlock(&usb_rediver_lock);
@@ -192,3 +197,16 @@ EXPORT_SYMBOL_GPL(usb_redriver_host_powercycle);
 
 MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION("USB Super Speed (Plus) redriver core module");
+
+int usb_redriver_connect_checked(struct usb_redriver *r, int ort)
+{
+ if (!r || !r->notify_connect) return -EOPNOTSUPP;
+ return r->notify_connect(r, ort);
+}
+EXPORT_SYMBOL_GPL(usb_redriver_connect_checked);
+int usb_redriver_disconnect_checked(struct usb_redriver *r)
+{
+ if (!r || !r->notify_disconnect) return -EOPNOTSUPP;
+ return r->notify_disconnect(r);
+}
+EXPORT_SYMBOL_GPL(usb_redriver_disconnect_checked);
