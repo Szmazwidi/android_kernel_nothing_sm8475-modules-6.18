@@ -1,0 +1,7 @@
+# Reduced from the original package BUILD.bazel: only targets whose modules run on the phone are kept.
+load("//build/kernel/kleaf:kernel.bzl", "ddk_config", "ddk_module")
+package(default_visibility = ["//visibility:public"])
+
+ddk_config(name="config", kernel_build="//common:kernel_aarch64", kconfigs=["Kconfig"], defconfig="defconfig")
+ddk_module(name="ipcc41",out="qcom-ipcc.ko",kernel_build="//common:kernel_aarch64",config=":config",srcs=["qcom-ipcc.c"])
+ddk_module(name="cpucp41",out="qcom_cpucp.ko",kernel_build="//common:kernel_aarch64",config=":config",srcs=["qcom_cpucp.c"])

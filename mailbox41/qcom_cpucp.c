@@ -5,6 +5,9 @@
  */
 
 #include <linux/module.h>
+#include <linux/io.h>
+#include <linux/of.h>
+#include <linux/property.h>
 #include <linux/irq.h>
 #include <linux/interrupt.h>
 #include <linux/irqdomain.h>
@@ -202,11 +205,27 @@ static int qcom_cpucp_ipc_setup_mbox(struct qcom_cpucp_ipc *cpucp_ipc)
 	return mbox_controller_register(mbox);
 }
 
+/* Stage41: check named native-v1 resources before any mapping or IRQ setup. */
+static int cpucp_resource_bounds41(const struct qcom_cpucp_mbox_desc *desc,
+                                 unsigned long long tx, unsigned long long rx)
+{
+ unsigned long long last;
+ if (!desc->num_chans || desc->num_chans > 8)
+  return -EINVAL;
+ if (desc->v2_mbox)
+  return -ENODEV; /* This diagnostic cohort supports the captured v1 DT only. */
+ last = (unsigned long long)(desc->num_chans - 1) * desc->chan_stride;
+ if (tx < (unsigned long long)desc->send_reg + 4 ||
+     rx < last + desc->status_reg + 4 || rx < last + desc->clear_reg + 4)
+  return -EINVAL;
+ return 0;
+}
+
 static int qcom_cpucp_probe(struct platform_device *pdev)
 {
 	const struct qcom_cpucp_mbox_desc *desc;
 	struct qcom_cpucp_ipc *cpucp_ipc;
-	struct resource *res;
+	struct resource *res, *rx_resource;
 	unsigned long flags = IRQF_TRIGGER_HIGH | IRQF_NO_SUSPEND;
 	unsigned long i;
 	int ret;
@@ -227,6 +246,13 @@ static int qcom_cpucp_probe(struct platform_device *pdev)
 		dev_err(&pdev->dev, "Failed to get the device base address\n");
 		return -ENODEV;
 	}
+
+	rx_resource = platform_get_resource_byname(pdev, IORESOURCE_MEM, "rx");
+	if (!rx_resource)
+		return -ENODEV;
+	ret = cpucp_resource_bounds41(desc, resource_size(res), resource_size(rx_resource));
+	if (ret)
+		return dev_err_probe(&pdev->dev, ret, "Unsupported CPUCP41 DT resource geometry\n");
 
 	cpucp_ipc->tx_irq_base = devm_ioremap(&pdev->dev, res->start,
 			resource_size(res));
@@ -290,17 +316,16 @@ static int qcom_cpucp_probe(struct platform_device *pdev)
 		return dev_err_probe(&pdev->dev, ret, "Failed to create mailbox\n");
 
 	platform_set_drvdata(pdev, cpucp_ipc);
+	dev_info(&pdev->dev, "PONG618_CPUCP41_PROVIDER_READY v1 channels=%u send=%#x status=%#x clear=%#x stride=%#x\n", desc->num_chans, desc->send_reg, desc->status_reg, desc->clear_reg, desc->chan_stride);
 
 	return 0;
 }
 
-static int qcom_cpucp_remove(struct platform_device *pdev)
+static void qcom_cpucp_remove(struct platform_device *pdev)
 {
 	struct qcom_cpucp_ipc *cpucp_ipc = platform_get_drvdata(pdev);
 
 	mbox_controller_unregister(&cpucp_ipc->mbox);
-
-	return 0;
 }
 
 static const struct qcom_cpucp_mbox_desc cpucp_mbox_desc = {
