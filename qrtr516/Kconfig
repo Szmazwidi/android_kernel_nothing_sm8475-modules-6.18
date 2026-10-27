@@ -1,0 +1,4 @@
+config QRTR_MHI
+	tristate "Matching MHI QRTR transport"
+config MHI_BUS
+	tristate "Matching external MHI provider"
