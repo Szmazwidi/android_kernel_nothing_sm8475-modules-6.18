@@ -12,6 +12,19 @@
 #include <linux/io.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
+#define LLCC_TRP_STAL_ATTR0_CFGn(n)   (0xC + SZ_4K * n)
+#define STALING_TRIGGER_MASK          0x1
+
+#define LLCC_TRP_STAL_ATTR1_CFGn(n)   (0x10 + SZ_4K * n)
+#define NOTIFCN_BASED_INVDTN_EN_SHIFT 12
+#define STALING_ENABLE_MASK           0x1001
+#define FRAME_DISTANCE_SHIFT          4
+#define STALING_NUM_FRAMES_MASK       GENMASK(2 + FRAME_DISTANCE_SHIFT,\
+					FRAME_DISTANCE_SHIFT)
+
+
+#define LLCC_VERSION_5_0_0_0 0x05000000
+
 #include <linux/mutex.h>
 #include <linux/nvmem-consumer.h>
 #include <linux/of.h>
@@ -2128,7 +2141,7 @@ static const struct llcc_slice_config sm8450_data[] =  {
 		.usecase_id = LLCC_MDMPNG,
 		.slice_id = 21,
 		.max_cap = 1024,
-		.priority = 1,
+		.priority = 0,
 		.fixed_size = true,
 		.bonus_ways = 0xf000,
 		.cache_mode = 0,
@@ -4416,8 +4429,131 @@ static struct regmap *qcom_llcc_init_mmio(struct platform_device *pdev, u8 index
 		return ERR_CAST(base);
 
 	llcc_regmap_config.name = name;
+	llcc_regmap_config.max_register=0x57ffc;
 	return devm_regmap_init_mmio(&pdev->dev, base, &llcc_regmap_config);
 }
+
+static int llcc_staling_conf_capacity(u32 sid, struct llcc_staling_mode_params *p)
+{
+	u32 notif_staling_reg;
+
+	notif_staling_reg = LLCC_TRP_STAL_ATTR1_CFGn(sid);
+
+	return regmap_update_bits(drv_data->bcast_regmap, notif_staling_reg,
+				 STALING_ENABLE_MASK,
+				 LLCC_STALING_MODE_CAPACITY);
+}
+
+static int llcc_staling_conf_notify(u32 sid, struct llcc_staling_mode_params *p)
+{
+	u32 notif_staling_reg, staling_distance, config;
+	int ret;
+
+	if (p->notify_params.op >= LLCC_NOTIFY_STALING_OPS_MAX)
+		return -EINVAL;
+
+	config = LLCC_STALING_MODE_NOTIFY;
+
+	if (drv_data->version >= LLCC_VERSION_6_0_0_0)
+		config |= p->notify_params.op << NOTIFCN_BASED_INVDTN_EN_SHIFT;
+
+	notif_staling_reg = LLCC_TRP_STAL_ATTR1_CFGn(sid);
+
+	ret = regmap_update_bits(drv_data->bcast_regmap, notif_staling_reg,
+				 STALING_ENABLE_MASK,
+				 config);
+	if (ret)
+		return ret;
+
+	staling_distance = p->notify_params.staling_distance << FRAME_DISTANCE_SHIFT;
+
+	return regmap_update_bits(drv_data->bcast_regmap, notif_staling_reg,
+				  STALING_NUM_FRAMES_MASK, staling_distance);
+}
+
+static int (*staling_mode_ops[LLCC_STALING_MODE_MAX])(u32, struct llcc_staling_mode_params *) = {
+	[LLCC_STALING_MODE_CAPACITY]	= llcc_staling_conf_capacity,
+	[LLCC_STALING_MODE_NOTIFY]	= llcc_staling_conf_notify,
+};
+
+/**
+ * llcc_configure_staling_mode - Configure cache staling mode by setting the
+ *				 staling_mode and corresponding
+ *				 mode-specific params
+ *
+ * @desc: Pointer to llcc slice descriptor
+ * @p: Staling mode-specific params
+ *
+ * Returns: zero on success or negative errno.
+ */
+int llcc_configure_staling_mode(struct llcc_slice_desc *desc,
+				struct llcc_staling_mode_params *p)
+
+{
+	u32 sid;
+	enum llcc_staling_mode m;
+
+	if (IS_ERR(drv_data))
+		return PTR_ERR(drv_data);
+
+	if (drv_data->version < LLCC_VERSION_5_0_0_0)
+		return -EOPNOTSUPP;
+
+	if (IS_ERR_OR_NULL(desc) || !p)
+		return -EINVAL;
+
+	sid = desc->slice_id;
+	m = p->staling_mode;
+	if (m >= LLCC_STALING_MODE_MAX)
+		return -EINVAL;
+
+	/*
+	 * Look up op corresponding to staling mode and call it
+	 * with the params passed
+	 */
+	return (*staling_mode_ops[m])(sid, p);
+
+}
+EXPORT_SYMBOL(llcc_configure_staling_mode);
+
+/**
+ * llcc_notif_staling_inc_counter - Trigger the staling of the sub-cache frame.
+ *
+ * @desc: Pointer to llcc slice descriptor
+ *
+ * Returns: zero on success or negative errno.
+ */
+int llcc_notif_staling_inc_counter(struct llcc_slice_desc *desc)
+{
+	u32 sid, stale_trigger_reg, discard;
+	int ret;
+
+	if (IS_ERR(drv_data))
+		return PTR_ERR(drv_data);
+
+	if (drv_data->version < LLCC_VERSION_5_0_0_0)
+		return -EOPNOTSUPP;
+
+	if (IS_ERR_OR_NULL(desc))
+		return -EINVAL;
+
+	sid = desc->slice_id;
+	stale_trigger_reg = LLCC_TRP_STAL_ATTR0_CFGn(sid);
+
+	ret = regmap_update_bits(drv_data->bcast_regmap, stale_trigger_reg,
+				 STALING_TRIGGER_MASK, STALING_TRIGGER_MASK);
+	if (ret)
+		return ret;
+
+	/*
+	 * stale_trigger_reg is a self-clearing reg. Read it anyway to ensure
+	 * that the write went through. We don't care about the value being
+	 * read, so discard it.
+	 */
+	return regmap_read(drv_data->bcast_regmap, stale_trigger_reg, &discard);
+}
+EXPORT_SYMBOL(llcc_notif_staling_inc_counter);
+
 
 static int qcom_llcc_probe(struct platform_device *pdev)
 {
@@ -4433,6 +4569,16 @@ static int qcom_llcc_probe(struct platform_device *pdev)
 	u32 version;
 	struct regmap *regmap;
 
+	/* Local70: captured Cape four-bank + broadcast resource contract. */
+	static const char *names70[]={"llcc0_base","llcc1_base","llcc2_base","llcc3_base","llcc_broadcast_base"};
+	static const resource_size_t starts70[]={0x19200000,0x19280000,0x19300000,0x19380000,0x19a00000};
+	if (!of_device_is_compatible(dev->of_node,"qcom,cape-llcc"))
+		return -ENODEV;
+	for (i=0;i<5;i++) {
+		struct resource *res=platform_get_resource_byname(pdev,IORESOURCE_MEM,names70[i]);
+		if (!res || res->start!=starts70[i] || resource_size(res)!=0x58000)
+			return dev_err_probe(dev,-EINVAL,"PONG70 LLCC resource contract rejected\n");
+	}
 	if (!IS_ERR(drv_data))
 		return -EBUSY;
 
@@ -4470,6 +4616,7 @@ static int qcom_llcc_probe(struct platform_device *pdev)
 		num_banks >>= LLCC_LB_CNT_SHIFT;
 	}
 
+	if (num_banks!=4) {ret=dev_err_probe(dev,-ENODEV,"PONG70 unexpected LLCC banks=%u\n",num_banks);goto err;}
 	drv_data->num_banks = num_banks;
 
 	drv_data->regmaps = devm_kcalloc(dev, num_banks, sizeof(*drv_data->regmaps), GFP_KERNEL);
@@ -4507,7 +4654,9 @@ static int qcom_llcc_probe(struct platform_device *pdev)
 	if (ret)
 		goto err;
 
+	if ((version>>24)!=3) {ret=dev_err_probe(dev,-ENODEV,"PONG70 unexpected LLCC rawversion=%#x\n",version);goto err;}
 	drv_data->version = version;
+	dev_info(dev,"PONG70_NATIVE_LLCC_CONTRACT_READY banks=%u rawversion=%#x\n",num_banks,version);
 
 	/* Applicable only when drv_data->version >= 4.1 */
 	if (drv_data->version >= LLCC_VERSION_4_1_0_0) {
@@ -4569,6 +4718,7 @@ err:
 }
 
 static const struct of_device_id qcom_llcc_of_match[] = {
+	{ .compatible = "qcom,cape-llcc", .data = &sm8450_cfgs },
 	{ .compatible = "qcom,ipq5424-llcc", .data = &ipq5424_cfgs},
 	{ .compatible = "qcom,qcs615-llcc", .data = &qcs615_cfgs},
 	{ .compatible = "qcom,qcs8300-llcc", .data = &qcs8300_cfgs},

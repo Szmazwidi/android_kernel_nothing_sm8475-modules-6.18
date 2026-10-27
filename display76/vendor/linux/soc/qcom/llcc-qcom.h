@@ -164,6 +164,33 @@ struct llcc_drv_data {
 	u32 version;
 };
 
+enum llcc_staling_mode {
+	LLCC_STALING_MODE_CAPACITY, /* Default option on reset */
+	LLCC_STALING_MODE_NOTIFY,
+	LLCC_STALING_MODE_MAX
+};
+
+enum llcc_staling_notify_op {
+	LLCC_NOTIFY_STALING_WRITEBACK,
+	LLCC_NOTIFY_STALING_NO_WRITEBACK,
+	LLCC_NOTIFY_STALING_OPS_MAX
+};
+
+struct llcc_staling_mode_params {
+	enum llcc_staling_mode staling_mode;
+	union {
+		/* STALING_MODE_CAPACITY needs no params */
+		struct staling_mode_notify_params {
+			u8 staling_distance;
+			enum llcc_staling_notify_op op;
+		} notify_params;
+	};
+};
+
+int llcc_configure_staling_mode(struct llcc_slice_desc *desc,
+		struct llcc_staling_mode_params *p);
+int llcc_notif_staling_inc_counter(struct llcc_slice_desc *desc);
+
 #if IS_ENABLED(CONFIG_QCOM_LLCC)
 /**
  * llcc_slice_getd - get llcc slice descriptor
