@@ -1061,6 +1061,8 @@ static struct clk_rcg2 gcc_sdcc4_apps_clk_src = {
 	},
 };
 
+static struct clk_ops pong_ufs_fixed_rcg_ops;
+
 static const struct freq_tbl sm8475_ftbl_gcc_ufs_phy_axi_clk_src[] = {
 	F(25000000, P_GCC_GPLL0_OUT_EVEN, 12, 0, 0),
 	F(75000000, P_GCC_GPLL0_OUT_EVEN, 4, 0, 0),
@@ -1077,7 +1079,7 @@ static struct clk_init_data sm8475_gcc_ufs_phy_axi_clk_src_init = {
 	.parent_data = sm8475_gcc_parent_data_3,
 	.num_parents = ARRAY_SIZE(sm8475_gcc_parent_map_3),
 	.flags = CLK_SET_RATE_PARENT,
-	.ops = &clk_rcg2_ops,
+	.ops = &pong_ufs_fixed_rcg_ops,
 };
 
 static const struct freq_tbl ftbl_gcc_ufs_phy_axi_clk_src[] = {
@@ -1119,7 +1121,7 @@ static struct clk_init_data sm8475_gcc_ufs_phy_ice_core_clk_src_init = {
 	.parent_data = sm8475_gcc_parent_data_3,
 	.num_parents = ARRAY_SIZE(sm8475_gcc_parent_map_3),
 	.flags = CLK_SET_RATE_PARENT,
-	.ops = &clk_rcg2_ops,
+	.ops = &pong_ufs_fixed_rcg_ops,
 };
 
 static const struct freq_tbl ftbl_gcc_ufs_phy_ice_core_clk_src[] = {
@@ -1172,7 +1174,7 @@ static struct clk_init_data sm8475_gcc_ufs_phy_unipro_core_clk_src_init = {
 	.parent_data = sm8475_gcc_parent_data_3,
 	.num_parents = ARRAY_SIZE(sm8475_gcc_parent_map_3),
 	.flags = CLK_SET_RATE_PARENT,
-	.ops = &clk_rcg2_ops,
+	.ops = &pong_ufs_fixed_rcg_ops,
 };
 
 static struct clk_rcg2 gcc_ufs_phy_unipro_core_clk_src = {
@@ -3112,38 +3114,6 @@ static struct clk_branch gcc_video_axi1_clk = {
 	},
 };
 
-static struct gdsc pcie_0_gdsc = {
-	.gdscr = 0x7b004,
-	.pd = {
-		.name = "pcie_0_gdsc",
-	},
-	.pwrsts = PWRSTS_RET_ON,
-};
-
-static struct gdsc pcie_1_gdsc = {
-	.gdscr = 0x9d004,
-	.pd = {
-		.name = "pcie_1_gdsc",
-	},
-	.pwrsts = PWRSTS_RET_ON,
-};
-
-static struct gdsc ufs_phy_gdsc = {
-	.gdscr = 0x87004,
-	.pd = {
-		.name = "ufs_phy_gdsc",
-	},
-	.pwrsts = PWRSTS_OFF_ON,
-};
-
-static struct gdsc usb30_prim_gdsc = {
-	.gdscr = 0x49004,
-	.pd = {
-		.name = "usb30_prim_gdsc",
-	},
-	.pwrsts = PWRSTS_OFF_ON,
-};
-
 static struct clk_regmap *gcc_sm8450_clocks[] = {
 	[GCC_AGGRE_NOC_PCIE_0_AXI_CLK] = &gcc_aggre_noc_pcie_0_axi_clk.clkr,
 	[GCC_AGGRE_NOC_PCIE_1_AXI_CLK] = &gcc_aggre_noc_pcie_1_axi_clk.clkr,
@@ -3377,13 +3347,6 @@ static const struct clk_rcg_dfs_data gcc_dfs_clocks[] = {
 	DEFINE_RCG_DFS(gcc_qupv3_wrap2_s6_clk_src),
 };
 
-static struct gdsc *gcc_sm8450_gdscs[] = {
-	[PCIE_0_GDSC] = &pcie_0_gdsc,
-	[PCIE_1_GDSC] = &pcie_1_gdsc,
-	[UFS_PHY_GDSC] = &ufs_phy_gdsc,
-	[USB30_PRIM_GDSC] = &usb30_prim_gdsc,
-};
-
 static const struct regmap_config gcc_sm8450_regmap_config = {
 	.reg_bits = 32,
 	.reg_stride = 4,
@@ -3398,8 +3361,7 @@ static const struct qcom_cc_desc gcc_sm8450_desc = {
 	.num_clks = ARRAY_SIZE(gcc_sm8450_clocks),
 	.resets = gcc_sm8450_resets,
 	.num_resets = ARRAY_SIZE(gcc_sm8450_resets),
-	.gdscs = gcc_sm8450_gdscs,
-	.num_gdscs = ARRAY_SIZE(gcc_sm8450_gdscs),
+	/* GDSCR ownership stays with donor qcom,gdsc regulators. */
 };
 
 static const struct of_device_id gcc_sm8450_match_table[] = {
@@ -3409,11 +3371,70 @@ static const struct of_device_id gcc_sm8450_match_table[] = {
 };
 MODULE_DEVICE_TABLE(of, gcc_sm8450_match_table);
 
+#include "pong-vdd-types.h"
+#include "pong-vdd-table.h"
+#include "pong-vdd-runtime.h"
+
+
+/* Read-only bounded register snapshot. No firmware PLL programming. */
+static void pong_clock36_snapshot(struct device *dev, struct regmap *map)
+{
+ static const unsigned int offsets[] = {
+  0x2000, 0x2004, 0x2008, 0x2014,
+  0x3000, 0x3004, 0x3008, 0x3014,
+  0x8702c, 0x87030, 0x87074, 0x87078, 0x8708c, 0x87090,
+ };
+ unsigned int i, value;
+ int ret;
+ for (i = 0; i < ARRAY_SIZE(offsets); i++) {
+  value = 0;
+  ret = regmap_read(map, offsets[i], &value);
+  dev_info(dev, "PONG618_CLOCK36 offset=%#x value=%#x ret=%d\n", offsets[i], value, ret);
+ }
+}
+
+
+/* Firmware owns fixed GPLL2/3. Never negotiate an imaginary PLL rate.
+ * Retain the real parent and select its corresponding nominal UFS table row.
+ * Match at the same 1kHz precision as the existing voltage table selector.
+ */
+static int pong_ufs_fixed_determine(struct clk_hw *hw, struct clk_rate_request *req)
+{
+ struct clk_rcg2 *rcg = to_clk_rcg2(hw);
+ const struct freq_tbl *f, *match;
+ unsigned long desired = req->rate, parent_rate, actual;
+ int ret = clk_rcg2_ops.determine_rate(hw, req);
+ if (ret) return ret;
+ if (req->best_parent_hw != &sm8475_gcc_gpll2.clkr.hw &&
+     req->best_parent_hw != &sm8475_gcc_gpll3.clkr.hw) return 0;
+ f = qcom_find_freq(rcg->freq_tbl, req->rate);
+ if (!f) return -EINVAL;
+ parent_rate = clk_hw_get_rate(req->best_parent_hw);
+ if (!parent_rate) return -EIO;
+ actual = parent_rate;
+ if (f->pre_div) actual = actual * 2 / (f->pre_div + 1);
+ if (f->n) actual = actual * f->m / f->n;
+ for (match = rcg->freq_tbl; match->freq; match++) {
+  if (match->src != f->src || match->pre_div != f->pre_div ||
+      match->m != f->m || match->n != f->n) continue;
+  if (DIV_ROUND_CLOSEST(actual, 1000) != DIV_ROUND_CLOSEST(match->freq, 1000)) continue;
+  if (match->freq < req->min_rate || match->freq > req->max_rate) return -ERANGE;
+  req->best_parent_rate = parent_rate;
+  req->rate = match->freq;
+  pr_debug("PONG618_FIXED37 desired=%lu parent=%lu actual=%lu nominal=%lu\n",
+   desired, parent_rate, actual, req->rate);
+  return 0;
+ }
+ return -ERANGE;
+}
+
 static int gcc_sm8450_probe(struct platform_device *pdev)
 {
 	struct regmap *regmap;
 	int ret;
 
+	if (!of_device_is_compatible(pdev->dev.of_node, "qcom,sm8475-gcc"))
+		return -EOPNOTSUPP;
 	regmap = qcom_cc_map(pdev, &gcc_sm8450_desc);
 	if (IS_ERR(regmap))
 		return PTR_ERR(regmap);
@@ -3424,6 +3445,8 @@ static int gcc_sm8450_probe(struct platform_device *pdev)
 		return ret;
 
 	if (of_device_is_compatible(pdev->dev.of_node, "qcom,sm8475-gcc")) {
+		pong_ufs_fixed_rcg_ops = clk_rcg2_ops;
+		pong_ufs_fixed_rcg_ops.determine_rate = pong_ufs_fixed_determine;
 		/* Update GCC PLL0 */
 		gcc_gpll0.regs = clk_alpha_pll_regs[CLK_ALPHA_PLL_TYPE_LUCID_OLE];
 		gcc_gpll0.clkr.hw.init = &sm8475_gcc_gpll0_init;
@@ -3456,6 +3479,9 @@ static int gcc_sm8450_probe(struct platform_device *pdev)
 		gcc_sm8450_desc.clks[SM8475_GCC_GPLL3] = &sm8475_gcc_gpll3.clkr;
 	}
 
+	ret = pong_vdd_init(&pdev->dev);
+	if (ret) return ret;
+
 	/* FORCE_MEM_CORE_ON for ufs phy ice core clocks */
 	regmap_update_bits(regmap, gcc_ufs_phy_ice_core_clk.halt_reg, BIT(14), BIT(14));
 
@@ -3468,13 +3494,18 @@ static int gcc_sm8450_probe(struct platform_device *pdev)
 	qcom_branch_set_clk_en(regmap, 0x42004); /* GCC_VIDEO_AHB_CLK */
 	qcom_branch_set_clk_en(regmap, 0x42028); /* GCC_VIDEO_XO_CLK */
 
-	return qcom_cc_really_probe(&pdev->dev, &gcc_sm8450_desc, regmap);
+	ret = qcom_cc_really_probe(&pdev->dev, &gcc_sm8450_desc, regmap);
+	if (ret) return ret;
+	ret = pong_vdd_register(&pdev->dev);
+	if (!ret) pong_clock36_snapshot(&pdev->dev, regmap);
+	return ret;
 }
 
 static struct platform_driver gcc_sm8450_driver = {
 	.probe = gcc_sm8450_probe,
 	.driver = {
 		.name = "gcc-sm8450",
+		.sync_state = pong_vdd_sync_state,
 		.of_match_table = gcc_sm8450_match_table,
 	},
 };

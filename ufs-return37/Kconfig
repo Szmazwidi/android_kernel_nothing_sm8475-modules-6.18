@@ -1,0 +1,3 @@
+config PONG618_PROBE_GATE
+    tristate "Pong clock load-policy fix"
+    select SM_GCC_8450
