@@ -29,9 +29,9 @@ int system_qcom_sg_buffer_alloc(struct dma_heap *heap,
 				struct qcom_sg_buffer *buffer,
 				unsigned long len,
 				bool movable);
-enum zone_type dynamic_pool_gfp_zone(gfp_t flags);
+static inline enum zone_type dynamic_pool_gfp_zone(gfp_t flags);
 
-bool dynamic_pool_zone_watermark_ok_safe(struct zone *z, unsigned int order,
+static inline bool dynamic_pool_zone_watermark_ok_safe(struct zone *z, unsigned int order,
 					unsigned long mark, int highest_zoneidx);
 #else
 static inline void qcom_system_heap_create(const char *name, const char *system_alias,
@@ -57,12 +57,12 @@ static inline int system_qcom_sg_buffer_alloc(struct dma_heap *heap,
 {
 	return -EOPNOTSUPP;
 }
-enum zone_type dynamic_pool_gfp_zone(gfp_t flags)
+static inline enum zone_type dynamic_pool_gfp_zone(gfp_t flags)
 {
 	return -EOPNOTSUPP;
 }
 
-bool dynamic_pool_zone_watermark_ok_safe(struct zone *z, unsigned int order,
+static inline bool dynamic_pool_zone_watermark_ok_safe(struct zone *z, unsigned int order,
 					unsigned long mark, int highest_zoneidx)
 {
 	return -EOPNOTSUPP;

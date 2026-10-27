@@ -50,7 +50,7 @@ static void cma_heap_free(struct qcom_sg_buffer *buffer)
 }
 
 /* dmabuf heap CMA operations functions */
-struct dma_buf *cma_heap_allocate(struct dma_heap *heap,
+static struct dma_buf *cma_heap_allocate(struct dma_heap *heap,
 				  unsigned long len,
 				  u32 fd_flags,
 				  u64 heap_flags)

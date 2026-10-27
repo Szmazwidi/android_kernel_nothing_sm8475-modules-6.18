@@ -35,14 +35,14 @@
 
 #include "qcom_sg_ops.h"
 
-int proxy_invalid_map(struct device *dev, struct sg_table *table,
+static int proxy_invalid_map(struct device *dev, struct sg_table *table,
 		      struct dma_buf *dmabuf)
 {
 	WARN(1, "Trying to map with SMMU proxy driver when it has not fully probed!\n");
 	return -EINVAL;
 }
 
-void proxy_invalid_unmap(struct device *dev, struct sg_table *table,
+static void proxy_invalid_unmap(struct device *dev, struct sg_table *table,
 			 struct dma_buf *dmabuf)
 {
 	WARN(1, "Trying to unmap with SMMU proxy driver when it has not fully probed!\n");

@@ -10,7 +10,7 @@
 #include <linux/dma-buf.h>
 #include <uapi/linux/mem-buf.h>
 #include <linux/gunyah/gh_rm_drv.h>
-#include "../../drivers/dma-buf/heaps/qcom_sg_ops.h"
+#include "qcom_sg_ops.h"
 
 extern struct gen_pool *dmabuf_mem_pool;
 

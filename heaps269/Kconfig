@@ -1,0 +1,8 @@
+config QCOM_DMABUF_HEAPS_CMA
+    bool
+config QCOM_SECURE_BUFFER
+    tristate
+config PONG_HEAPS269
+    tristate "Pong real QSEE reserved DMA heaps"
+    select QCOM_DMABUF_HEAPS_CMA
+    select QCOM_SECURE_BUFFER

@@ -13,11 +13,8 @@
 #include <linux/qcom_tvm_heap.h>
 #include "qcom_cma_heap.h"
 #include "qcom_dt_parser.h"
-#include "qcom_system_heap.h"
 #include "qcom_carveout_heap.h"
-#include "qcom_secure_system_heap.h"
 #include "qcom_dma_heap_priv.h"
-#include "qcom_system_movable_heap.h"
 
 /*
  * We cache the file ops used by DMA-BUFs so that a user with a struct file
@@ -33,15 +30,7 @@ static int qcom_dma_heap_probe(struct platform_device *pdev)
 	int i;
 	struct platform_data *heaps;
 
-	qcom_system_heap_create("qcom,system", "system", false);
-#ifdef CONFIG_QCOM_DMABUF_HEAPS_SYSTEM_UNCACHED
-	qcom_system_heap_create("qcom,system-uncached", NULL, true);
-#endif
-	qcom_secure_system_heap_create("qcom,secure-pixel", NULL,
-				       QCOM_DMA_HEAP_FLAG_CP_PIXEL);
-	qcom_secure_system_heap_create("qcom,secure-non-pixel", NULL,
-				       QCOM_DMA_HEAP_FLAG_CP_NON_PIXEL);
-	qcom_sys_movable_heap_create();
+	/* Existing proven system/MEMBUF heaps stay registered by their provider. */
 
 	heaps = parse_heap_dt(pdev);
 	if (IS_ERR_OR_NULL(heaps))
@@ -50,6 +39,15 @@ static int qcom_dma_heap_probe(struct platform_device *pdev)
 	for (i = 0; i < heaps->nr; i++) {
 		struct platform_heap *heap_data = &heaps->heaps[i];
 
+		if (strcmp(heap_data->name, "qcom,qseecom") &&
+		    strcmp(heap_data->name, "qcom,qseecom-ta") &&
+		    strcmp(heap_data->name, "qcom,user-contig"))
+			continue;
+		if (heap_data->type != HEAP_TYPE_CMA) {
+			pr_err("PONG269 unexpected secure heap type for %s\n", heap_data->name);
+			ret = -EINVAL;
+			break;
+		}
 		switch (heap_data->type) {
 		case HEAP_TYPE_SECURE_CARVEOUT:
 			ret = qcom_secure_carveout_heap_create(heap_data);
@@ -116,3 +114,7 @@ static int __init init_heap_driver(void)
 module_init(init_heap_driver);
 
 MODULE_LICENSE("GPL");
+
+MODULE_DESCRIPTION("Pong reserved QSEE DMA heaps from Qualcomm 6.6");
+MODULE_IMPORT_NS("DMA_BUF");
+MODULE_IMPORT_NS("DMA_BUF_HEAP");

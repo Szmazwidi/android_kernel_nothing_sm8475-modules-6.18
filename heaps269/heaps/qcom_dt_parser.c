@@ -5,6 +5,8 @@
  */
 
 #include <linux/of.h>
+#include <linux/of_dma.h>
+#include <linux/of_device.h>
 #include <linux/platform_device.h>
 #include <linux/slab.h>
 #include <linux/of_platform.h>
@@ -152,6 +154,13 @@ struct platform_data *parse_heap_dt(struct platform_device *pdev)
 	}
 
 	for_each_available_child_of_node(dt_node, node) {
+		const char *heap_name;
+		if (of_property_read_string(node, "qcom,dma-heap-name", &heap_name) ||
+		    (strcmp(heap_name, "qcom,qseecom") &&
+		     strcmp(heap_name, "qcom,qseecom-ta") &&
+		     strcmp(heap_name, "qcom,user-contig")))
+			continue;
+
 		new_dev = of_platform_device_create(node, NULL, &pdev->dev);
 		if (!new_dev) {
 			pr_err("Failed to create device %s\n", node->name);
@@ -179,6 +188,7 @@ struct platform_data *parse_heap_dt(struct platform_device *pdev)
 	}
 
 out:
+	pdata->nr = idx;
 	return pdata;
 
 free_heaps:
