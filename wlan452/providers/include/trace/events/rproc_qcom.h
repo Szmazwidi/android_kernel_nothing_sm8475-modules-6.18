@@ -24,9 +24,9 @@ TRACE_EVENT(rproc_qcom_event,
 	),
 
 	TP_fast_assign(
-		__assign_str(name, name);
-		__assign_str(event, event);
-		__assign_str(subevent, subevent);
+		__assign_str(name);
+		__assign_str(event);
+		__assign_str(subevent);
 	),
 
 	TP_printk("%s: %s: %s", __get_str(name), __get_str(event), __get_str(subevent))
@@ -34,4 +34,8 @@ TRACE_EVENT(rproc_qcom_event,
 #endif /* _TRACE_RPROC_QCOM_H */
 
 /* This part must be outside protection */
+#undef TRACE_INCLUDE_PATH
+#define TRACE_INCLUDE_PATH trace/events
+#undef TRACE_INCLUDE_FILE
+#define TRACE_INCLUDE_FILE rproc_qcom
 #include <trace/define_trace.h>
