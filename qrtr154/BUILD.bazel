@@ -1,0 +1,5 @@
+# Reduced from the original package BUILD.bazel: only targets whose modules run on the phone are kept.
+load("//build/kernel/kleaf:kernel.bzl", "ddk_module")
+package(default_visibility = ["//visibility:public"])
+
+ddk_module(name="qrtr",out="qrtr.ko",kernel_build="//common:kernel_aarch64",srcs=["net/qrtr/af_qrtr.c","net/qrtr/ns.c","net/qrtr/qrtr.h"])
