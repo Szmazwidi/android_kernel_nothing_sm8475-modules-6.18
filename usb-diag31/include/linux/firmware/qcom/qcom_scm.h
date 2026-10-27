@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /* Copyright (c) 2010-2015, 2018-2019 The Linux Foundation. All rights reserved.
  * Copyright (C) 2015 Linaro Ltd.
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  */
 #ifndef __QCOM_SCM_H
 #define __QCOM_SCM_H
@@ -8,6 +9,7 @@
 #include <linux/err.h>
 #include <linux/types.h>
 #include <linux/cpumask.h>
+#include <linux/notifier.h>
 
 #include <dt-bindings/firmware/qcom,scm.h>
 
@@ -20,6 +22,37 @@ struct qcom_scm_hdcp_req {
 	u32 addr;
 	u32 val;
 };
+
+struct qcom_scm_current_perm_info {
+	__le32 vmid;
+	__le32 perm;
+	__le64 ctx;
+	__le32 ctx_size;
+	__le32 unused;
+};
+
+struct qcom_scm_mem_map_info {
+	__le64 mem_addr;
+	__le64 mem_size;
+};
+
+struct qcom_scm_vmperm;
+
+struct qcom_scm_assign_mem_notifier_data {
+	phys_addr_t mem_addr;
+	size_t mem_sz;
+	u64 *srcvm;
+	const struct qcom_scm_vmperm *newvm;
+	unsigned int dest_cnt;
+};
+int qcom_scm_assign_mem_notifier_register(struct notifier_block *nb);
+int qcom_scm_assign_mem_notifier_unregister(struct notifier_block *nb);
+int qcom_scm_assign_mem_regions(struct qcom_scm_mem_map_info *mem_regions,
+                size_t mem_regions_sz, u32 *srcvms, size_t src_sz,
+                struct qcom_scm_current_perm_info *newvms, size_t newvms_sz);
+int qcom_scm_config_set_ice_key(u32 index, phys_addr_t paddr, size_t size,
+                u32 cipher, unsigned int data_unit, unsigned int ce);
+int qcom_scm_clear_ice_key(u32 index, unsigned int ce);
 
 struct qcom_scm_vmperm {
 	int vmid;

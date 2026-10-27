@@ -414,12 +414,12 @@ static int eusb2_phy_apb_cmd_wait(struct msm_eusb2_phy *phy)
 
 	/* poll for cmd completion */
 	ret = readl_poll_timeout(phy->base + USB_PHY_APB_ACCESS_STATUS,
-			val, APB_READ_ACCESS_DONE,
+			val, (val & APB_READ_ACCESS_DONE),
 			APB_ACCESS_POLL_DELAY, APB_ACCESS_TIMEOUT);
 	if (ret < 0) {
 		dev_err(phy->phy.dev, "APB_ACCESS_STAUS(%x) timeout\n", val);
 		eusb2_phy_reset_seq(phy);
-		return val;
+		return ret;
 	}
 
 	return 0;
@@ -836,7 +836,7 @@ static int msm_eusb2_phy_set_suspend(struct usb_phy *uphy, int suspend)
 			 * shutdown.
 			 */
 			if (phy->ref_clk && !phy->ref_clk_enable &&
-					!(phy->ur->flags & UR_AUTO_RESUME_SUPPORTED)) {
+					(!phy->ur || !(phy->ur->flags & UR_AUTO_RESUME_SUPPORTED))) {
 				phy->ref_clk_enable = true;
 				clk_prepare_enable(phy->ref_clk);
 			}
@@ -856,7 +856,7 @@ static int msm_eusb2_phy_set_suspend(struct usb_phy *uphy, int suspend)
 			goto suspend_exit;
 
 		if (phy->ref_clk && phy->ref_clk_enable &&
-					!(phy->ur->flags & UR_AUTO_RESUME_SUPPORTED)) {
+					(!phy->ur || !(phy->ur->flags & UR_AUTO_RESUME_SUPPORTED))) {
 			clk_disable_unprepare(phy->ref_clk);
 			phy->ref_clk_enable = false;
 		}
@@ -986,6 +986,7 @@ static int msm_eusb2_phy_probe(struct platform_device *pdev)
 	struct resource *res;
 	int ret = 0;
 	struct usb_repeater *ur = NULL;
+	const char *pong_stage = "entry";
 
 	phy = devm_kzalloc(dev, sizeof(*phy), GFP_KERNEL);
 	if (!phy) {
@@ -993,12 +994,15 @@ static int msm_eusb2_phy_probe(struct platform_device *pdev)
 		goto err_ret;
 	}
 
-	ur = devm_usb_get_repeater_by_phandle(dev, "usb-repeater", 0);
+	pong_stage = "get_repeater";
+	if (of_find_property(dev->of_node, "usb-repeater", NULL))
+		ur = devm_usb_get_repeater_by_phandle(dev, "usb-repeater", 0);
 	if (IS_ERR(ur)) {
 		ret = PTR_ERR(ur);
 		goto err_ret;
 	}
 
+	pong_stage = "map_eusb2";
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
 						"eusb2_phy_base");
 	if (!res) {
@@ -1014,6 +1018,7 @@ static int msm_eusb2_phy_probe(struct platform_device *pdev)
 		goto err_ret;
 	}
 
+	pong_stage = "map_eud_enable";
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "eud_enable_reg");
 	if (res) {
 		phy->eud_enable_reg = devm_ioremap_resource(dev, res);
@@ -1025,6 +1030,7 @@ static int msm_eusb2_phy_probe(struct platform_device *pdev)
 		phy->eud_reg = res->start;
 	}
 
+	pong_stage = "map_eud_detect";
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "eud_detect_reg");
 	if (!res) {
 		dev_err(dev, "missing eud_detect register address\n");
@@ -1039,6 +1045,7 @@ static int msm_eusb2_phy_probe(struct platform_device *pdev)
 		goto err_ret;
 	}
 
+	pong_stage = "ref_clk_src";
 	phy->ref_clk_src = devm_clk_get(dev, "ref_clk_src");
 	if (IS_ERR(phy->ref_clk_src)) {
 		dev_err(dev, "clk get failed for ref_clk_src\n");
@@ -1046,6 +1053,7 @@ static int msm_eusb2_phy_probe(struct platform_device *pdev)
 		goto err_ret;
 	}
 
+	pong_stage = "ref_clk";
 	phy->ref_clk = devm_clk_get_optional(dev, "ref_clk");
 	if (IS_ERR(phy->ref_clk)) {
 		dev_err(dev, "clk get failed for ref_clk\n");
@@ -1053,12 +1061,14 @@ static int msm_eusb2_phy_probe(struct platform_device *pdev)
 		goto err_ret;
 	}
 
+	pong_stage = "phy_reset";
 	phy->phy_reset = devm_reset_control_get(dev, "phy_reset");
 	if (IS_ERR(phy->phy_reset)) {
 		ret = PTR_ERR(phy->phy_reset);
 		goto err_ret;
 	}
 
+	pong_stage = "vdd_levels";
 	ret = of_property_read_u32_array(dev->of_node, "qcom,vdd-voltage-level",
 					 (u32 *) phy->vdd_levels,
 					 ARRAY_SIZE(phy->vdd_levels));
@@ -1067,6 +1077,7 @@ static int msm_eusb2_phy_probe(struct platform_device *pdev)
 		goto err_ret;
 	}
 
+	pong_stage = "vdd_supply";
 	phy->vdd = devm_regulator_get(dev, "vdd");
 	if (IS_ERR(phy->vdd)) {
 		dev_err(dev, "unable to get vdd supply\n");
@@ -1074,6 +1085,7 @@ static int msm_eusb2_phy_probe(struct platform_device *pdev)
 		goto err_ret;
 	}
 
+	pong_stage = "vdda12_supply";
 	phy->vdda12 = devm_regulator_get(dev, "vdda12");
 	if (IS_ERR(phy->vdda12)) {
 		dev_err(dev, "unable to get vdda12 supply\n");
@@ -1145,18 +1157,22 @@ static int msm_eusb2_phy_probe(struct platform_device *pdev)
 	}
 
 	/* Placed at the end to ensure the probe is complete */
+	pong_stage = "usb_add_phy";
 	ret = usb_add_phy_dev(&phy->phy);
 
 err_ret:
+	dev_info(dev, "PONG618_PROBE31 stage=%s ret=%d\n", pong_stage, ret);
+	if (ret)
+		dev_err_probe(dev, ret, "PONG618_PROBE31 %s\n", pong_stage);
 	return ret;
 }
 
-static int msm_eusb2_phy_remove(struct platform_device *pdev)
+static void msm_eusb2_phy_remove(struct platform_device *pdev)
 {
 	struct msm_eusb2_phy *phy = platform_get_drvdata(pdev);
 
 	if (!phy)
-		return 0;
+		return;
 
 	flush_work(&phy->vbus_draw_work);
 	if (phy->usb_psy)
@@ -1164,11 +1180,13 @@ static int msm_eusb2_phy_remove(struct platform_device *pdev)
 
 	debugfs_remove_recursive(phy->root);
 	usb_remove_phy(&phy->phy);
-	clk_disable_unprepare(phy->ref_clk);
-	clk_disable_unprepare(phy->ref_clk_src);
+	if (phy->ref_clk_enable) {
+		clk_disable_unprepare(phy->ref_clk);
+		phy->ref_clk_enable = false;
+	}
 	msm_eusb2_phy_clocks(phy, false);
 	msm_eusb2_phy_power(phy, false);
-	return 0;
+	return;
 }
 
 static const struct of_device_id msm_usb_id_table[] = {

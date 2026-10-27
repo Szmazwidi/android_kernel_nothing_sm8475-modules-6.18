@@ -261,7 +261,7 @@ static const struct of_device_id eusb2_repeater_id_table[] = {
 };
 MODULE_DEVICE_TABLE(of, eusb2_repeater_id_table);
 
-static int eusb2_repeater_i2c_probe(struct i2c_client *client)
+static int eusb2_repeater_i2c_probe_real(struct i2c_client *client)
 {
 	struct eusb2_repeater *er;
 	struct device *dev = &client->dev;
@@ -331,6 +331,15 @@ static int eusb2_repeater_i2c_probe(struct i2c_client *client)
 	er->ur.powerdown	= eusb2_repeater_powerdown;
 
 	return usb_add_repeater_dev(&er->ur);
+}
+
+static int eusb2_repeater_i2c_probe(struct i2c_client *client)
+{
+	int ret = eusb2_repeater_i2c_probe_real(client);
+	dev_info(&client->dev, "PONG618_REPEATER31 ret=%d\n", ret);
+	if (ret)
+		dev_err_probe(&client->dev, ret, "PONG618_REPEATER31 probe\n");
+	return ret;
 }
 
 static void eusb2_repeater_i2c_remove(struct i2c_client *client)

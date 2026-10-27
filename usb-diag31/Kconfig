@@ -1,0 +1,14 @@
+# SPDX-License-Identifier: GPL-2.0-only
+config MSM_GPI_DMA
+    tristate
+config USB_REDRIVER
+    tristate
+config USB_REPEATER
+    tristate
+config PONG618_INTEGRATION
+    tristate "Pong USB I2C DMA UFS integration"
+    select MSM_GPI_DMA
+    select USB_REDRIVER
+    select USB_REPEATER
+    select SCSI_UFS_QCOM
+    select QCOM_INLINE_CRYPTO_ENGINE
