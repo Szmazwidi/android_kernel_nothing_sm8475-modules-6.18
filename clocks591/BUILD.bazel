@@ -1,0 +1,6 @@
+# Reduced from the original package BUILD.bazel: only targets whose modules run on the phone are kept.
+load("//build/kernel/kleaf:kernel.bzl", "ddk_module")
+package(default_visibility = ["//visibility:public"])
+
+ddk_module(name='camcc591', kernel_build='//common:kernel_aarch64', out='camcc-sm8450.ko', srcs=['clk/camcc-sm8450.c'] + glob(['clk/*.h'], allow_empty = True), includes=['clk'], deps=['//devices/pong618/build:prov_platform_clocks'], copts=['-ferror-limit=0'])
+ddk_module(name='videocc591', kernel_build='//common:kernel_aarch64', out='videocc-sm8450.ko', srcs=['clk/videocc-sm8450.c'] + glob(['clk/*.h'], allow_empty = True), includes=['clk'], deps=['//devices/pong618/build:prov_platform_clocks'], copts=['-ferror-limit=0'])
