@@ -1,0 +1,12 @@
+# pong615 — kontrolna kompilacja portu BT audio (slimbus + NGD + BAM + btfm)
+ccflags-y += -DCONFIG_BTFM_SLIM=1
+ccflags-y += -I$(src)/include -I$(src)/slimbus -I$(src)/bam -I$(src)/btfm
+obj-m += slimbus.o
+slimbus-y := slimbus/core.o slimbus/messaging.o slimbus/sched.o slimbus/stream.o
+CFLAGS_slimbus/qcom-ngd-ctrl.o += -DCONFIG_QCOM_RPROC_COMMON_MODULE=1
+obj-m += slim-qcom-ngd-ctrl.o
+slim-qcom-ngd-ctrl-y := slimbus/qcom-ngd-ctrl.o
+obj-m += bam_dma.o
+bam_dma-y := bam/bam_dma.o
+obj-m += bt_fm_slim.o
+bt_fm_slim-y := btfm/btfm_slim.o btfm/btfm_slim_slave.o btfm/btfm_slim_codec.o

@@ -9,6 +9,7 @@
 #include <linux/slimbus.h>
 #include <uapi/sound/asound.h>
 #include "slimbus.h"
+#include <pong/slimbus_ext.h>
 
 /**
  * struct segdist_code - Segment Distributions code from

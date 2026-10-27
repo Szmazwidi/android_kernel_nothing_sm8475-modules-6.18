@@ -93,6 +93,14 @@ static void btfm_slim_codec_remove(struct snd_soc_component *codec)
 	BTFMSLIM_DBG("");
 }
 
+/* pong615: snd_soc_dai.rate usunięte w nowszym ASoC; rate z hw_params per DAI */
+static unsigned int pong615_dai_rate[BTFM_SLIM_NUM_CODEC_DAIS];
+static inline unsigned int pong615_rate(const struct snd_soc_dai *dai)
+{
+	return (dai->id >= 0 && dai->id < BTFM_SLIM_NUM_CODEC_DAIS) ?
+		pong615_dai_rate[dai->id] : 0;
+}
+
 static int btfm_slim_dai_startup(struct snd_pcm_substream *substream,
 		struct snd_soc_dai *dai)
 {
@@ -113,8 +121,8 @@ static void btfm_slim_dai_shutdown(struct snd_pcm_substream *substream,
 	struct btfmslim_ch *ch;
 	uint8_t rxport, nchan = 1;
 
-	BTFMSLIM_DBG("dai->name: %s, dai->id: %d, dai->rate: %d", dai->name,
-		dai->id, dai->rate);
+	BTFMSLIM_DBG("dai->name: %s, dai->id: %d, pong615_rate(dai): %d", dai->name,
+		dai->id, pong615_rate(dai));
 
 	switch (dai->id) {
 	case BTFM_FM_SLIM_TX:
@@ -161,6 +169,8 @@ static int btfm_slim_dai_hw_params(struct snd_pcm_substream *substream,
 	btfmslim = snd_soc_component_get_drvdata(dai->component);
 	btfmslim->bps = params_width(params);
 	btfmslim->direction = substream->stream;
+	if (dai->id >= 0 && dai->id < BTFM_SLIM_NUM_CODEC_DAIS)
+		pong615_dai_rate[dai->id] = params_rate(params);
 	BTFMSLIM_DBG("dai->name = %s DAI-ID %x rate %d bps %d num_ch %d",
 		dai->name, dai->id, params_rate(params), params_width(params),
 		params_channels(params));
@@ -179,11 +189,11 @@ static int btfm_slim_dai_prepare(struct snd_pcm_substream *substream,
 	btfmslim = snd_soc_component_get_drvdata(dai->component);
 	btfmslim->direction = substream->stream;
 	bt_soc_enable_status = 0;
-	BTFMSLIM_INFO("dai->name: %s, dai->id: %d, dai->rate: %d direction: %d", dai->name,
-		dai->id, dai->rate, btfmslim->direction);
+	BTFMSLIM_INFO("dai->name: %s, dai->id: %d, pong615_rate(dai): %d direction: %d", dai->name,
+		dai->id, pong615_rate(dai), btfmslim->direction);
 
 	/* save sample rate */
-	btfmslim->sample_rate = dai->rate;
+	btfmslim->sample_rate = pong615_rate(dai);
 
 	switch (dai->id) {
 	case BTFM_FM_SLIM_TX:
@@ -218,7 +228,7 @@ static int btfm_slim_dai_prepare(struct snd_pcm_substream *substream,
 		return ret;
 	}
 
-	ret = btfm_slim_enable_ch(btfmslim, ch, rxport, dai->rate, nchan);
+	ret = btfm_slim_enable_ch(btfmslim, ch, rxport, pong615_rate(dai), nchan);
 
 	/* save the enable channel status */
 	if (ret == 0)
@@ -233,8 +243,8 @@ static int btfm_slim_dai_prepare(struct snd_pcm_substream *substream,
 
 /* This function will be called once during boot up */
 static int btfm_slim_dai_set_channel_map(struct snd_soc_dai *dai,
-				unsigned int tx_num, unsigned int *tx_slot,
-				unsigned int rx_num, unsigned int *rx_slot)
+				unsigned int tx_num, const unsigned int *tx_slot,
+				unsigned int rx_num, const unsigned int *rx_slot)
 {
 	int ret = 0, i;
 	struct btfmslim *btfmslim = snd_soc_component_get_drvdata(dai->component);
@@ -277,7 +287,7 @@ static int btfm_slim_dai_set_channel_map(struct snd_soc_dai *dai,
 	return ret;
 }
 
-static int btfm_slim_dai_get_channel_map(struct snd_soc_dai *dai,
+static int btfm_slim_dai_get_channel_map(const struct snd_soc_dai *dai,
 				 unsigned int *tx_num, unsigned int *tx_slot,
 				 unsigned int *rx_num, unsigned int *rx_slot)
 {
