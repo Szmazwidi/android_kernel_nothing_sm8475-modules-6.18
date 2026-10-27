@@ -1790,7 +1790,7 @@ EXPORT_SYMBOL_GPL(geni_gsi_ch_start);
  *
  * Return: Returns success or failure
  */
-int gpi_terminate_channel(struct gpii_chan *gpii_chan)
+static int gpi_terminate_channel(struct gpii_chan *gpii_chan)
 {
 	struct gpii *gpii = gpii_chan->gpii;
 	int ret = 0;
@@ -2752,7 +2752,7 @@ static void gpi_ev_tasklet(unsigned long data)
 }
 
 /* marks all pending events for the channel as stale */
-void gpi_mark_stale_events(struct gpii_chan *gpii_chan)
+static void gpi_mark_stale_events(struct gpii_chan *gpii_chan)
 {
 	struct gpii *gpii = gpii_chan->gpii;
 	struct gpi_ring *ev_ring = gpii->ev_ring;
@@ -3173,7 +3173,7 @@ static void gpi_queue_xfer(struct gpii *gpii,
  *
  * Return: Returns success or failure
  */
-int gpi_terminate_all(struct dma_chan *chan)
+static int gpi_terminate_all(struct dma_chan *chan)
 {
 	struct gpii_chan *gpii_chan = to_gpii_chan(chan);
 	struct gpii *gpii = gpii_chan->gpii;
@@ -3545,7 +3545,7 @@ static int gpi_resume(struct dma_chan *chan)
 	return 0;
 }
 
-void gpi_desc_free(struct virt_dma_desc *vd)
+static void gpi_desc_free(struct virt_dma_desc *vd)
 {
 	struct gpi_desc *gpi_desc = to_gpi_desc(vd);
 
@@ -3554,7 +3554,7 @@ void gpi_desc_free(struct virt_dma_desc *vd)
 }
 
 /* copy tre into transfer ring */
-struct dma_async_tx_descriptor *gpi_prep_slave_sg(struct dma_chan *chan,
+static struct dma_async_tx_descriptor *gpi_prep_slave_sg(struct dma_chan *chan,
 					struct scatterlist *sgl,
 					unsigned int sg_len,
 					enum dma_transfer_direction direction,
@@ -4425,7 +4425,7 @@ static int gpi_probe(struct platform_device *pdev)
 	return ret;
 }
 
-static int gpi_remove(struct platform_device *pdev)
+static void gpi_remove(struct platform_device *pdev)
 {
 	struct gpi_dev *gpi_dev = platform_get_drvdata(pdev);
 	int i;
@@ -4459,7 +4459,7 @@ static int gpi_remove(struct platform_device *pdev)
 		ipc_log_context_destroy(gpi_dev->ilctxt);
 
 	debugfs_remove(pdentry);
-	return 0;
+	return;
 }
 
 static const struct of_device_id gpi_of_match[] = {

@@ -452,19 +452,7 @@ static inline void geni_se_common_get_major_minor_num(u32 hw_version,
  *
  * Return: none
  */
-static inline void test_bus_enable_per_qupv3(struct device *wrapper_dev, void *ipc)
-{
-	struct geni_se *geni_se_dev;
 
-	geni_se_dev = dev_get_drvdata(wrapper_dev);
-	//Enablement of test bus is required only once.
-	//TEST_BUS_EN:4, TEST_BUS_REG_EN:0
-	geni_write_reg(0x11, geni_se_dev->base, QUPV3_TEST_BUS_EN);
-	GENI_SE_ERR(ipc, false, geni_se_dev->dev,
-		    "%s: TEST_BUS_EN: 0x%x @address:%p\n",
-		    __func__, geni_read_reg(geni_se_dev->base, QUPV3_TEST_BUS_EN),
-		    (geni_se_dev->base + QUPV3_TEST_BUS_EN));
-}
 
 /*
  * test_bus_select_per_qupv3: Selects the test bus as required
@@ -473,18 +461,7 @@ static inline void test_bus_enable_per_qupv3(struct device *wrapper_dev, void *i
  *
  * @Return: None
  */
-static inline void test_bus_select_per_qupv3(struct device *wrapper_dev, u8 test_bus_num, void *ipc)
-{
-	struct geni_se *geni_se_dev;
 
-	geni_se_dev = dev_get_drvdata(wrapper_dev);
-
-	geni_write_reg(test_bus_num, geni_se_dev->base, QUPV3_TEST_BUS_SEL);
-	GENI_SE_ERR(ipc, false, geni_se_dev->dev,
-		    "%s: readback TEST_BUS_SEL: 0x%x @address:%p\n",
-		    __func__, geni_read_reg(geni_se_dev->base, QUPV3_TEST_BUS_SEL),
-		    (geni_se_dev->base + QUPV3_TEST_BUS_SEL));
-}
 
 /*
  * test_bus_read_per_qupv3: Selects the test bus as required
@@ -492,15 +469,7 @@ static inline void test_bus_select_per_qupv3(struct device *wrapper_dev, u8 test
  *
  * Return: None
  */
-static inline void test_bus_read_per_qupv3(struct device *wrapper_dev, void *ipc)
-{
-	struct geni_se *geni_se_dev;
 
-	geni_se_dev = dev_get_drvdata(wrapper_dev);
-	GENI_SE_ERR(ipc, false, geni_se_dev->dev,
-		    "%s: dump QUPV3_TEST_BUS_REG:0x%x\n",
-		    __func__, geni_read_reg(geni_se_dev->base, QUPV3_TEST_BUS_REG));
-}
 
 /**
  * geni_capture_start_time() - Used to capture start time of a function.

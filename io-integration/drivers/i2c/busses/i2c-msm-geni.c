@@ -34,7 +34,6 @@
 #define SE_I2C_TX_TRANS_LEN		(0x26C)
 #define SE_I2C_RX_TRANS_LEN		(0x270)
 #define SE_I2C_SCL_COUNTERS		(0x278)
-#define SE_GENI_M_GP_LENGTH		(0x910)
 
 /* M_CMD OP codes for I2C */
 #define I2C_WRITE		(0x1)
@@ -131,7 +130,7 @@ enum i2c_line_state {
 };
 
 /* FTRACE Logging */
-void i2c_trace_log(struct device *dev, const char *fmt, ...)
+static void i2c_trace_log(struct device *dev, const char *fmt, ...)
 {
 	struct va_format vaf = {
 		.fmt = fmt,
@@ -358,7 +357,7 @@ static int geni_i2c_clk_map_idx(struct geni_i2c_dev *gi2c)
  *
  * Return:	None
  */
-void geni_i2c_se_dump_dbg_regs(struct geni_se *se, void __iomem *base,
+static void geni_i2c_se_dump_dbg_regs(struct geni_se *se, void __iomem *base,
 				void *ipc)
 {
 	u32 m_cmd0 = 0;
@@ -527,7 +526,7 @@ static ssize_t capture_kpi_store(struct device *dev,
 }
 static DEVICE_ATTR_RW(capture_kpi);
 
-struct geni_i2c_clk_fld *geni_i2c_get_itr_value(struct geni_i2c_dev *gi2c)
+static struct geni_i2c_clk_fld *geni_i2c_get_itr_value(struct geni_i2c_dev *gi2c)
 {
 	struct geni_i2c_clk_fld *itr;
 
@@ -592,12 +591,7 @@ static inline void qcom_geni_i2c_calc_timeout(struct geni_i2c_dev *gi2c)
  *
  * Return: Nogeni_se_select_test_busne
  */
-static void geni_se_select_test_bus(struct geni_i2c_dev *gi2c, u8 test_bus_num)
-{
-	I2C_LOG_DBG(gi2c->ipcl, false, gi2c->dev,
-		    "%s: test_bus:%d\n", __func__, test_bus_num);
-	writel_relaxed(test_bus_num, gi2c->base + SE_GENI_TEST_BUS_CTRL);
-}
+
 
 static void geni_i2c_err(struct geni_i2c_dev *gi2c, int err)
 {
@@ -625,22 +619,7 @@ err_ret:
  *
  * Note: This function has added extra test buses for refrences.
  */
-static void geni_i2c_test_bus_dump(struct geni_i2c_dev *gi2c, u8 se_num)
-{
-	/* Select test bus number and test bus, then read test bus.*/
 
-	/* geni_m_comp_sig_test_bus */
-	geni_se_select_test_bus(gi2c, 8);
-	test_bus_select_per_qupv3(gi2c->wrapper_dev, se_num, gi2c->ipcl);
-	test_bus_read_per_qupv3(gi2c->wrapper_dev, gi2c->ipcl);
-
-	/* geni_m_branch_cond_1_test_bus */
-	geni_se_select_test_bus(gi2c, 5);
-	test_bus_select_per_qupv3(gi2c->wrapper_dev, se_num, gi2c->ipcl);
-	test_bus_read_per_qupv3(gi2c->wrapper_dev, gi2c->ipcl);
-
-	/* Can Add more here based on debug ask. */
-}
 
 static void do_reg68_war_for_rtl_se(struct geni_i2c_dev *gi2c)
 {
@@ -686,7 +665,7 @@ static int geni_i2c_stop_with_cancel(struct geni_i2c_dev *gi2c)
 	/* Issue point for e.g.: dump test bus/read test bus */
 	if (gi2c->i2c_test_dev)
 		/* For se4, its 5 as SE num starts from 0 */
-		geni_i2c_test_bus_dump(gi2c, SE_NUM_FOR_TEST_BUS);
+		dev_warn(gi2c->dev, "Wrapper test bus unsupported on native GENI core\n");
 
 	reinit_completion(&gi2c->m_cancel_cmd);
 	geni_se_cancel_m_cmd(&gi2c->i2c_rsc);
@@ -1190,7 +1169,7 @@ static void gi2c_gsi_cb_err(struct msm_gpi_dma_async_tx_cb_param *cb,
  *
  * Return:  None.
  */
-void gi2c_gsi_tx_unmap(struct geni_i2c_dev *gi2c, u32 msg_idx, u32 wr_idx)
+static void gi2c_gsi_tx_unmap(struct geni_i2c_dev *gi2c, u32 msg_idx, u32 wr_idx)
 {
 	if (gi2c->msgs[msg_idx].len > IMMEDIATE_DMA_LEN) {
 		geni_se_common_iommu_unmap_buf(gi2c->wrapper_dev, &gi2c->tx_ph[wr_idx],
@@ -1449,7 +1428,7 @@ static struct msm_gpi_tre *setup_rx_tre(struct geni_i2c_dev *gi2c,
 	return rx_t;
 }
 
-void geni_i2c_get_immediate_dma_data(u8 *dword, int len, uint8_t *buf)
+static void geni_i2c_get_immediate_dma_data(u8 *dword, int len, uint8_t *buf)
 {
 	int i = 0;
 
@@ -2467,7 +2446,7 @@ static void gi2c_se_dma_clear_process(struct geni_i2c_dev *gi2c, struct i2c_msg 
  *
  * Return: None
  */
-void geni_i2c_fifo_dma_rw(struct geni_i2c_dev *gi2c, struct i2c_msg msgs[], u32 msg_idx,
+static void geni_i2c_fifo_dma_rw(struct geni_i2c_dev *gi2c, struct i2c_msg msgs[], u32 msg_idx,
 			  enum geni_se_xfer_mode *mode, dma_addr_t *rx_dma, dma_addr_t *tx_dma,
 			  u8 *dma_buf, u32 m_param)
 {
@@ -3142,7 +3121,7 @@ static int geni_i2c_probe(struct platform_device *pdev)
 	atomic_set(&gi2c->is_xfer_in_progress, 0);
 	if (gi2c->i2c_test_dev) {
 		/* configure Test bus to dump test bus later, only once */
-		test_bus_enable_per_qupv3(gi2c->wrapper_dev, gi2c->ipcl);
+		dev_warn(gi2c->dev, "Wrapper test bus disabled on native GENI core\n");
 	}
 
 	pr_info("boot_kpi: M - DRIVER GENI_I2C_%d Ready\n", gi2c->adap.nr);
@@ -3150,16 +3129,13 @@ static int geni_i2c_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static int geni_i2c_remove(struct platform_device *pdev)
+static void geni_i2c_remove(struct platform_device *pdev)
 {
 	struct geni_i2c_dev *gi2c = platform_get_drvdata(pdev);
 	int i;
 
-	if (atomic_read(&gi2c->is_xfer_in_progress)) {
-		I2C_LOG_ERR(gi2c->ipcl, true, gi2c->dev,
-			    "%s: Xfer is in progress\n", __func__);
-		return -EBUSY;
-	}
+	/* Unregister clients and drain the bus before releasing DMA/PM. */
+	i2c_del_adapter(&gi2c->adap);
 
 	if (!pm_runtime_status_suspended(gi2c->dev)) {
 		if (geni_i2c_runtime_suspend(gi2c->dev))
@@ -3183,7 +3159,6 @@ static int geni_i2c_remove(struct platform_device *pdev)
 	pm_runtime_put_noidle(gi2c->dev);
 	pm_runtime_set_suspended(gi2c->dev);
 	pm_runtime_disable(gi2c->dev);
-	i2c_del_adapter(&gi2c->adap);
 
 	for (i = 0; i < arr_idx; i++)
 		gi2c_dev_dbg[i] = NULL;
@@ -3196,7 +3171,7 @@ static int geni_i2c_remove(struct platform_device *pdev)
 
 	if (gi2c->ipcl)
 		ipc_log_context_destroy(gi2c->ipcl);
-	return 0;
+	return;
 }
 
 /**
@@ -3559,3 +3534,5 @@ module_init(i2c_dev_init);
 module_exit(i2c_dev_exit);
 MODULE_LICENSE("GPL");
 MODULE_ALIAS("platform:i2c_geni");
+
+MODULE_DESCRIPTION("Pong i2c integration");
