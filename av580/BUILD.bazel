@@ -1,0 +1,2 @@
+# No targets of its own; holds .bzl files loaded by other packages.
+package(default_visibility = ["//visibility:public"])
