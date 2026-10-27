@@ -389,6 +389,7 @@ struct arm_smmu_device {
 	u32				num_context_banks;
 	u32				num_s2_context_banks;
 	DECLARE_BITMAP(context_map, ARM_SMMU_MAX_CBS);
+	DECLARE_BITMAP(handoff_context_map, ARM_SMMU_MAX_CBS);
 	struct arm_smmu_cb		*cbs;
 	atomic_t			irptndx;
 
@@ -497,6 +498,7 @@ struct arm_smmu_domain {
 	struct arm_smmu_device		*smmu;
 	struct device			*dev;
 	struct io_pgtable_ops		*pgtbl_ops;
+	struct qcom_io_pgtable_info	kgsl_pgtable_info;
 	unsigned long			pgtbl_quirks;
 	bool				force_coherent_walk;
 	const struct iommu_flush_ops	*flush_ops;

@@ -56,8 +56,8 @@ void adreno_drawctxt_dump(struct kgsl_device *device,
 	 * Use Spin trylock because dispatcher can acquire drawctxt->lock
 	 * if context is pending and the fence it is waiting on just got
 	 * signalled. Dispatcher acquires drawctxt->lock and tries to
-	 * delete the sync obj timer using del_timer_sync().
-	 * del_timer_sync() waits till timer and its pending handlers
+	 * delete the sync obj timer using timer_delete_sync().
+	 * timer_delete_sync() waits till timer and its pending handlers
 	 * are deleted. But if the timer expires at the same time,
 	 * timer handler could be waiting on drawctxt->lock leading to a
 	 * deadlock. To prevent this use spin_trylock_bh.

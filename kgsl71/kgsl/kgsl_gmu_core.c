@@ -240,10 +240,11 @@ int gmu_core_iommu_init(struct kgsl_device *device)
 	struct device *gmu_pdev_dev = GMU_PDEV_DEV(device);
 	int ret;
 
-	device->gmu_core.domain = iommu_domain_alloc(&platform_bus_type);
-	if (!device->gmu_core.domain) {
-		dev_err(gmu_pdev_dev, "Unable to allocate GMU IOMMU domain\n");
-		return -ENODEV;
+	device->gmu_core.domain = iommu_paging_domain_alloc(gmu_pdev_dev);
+	if (IS_ERR(device->gmu_core.domain)) {
+		ret = PTR_ERR(device->gmu_core.domain);
+		device->gmu_core.domain = NULL;
+		return dev_err_probe(gmu_pdev_dev, ret, "Unable to allocate GMU IOMMU domain\n");
 	}
 
 	/*
@@ -463,59 +464,18 @@ void gmu_core_reset_trace_header(struct kgsl_gmu_trace *trace)
 	trace->reset_hdr = false;
 }
 
-#if (KERNEL_VERSION(6, 1, 0) <= LINUX_VERSION_CODE)
+/* Cape has no SOCCP controller. Reject other DTs rather than fake a power vote. */
 struct rproc *gmu_core_soccp_vote_init(struct device *dev)
 {
-	u32 soccp_handle;
-	struct rproc *soccp_rproc;
-
-	if (of_property_read_u32(dev->of_node, "qcom,soccp-controller", &soccp_handle))
+	if (!of_find_property(dev->of_node, "qcom,soccp-controller", NULL))
 		return NULL;
-
-	soccp_rproc = rproc_get_by_phandle(soccp_handle);
-	if (!IS_ERR_OR_NULL(soccp_rproc))
-		return soccp_rproc;
-
-	dev_err(dev, "Failed to get rproc for phandle:%u ret:%ld Disabling hw fences\n",
-		soccp_handle, soccp_rproc ? PTR_ERR(soccp_rproc) : -ENOENT);
-
-	return soccp_rproc ? soccp_rproc : ERR_PTR(-ENOENT);
+	dev_err(dev, "SOCCP D0/D3 provider is not ported for this Cape build\n");
+	return ERR_PTR(-EOPNOTSUPP);
 }
 
-int gmu_core_soccp_vote(struct device *dev, unsigned long *gmu_flags, struct rproc *soccp_rproc,
-	bool pwr_on)
+int gmu_core_soccp_vote(struct device *dev, unsigned long *gmu_flags,
+	struct rproc *soccp_rproc, bool pwr_on)
 {
-	int ret;
-
-	if (!soccp_rproc)
-		return 0;
-
-	if (!(test_bit(GMU_PRIV_SOCCP_VOTE_ON, gmu_flags) ^ pwr_on))
-		return 0;
-
-	ret = rproc_set_state(soccp_rproc, pwr_on);
-	if (!ret) {
-		change_bit(GMU_PRIV_SOCCP_VOTE_ON, gmu_flags);
-		return 0;
-	}
-
-	dev_err(dev, "soccp power %s failed: %d. Disabling hw fences\n",
-		pwr_on ? "on" : "off", ret);
-
-	return ret;
+	/* No controller means no vote, as in the upstream absent-property path. */
+	return soccp_rproc ? -EOPNOTSUPP : 0;
 }
-
-#else
-
-struct rproc *gmu_core_soccp_vote_init(struct device *dev)
-{
-	return ERR_PTR(-ENOENT);
-}
-
-int gmu_core_soccp_vote(struct device *dev, unsigned long *gmu_flags, struct rproc *soccp_rproc,
-	bool pwr_on)
-{
-	return -EINVAL;
-}
-
-#endif

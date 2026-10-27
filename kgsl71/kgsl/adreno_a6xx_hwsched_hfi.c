@@ -1933,7 +1933,7 @@ int a6xx_hwsched_send_recurring_cmdobj(struct adreno_device *adreno_dev,
 	if (test_bit(CMDOBJ_RECURRING_STOP, &cmdobj->priv)) {
 		adreno_hwsched_retire_cmdobj(hwsched, hwsched->recurring_cmdobj);
 		hwsched->recurring_cmdobj = NULL;
-		del_timer_sync(&hwsched->lsr_timer);
+		timer_delete_sync(&hwsched->lsr_timer);
 		if (active)
 			adreno_active_count_put(adreno_dev);
 		active = false;

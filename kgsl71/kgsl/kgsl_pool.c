@@ -561,7 +561,7 @@ done:
 	kgsl_zero_page(page, order, dev);
 
 	for (j = 0; j < (*page_size >> PAGE_SHIFT); j++) {
-		p = nth_page(page, j);
+		p = pfn_to_page(page_to_pfn(page) + (j));
 		pages[pcount] = p;
 		pcount++;
 	}

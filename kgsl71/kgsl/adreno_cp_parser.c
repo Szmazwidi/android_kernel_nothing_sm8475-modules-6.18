@@ -4,6 +4,7 @@
  * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  */
 
+#include <linux/vmalloc.h>
 #include <linux/slab.h>
 
 #include "adreno.h"

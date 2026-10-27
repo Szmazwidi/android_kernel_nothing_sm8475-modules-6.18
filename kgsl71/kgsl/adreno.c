@@ -3774,11 +3774,11 @@ static int adreno_probe(struct platform_device *pdev)
 			&adreno_ops, match);
 }
 
-static int adreno_remove(struct platform_device *pdev)
+static void adreno_remove(struct platform_device *pdev)
 {
 	component_master_del(&pdev->dev, &adreno_ops);
 
-	return 0;
+	return;
 }
 
 #if IS_ENABLED(CONFIG_QCOM_KGSL_HIBERNATION)
@@ -4058,5 +4058,5 @@ MODULE_DESCRIPTION("3D Graphics driver");
 MODULE_LICENSE("GPL v2");
 MODULE_SOFTDEP("pre: arm_smmu nvmem_qfprom socinfo governor_msm_adreno_tz governor_gpubw_mon");
 #if (KERNEL_VERSION(5, 18, 0) <= LINUX_VERSION_CODE)
-MODULE_IMPORT_NS(DMA_BUF);
+MODULE_IMPORT_NS("DMA_BUF");
 #endif

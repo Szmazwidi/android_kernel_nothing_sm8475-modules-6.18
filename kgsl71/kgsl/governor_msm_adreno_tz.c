@@ -8,6 +8,8 @@
 #include <linux/dma-mapping.h>
 #include <linux/math64.h>
 #include <linux/of_platform.h>
+#include <linux/of.h>
+#include <linux/of_device.h>
 #include <linux/spinlock.h>
 #include <linux/slab.h>
 #include <linux/io.h>
@@ -68,7 +70,7 @@ static unsigned long acc_total, acc_relative_busy;
 /*
  * Returns GPU suspend time in millisecond.
  */
-u64 suspend_time_ms(void)
+static u64 suspend_time_ms(void)
 {
 	u64 suspend_sampling_time;
 	u64 time_diff = 0;
@@ -168,7 +170,7 @@ static const struct device_attribute *adreno_tz_attr_list[] = {
 		NULL
 };
 
-void compute_work_load(struct devfreq_dev_status *stats,
+static void compute_work_load(struct devfreq_dev_status *stats,
 		struct devfreq_msm_adreno_tz_data *priv,
 		struct devfreq *devfreq)
 {

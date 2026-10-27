@@ -80,7 +80,7 @@ def kgsl_get_srcs():
         "kgsl_vbo.c",
     ]
 
-    srcs = srcs + native.glob(["*.h"]) + msm_kgsl_includes
+    srcs = srcs + native.glob(["*.h"], allow_empty = True) + msm_kgsl_includes
 
     return srcs
 

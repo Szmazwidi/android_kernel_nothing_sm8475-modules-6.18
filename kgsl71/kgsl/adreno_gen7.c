@@ -452,7 +452,7 @@ void gen7_get_gpu_feature_info(struct adreno_device *adreno_dev)
 	adreno_dev->feature_fuse = feature_fuse;
 }
 
-void gen7_host_aperture_set(struct adreno_device *adreno_dev, u32 pipe_id)
+static void gen7_host_aperture_set(struct adreno_device *adreno_dev, u32 pipe_id)
 {
 	struct gen7_device *gen7_dev = container_of(adreno_dev,
 					struct gen7_device, adreno_dev);
@@ -479,7 +479,7 @@ static inline void gen7_regwrite_aperture(struct kgsl_device *device,
 	mb();
 }
 
-void gen7_regread_aperture(struct kgsl_device *device,
+static void gen7_regread_aperture(struct kgsl_device *device,
 	u32 offsetwords, u32 *value, u32 pipe)
 {
 	gen7_host_aperture_set(ADRENO_DEVICE(device), pipe);
@@ -1899,7 +1899,7 @@ static u32 _get_pipeid(u32 groupid)
 	}
 }
 
-int gen7_perfcounter_remove(struct adreno_device *adreno_dev,
+static int gen7_perfcounter_remove(struct adreno_device *adreno_dev,
 	struct adreno_perfcount_register *reg, u32 groupid)
 {
 	const struct adreno_perfcounters *counters = ADRENO_PERFCOUNTERS(adreno_dev);
@@ -2142,7 +2142,7 @@ static void gen7_remove(struct adreno_device *adreno_dev)
 	/* Make sure timer is initialized, otherwise WARN_ON is generated */
 	if (adreno_preemption_feature_set(adreno_dev) &&
 	    (test_bit(GMU_PRIV_FIRST_BOOT_DONE, &gmu->flags)))
-		del_timer(&adreno_dev->preempt.timer);
+		timer_delete(&adreno_dev->preempt.timer);
 }
 
 static void gen7_read_bus_stats(struct kgsl_device *device,

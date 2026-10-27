@@ -8,6 +8,7 @@
 
 #include <linux/adreno-smmu-priv.h>
 #include <linux/io-pgtable.h>
+#include <linux/qcom-io-pgtable.h>
 #include <linux/qcom-iommu-util.h>
 /*
  * These defines control the address range for allocations that

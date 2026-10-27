@@ -548,7 +548,7 @@ static void a6xx_deassert_gbif_halt(struct adreno_device *adreno_dev)
 		kgsl_regwrite(device, A6XX_RBBM_GBIF_HALT, 0x0);
 }
 
-bool a6xx_gx_is_on(struct adreno_device *adreno_dev)
+static bool a6xx_gx_is_on(struct adreno_device *adreno_dev)
 {
 	struct kgsl_device *device = KGSL_DEVICE(adreno_dev);
 	struct kgsl_pwrctrl *pwr = &device->pwrctrl;
@@ -2131,7 +2131,7 @@ u64 a6xx_read_alwayson(struct adreno_device *adreno_dev)
 static void a6xx_remove(struct adreno_device *adreno_dev)
 {
 	if (adreno_preemption_feature_set(adreno_dev))
-		del_timer(&adreno_dev->preempt.timer);
+		timer_delete(&adreno_dev->preempt.timer);
 }
 
 static void a6xx_read_bus_stats(struct kgsl_device *device,

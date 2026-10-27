@@ -4,6 +4,7 @@
  * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  */
 
+#include <linux/vmalloc.h>
 #include <dt-bindings/power/qcom-rpmpd.h>
 #include <linux/clk.h>
 #include <linux/component.h>
@@ -3025,7 +3026,7 @@ no_gx_power:
 
 	clear_bit(GMU_PRIV_GPU_STARTED, &gmu->flags);
 
-	del_timer_sync(&device->idle_timer);
+	timer_delete_sync(&device->idle_timer);
 
 	kgsl_pwrscale_sleep(device);
 
@@ -3406,10 +3407,10 @@ static int gen7_gmu_probe_dev(struct platform_device *pdev)
 	return component_add(&pdev->dev, &gen7_gmu_component_ops);
 }
 
-static int gen7_gmu_remove_dev(struct platform_device *pdev)
+static void gen7_gmu_remove_dev(struct platform_device *pdev)
 {
 	component_del(&pdev->dev, &gen7_gmu_component_ops);
-	return 0;
+	return;
 }
 
 static const struct of_device_id gen7_gmu_match_table[] = {

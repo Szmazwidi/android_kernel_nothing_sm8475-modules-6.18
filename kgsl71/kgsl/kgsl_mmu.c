@@ -699,18 +699,18 @@ static int kgsl_mmu_dev_probe(struct platform_device *pdev)
 	return component_add(&pdev->dev, &kgsl_mmu_component_ops);
 }
 
-static int kgsl_mmu_dev_remove(struct platform_device *pdev)
+static void kgsl_mmu_dev_remove(struct platform_device *pdev)
 {
 	if (of_device_is_compatible(pdev->dev.of_node,
 				"qcom,smmu-kgsl-cb")) {
 		component_del(&pdev->dev, &kgsl_mmu_cb_component_ops);
-		return 0;
+		return;
 	}
 
 	component_del(&pdev->dev, &kgsl_mmu_component_ops);
 
 	of_platform_depopulate(&pdev->dev);
-	return 0;
+	return;
 }
 
 static const struct of_device_id mmu_match_table[] = {

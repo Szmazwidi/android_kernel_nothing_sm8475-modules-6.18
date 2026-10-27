@@ -1,0 +1,52 @@
+# SPDX-License-Identifier: GPL-2.0-only
+config QCOM_LLCC
+ tristate
+ default y
+config QCOM_KGSL
+ bool
+ default y
+config QCOM_MDT_LOADER
+ tristate
+ default y
+config QCOM_KGSL_IDLE_TIMEOUT
+ int
+ default 80
+config QCOM_KGSL_SORT_POOL
+ bool
+ default y
+config QCOM_KGSL_CONTEXT_DEBUG
+ bool
+ default y
+config QCOM_KGSL_IOCOHERENCY_DEFAULT
+ bool
+ default y
+config QCOM_ADRENO_DEFAULT_GOVERNOR
+ string
+ default "msm-adreno-tz"
+
+# Runtime memory providers are real modules, not disabled header fallbacks.
+config QCOM_IOMMU_UTIL
+ tristate
+ default m
+config QCOM_SECURE_BUFFER
+ tristate
+ default m
+config QCOM_LAZY_MAPPING
+ tristate
+ default m
+
+config QTI_IOMMU_SUPPORT
+ bool
+ default y
+
+config IOMMU_IO_PGTABLE_FAST
+ bool
+ default y
+
+config ARM_SMMU_CONTEXT_FAULT_RETRY
+ bool
+ default y
+
+config PONG618_MEMBUF_EXPORTER
+ tristate "Pong actual MEM-BUF exporter"
+ select QCOM_MEM_BUF_DEV

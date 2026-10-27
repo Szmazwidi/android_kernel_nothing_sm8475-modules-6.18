@@ -2510,7 +2510,7 @@ static void gen8_release_cp_semaphore(struct adreno_device *adreno_dev)
 	kgsl_regwrite(KGSL_DEVICE(adreno_dev), GEN8_CP_SEMAPHORE_REG_0, 0);
 }
 
-int gen8_perfcounter_remove(struct adreno_device *adreno_dev,
+static int gen8_perfcounter_remove(struct adreno_device *adreno_dev,
 			    struct adreno_perfcount_register *reg, u32 groupid)
 {
 	const struct adreno_perfcounters *counters = ADRENO_PERFCOUNTERS(adreno_dev);
@@ -2739,7 +2739,7 @@ static int gen8_lpac_store(struct adreno_device *adreno_dev, bool enable)
 static void gen8_remove(struct adreno_device *adreno_dev)
 {
 	if (adreno_preemption_feature_set(adreno_dev))
-		del_timer(&adreno_dev->preempt.timer);
+		timer_delete(&adreno_dev->preempt.timer);
 }
 
 static void gen8_read_bus_stats(struct kgsl_device *device,

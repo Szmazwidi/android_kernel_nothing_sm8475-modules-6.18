@@ -1333,7 +1333,7 @@ static int kgsl_genpd_disable_wait(struct device *dev, u32 timeout)
 	}
 }
 
-int kgsl_regulator_disable_wait(struct regulator *reg, u32 timeout)
+static int kgsl_regulator_disable_wait(struct regulator *reg, u32 timeout)
 {
 	ktime_t tout = ktime_add_us(ktime_get(), timeout * USEC_PER_MSEC);
 	int ret;
@@ -1365,8 +1365,8 @@ int kgsl_pwrctrl_enable_cx_gdsc(struct kgsl_device *device)
 	if (!ret) {
 		/* Dump the cx regulator consumer list */
 		if (pwr->cx_regulator) {
-			dev_err(device->dev, "GPU CX wait timeout. Dumping CX votes:\n");
-			qcom_clk_dump(NULL, pwr->cx_regulator, false);
+			dev_err(device->dev, "GPU CX wait timeout. Reading CX enable state:\n");
+			dev_err(device->dev, "CX regulator enabled=%d\n", regulator_is_enabled(pwr->cx_regulator));
 		} else {
 			dev_err(device->dev, "GPU CX wait timeout\n");
 		}
@@ -2206,7 +2206,7 @@ static int _init(struct kgsl_device *device)
 	switch (device->state) {
 	case KGSL_STATE_ACTIVE:
 		kgsl_pwrctrl_irq(device, false);
-		del_timer_sync(&device->idle_timer);
+		timer_delete_sync(&device->idle_timer);
 		device->ftbl->stop(device);
 		fallthrough;
 	case KGSL_STATE_AWARE:
@@ -2308,7 +2308,7 @@ _aware(struct kgsl_device *device)
 		break;
 	case KGSL_STATE_ACTIVE:
 		kgsl_pwrctrl_irq(device, false);
-		del_timer_sync(&device->idle_timer);
+		timer_delete_sync(&device->idle_timer);
 		break;
 	case KGSL_STATE_SLUMBER:
 		status = kgsl_pwrctrl_enable(device);
@@ -2334,7 +2334,7 @@ _slumber(struct kgsl_device *device)
 			kgsl_pwrctrl_request_state(device, KGSL_STATE_NONE);
 			return -EBUSY;
 		}
-		del_timer_sync(&device->idle_timer);
+		timer_delete_sync(&device->idle_timer);
 		kgsl_pwrctrl_irq(device, false);
 		/* make sure power is on to stop the device*/
 		status = kgsl_pwrctrl_enable(device);

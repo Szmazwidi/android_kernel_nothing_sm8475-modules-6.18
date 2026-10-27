@@ -22,6 +22,7 @@
 #include <linux/of_fdt.h>
 #include <linux/pm_runtime.h>
 #include <linux/security.h>
+#include <linux/sched/mm.h>
 #include <linux/sort.h>
 #include <linux/string_helpers.h>
 #include <soc/qcom/of_common.h>
@@ -375,13 +376,13 @@ static void kgsl_destroy_anon(struct kgsl_memdesc *memdesc)
 			 * were writable by the GPU.
 			 */
 			if (!(memdesc->flags & KGSL_MEMFLAGS_GPUREADONLY))
-				set_page_dirty_lock(nth_page(page, j));
+				set_page_dirty_lock(pfn_to_page(page_to_pfn(page) + (j)));
 
 			/*
 			 * Put the page reference taken using get_user_pages
 			 * during memdesc_sg_virt.
 			 */
-			put_page(nth_page(page, j));
+			put_page(pfn_to_page(page_to_pfn(page) + (j)));
 		}
 	}
 
@@ -3202,7 +3203,7 @@ static void kgsl_process_add_stats(struct kgsl_process_private *priv,
 		priv->stats[type].max = ret;
 }
 
-u64 kgsl_get_stats(pid_t pid)
+static u64 kgsl_get_stats(pid_t pid)
 {
 	struct kgsl_process_private *process;
 	u64 ret;
@@ -4752,7 +4753,7 @@ static unsigned long set_svm_area(struct file *file,
 	 * Do additoinal constraints checking on the address. Passing MAP_FIXED
 	 * ensures that the address we want gets checked
 	 */
-	ret = current->mm->get_unmapped_area(file, addr, len, 0,
+	ret = mm_get_unmapped_area(current->mm, file, addr, len, 0,
 		flags & MAP_FIXED);
 
 	/* If it passes, attempt to set the region in the SVM */
@@ -4853,7 +4854,7 @@ kgsl_get_unmapped_area(struct file *file, unsigned long addr,
 	}
 
 	if (!kgsl_memdesc_use_cpu_map(&entry->memdesc)) {
-		val = current->mm->get_unmapped_area(file, addr, len, 0, flags);
+		val = mm_get_unmapped_area(current->mm, file, addr, len, 0, flags);
 		if (IS_ERR_VALUE(val))
 			dev_err_ratelimited(device->dev,
 					       "get_unmapped_area: pid %d addr %lx pgoff %lx len %ld failed error %d\n",
@@ -5260,7 +5261,7 @@ error:
 
 void kgsl_device_platform_remove(struct kgsl_device *device)
 {
-	del_timer(&device->work_period_timer);
+	timer_delete(&device->work_period_timer);
 
 	kthread_destroy_worker(device->events_worker);
 

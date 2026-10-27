@@ -1065,7 +1065,7 @@ no_gx_power:
 
 	clear_bit(RGMU_PRIV_GPU_STARTED, &rgmu->flags);
 
-	del_timer_sync(&device->idle_timer);
+	timer_delete_sync(&device->idle_timer);
 
 	kgsl_pwrscale_sleep(device);
 
@@ -1372,10 +1372,10 @@ static int a6xx_rgmu_probe_dev(struct platform_device *pdev)
 	return component_add(&pdev->dev, &a6xx_rgmu_component_ops);
 }
 
-static int a6xx_rgmu_remove_dev(struct platform_device *pdev)
+static void a6xx_rgmu_remove_dev(struct platform_device *pdev)
 {
 	component_del(&pdev->dev, &a6xx_rgmu_component_ops);
-	return 0;
+	return;
 }
 
 static const struct of_device_id a6xx_rgmu_match_table[] = {

@@ -70,8 +70,8 @@ TRACE_EVENT(adreno_hw_fence_query,
 		__entry->context = context;
 		__entry->seqno = seqno;
 		__entry->flags = flags;
-		__assign_str(fence_name, name);
-		__assign_str(val, val);
+		__assign_str(fence_name);
+		__assign_str(val);
 	),
 	TP_printk(
 		"id=%lld seqno=%lld sw_status=%s name=%s val=%s",
@@ -98,7 +98,7 @@ TRACE_EVENT(adreno_input_hw_fence,
 		__entry->context = context;
 		__entry->seqno = seqno;
 		__entry->flags = flags;
-		__assign_str(fence_name, name);
+		__assign_str(fence_name);
 	),
 	TP_printk(
 		"ctx=%u id=%lld seqno=%lld flags=%s name=%s",
@@ -605,7 +605,7 @@ TRACE_EVENT(kgsl_a5xx_irq_status,
 	),
 
 	TP_fast_assign(
-		__assign_str(device_name, adreno_dev->dev.name);
+		__assign_str(device_name);
 		__entry->status = status;
 	),
 
@@ -675,7 +675,7 @@ TRACE_EVENT(kgsl_gen7_irq_status,
 	),
 
 	TP_fast_assign(
-		__assign_str(device_name, adreno_dev->dev.name);
+		__assign_str(device_name);
 		__entry->status = status;
 	),
 
@@ -740,7 +740,7 @@ TRACE_EVENT(kgsl_gen8_irq_status,
 	),
 
 	TP_fast_assign(
-		__assign_str(device_name, adreno_dev->dev.name);
+		__assign_str(device_name);
 		__entry->status = status;
 	),
 

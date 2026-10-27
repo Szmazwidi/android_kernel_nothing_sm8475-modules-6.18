@@ -9,6 +9,7 @@
 #include <linux/io.h>
 #include <linux/iopoll.h>
 #include <linux/of_device.h>
+#include <linux/pong-kgsl-smmu.h>
 #include <linux/of_platform.h>
 #include <linux/scatterlist.h>
 #include <linux/qcom-iommu-util.h>
@@ -1451,9 +1452,9 @@ int kgsl_set_smmu_aperture(struct kgsl_device *device,
 	if (!test_bit(KGSL_MMU_SMMU_APERTURE, &device->mmu.features))
 		return 0;
 
-	ret = qcom_scm_kgsl_set_smmu_aperture(context->cb_num);
+	ret = qcom_scm_set_gpu_smmu_aperture(context->cb_num);
 	if (ret == -EBUSY)
-		ret = qcom_scm_kgsl_set_smmu_aperture(context->cb_num);
+		ret = qcom_scm_set_gpu_smmu_aperture(context->cb_num);
 
 	if (ret)
 		dev_err(&device->pdev->dev, "Unable to set the SMMU aperture: %d. The aperture needs to be set to use per-process pagetables\n",
@@ -1472,9 +1473,7 @@ int kgsl_set_smmu_lpac_aperture(struct kgsl_device *device,
 			!ADRENO_FEATURE(adreno_dev, ADRENO_LPAC))
 		return 0;
 
-	ret = qcom_scm_kgsl_set_smmu_lpac_aperture(context->cb_num);
-	if (ret == -EBUSY)
-		ret = qcom_scm_kgsl_set_smmu_lpac_aperture(context->cb_num);
+	ret = -EOPNOTSUPP; /* LPAC SCM command is not provided by this Cape build. */
 
 	if (ret)
 		dev_err(&device->pdev->dev, "Unable to set the LPAC SMMU aperture: %d. The aperture needs to be set to use per-process pagetables\n",
@@ -1488,6 +1487,7 @@ static int kgsl_iopgtbl_alloc(struct kgsl_iommu_context *ctx, struct kgsl_iommu_
 {
 	struct adreno_smmu_priv *adreno_smmu = dev_get_drvdata(&ctx->pdev->dev);
 	const struct io_pgtable_cfg *cfg = NULL;
+	int ret;
 	void *domain = (void *)adreno_smmu->cookie;
 
 	if (adreno_smmu->cookie)
@@ -1495,7 +1495,9 @@ static int kgsl_iopgtbl_alloc(struct kgsl_iommu_context *ctx, struct kgsl_iommu_
 	if (!cfg)
 		return -ENODEV;
 
-	pt->info = adreno_smmu->pgtbl_info;
+	ret = pong71_smmu_get_pgtable_info(ctx->domain, &pt->info);
+	if (ret)
+		return ret;
 	pt->info.cfg = *cfg;
 	pt->info.cfg.quirks &= ~IO_PGTABLE_QUIRK_ARM_TTBR1;
 	pt->info.cfg.tlb = &kgsl_iopgtbl_tlb_ops;
@@ -2531,6 +2533,10 @@ static int kgsl_iommu_setup_context(struct kgsl_mmu *mmu,
 		return -ENOENT;
 
 	pdev = of_find_device_by_node(node);
+	if (!pdev) {
+		of_node_put(node);
+		return -EPROBE_DEFER;
+	}
 	ret = of_dma_configure(&pdev->dev, node, true);
 	of_node_put(node);
 
@@ -2547,10 +2553,11 @@ static int kgsl_iommu_setup_context(struct kgsl_mmu *mmu,
 	dev_set_drvdata(&pdev->dev, &context->adreno_smmu);
 
 	/* Create a new context */
-	context->domain = iommu_domain_alloc(&platform_bus_type);
-	if (!context->domain) {
-		/*FIXME: Put back the pdev here? */
-		return -ENODEV;
+	context->domain = iommu_paging_domain_alloc(&pdev->dev);
+	if (IS_ERR(context->domain)) {
+		ret = PTR_ERR(context->domain);
+		context->domain = NULL;
+		return ret;
 	}
 
 	qcom_iommu_set_fault_model(context->domain, QCOM_IOMMU_FAULT_MODEL_NON_FATAL);
@@ -2679,6 +2686,10 @@ static int iommu_probe_secure_context(struct kgsl_device *device,
 		return -ENOENT;
 
 	pdev = of_find_device_by_node(node);
+	if (!pdev) {
+		of_node_put(node);
+		return -EPROBE_DEFER;
+	}
 	ret = of_dma_configure(&pdev->dev, node, true);
 	of_node_put(node);
 
@@ -2691,10 +2702,11 @@ static int iommu_probe_secure_context(struct kgsl_device *device,
 	context->pdev = pdev;
 	ratelimit_default_init(&context->ratelimit);
 
-	context->domain = iommu_domain_alloc(&platform_bus_type);
-	if (!context->domain) {
-		/* FIXME: put away the device */
-		return -ENODEV;
+	context->domain = iommu_paging_domain_alloc(&pdev->dev);
+	if (IS_ERR(context->domain)) {
+		ret = PTR_ERR(context->domain);
+		context->domain = NULL;
+		return ret;
 	}
 
 	ret = qcom_iommu_set_secure_vmid(context->domain, secure_vmid);

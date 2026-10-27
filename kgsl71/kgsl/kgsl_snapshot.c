@@ -7,6 +7,7 @@
 #include <linux/of.h>
 #include <linux/panic_notifier.h>
 #include <linux/slab.h>
+#include <linux/vmalloc.h>
 #include <linux/utsname.h>
 
 #include "adreno_cp_parser.h"
@@ -800,7 +801,7 @@ static int snapshot_release(struct kgsl_device *device,
 
 /* Dump the sysfs binary data to the user */
 static ssize_t snapshot_show(struct file *filep, struct kobject *kobj,
-	struct bin_attribute *attr, char *buf, loff_t off,
+	const struct bin_attribute *attr, char *buf, loff_t off,
 	size_t count)
 {
 	struct kgsl_device *device = kobj_to_device(kobj);

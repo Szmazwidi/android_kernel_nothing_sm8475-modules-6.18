@@ -47,7 +47,7 @@ static void _wakeup_hw_fence_waiters(struct adreno_device *adreno_dev, u32 fault
 
 	wake_up_all(&hfi->hw_fence.unack_wq);
 
-	del_timer_sync(&hfi->hw_fence_timer);
+	timer_delete_sync(&hfi->hw_fence_timer);
 }
 
 void gen7_hwsched_fault(struct adreno_device *adreno_dev, u32 fault)
@@ -931,7 +931,7 @@ no_gx_power:
 
 	clear_bit(GMU_PRIV_GPU_STARTED, &gmu->flags);
 
-	del_timer_sync(&device->idle_timer);
+	timer_delete_sync(&device->idle_timer);
 
 	kgsl_pwrscale_sleep(device);
 

@@ -85,7 +85,7 @@ int kgsl_scm_gpu_init_regs(struct device *dev, u32 gpu_req)
 	if (!gpu_req)
 		return -EOPNOTSUPP;
 
-	ret = qcom_scm_kgsl_init_regs(gpu_req);
+	ret = qcom_scm_gpu_init_regs(gpu_req);
 	if (ret)
 		dev_err(dev, "Scm call for requests:0x%x failed with ret:: %d\n",
 									gpu_req, ret);
@@ -174,7 +174,12 @@ int kgsl_zap_shader_unload(struct device *dev)
 {
 	int ret;
 
-	ret = qcom_scm_pas_shutdown_retry(GPU_PASID);
+	ret = qcom_scm_pas_shutdown(GPU_PASID);
+	if (ret) {
+		/* Preserve the pinned vendor helper's one retry after 5 seconds. */
+		msleep(5000);
+		ret = qcom_scm_pas_shutdown(GPU_PASID);
+	}
 	if (ret)
 		dev_err(dev, "Error %d while PAS shutdown\n", ret);
 
