@@ -210,17 +210,23 @@ static void ipclite_hw_mutex_release(void)
 	}
 }
 
+void ipclite_atomic_init_u32(ipclite_atomic_uint32_t *addr, uint32_t data);
+
 void ipclite_atomic_init_u32(ipclite_atomic_uint32_t *addr, uint32_t data)
 {
 	atomic_set(addr, data);
 }
 EXPORT_SYMBOL_GPL(ipclite_atomic_init_u32);
 
+void ipclite_atomic_init_i32(ipclite_atomic_int32_t *addr, int32_t data);
+
 void ipclite_atomic_init_i32(ipclite_atomic_int32_t *addr, int32_t data)
 {
 	atomic_set(addr, data);
 }
 EXPORT_SYMBOL_GPL(ipclite_atomic_init_i32);
+
+void ipclite_global_atomic_store_u32(ipclite_atomic_uint32_t *addr, uint32_t data);
 
 void ipclite_global_atomic_store_u32(ipclite_atomic_uint32_t *addr, uint32_t data)
 {
@@ -234,6 +240,8 @@ void ipclite_global_atomic_store_u32(ipclite_atomic_uint32_t *addr, uint32_t dat
 }
 EXPORT_SYMBOL_GPL(ipclite_global_atomic_store_u32);
 
+void ipclite_global_atomic_store_i32(ipclite_atomic_int32_t *addr, int32_t data);
+
 void ipclite_global_atomic_store_i32(ipclite_atomic_int32_t *addr, int32_t data)
 {
 	/* callback to acquire hw mutex lock if atomic support is not enabled */
@@ -245,6 +253,8 @@ void ipclite_global_atomic_store_i32(ipclite_atomic_int32_t *addr, int32_t data)
 	ipclite->ipclite_hw_mutex->release();
 }
 EXPORT_SYMBOL_GPL(ipclite_global_atomic_store_i32);
+
+uint32_t ipclite_global_atomic_load_u32(ipclite_atomic_uint32_t *addr);
 
 uint32_t ipclite_global_atomic_load_u32(ipclite_atomic_uint32_t *addr)
 {
@@ -262,6 +272,8 @@ uint32_t ipclite_global_atomic_load_u32(ipclite_atomic_uint32_t *addr)
 }
 EXPORT_SYMBOL_GPL(ipclite_global_atomic_load_u32);
 
+int32_t ipclite_global_atomic_load_i32(ipclite_atomic_int32_t *addr);
+
 int32_t ipclite_global_atomic_load_i32(ipclite_atomic_int32_t *addr)
 {
 	int32_t ret;
@@ -277,6 +289,8 @@ int32_t ipclite_global_atomic_load_i32(ipclite_atomic_int32_t *addr)
 	return ret;
 }
 EXPORT_SYMBOL_GPL(ipclite_global_atomic_load_i32);
+
+uint32_t ipclite_global_test_and_set_bit(uint32_t nr, ipclite_atomic_uint32_t *addr);
 
 uint32_t ipclite_global_test_and_set_bit(uint32_t nr, ipclite_atomic_uint32_t *addr)
 {
@@ -295,6 +309,8 @@ uint32_t ipclite_global_test_and_set_bit(uint32_t nr, ipclite_atomic_uint32_t *a
 }
 EXPORT_SYMBOL_GPL(ipclite_global_test_and_set_bit);
 
+uint32_t ipclite_global_test_and_clear_bit(uint32_t nr, ipclite_atomic_uint32_t *addr);
+
 uint32_t ipclite_global_test_and_clear_bit(uint32_t nr, ipclite_atomic_uint32_t *addr)
 {
 	uint32_t ret;
@@ -312,6 +328,8 @@ uint32_t ipclite_global_test_and_clear_bit(uint32_t nr, ipclite_atomic_uint32_t 
 }
 EXPORT_SYMBOL_GPL(ipclite_global_test_and_clear_bit);
 
+int32_t ipclite_global_atomic_inc(ipclite_atomic_int32_t *addr);
+
 int32_t ipclite_global_atomic_inc(ipclite_atomic_int32_t *addr)
 {
 	int32_t ret = 0;
@@ -327,6 +345,8 @@ int32_t ipclite_global_atomic_inc(ipclite_atomic_int32_t *addr)
 	return ret;
 }
 EXPORT_SYMBOL_GPL(ipclite_global_atomic_inc);
+
+int32_t ipclite_global_atomic_dec(ipclite_atomic_int32_t *addr);
 
 int32_t ipclite_global_atomic_dec(ipclite_atomic_int32_t *addr)
 {
@@ -689,6 +709,8 @@ static int ipclite_send_debug_info(int32_t proc_id)
 	return IPCLITE_SUCCESS;
 }
 
+int ipclite_ssr_update(int32_t proc_id);
+
 int ipclite_ssr_update(int32_t proc_id)
 {
 	int ret = 0;
@@ -721,6 +743,8 @@ int ipclite_ssr_update(int32_t proc_id)
 							proc_id, IPCLITE_SSR_SIGNAL, ret);
 	return IPCLITE_SUCCESS;
 }
+
+void ipclite_recover(enum ipcmem_host_type core_id);
 
 void ipclite_recover(enum ipcmem_host_type core_id)
 {
@@ -804,6 +828,8 @@ void ipclite_recover(enum ipcmem_host_type core_id)
 }
 EXPORT_SYMBOL_GPL(ipclite_recover);
 
+int ipclite_msg_send(int32_t proc_id, uint64_t data);
+
 int ipclite_msg_send(int32_t proc_id, uint64_t data)
 {
 	int ret = 0;
@@ -831,6 +857,8 @@ int ipclite_msg_send(int32_t proc_id, uint64_t data)
 }
 EXPORT_SYMBOL_GPL(ipclite_msg_send);
 
+int ipclite_register_client(IPCLite_Client cb_func_ptr, void *priv);
+
 int ipclite_register_client(IPCLite_Client cb_func_ptr, void *priv)
 {
 	if (!cb_func_ptr) {
@@ -844,6 +872,8 @@ int ipclite_register_client(IPCLite_Client cb_func_ptr, void *priv)
 	return 0;
 }
 EXPORT_SYMBOL_GPL(ipclite_register_client);
+
+int ipclite_test_msg_send(int32_t proc_id, uint64_t data);
 
 int ipclite_test_msg_send(int32_t proc_id, uint64_t data)
 {
@@ -871,6 +901,8 @@ int ipclite_test_msg_send(int32_t proc_id, uint64_t data)
 	return ret;
 }
 EXPORT_SYMBOL_GPL(ipclite_test_msg_send);
+
+int ipclite_register_test_client(IPCLite_Client cb_func_ptr, void *priv);
 
 int ipclite_register_test_client(IPCLite_Client cb_func_ptr, void *priv)
 {
@@ -1102,6 +1134,8 @@ err_dev:
 	kfree(dev);
 	return ret;
 }
+
+int32_t get_global_partition_info(struct global_region_info *global_ipcmem);
 
 int32_t get_global_partition_info(struct global_region_info *global_ipcmem)
 {

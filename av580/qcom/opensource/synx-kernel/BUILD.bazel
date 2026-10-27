@@ -8,14 +8,14 @@ package(
 
 filegroup(
     name = "synx_dt_bindings",
-    srcs = glob(["dt-bindings/**"]),
+    srcs = glob(["dt-bindings/**"], allow_empty = True),
 )
 
 filegroup(
     name = "_synx_uapi_headers",
     srcs = glob([
         "include/uapi/synx/media/*.h",
-    ]),
+    ], allow_empty = True),
 )
 
 ddk_headers(
@@ -30,7 +30,7 @@ ddk_headers(
     name = "synx_drivers_headers",
     hdrs = glob([
       "msm/synx/*.h",
-    ]),
+    ], allow_empty = True),
     includes = ["msm","msm/synx"]
 )
 
@@ -45,7 +45,7 @@ ddk_uapi_headers(
         ":_synx_uapi_headers",
     ],
     out = "synx-uapi-headers.tar.gz",
-    kernel_build = "//:target_kernel_build",
+    kernel_build = "//common:kernel_aarch64",
 )
 
 load(":neo61.bzl", "define_neo61")

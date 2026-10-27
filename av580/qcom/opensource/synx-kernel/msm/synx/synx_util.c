@@ -22,6 +22,10 @@ extern void synx_external_callback(s32 sync_obj, int status, void *data);
 
 int synx_util_init_coredata(struct synx_coredata *synx_obj,
 	struct synx_create_params *params,
+	struct dma_fence_ops *ops);
+
+int synx_util_init_coredata(struct synx_coredata *synx_obj,
+	struct synx_create_params *params,
 	struct dma_fence_ops *ops)
 {
 	spinlock_t *fence_lock;
@@ -84,6 +88,10 @@ int synx_util_init_coredata(struct synx_coredata *synx_obj,
 
 int synx_util_init_group_coredata(struct synx_coredata *synx_obj,
 	struct dma_fence **fences,
+	u32 num_objs);
+
+int synx_util_init_group_coredata(struct synx_coredata *synx_obj,
+	struct dma_fence **fences,
 	u32 num_objs)
 {
 	struct dma_fence_array *array;
@@ -128,15 +136,21 @@ static void synx_util_destroy_coredata(struct kref *kref)
 	synx_util_object_destroy(synx_obj);
 }
 
+void synx_util_get_object(struct synx_coredata *synx_obj);
+
 void synx_util_get_object(struct synx_coredata *synx_obj)
 {
 	kref_get(&synx_obj->refcount);
 }
 
+void synx_util_put_object(struct synx_coredata *synx_obj);
+
 void synx_util_put_object(struct synx_coredata *synx_obj)
 {
 	kref_put(&synx_obj->refcount, synx_util_destroy_coredata);
 }
+
+void synx_util_object_destroy(struct synx_coredata *synx_obj);
 
 void synx_util_object_destroy(struct synx_coredata *synx_obj)
 {
@@ -200,6 +214,8 @@ void synx_util_object_destroy(struct synx_coredata *synx_obj)
 	pr_debug("released synx object %pK\n", synx_obj);
 }
 
+long synx_util_get_free_handle(unsigned long *bitmap, unsigned int size);
+
 long synx_util_get_free_handle(unsigned long *bitmap, unsigned int size)
 {
 	bool bit;
@@ -214,6 +230,10 @@ long synx_util_get_free_handle(unsigned long *bitmap, unsigned int size)
 
 	return idx;
 }
+
+int synx_util_init_handle(struct synx_client *client,
+	struct synx_coredata *synx_obj,
+	long *new_synx);
 
 int synx_util_init_handle(struct synx_client *client,
 	struct synx_coredata *synx_obj,
@@ -252,6 +272,8 @@ int synx_util_init_handle(struct synx_client *client,
 	*new_synx = h_synx;
 	return 0;
 }
+
+int synx_util_activate(struct synx_coredata *synx_obj);
 
 int synx_util_activate(struct synx_coredata *synx_obj)
 {
@@ -357,6 +379,10 @@ static u32 synx_util_remove_duplicates(struct dma_fence **arr, u32 num)
 
 s32 synx_util_merge_error(struct synx_client *client,
 	s32 *h_synxs,
+	u32 num_objs);
+
+s32 synx_util_merge_error(struct synx_client *client,
+	s32 *h_synxs,
 	u32 num_objs)
 {
 	u32 i = 0;
@@ -381,6 +407,12 @@ s32 synx_util_merge_error(struct synx_client *client,
 
 	return 0;
 }
+
+int synx_util_validate_merge(struct synx_client *client,
+	s32 *h_synxs,
+	u32 num_objs,
+	struct dma_fence ***fence_list,
+	u32 *fence_cnt);
 
 int synx_util_validate_merge(struct synx_client *client,
 	s32 *h_synxs,
@@ -539,6 +571,8 @@ static u32 __fence_group_state(struct dma_fence *fence, bool locked)
  * WARN: Should not hold the fence spinlock when invoking
  * this function. Use synx_fence_state_locked instead
  */
+u32 synx_util_get_object_status(struct synx_coredata *synx_obj);
+
 u32 synx_util_get_object_status(struct synx_coredata *synx_obj)
 {
 	u32 state;
@@ -555,6 +589,8 @@ u32 synx_util_get_object_status(struct synx_coredata *synx_obj)
 }
 
 /* use this for status check when holding on to metadata spinlock */
+u32 synx_util_get_object_status_locked(struct synx_coredata *synx_obj);
+
 u32 synx_util_get_object_status_locked(struct synx_coredata *synx_obj)
 {
 	u32 state;
@@ -569,6 +605,9 @@ u32 synx_util_get_object_status_locked(struct synx_coredata *synx_obj)
 
 	return state;
 }
+
+struct synx_handle_coredata *synx_util_acquire_handle(
+	struct synx_client *client, s32 h_synx);
 
 struct synx_handle_coredata *synx_util_acquire_handle(
 	struct synx_client *client, s32 h_synx)
@@ -602,6 +641,10 @@ struct synx_handle_coredata *synx_util_acquire_handle(
 
 	return synx_handle;
 }
+
+int synx_util_update_handle(struct synx_client *client,
+	s32 h_synx, u32 sync_id, u32 type,
+	struct synx_handle_coredata **synx_handle);
 
 int synx_util_update_handle(struct synx_client *client,
 	s32 h_synx, u32 sync_id, u32 type,
@@ -680,6 +723,8 @@ static void synx_util_destroy_handle(struct synx_handle_coredata *synx_data)
 		client->id, idx, synx_obj);
 }
 
+void synx_util_destroy_import_handle(struct kref *kref);
+
 void synx_util_destroy_import_handle(struct kref *kref)
 {
 	struct synx_handle_coredata *synx_data =
@@ -696,6 +741,8 @@ void synx_util_destroy_import_handle(struct kref *kref)
 	synx_util_destroy_handle(synx_data);
 }
 
+void synx_util_destroy_internal_handle(struct kref *kref);
+
 void synx_util_destroy_internal_handle(struct kref *kref)
 {
 	struct synx_handle_coredata *synx_data =
@@ -711,6 +758,8 @@ void synx_util_destroy_internal_handle(struct kref *kref)
 
 	synx_util_destroy_handle(synx_data);
 }
+
+void synx_util_release_handle(struct synx_handle_coredata *synx_data);
 
 void synx_util_release_handle(struct synx_handle_coredata *synx_data)
 {
@@ -732,6 +781,8 @@ void synx_util_release_handle(struct synx_handle_coredata *synx_data)
 	mutex_unlock(&client->synx_table_lock[idx]);
 }
 
+struct bind_operations *synx_util_get_bind_ops(u32 type);
+
 struct bind_operations *synx_util_get_bind_ops(u32 type)
 {
 	struct synx_registered_ops *client_ops;
@@ -749,6 +800,10 @@ struct bind_operations *synx_util_get_bind_ops(u32 type)
 
 	return &client_ops->ops;
 }
+
+int synx_util_alloc_cb_entry(struct synx_client *client,
+	struct synx_kernel_payload *data,
+	u32 *cb_idx);
 
 int synx_util_alloc_cb_entry(struct synx_client *client,
 	struct synx_kernel_payload *data,
@@ -781,6 +836,9 @@ int synx_util_alloc_cb_entry(struct synx_client *client,
 }
 
 int synx_util_clear_cb_entry(struct synx_client *client,
+	struct synx_client_cb *cb);
+
+int synx_util_clear_cb_entry(struct synx_client *client,
 	struct synx_client_cb *cb)
 {
 	int rc = 0;
@@ -802,6 +860,9 @@ int synx_util_clear_cb_entry(struct synx_client *client,
 }
 
 void synx_util_default_user_callback(s32 h_synx,
+	int status, void *data);
+
+void synx_util_default_user_callback(s32 h_synx,
 	int status, void *data)
 {
 	struct synx_client_cb *cb = data;
@@ -821,6 +882,8 @@ void synx_util_default_user_callback(s32 h_synx,
 	}
 }
 
+void synx_util_callback_dispatch(struct synx_coredata *synx_obj, u32 status);
+
 void synx_util_callback_dispatch(struct synx_coredata *synx_obj, u32 status)
 {
 	struct synx_cb_data *synx_cb, *synx_cb_temp;
@@ -839,6 +902,8 @@ void synx_util_callback_dispatch(struct synx_coredata *synx_obj, u32 status)
 		pr_debug("dispatched callback\n");
 	}
 }
+
+void synx_util_cb_dispatch(struct work_struct *cb_dispatch);
 
 void synx_util_cb_dispatch(struct work_struct *cb_dispatch)
 {
@@ -902,6 +967,8 @@ fail:
 free:
 	kfree(synx_cb);
 }
+
+struct synx_coredata *synx_util_import_object(struct synx_import_params *params);
 
 struct synx_coredata *synx_util_import_object(struct synx_import_params *params)
 {
@@ -1022,6 +1089,9 @@ static int synx_util_export_external(struct synx_coredata *synx_obj,
 }
 
 int synx_util_export_global(struct synx_client *client,
+	struct synx_export_params *params);
+
+int synx_util_export_global(struct synx_client *client,
 	struct synx_export_params *params)
 {
 	int rc = 0;
@@ -1072,6 +1142,9 @@ fail:
 }
 
 int synx_util_export_local(struct synx_client *client,
+	struct synx_export_params *params);
+
+int synx_util_export_local(struct synx_client *client,
 	struct synx_export_params *params)
 {
 	int rc = 0;
@@ -1113,6 +1186,8 @@ fail:
 	synx_util_release_handle(synx_data);
 	return rc;
 }
+
+struct synx_client *synx_get_client(struct synx_session session_id);
 
 struct synx_client *synx_get_client(struct synx_session session_id)
 {
@@ -1207,6 +1282,8 @@ static void synx_client_destroy(struct kref *kref)
 	queue_work(synx_dev->work_queue, &client_cb->cb_dispatch);
 }
 
+void synx_put_client(struct synx_client *client);
+
 void synx_put_client(struct synx_client *client)
 {
 	struct synx_client_metadata *client_metadata;
@@ -1234,6 +1311,8 @@ void synx_put_client(struct synx_client *client)
 	mutex_unlock(&synx_dev->dev_table_lock);
 }
 
+void synx_util_generate_timestamp(char *timestamp, size_t size);
+
 void synx_util_generate_timestamp(char *timestamp, size_t size)
 {
 	struct timespec64 tv;
@@ -1245,6 +1324,8 @@ void synx_util_generate_timestamp(char *timestamp, size_t size)
 		tm.tm_mon + 1, tm.tm_mday, tm.tm_hour,
 		tm.tm_min, tm.tm_sec);
 }
+
+void synx_util_log_error(u32 client_id, s32 h_synx, s32 err);
 
 void synx_util_log_error(u32 client_id, s32 h_synx, s32 err)
 {
@@ -1268,6 +1349,8 @@ void synx_util_log_error(u32 client_id, s32 h_synx, s32 err)
 	mutex_unlock(&synx_dev->error_lock);
 }
 
+int synx_util_init_table(void);
+
 int synx_util_init_table(void)
 {
 	hash_init(synx_global_key_tbl);
@@ -1278,6 +1361,8 @@ int synx_util_init_table(void)
 
 	return 0;
 }
+
+int synx_util_save_data(u32 key, u32 tbl, void *data);
 
 int synx_util_save_data(u32 key, u32 tbl, void *data)
 {
@@ -1316,6 +1401,9 @@ int synx_util_save_data(u32 key, u32 tbl, void *data)
 
 	return rc;
 }
+
+struct hash_key_data *synx_util_retrieve_data(u32 key,
+	u32 tbl);
 
 struct hash_key_data *synx_util_retrieve_data(u32 key,
 	u32 tbl)
@@ -1357,6 +1445,9 @@ struct hash_key_data *synx_util_retrieve_data(u32 key,
 }
 
 struct hash_key_data *synx_util_release_data(u32 key,
+	u32 tbl);
+
+struct hash_key_data *synx_util_release_data(u32 key,
 	u32 tbl)
 {
 	void *entry = NULL;
@@ -1395,6 +1486,8 @@ struct hash_key_data *synx_util_release_data(u32 key,
 
 	return entry;
 }
+
+void synx_util_destroy_data(struct kref *kref);
 
 void synx_util_destroy_data(struct kref *kref)
 {

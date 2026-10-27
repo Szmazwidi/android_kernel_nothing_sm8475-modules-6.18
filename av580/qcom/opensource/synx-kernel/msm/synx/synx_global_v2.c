@@ -79,6 +79,8 @@ static void synx_global_print_data(
 				func, i, synx_g_obj->parents[i]);
 }
 
+int synx_global_dump_shared_memory(void);
+
 int synx_global_dump_shared_memory(void)
 {
 	int rc = SYNX_SUCCESS, idx;
@@ -139,6 +141,8 @@ static int synx_gmem_init(void)
 	return SYNX_SUCCESS;
 }
 
+int synx_global_free_synx_hwlock(void);
+
 int synx_global_free_synx_hwlock(void)
 {
 	if (!synx_hwlock) {
@@ -149,6 +153,8 @@ int synx_global_free_synx_hwlock(void)
 
 	return SYNX_SUCCESS;
 }
+
+u32 synx_global_map_core_id(enum synx_core_id id);
 
 u32 synx_global_map_core_id(enum synx_core_id id)
 {
@@ -171,6 +177,8 @@ u32 synx_global_map_core_id(enum synx_core_id id)
 	return host_id;
 }
 
+
+int synx_global_memory_is_empty(void);
 
 int synx_global_memory_is_empty(void)
 {
@@ -197,6 +205,8 @@ int synx_global_memory_is_empty(void)
 
 	return -SYNX_INVALID;
 }
+
+int synx_global_alloc_index(u32 *idx);
 
 int synx_global_alloc_index(u32 *idx)
 {
@@ -227,6 +237,8 @@ int synx_global_alloc_index(u32 *idx)
 
 	return rc;
 }
+
+int synx_global_init_coredata(u32 h_synx);
 
 int synx_global_init_coredata(u32 h_synx)
 {
@@ -296,6 +308,8 @@ static int synx_global_get_waiting_cores_locked(
 	return SYNX_SUCCESS;
 }
 
+int synx_global_get_waiting_cores(u32 idx, bool *cores);
+
 int synx_global_get_waiting_cores(u32 idx, bool *cores)
 {
 	int rc;
@@ -318,6 +332,8 @@ int synx_global_get_waiting_cores(u32 idx, bool *cores)
 	return SYNX_SUCCESS;
 }
 
+int synx_global_set_waiting_core(u32 idx, enum synx_core_id id);
+
 int synx_global_set_waiting_core(u32 idx, enum synx_core_id id)
 {
 	int rc;
@@ -339,6 +355,8 @@ int synx_global_set_waiting_core(u32 idx, enum synx_core_id id)
 
 	return SYNX_SUCCESS;
 }
+
+int synx_global_get_subscribed_cores(u32 idx, bool *cores);
 
 int synx_global_get_subscribed_cores(u32 idx, bool *cores)
 {
@@ -365,6 +383,8 @@ int synx_global_get_subscribed_cores(u32 idx, bool *cores)
 	return SYNX_SUCCESS;
 }
 
+int synx_global_set_subscribed_core(u32 idx, enum synx_core_id id);
+
 int synx_global_set_subscribed_core(u32 idx, enum synx_core_id id)
 {
 	int rc;
@@ -387,6 +407,8 @@ int synx_global_set_subscribed_core(u32 idx, enum synx_core_id id)
 	return SYNX_SUCCESS;
 }
 
+int synx_global_clear_subscribed_core(u32 idx, enum synx_core_id id);
+
 int synx_global_clear_subscribed_core(u32 idx, enum synx_core_id id)
 {
 	int rc;
@@ -408,6 +430,8 @@ int synx_global_clear_subscribed_core(u32 idx, enum synx_core_id id)
 
 	return SYNX_SUCCESS;
 }
+
+u32 synx_global_get_parents_num(u32 idx);
 
 u32 synx_global_get_parents_num(u32 idx)
 {
@@ -449,6 +473,8 @@ static int synx_global_get_parents_locked(
 	return SYNX_SUCCESS;
 }
 
+int synx_global_get_parents(u32 idx, u32 *parents);
+
 int synx_global_get_parents(u32 idx, u32 *parents)
 {
 	int rc;
@@ -470,6 +496,8 @@ int synx_global_get_parents(u32 idx, u32 *parents)
 
 	return rc;
 }
+
+u32 synx_global_get_status(u32 idx);
 
 u32 synx_global_get_status(u32 idx)
 {
@@ -493,6 +521,9 @@ u32 synx_global_get_status(u32 idx)
 
 	return status;
 }
+
+u32 synx_global_test_status_set_wait(u32 idx,
+	enum synx_core_id id);
 
 u32 synx_global_test_status_set_wait(u32 idx,
 	enum synx_core_id id)
@@ -642,6 +673,8 @@ static int synx_global_update_status_core(u32 idx,
 	return SYNX_SUCCESS;
 }
 
+int synx_global_update_status(u32 idx, u32 status);
+
 int synx_global_update_status(u32 idx, u32 status)
 {
 	int rc = -SYNX_INVALID;
@@ -674,6 +707,8 @@ fail:
 	return rc;
 }
 
+int synx_global_get_ref(u32 idx);
+
 int synx_global_get_ref(u32 idx)
 {
 	int rc;
@@ -699,6 +734,8 @@ int synx_global_get_ref(u32 idx)
 
 	return rc;
 }
+
+void synx_global_put_ref(u32 idx);
 
 void synx_global_put_ref(u32 idx)
 {
@@ -730,6 +767,8 @@ void synx_global_put_ref(u32 idx)
 		dprintk(SYNX_MEM, "cleared global idx %u\n", idx);
 	}
 }
+
+int synx_global_merge(u32 *idx_list, u32 num_list, u32 p_idx);
 
 int synx_global_merge(u32 *idx_list, u32 num_list, u32 p_idx)
 {
@@ -816,6 +855,8 @@ fail:
 	return rc;
 }
 
+int synx_global_recover(enum synx_core_id core_id);
+
 int synx_global_recover(enum synx_core_id core_id)
 {
 	int rc = SYNX_SUCCESS;
@@ -882,6 +923,8 @@ free:
 	kfree(clear_idx);
 	return rc;
 }
+
+int synx_global_mem_init(void);
 
 int synx_global_mem_init(void)
 {

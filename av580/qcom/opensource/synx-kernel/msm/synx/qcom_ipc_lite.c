@@ -17,6 +17,8 @@
 static struct ipc_lite_channel channel_info;
 static struct ipc_lite_client ipc_client;
 
+int ipc_lite_register_client(IPCC_Client cb_func_ptr, void *priv);
+
 int ipc_lite_register_client(IPCC_Client cb_func_ptr, void *priv)
 {
 	int err = 0;
@@ -30,6 +32,8 @@ int ipc_lite_register_client(IPCC_Client cb_func_ptr, void *priv)
 	return err;
 }
 EXPORT_SYMBOL_GPL(ipc_lite_register_client);
+
+int ipc_lite_msg_send(int32_t client_id, uint64_t data, int allow_wait);
 
 int ipc_lite_msg_send(int32_t client_id, uint64_t data, int allow_wait)
 {

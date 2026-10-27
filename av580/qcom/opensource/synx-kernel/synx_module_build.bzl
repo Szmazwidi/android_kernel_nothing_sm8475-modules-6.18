@@ -1,3 +1,4 @@
+load("//devices/pong618/build:deps.bzl", "pong_package_deps")
 load(
     "//build/kernel/kleaf:kernel.bzl",
     "ddk_module",
@@ -5,7 +6,7 @@ load(
     "kernel_module",
     "kernel_modules_install",
 )
-load("//build/bazel_common_rules/dist:dist.bzl", "copy_to_dist_dir")
+load("//devices/pong618/av580:dist.bzl", "copy_to_dist_dir")
 
 def _register_module_to_map(module_map, name, path, config_option, srcs, config_srcs, deps, config_deps):
     processed_config_srcs = {}
@@ -56,7 +57,7 @@ def _get_kernel_build_options(modules, config_options):
 def _get_kernel_build_module_srcs(module, options, formatter):
     srcs = module.srcs + _get_config_choices(module.config_srcs, options)
     module_path = "{}/".format(module.path) if module.path else ""
-    globbed_srcs = native.glob(["{}{}".format(module_path, formatter(src)) for src in srcs])
+    globbed_srcs = native.glob(["{}{}".format(module_path, formatter(src)) for src in srcs], allow_empty = True)
 
     return globbed_srcs
 
@@ -81,13 +82,13 @@ def create_module_registry(hdrs = []):
 
 def define_target_variant_modules(target, variant, registry, modules, config_options = []):
     kernel_build = "{}_{}".format(target, variant)
-    kernel_build_label = "//vendor/nothing/pong-kernel:{}".format(kernel_build)
+    kernel_build_label = "//common:kernel_aarch64"
     modules = [registry.get(module_name) for module_name in modules]
     options = _get_kernel_build_options(modules, config_options)
     build_print = lambda message: print("{}: {}".format(kernel_build, message))
     formatter = lambda s: s.replace("%b", kernel_build).replace("%t", target)
 
-    headers = ["//vendor/nothing/pong-kernel:all_headers"] + registry.hdrs
+    headers = pong_package_deps() + ["//devices/pong618/av580/providers:vendor_headers"] + registry.hdrs
     all_module_rules = []
 
     for module in modules:
@@ -98,6 +99,7 @@ def define_target_variant_modules(target, variant, registry, modules, config_opt
             continue
 
         ddk_submodule(
+            copts = ["-ferror-limit=0"],
             name = rule_name,
             srcs = module_srcs,
             out = "{}.ko".format(module.name),

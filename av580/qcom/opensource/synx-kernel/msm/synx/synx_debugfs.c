@@ -25,6 +25,11 @@ int columns = NAME_COLUMN | ID_COLUMN |
 void populate_bound_rows(
 	struct synx_coredata *row,
 	char *cur,
+	char *end);
+
+void populate_bound_rows(
+	struct synx_coredata *row,
+	char *cur,
 	char *end)
 {
 	int j;
@@ -195,6 +200,8 @@ static const struct file_operations synx_table_fops = {
 	.open = simple_open,
 };
 
+struct dentry *synx_init_debugfs_dir(struct synx_device *dev);
+
 struct dentry *synx_init_debugfs_dir(struct synx_device *dev)
 {
 	struct dentry *dir = NULL;
@@ -214,6 +221,8 @@ struct dentry *synx_init_debugfs_dir(struct synx_device *dev)
 	INIT_LIST_HEAD(&dev->error_list);
 	return dir;
 }
+
+void synx_remove_debugfs_dir(struct synx_device *dev);
 
 void synx_remove_debugfs_dir(struct synx_device *dev)
 {

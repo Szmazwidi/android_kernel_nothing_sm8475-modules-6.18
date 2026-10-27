@@ -25,6 +25,8 @@
 struct synx_device *synx_dev;
 static atomic64_t synx_counter = ATOMIC64_INIT(1);
 
+void synx_external_callback(s32 sync_obj, int status, void *data);
+
 void synx_external_callback(s32 sync_obj, int status, void *data)
 {
 	struct synx_signal_cb *signal_cb = data;
@@ -53,15 +55,21 @@ void synx_external_callback(s32 sync_obj, int status, void *data)
 }
 EXPORT_SYMBOL_GPL(synx_external_callback);
 
+bool synx_fence_enable_signaling(struct dma_fence *fence);
+
 bool synx_fence_enable_signaling(struct dma_fence *fence)
 {
 	return true;
 }
 
+const char *synx_fence_driver_name(struct dma_fence *fence);
+
 const char *synx_fence_driver_name(struct dma_fence *fence)
 {
 	return "Global Synx driver";
 }
+
+void synx_fence_release(struct dma_fence *fence);
 
 void synx_fence_release(struct dma_fence *fence)
 {
@@ -105,6 +113,9 @@ err:
 	put_unused_fd(fd);
 	return -SYNX_INVALID;
 }
+
+void *synx_get_fence(struct synx_session *session,
+	u32 h_synx);
 
 void *synx_get_fence(struct synx_session *session,
 	u32 h_synx)
@@ -242,6 +253,9 @@ fail:
 }
 
 int synx_create(struct synx_session *session,
+	struct synx_create_params *params);
+
+int synx_create(struct synx_session *session,
 	struct synx_create_params *params)
 {
 	int rc = -SYNX_NOENT;
@@ -323,6 +337,11 @@ fail:
 	return rc;
 }
 EXPORT_SYMBOL_GPL(synx_create);
+
+int synx_native_signal_core(struct synx_coredata *synx_obj,
+	u32 status,
+	bool cb_signal,
+	u64 ext_sync_id);
 
 int synx_native_signal_core(struct synx_coredata *synx_obj,
 	u32 status,
@@ -431,6 +450,9 @@ int synx_native_signal_core(struct synx_coredata *synx_obj,
 }
 
 int synx_native_signal_fence(struct synx_coredata *synx_obj,
+	u32 status);
+
+int synx_native_signal_fence(struct synx_coredata *synx_obj,
 	u32 status)
 {
 	int rc = 0;
@@ -498,6 +520,8 @@ int synx_native_signal_fence(struct synx_coredata *synx_obj,
 
 	return rc;
 }
+
+void synx_signal_handler(struct work_struct *cb_dispatch);
 
 void synx_signal_handler(struct work_struct *cb_dispatch)
 {
@@ -580,6 +604,9 @@ fail:
 
 /* function would be called from atomic context */
 void synx_fence_callback(struct dma_fence *fence,
+	struct dma_fence_cb *cb);
+
+void synx_fence_callback(struct dma_fence *fence,
 	struct dma_fence_cb *cb)
 {
 	s32 status;
@@ -647,6 +674,8 @@ static int synx_signal_offload_job(
 fail:
 	return rc;
 }
+
+int synx_signal(struct synx_session *session, u32 h_synx, u32 status);
 
 int synx_signal(struct synx_session *session, u32 h_synx, u32 status)
 {
@@ -738,6 +767,9 @@ static int synx_match_payload(struct synx_kernel_payload *cb_payload,
 
 	return rc;
 }
+
+int synx_async_wait(struct synx_session *session,
+	struct synx_callback_params *params);
 
 int synx_async_wait(struct synx_session *session,
 	struct synx_callback_params *params)
@@ -835,6 +867,10 @@ fail:
 	return rc;
 }
 EXPORT_SYMBOL_GPL(synx_async_wait);
+
+int synx_cancel_async_wait(
+	struct synx_session *session,
+	struct synx_callback_params *params);
 
 int synx_cancel_async_wait(
 	struct synx_session *session,
@@ -946,6 +982,9 @@ fail:
 	return rc;
 }
 EXPORT_SYMBOL_GPL(synx_cancel_async_wait);
+
+int synx_merge(struct synx_session *session,
+	struct synx_merge_params *params);
 
 int synx_merge(struct synx_session *session,
 	struct synx_merge_params *params)
@@ -1060,6 +1099,9 @@ fail:
 EXPORT_SYMBOL_GPL(synx_merge);
 
 int synx_native_release_core(struct synx_client *client,
+	u32 h_synx);
+
+int synx_native_release_core(struct synx_client *client,
 	u32 h_synx)
 {
 	int rc = -SYNX_INVALID;
@@ -1084,6 +1126,8 @@ int synx_native_release_core(struct synx_client *client,
 	return rc;
 }
 
+int synx_release(struct synx_session *session, u32 h_synx);
+
 int synx_release(struct synx_session *session, u32 h_synx)
 {
 	int rc = 0;
@@ -1099,6 +1143,9 @@ int synx_release(struct synx_session *session, u32 h_synx)
 	return rc;
 }
 EXPORT_SYMBOL_GPL(synx_release);
+
+int synx_wait(struct synx_session *session,
+	u32 h_synx, u64 timeout_ms);
 
 int synx_wait(struct synx_session *session,
 	u32 h_synx, u64 timeout_ms)
@@ -1150,6 +1197,10 @@ fail:
 	return rc;
 }
 EXPORT_SYMBOL_GPL(synx_wait);
+
+int synx_bind(struct synx_session *session,
+	u32 h_synx,
+	struct synx_external_desc_v2 external_sync);
 
 int synx_bind(struct synx_session *session,
 	u32 h_synx,
@@ -1269,6 +1320,9 @@ fail:
 	return rc;
 }
 EXPORT_SYMBOL_GPL(synx_bind);
+
+int synx_get_status(struct synx_session *session,
+	u32 h_synx);
 
 int synx_get_status(struct synx_session *session,
 	u32 h_synx)
@@ -1682,6 +1736,9 @@ static int synx_native_import_arr(struct synx_client *client,
 
 	return rc;
 }
+
+int synx_import(struct synx_session *session,
+	struct synx_import_params *params);
 
 int synx_import(struct synx_session *session,
 	struct synx_import_params *params)
@@ -2272,6 +2329,9 @@ static unsigned int synx_poll(struct file *filep,
 }
 
 struct synx_session *synx_initialize(
+	struct synx_initialization_params *params);
+
+struct synx_session *synx_initialize(
 	struct synx_initialization_params *params)
 {
 	struct synx_client *client;
@@ -2308,6 +2368,8 @@ struct synx_session *synx_initialize(
 	return (struct synx_session *)client;
 }
 EXPORT_SYMBOL_GPL(synx_initialize);
+
+int synx_uninitialize(struct synx_session *session);
 
 int synx_uninitialize(struct synx_session *session)
 {
@@ -2377,6 +2439,9 @@ static const struct file_operations synx_fops = {
 };
 
 int synx_register_ops(
+	const struct synx_register_params *params);
+
+int synx_register_ops(
 	const struct synx_register_params *params)
 {
 	s32 rc = 0;
@@ -2416,6 +2481,9 @@ int synx_register_ops(
 EXPORT_SYMBOL_GPL(synx_register_ops);
 
 int synx_deregister_ops(
+	const struct synx_register_params *params);
+
+int synx_deregister_ops(
 	const struct synx_register_params *params)
 {
 	struct synx_registered_ops *client_ops;
@@ -2436,6 +2504,8 @@ int synx_deregister_ops(
 	return SYNX_SUCCESS;
 }
 EXPORT_SYMBOL_GPL(synx_deregister_ops);
+
+void synx_ipc_handler(struct work_struct *cb_dispatch);
 
 void synx_ipc_handler(struct work_struct *cb_dispatch)
 {
@@ -2459,6 +2529,9 @@ void synx_ipc_handler(struct work_struct *cb_dispatch)
 	synx_util_release_map_entry(map_entry);
 	synx_signal_handler(&signal_cb->cb_dispatch);
 }
+
+int synx_ipc_callback(u32 client_id,
+	s64 data, void *priv);
 
 int synx_ipc_callback(u32 client_id,
 	s64 data, void *priv)
@@ -2485,6 +2558,8 @@ int synx_ipc_callback(u32 client_id,
 	return SYNX_SUCCESS;
 }
 EXPORT_SYMBOL_GPL(synx_ipc_callback);
+
+int synx_recover(enum synx_client_id id);
 
 int synx_recover(enum synx_client_id id)
 {

@@ -16,6 +16,11 @@ extern void synx_external_callback(s32 sync_obj, int status, void *data);
 int synx_util_init_coredata(struct synx_coredata *synx_obj,
 	struct synx_create_params *params,
 	struct dma_fence_ops *ops,
+	u64 dma_context);
+
+int synx_util_init_coredata(struct synx_coredata *synx_obj,
+	struct synx_create_params *params,
+	struct dma_fence_ops *ops,
 	u64 dma_context)
 {
 	int rc = -SYNX_INVALID;
@@ -123,6 +128,9 @@ free:
 }
 
 int synx_util_add_callback(struct synx_coredata *synx_obj,
+	u32 h_synx);
+
+int synx_util_add_callback(struct synx_coredata *synx_obj,
 	u32 h_synx)
 {
 	int rc;
@@ -184,6 +192,12 @@ int synx_util_init_group_coredata(struct synx_coredata *synx_obj,
 	struct dma_fence **fences,
 	struct synx_merge_params *params,
 	u32 num_objs,
+	u64 dma_context);
+
+int synx_util_init_group_coredata(struct synx_coredata *synx_obj,
+	struct dma_fence **fences,
+	struct synx_merge_params *params,
+	u32 num_objs,
 	u64 dma_context)
 {
 	int rc;
@@ -237,15 +251,21 @@ static void synx_util_destroy_coredata(struct kref *kref)
 	synx_util_object_destroy(synx_obj);
 }
 
+void synx_util_get_object(struct synx_coredata *synx_obj);
+
 void synx_util_get_object(struct synx_coredata *synx_obj)
 {
 	kref_get(&synx_obj->refcount);
 }
 
+void synx_util_put_object(struct synx_coredata *synx_obj);
+
 void synx_util_put_object(struct synx_coredata *synx_obj)
 {
 	kref_put(&synx_obj->refcount, synx_util_destroy_coredata);
 }
+
+void synx_util_object_destroy(struct synx_coredata *synx_obj);
 
 void synx_util_object_destroy(struct synx_coredata *synx_obj)
 {
@@ -333,6 +353,8 @@ void synx_util_object_destroy(struct synx_coredata *synx_obj)
 }
 
 
+int synx_util_local_map_is_empty(unsigned long *bitmap, unsigned int size);
+
 int synx_util_local_map_is_empty(unsigned long *bitmap, unsigned int size)
 {
 	u32 index = 0;
@@ -356,6 +378,8 @@ int synx_util_local_map_is_empty(unsigned long *bitmap, unsigned int size)
 }
 
 
+long synx_util_get_free_handle(unsigned long *bitmap, unsigned int size);
+
 long synx_util_get_free_handle(unsigned long *bitmap, unsigned int size)
 {
 	bool bit;
@@ -370,6 +394,8 @@ long synx_util_get_free_handle(unsigned long *bitmap, unsigned int size)
 
 	return idx;
 }
+
+u32 synx_encode_handle(u32 idx, u32 core_id, bool global_idx);
 
 u32 synx_encode_handle(u32 idx, u32 core_id, bool global_idx)
 {
@@ -390,6 +416,8 @@ u32 synx_encode_handle(u32 idx, u32 core_id, bool global_idx)
 	return handle;
 }
 
+int synx_alloc_global_handle(u32 *new_synx);
+
 int synx_alloc_global_handle(u32 *new_synx)
 {
 	int rc;
@@ -407,6 +435,8 @@ int synx_alloc_global_handle(u32 *new_synx)
 	return rc;
 }
 
+int synx_alloc_local_handle(u32 *new_synx);
+
 int synx_alloc_local_handle(u32 *new_synx)
 {
 	u32 idx;
@@ -422,6 +452,10 @@ int synx_alloc_local_handle(u32 *new_synx)
 
 	return SYNX_SUCCESS;
 }
+
+int synx_util_init_handle(struct synx_client *client,
+	struct synx_coredata *synx_obj, u32 *new_h_synx,
+	void *map_entry);
 
 int synx_util_init_handle(struct synx_client *client,
 	struct synx_coredata *synx_obj, u32 *new_h_synx,
@@ -471,6 +505,8 @@ int synx_util_init_handle(struct synx_client *client,
 
 	return rc;
 }
+
+int synx_util_activate(struct synx_coredata *synx_obj);
 
 int synx_util_activate(struct synx_coredata *synx_obj)
 {
@@ -573,6 +609,10 @@ static u32 synx_util_remove_duplicates(struct dma_fence **arr, u32 num)
 
 s32 synx_util_merge_error(struct synx_client *client,
 	u32 *h_synxs,
+	u32 num_objs);
+
+s32 synx_util_merge_error(struct synx_client *client,
+	u32 *h_synxs,
 	u32 num_objs)
 {
 	u32 i = 0;
@@ -599,6 +639,12 @@ s32 synx_util_merge_error(struct synx_client *client,
 
 	return 0;
 }
+
+int synx_util_validate_merge(struct synx_client *client,
+	u32 *h_synxs,
+	u32 num_objs,
+	struct dma_fence ***fence_list,
+	u32 *fence_cnt);
 
 int synx_util_validate_merge(struct synx_client *client,
 	u32 *h_synxs,
@@ -762,6 +808,8 @@ static u32 __fence_group_state(struct dma_fence *fence, bool locked)
  * WARN: Should not hold the fence spinlock when invoking
  * this function. Use synx_fence_state_locked instead
  */
+u32 synx_util_get_object_status(struct synx_coredata *synx_obj);
+
 u32 synx_util_get_object_status(struct synx_coredata *synx_obj)
 {
 	u32 state;
@@ -778,6 +826,8 @@ u32 synx_util_get_object_status(struct synx_coredata *synx_obj)
 }
 
 /* use this for status check when holding on to metadata spinlock */
+u32 synx_util_get_object_status_locked(struct synx_coredata *synx_obj);
+
 u32 synx_util_get_object_status_locked(struct synx_coredata *synx_obj)
 {
 	u32 state;
@@ -792,6 +842,9 @@ u32 synx_util_get_object_status_locked(struct synx_coredata *synx_obj)
 
 	return state;
 }
+
+struct synx_handle_coredata *synx_util_acquire_handle(
+	struct synx_client *client, u32 h_synx);
 
 struct synx_handle_coredata *synx_util_acquire_handle(
 	struct synx_client *client, u32 h_synx)
@@ -817,6 +870,10 @@ struct synx_handle_coredata *synx_util_acquire_handle(
 
 	return synx_handle;
 }
+
+struct synx_map_entry *synx_util_insert_to_map(
+	struct synx_coredata *synx_obj,
+	u32 h_synx, u32 flags);
 
 struct synx_map_entry *synx_util_insert_to_map(
 	struct synx_coredata *synx_obj,
@@ -853,6 +910,8 @@ struct synx_map_entry *synx_util_insert_to_map(
 
 	return map_entry;
 }
+
+struct synx_map_entry *synx_util_get_map_entry(u32 h_synx);
 
 struct synx_map_entry *synx_util_get_map_entry(u32 h_synx)
 {
@@ -989,6 +1048,8 @@ static void synx_util_destroy_map_entry(struct kref *kref)
 	queue_work(synx_dev->wq_cleanup, &map_entry->dispatch);
 }
 
+void synx_util_release_map_entry(struct synx_map_entry *map_entry);
+
 void synx_util_release_map_entry(struct synx_map_entry *map_entry)
 {
 	spinlock_t *lock;
@@ -1033,6 +1094,8 @@ static void synx_util_destroy_handle(struct kref *kref)
 	queue_work(synx_dev->wq_cleanup, &synx_data->dispatch);
 }
 
+void synx_util_release_handle(struct synx_handle_coredata *synx_data);
+
 void synx_util_release_handle(struct synx_handle_coredata *synx_data)
 {
 	struct synx_client *client;
@@ -1049,6 +1112,8 @@ void synx_util_release_handle(struct synx_handle_coredata *synx_data)
 		synx_util_destroy_handle);
 	spin_unlock_bh(&client->handle_map_lock);
 }
+
+struct bind_operations *synx_util_get_bind_ops(u32 type);
 
 struct bind_operations *synx_util_get_bind_ops(u32 type)
 {
@@ -1067,6 +1132,10 @@ struct bind_operations *synx_util_get_bind_ops(u32 type)
 
 	return &client_ops->ops;
 }
+
+int synx_util_alloc_cb_entry(struct synx_client *client,
+	struct synx_kernel_payload *data,
+	u32 *cb_idx);
 
 int synx_util_alloc_cb_entry(struct synx_client *client,
 	struct synx_kernel_payload *data,
@@ -1102,6 +1171,9 @@ int synx_util_alloc_cb_entry(struct synx_client *client,
 }
 
 int synx_util_clear_cb_entry(struct synx_client *client,
+	struct synx_client_cb *cb);
+
+int synx_util_clear_cb_entry(struct synx_client *client,
 	struct synx_client_cb *cb)
 {
 	int rc = 0;
@@ -1121,6 +1193,9 @@ int synx_util_clear_cb_entry(struct synx_client *client,
 
 	return rc;
 }
+
+void synx_util_default_user_callback(u32 h_synx,
+	int status, void *data);
 
 void synx_util_default_user_callback(u32 h_synx,
 	int status, void *data)
@@ -1143,6 +1218,8 @@ void synx_util_default_user_callback(u32 h_synx,
 	}
 }
 
+void synx_util_callback_dispatch(struct synx_coredata *synx_obj, u32 status);
+
 void synx_util_callback_dispatch(struct synx_coredata *synx_obj, u32 status)
 {
 	struct synx_cb_data *synx_cb, *synx_cb_temp;
@@ -1161,6 +1238,8 @@ void synx_util_callback_dispatch(struct synx_coredata *synx_obj, u32 status)
 		dprintk(SYNX_VERB, "dispatched callback\n");
 	}
 }
+
+void synx_util_cb_dispatch(struct work_struct *cb_dispatch);
 
 void synx_util_cb_dispatch(struct work_struct *cb_dispatch)
 {
@@ -1229,6 +1308,8 @@ free:
 	kfree(synx_cb);
 }
 
+u32 synx_util_get_fence_entry(u64 key, u32 global);
+
 u32 synx_util_get_fence_entry(u64 key, u32 global)
 {
 	u32 h_synx = 0;
@@ -1251,6 +1332,8 @@ u32 synx_util_get_fence_entry(u64 key, u32 global)
 
 	return h_synx;
 }
+
+void synx_util_release_fence_entry(u64 key);
 
 void synx_util_release_fence_entry(u64 key)
 {
@@ -1275,6 +1358,9 @@ void synx_util_release_fence_entry(u64 key)
 
 	spin_unlock_bh(&synx_dev->native->fence_map_lock);
 }
+
+int synx_util_insert_fence_entry(struct synx_fence_entry *entry,
+	u32 *h_synx, u32 global);
 
 int synx_util_insert_fence_entry(struct synx_fence_entry *entry,
 	u32 *h_synx, u32 global)
@@ -1312,6 +1398,8 @@ int synx_util_insert_fence_entry(struct synx_fence_entry *entry,
 
 	return rc;
 }
+
+struct synx_client *synx_get_client(struct synx_session *session);
 
 struct synx_client *synx_get_client(struct synx_session *session)
 {
@@ -1379,6 +1467,8 @@ static void synx_client_destroy(struct kref *kref)
 	queue_work(synx_dev->wq_cleanup, &client->dispatch);
 }
 
+void synx_put_client(struct synx_client *client);
+
 void synx_put_client(struct synx_client *client)
 {
 	if (IS_ERR_OR_NULL(client))
@@ -1388,6 +1478,8 @@ void synx_put_client(struct synx_client *client)
 	kref_put(&client->refcount, synx_client_destroy);
 	spin_unlock_bh(&synx_dev->native->metadata_map_lock);
 }
+
+void synx_util_generate_timestamp(char *timestamp, size_t size);
 
 void synx_util_generate_timestamp(char *timestamp, size_t size)
 {
@@ -1400,6 +1492,8 @@ void synx_util_generate_timestamp(char *timestamp, size_t size)
 		tm.tm_mon + 1, tm.tm_mday, tm.tm_hour,
 		tm.tm_min, tm.tm_sec);
 }
+
+void synx_util_log_error(u32 client_id, u32 h_synx, s32 err);
 
 void synx_util_log_error(u32 client_id, u32 h_synx, s32 err)
 {
@@ -1422,6 +1516,9 @@ void synx_util_log_error(u32 client_id, u32 h_synx, s32 err)
 		&synx_dev->error_list);
 	mutex_unlock(&synx_dev->error_lock);
 }
+
+int synx_util_save_data(void *fence, u32 flags,
+	u32 h_synx);
 
 int synx_util_save_data(void *fence, u32 flags,
 	u32 h_synx)
@@ -1469,6 +1566,9 @@ int synx_util_save_data(void *fence, u32 flags,
 }
 
 struct synx_entry_64 *synx_util_retrieve_data(void *fence,
+	u32 type);
+
+struct synx_entry_64 *synx_util_retrieve_data(void *fence,
 	u32 type)
 {
 	u64 key;
@@ -1509,6 +1609,9 @@ static void synx_util_destroy_data(struct kref *kref)
 }
 
 void synx_util_remove_data(void *fence,
+	u32 type);
+
+void synx_util_remove_data(void *fence,
 	u32 type)
 {
 	u64 key;
@@ -1541,6 +1644,10 @@ void synx_util_remove_data(void *fence,
 
 void synx_util_map_import_params_to_create(
 	struct synx_import_indv_params *params,
+	struct synx_create_params *c_params);
+
+void synx_util_map_import_params_to_create(
+	struct synx_import_indv_params *params,
 	struct synx_create_params *c_params)
 {
 	if (IS_ERR_OR_NULL(params) || IS_ERR_OR_NULL(c_params))
@@ -1555,6 +1662,9 @@ void synx_util_map_import_params_to_create(
 	if (params->flags & SYNX_IMPORT_DMA_FENCE)
 		c_params->flags |= SYNX_CREATE_DMA_FENCE;
 }
+
+u32 synx_util_map_client_id_to_core(
+	enum synx_client_id id);
 
 u32 synx_util_map_client_id_to_core(
 	enum synx_client_id id)

@@ -27,6 +27,9 @@ int synx_debug = SYNX_ERR | SYNX_WARN |
 EXPORT_SYMBOL_GPL(synx_debug);
 
 void populate_bound_rows(
+	struct synx_coredata *row, char *cur, char *end);
+
+void populate_bound_rows(
 	struct synx_coredata *row, char *cur, char *end)
 {
 	int j;
@@ -117,6 +120,8 @@ static const struct file_operations synx_table_fops = {
 	.open = simple_open,
 };
 
+struct dentry *synx_init_debugfs_dir(struct synx_device *dev);
+
 struct dentry *synx_init_debugfs_dir(struct synx_device *dev)
 {
 	struct dentry *dir = NULL;
@@ -138,6 +143,8 @@ struct dentry *synx_init_debugfs_dir(struct synx_device *dev)
 
 	return dir;
 }
+
+void synx_remove_debugfs_dir(struct synx_device *dev);
 
 void synx_remove_debugfs_dir(struct synx_device *dev)
 {
