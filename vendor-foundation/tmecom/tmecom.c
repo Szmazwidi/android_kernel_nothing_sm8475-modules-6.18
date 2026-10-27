@@ -290,7 +290,7 @@ err:
 #endif /* CONFIG_DEBUG_FS */
 }
 
-static int tmecom_remove(struct platform_device *pdev)
+static void tmecom_remove(struct platform_device *pdev)
 {
 	struct tmecom *tdev = platform_get_drvdata(pdev);
 
@@ -302,7 +302,6 @@ static int tmecom_remove(struct platform_device *pdev)
 		mbox_free_channel(tdev->chan);
 
 	dev_info(&pdev->dev, "tmecom remove success\n");
-	return 0;
 }
 
 static const struct of_device_id tmecom_match_tbl[] = {

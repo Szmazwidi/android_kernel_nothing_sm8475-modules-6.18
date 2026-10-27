@@ -460,7 +460,7 @@ static int qcom_ice_program_wrapped_key(struct qcom_ice *ice,
 	if (err)
 		return -ENOMEM;
 
-	memcpy(shm.vaddr, key->raw, key->size);
+	memcpy(shm.vaddr, key->bytes, key->size);
 	qtee_shmbridge_flush_shm_buf(&shm);
 
 	if (!ice->use_hwkm) {
@@ -588,49 +588,8 @@ int qcom_ice_derive_sw_secret(struct qcom_ice *ice, const u8 wkey[],
 			      unsigned int wkey_size,
 			      u8 sw_secret[BLK_CRYPTO_SW_SECRET_SIZE])
 {
-	int err = 0;
-	struct qtee_shm shm_key, shm_secret;
-
-#if IS_ENABLED(CONFIG_QTI_HW_KEY_MANAGER_V1)
-	return qcom_hwkm_derive_raw_secret_platform(wkey,
-				wkey_size, sw_secret, BLK_CRYPTO_SW_SECRET_SIZE);
-#endif
-
-	/*
-	 * The following logic for shmbridge will be taken care in SCM driver
-	 * in upstream. For now, handle it in the ICE driver downstream until
-	 * wrapped key upstream effort is complete.
-	 */
-	err = qtee_shmbridge_allocate_shm(wkey_size, &shm_key);
-	if (err)
-		return -ENOMEM;
-
-	err = qtee_shmbridge_allocate_shm(BLK_CRYPTO_SW_SECRET_SIZE, &shm_secret);
-	if (err)
-		goto free_key;
-
-	memcpy(shm_key.vaddr, wkey, wkey_size);
-	qtee_shmbridge_flush_shm_buf(&shm_key);
-
-	memset(shm_secret.vaddr, 0, BLK_CRYPTO_SW_SECRET_SIZE);
-	qtee_shmbridge_flush_shm_buf(&shm_secret);
-
-	err = qcom_scm_derive_sw_secret(shm_key.paddr, wkey_size,
-					shm_secret.paddr, BLK_CRYPTO_SW_SECRET_SIZE);
-	if (err) {
-		pr_err("%s:SCM call error for raw secret: 0x%x\n", __func__, err);
-		goto free_secret;
-	}
-
-	qtee_shmbridge_inv_shm_buf(&shm_secret);
-	memcpy(sw_secret, shm_secret.vaddr, BLK_CRYPTO_SW_SECRET_SIZE);
-	qtee_shmbridge_inv_shm_buf(&shm_key);
-
-free_secret:
-	qtee_shmbridge_free_shm(&shm_secret);
-free_key:
-	qtee_shmbridge_free_shm(&shm_key);
-	return err;
+	return qcom_scm_derive_sw_secret(wkey, wkey_size, sw_secret,
+				       BLK_CRYPTO_SW_SECRET_SIZE);
 }
 EXPORT_SYMBOL_GPL(qcom_ice_derive_sw_secret);
 

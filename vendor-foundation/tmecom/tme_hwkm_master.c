@@ -7,6 +7,7 @@
 #include <linux/err.h>
 #include <linux/module.h>
 #include <linux/slab.h>
+#include <linux/tme_hwkm_master.h>
 
 #include "tme_hwkm_master_intf.h"
 #include "tmecom.h"

@@ -17,7 +17,6 @@
 #include <linux/kthread.h>
 #include <linux/workqueue.h>
 #include <linux/mailbox/qmp.h>
-#include <linux/ipc_logging.h>
 #include <linux/soc/qcom/smem.h>
 #include <linux/soc/qcom/qcom_aoss.h>
 
@@ -36,14 +35,9 @@
 #define MSG_RAM_ALIGN_BYTES 3
 
 #define QMP_IPC_LOG_PAGE_CNT 2
-#define QMP_INFO(ctxt, x, ...)						  \
-	ipc_log_string(ctxt, "[%s]: "x, __func__, ##__VA_ARGS__)
-
-#define QMP_ERR(ctxt, x, ...)						    \
-do {									    \
-	printk_ratelimited("%s[%s]: "x, KERN_ERR, __func__, ##__VA_ARGS__); \
-	ipc_log_string(ctxt, "%s[%s]: "x, "", __func__, ##__VA_ARGS__);	    \
-} while (0)
+/* Native diagnostics replace the optional downstream IPC log ring. */
+#define QMP_INFO(ctxt, x, ...) pr_debug("%s: " x, __func__, ##__VA_ARGS__)
+#define QMP_ERR(ctxt, x, ...) pr_err_ratelimited("%s: " x, __func__, ##__VA_ARGS__)
 
 #ifdef CONFIG_QMP_DEBUGFS_CLIENT
 #define QMP_BUG(x) BUG_ON(x)
@@ -778,7 +772,17 @@ static void qmp_shim_worker(struct work_struct *work)
 	struct qmp_pkt *pkt = &mbox->tx_pkt;
 	int rc;
 
-	rc = qmp_send(mbox->mdev->qmp, pkt->data, pkt->size);
+	if (!pkt->data || !pkt->size || pkt->size > INT_MAX) {
+		rc = -EINVAL;
+	} else {
+		size_t len = strnlen(pkt->data, pkt->size);
+		if (len < pkt->size && memchr_inv((char *)pkt->data + len,
+						0, pkt->size - len))
+			rc = -EINVAL;
+		else
+			rc = qmp_send(mbox->mdev->qmp, "%.*s", (int)len,
+				      (char *)pkt->data);
+	}
 	mbox_chan_txdone(&mbox->ctrl.chans[mbox->idx_in_flight], rc);
 }
 
@@ -977,7 +981,7 @@ static int qmp_shim_init(struct platform_device *pdev, struct qmp_device *mdev)
 		return rc;
 	}
 	mdev_add_mbox(mdev, mbox);
-	mdev->ilc = ipc_log_context_create(QMP_IPC_LOG_PAGE_CNT, mdev->name, 0);
+	mdev->ilc = NULL;
 
 	return 0;
 }
@@ -1062,7 +1066,7 @@ static int qmp_edge_init(struct platform_device *pdev)
 	return 0;
 }
 
-static int qmp_mbox_remove(struct platform_device *pdev)
+static void qmp_mbox_remove(struct platform_device *pdev)
 {
 	struct qmp_device *mdev = platform_get_drvdata(pdev);
 	struct qmp_mbox *mbox = NULL;
@@ -1072,7 +1076,6 @@ static int qmp_mbox_remove(struct platform_device *pdev)
 	list_for_each_entry(mbox, &mdev->mboxes, list) {
 		mbox_controller_unregister(&mbox->ctrl);
 	}
-	return 0;
 }
 
 static int qmp_mbox_probe(struct platform_device *pdev)
@@ -1098,7 +1101,7 @@ static int qmp_mbox_probe(struct platform_device *pdev)
 	if (ret)
 		return ret;
 
-	mdev->ilc = ipc_log_context_create(QMP_IPC_LOG_PAGE_CNT, mdev->name, 0);
+	mdev->ilc = NULL;
 
 	ret = devm_request_threaded_irq(&pdev->dev, mdev->rx_irq_line,
 					qmp_irq_handler, qmp_thread_irq_handler,

@@ -1,0 +1,11 @@
+# Reduced from the original package BUILD.bazel: only targets whose modules run on the phone are kept.
+load("//build/kernel/kleaf:kernel.bzl", "ddk_config", "ddk_headers", "ddk_module")
+package(default_visibility = ["//visibility:public"])
+
+ddk_headers(name="vendor_headers", hdrs=glob(["include/**/*.h"], allow_empty = True), linux_includes=["include"])
+ddk_config(name="config", kernel_build="//common:kernel_aarch64", kconfigs=["Kconfig"], defconfig="defconfig", deps=["//devices/pong618/foundation:smem"])
+ddk_module(name='scm', out='qcom-scm.ko', kernel_build="//common:kernel_aarch64", config=":config", srcs=['qcom_scm.c', 'qcom_scm-smc.c', 'qcom_scm-legacy.c', 'qcom_scm.h', 'qcom_tzmem.c', 'qcom_tzmem.h', 'qtee_shmbridge.c', 'qtee_shmbridge_internal.h'], includes=[".", "tmecom"], hdrs=[":vendor_headers"], deps=[])
+ddk_module(name='aoss', out='qcom_aoss.ko', kernel_build="//common:kernel_aarch64", config=":config", srcs=['qcom_aoss.c', 'trace-aoss.h'], includes=[".", "tmecom"], hdrs=[":vendor_headers"], deps=[])
+ddk_module(name='qmp', out='msm_qmp.ko', kernel_build="//common:kernel_aarch64", config=":config", srcs=['drivers/mailbox/msm_qmp.c'], includes=[".", "tmecom"], hdrs=[":vendor_headers"], deps=['//devices/pong618/foundation:smem', ':aoss'])
+ddk_module(name='tme', out='tmecom-intf.ko', kernel_build="//common:kernel_aarch64", config=":config", srcs=['tmecom/tmecom.c', 'tmecom/tme_hwkm_master.c', 'tmecom/tmelog.c', 'tmecom/tmecom.h', 'tmecom/tme_hwkm_master_intf.h'], includes=[".", "tmecom"], hdrs=[":vendor_headers"], deps=[':qmp'])
+ddk_module(name='ice', out='qcom_ice.ko', kernel_build="//common:kernel_aarch64", config=":config", srcs=['ice.c'], includes=[".", "tmecom"], hdrs=[":vendor_headers"], deps=[':scm', ':tme'])
