@@ -1,2 +1,0 @@
-LINUXINCLUDE += -I$(SMEM_MAILBOX_ROOT)/include
-obj-m := smem-mailbox.o
