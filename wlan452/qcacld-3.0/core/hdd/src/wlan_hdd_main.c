@@ -9101,7 +9101,7 @@ static void hdd_delete_sta(struct hdd_adapter *adapter)
 
 	hdd_debug("[SSR] send restart supplicant");
 	/* event supplicant to restart */
-	cfg80211_del_sta(adapter->dev,
+	cfg80211_del_sta(adapter->dev->ieee80211_ptr,
 			 (const u8 *)&bcast_mac.bytes[0],
 			 GFP_KERNEL);
 }

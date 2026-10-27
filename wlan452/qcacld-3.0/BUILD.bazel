@@ -1,0 +1,7 @@
+load(":wlan_qcacld3_modules.bzl","define_pong452")
+load("@rules_pkg//pkg:install.bzl","pkg_install")
+load("@rules_pkg//pkg:mappings.bzl","pkg_files","strip_prefix")
+package(default_visibility=["//visibility:public"])
+define_pong452()
+pkg_files(name="files452",srcs=[":waipio_gki_qca_cld_qca6490","//devices/pong618/wlan452/platform:helpers","//devices/pong618/cfg468:cfg80211"],strip_prefix=strip_prefix.files_only())
+pkg_install(name="pong452_dist",srcs=[":files452"])

@@ -1,4 +1,4 @@
-load("//build/bazel_common_rules/dist:dist.bzl", "copy_to_dist_dir")
+load("//devices/pong618/build:deps.bzl", "pong_package_deps")
 load("//build/kernel/kleaf:kernel.bzl", "ddk_module")
 load(":target_variants.bzl", "get_all_variants")
 
@@ -2076,7 +2076,7 @@ def _define_module_for_target_variant_chipset(target, variant, chipset):
         cmd = "cat $(SRCS) > $@",
     )
 
-    srcs = native.glob(iglobs) + _fixed_srcs
+    srcs = native.glob(iglobs, allow_empty=True) + _fixed_srcs
 
     if target == "monaco" or target == "blair" or target == "bengal":
         out = "wlan.ko"
@@ -2087,43 +2087,10 @@ def _define_module_for_target_variant_chipset(target, variant, chipset):
     kconfig = "Kconfig"
     defconfig = ":configs/{}_defconfig_generate_{}".format(tvc, variant)
 
-    deps = ["//vendor/nothing/pong-kernel:all_headers"]
+    deps = pong_package_deps() + ['//devices/pong618/wlan452/providers:vendor_headers', '//devices/pong618/wlan452/platform:headers', '//devices/pong618/wlan452/platform:helpers']
+    deps.append("//devices/pong618/cfg468:cfg80211")
+    kernel_build = "//common:kernel_aarch64"
 
-    if chipset == "qca6750" or chipset == "wlan" or chipset == "adrastea":
-        deps += [
-            "//vendor/nothing/pong-modules/qcom/opensource/wlan/platform:{}_icnss2".format(tv),
-        ]
-    else:
-        deps += [
-            "//vendor/nothing/pong-modules/qcom/opensource/wlan/platform:{}_cnss2".format(tv),
-        ]
-
-    deps = deps + [
-        "//vendor/nothing/pong-modules/qcom/opensource/wlan/platform:{}_cnss_prealloc".format(tv),
-        "//vendor/nothing/pong-modules/qcom/opensource/wlan/platform:{}_cnss_utils".format(tv),
-        "//vendor/nothing/pong-modules/qcom/opensource/wlan/platform:{}_cnss_nl".format(tv),
-        "//vendor/nothing/pong-modules/qcom/opensource/wlan/platform:wlan-platform-headers",
-    ]
-
-    if target != "lahaina" and target != "parrot" and target != "malabar":
-        deps = deps + [
-            "//vendor/nothing/pong-modules/qcom/opensource/dataipa:include_headers",
-            "//vendor/nothing/pong-modules/qcom/opensource/dataipa:{}_{}_ipam".format(target, variant),
-        ]
-
-    kernel_build = "//vendor/nothing/pong-kernel:{}".format(tv)
-
-    print("name= ", name)
-    print("hw= ", hw)
-    print("ipaths= ", ipaths)
-    print("srcs= ", srcs)
-    print("conditional_srcs= ",_conditional_srcs)
-    print("out=", out)
-    print("iglobs= ", iglobs)
-    print("copts= ", copts)
-    print("kconfig= ", kconfig)
-    print("defconfig= ", defconfig)
-    print("name = ", "{}_modules_dist".format(tvc))
     ddk_module(
         name = name,
         srcs = srcs + [":{}_grep_defines".format(tvc)],
@@ -2137,40 +2104,5 @@ def _define_module_for_target_variant_chipset(target, variant, chipset):
         deps = deps,
     )
 
-def define_dist(target, variant, chipsets):
-    tv = "{}_{}".format(target, variant)
-    dataList = []
-    for c in chipsets:
-        tvc = "{}_{}_{}".format(target, variant, c)
-        name = "{}_qca_cld_{}".format(tv, c)
-        dataList.append(":{}".format(name))
-        copy_to_dist_dir(
-            name = "{}_modules_dist".format(tvc),
-            data =  [":{}".format(name)],
-            dist_dir = "out/target/product/{}/dlkm/lib/modules/".format(target),
-            flat = True,
-            wipe_dist_dir = False,
-            allow_duplicate_filenames = False,
-            mode_overrides = {"**/*": "644"},
-            log = "info",
-        )
-    if target == "bilair" or target == "monaco" or target == "bengal":
-        return
-    copy_to_dist_dir(
-        name = "{}_all_modules_dist".format(tv),
-        data = dataList,
-        dist_dir = "out/target/product/{}/dlkm/lib/modules/".format(target),
-        flat = True,
-        wipe_dist_dir = False,
-        allow_duplicate_filenames = False,
-        mode_overrides = {"**/*": "644"},
-        log = "info",
-    )
-
-def define_modules():
-    for (t, v) in get_all_variants():
-        chipsets = _target_chipset_map.get(t)
-        if chipsets:
-            for c in chipsets:
-                _define_module_for_target_variant_chipset(t, v, c)
-            define_dist(t, v, chipsets)
+def define_pong452():
+    _define_module_for_target_variant_chipset("waipio", "gki", "qca6490")
