@@ -42,14 +42,14 @@ static struct usb_repeater *of_usb_find_repeater(struct device_node *node)
 
 static void devm_usb_repeater_release_by_node(struct device *dev, void *res)
 {
-	usb_put_repeater(res);
+	usb_put_repeater(*(struct usb_repeater **)res);
 }
 
 struct usb_repeater *devm_usb_get_repeater_by_node(struct device *dev,
 			struct device_node *node)
 {
 	struct usb_repeater *r = ERR_PTR(-ENOMEM);
-	struct usb_repeater *r_devm;
+	struct usb_repeater **r_devm;
 	unsigned long flags;
 
 	r_devm = devres_alloc(devm_usb_repeater_release_by_node,
@@ -72,6 +72,7 @@ struct usb_repeater *devm_usb_get_repeater_by_node(struct device *dev,
 		goto err0;
 	}
 
+	*r_devm = r;
 	devres_add(dev, r_devm);
 	get_device(r->dev);
 err0:

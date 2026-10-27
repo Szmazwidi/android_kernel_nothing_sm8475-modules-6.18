@@ -9,6 +9,7 @@
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/of.h>
+#include <linux/of_platform.h>
 #include <linux/of_device.h>
 #include <linux/platform_device.h>
 #include <linux/slab.h>
@@ -2238,3 +2239,5 @@ MODULE_LICENSE("GPL");
 
 arch_initcall(rpmh_regulator_init);
 module_exit(rpmh_regulator_exit);
+
+MODULE_DEVICE_TABLE(of, rpmh_regulator_match_table);

@@ -1,0 +1,30 @@
+# SPDX-License-Identifier: GPL-2.0-only
+config REGULATOR_RPMH
+    tristate
+config REGULATOR_DEBUG_CONTROL
+    tristate
+config REGULATOR_PROXY_CONSUMER
+    tristate
+config REGULATOR_QTI_FIXED_VOLTAGE
+    tristate
+config QCOM_GDSC_REGULATOR
+    tristate
+config USB_REPEATER
+    tristate
+config PONG618_POWER_IO
+    tristate "Pong power and physical IO batch"
+    select SPMI_MSM_PMIC_ARB
+    select MFD_SPMI_PMIC
+    select PINCTRL_QCOM_SPMI_PMIC
+    select PINCTRL_QCOM_SSBI_PMIC
+    select NVMEM_SPMI_SDAM
+    select QCOM_COMMAND_DB
+    select QCOM_RPMH
+    select REGULATOR_RPMH
+    select REGULATOR_DEBUG_CONTROL
+    select REGULATOR_PROXY_CONSUMER
+    select REGULATOR_QTI_FIXED_VOLTAGE
+    select QCOM_GDSC_REGULATOR
+    select USB_REPEATER
+    select SCSI_UFS_QCOM
+    select QCOM_INLINE_CRYPTO_ENGINE

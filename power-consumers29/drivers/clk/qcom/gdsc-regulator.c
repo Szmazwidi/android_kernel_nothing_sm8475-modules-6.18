@@ -113,6 +113,7 @@ struct gdsc {
 	bool			skip_disable;
 	bool			bypass_skip_disable;
 	bool			cfg_gdscr;
+	u32			max_register;
 };
 
 enum gdscr_status {
@@ -133,6 +134,7 @@ static int poll_gdsc_status(struct gdsc *sc, enum gdscr_status status)
 	struct regmap *regmap;
 	int count = sc->gds_timeout;
 	u32 val, reg_offset;
+	int ret;
 
 	if (sc->hw_ctrl && !sc->cfg_gdscr)
 		regmap = sc->hw_ctrl;
@@ -145,7 +147,9 @@ static int poll_gdsc_status(struct gdsc *sc, enum gdscr_status status)
 		reg_offset = REG_OFFSET;
 
 	for (; count > 0; count--) {
-		regmap_read(regmap, reg_offset, &val);
+		ret = regmap_read(regmap, reg_offset, &val);
+		if (ret)
+			return ret;
 
 		switch (status) {
 		case ENABLED:
@@ -187,7 +191,7 @@ static int poll_gdsc_status(struct gdsc *sc, enum gdscr_status status)
 static int check_gdsc_status(struct gdsc *sc, struct device *pdev,
 			     enum gdscr_status state)
 {
-	u32 regval, hw_ctrl_regval;
+	u32 regval = 0, hw_ctrl_regval = 0;
 	int ret;
 	static const char * const gdsc_states[] = {
 			"disable",
@@ -199,6 +203,18 @@ static int check_gdsc_status(struct gdsc *sc, struct device *pdev,
 
 	ret = poll_gdsc_status(sc, state);
 	if (ret) {
+		u32 status[3] = { 0, 0, 0 };
+		int rc0, rc1 = -ERANGE, rc2 = -ERANGE;
+		rc0 = regmap_read(sc->regmap, 0, &status[0]);
+		if (sc->max_register >= 4)
+			rc1 = regmap_read(sc->regmap, 4, &status[1]);
+		if (sc->max_register >= 8)
+			rc2 = regmap_read(sc->regmap, 8, &status[2]);
+		dev_err(pdev, "PONG728_GDSC name=%s state=%u poll=%d cfg_mode=%u max=%u GDSCR=%#x CFG=%#x CFG2=%#x readrc=%d,%d,%d\n",
+			sc->rdesc.name, state, ret, sc->cfg_gdscr,
+			sc->max_register, status[0], status[1], status[2], rc0, rc1, rc2);
+		if (ret != -ETIMEDOUT)
+			return ret;
 		regmap_read(sc->regmap, REG_OFFSET, &regval);
 		if (sc->hw_ctrl) {
 			regmap_read(sc->hw_ctrl, REG_OFFSET,
@@ -729,7 +745,7 @@ static const struct regulator_ops gdsc_ops = {
 	.get_mode = gdsc_get_mode,
 };
 
-static struct regmap_config gdsc_regmap_config = {
+static const struct regmap_config gdsc_regmap_config = {
 	.reg_bits   = 32,
 	.reg_stride = 4,
 	.val_bits   = 32,
@@ -769,7 +785,7 @@ void gdsc_debug_print_regs(struct regulator *regulator)
 	ww_mutex_unlock(&rdev->mutex);
 
 	ret = regmap_bulk_read(sc->regmap, REG_OFFSET, regvals,
-			       gdsc_regmap_config.max_register ? 3 : 1);
+			       sc->max_register >= 8 ? 3 : 1);
 	if (ret) {
 		pr_err("Failed to read %s registers\n", sc->rdesc.name);
 		return;
@@ -983,10 +999,21 @@ static int gdsc_parse_dt_data(struct gdsc *sc, struct device *dev,
 	return 0;
 }
 
+
+static int pong728_regmap_limit(u64 bytes, bool no_config, bool needs_cfg,
+ u32 *maximum)
+{
+ if (bytes < 4 || (no_config && needs_cfg) || (needs_cfg && bytes < 8))
+  return -EINVAL;
+ *maximum = no_config || bytes < 8 ? 0 : bytes < 12 ? 4 : 8;
+ return 0;
+}
+
 static int gdsc_get_resources(struct gdsc *sc, struct platform_device *pdev)
 {
 	struct device *dev = &pdev->dev;
 	struct resource *res;
+	struct regmap_config config = gdsc_regmap_config;
 	int ret, i;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
@@ -999,14 +1026,15 @@ static int gdsc_get_resources(struct gdsc *sc, struct platform_device *pdev)
 	if (sc->gdscr == NULL)
 		return -ENOMEM;
 
-	if (of_property_read_bool(dev->of_node, "qcom,no-config-gdscr"))
-		gdsc_regmap_config.max_register = 0;
-
-	sc->regmap = devm_regmap_init_mmio(dev, sc->gdscr, &gdsc_regmap_config);
-	if (!sc->regmap) {
-		dev_err(dev, "Couldn't get regmap\n");
-		return -EINVAL;
-	}
+	ret = pong728_regmap_limit(resource_size(res),
+		of_property_read_bool(dev->of_node, "qcom,no-config-gdscr"),
+		sc->cfg_gdscr, &sc->max_register);
+	if (ret)
+		return dev_err_probe(dev, ret, "Invalid GDSC status register resource\n");
+	config.max_register = sc->max_register;
+	sc->regmap = devm_regmap_init_mmio(dev, sc->gdscr, &config);
+	if (IS_ERR(sc->regmap))
+		return dev_err_probe(dev, PTR_ERR(sc->regmap), "Couldn't get GDSC regmap\n");
 
 	sc->clocks = devm_kcalloc(dev, sc->clock_count, sizeof(*sc->clocks),
 				  GFP_KERNEL);
@@ -1290,3 +1318,5 @@ module_exit(gdsc_exit);
 
 MODULE_DESCRIPTION("GDSC regulator control library");
 MODULE_LICENSE("GPL");
+
+MODULE_DEVICE_TABLE(of, gdsc_match_table);
