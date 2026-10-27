@@ -1,0 +1,8 @@
+# Reduced from the original package BUILD.bazel: only targets whose modules run on the phone are kept.
+load("//build/kernel/kleaf:kernel.bzl", "ddk_config", "ddk_module")
+package(default_visibility = ["//visibility:public"])
+
+ddk_config(name="config",kernel_build="//common:kernel_aarch64",kconfigs=["Kconfig"],defconfig="defconfig")
+ddk_module(name='mdt', out='mdt_loader.ko', kernel_build='//common:kernel_aarch64', config=':config', srcs=['drivers/soc/qcom/mdt_loader.c'], deps=['//devices/pong618/build:prov_scm590_scm590'])
+ddk_module(name='pon',out='qcom-pon-parent68.ko',kernel_build="//common:kernel_aarch64",config=":config",srcs=['drivers/power/reset/qcom-pon.c'],deps=[])
+ddk_module(name='adc_thermal',out='thermal-generic-adc.ko',kernel_build="//common:kernel_aarch64",config=":config",srcs=['drivers/thermal/thermal-generic-adc.c', 'drivers/thermal/thermal_hwmon.h'],deps=[])

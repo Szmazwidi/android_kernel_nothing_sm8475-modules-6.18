@@ -69,7 +69,7 @@ static int qcom_pon_probe(struct platform_device *pdev)
 
 	reason_shift = (long)of_device_get_match_data(&pdev->dev);
 
-	if (reason_shift != NO_REASON_SHIFT) {
+	if (0 && reason_shift != NO_REASON_SHIFT) { /* Pong68: child-provider only; retain the proven reboot adapter. */
 		pon->reboot_mode.dev = &pdev->dev;
 		pon->reason_shift = reason_shift;
 		pon->reboot_mode.write = qcom_pon_reboot_mode_write;
@@ -86,10 +86,12 @@ static int qcom_pon_probe(struct platform_device *pdev)
 }
 
 static const struct of_device_id qcom_pon_id_table[] = {
+#if 0 /* Pong68: allow only captured pmk8350 parent; avoid legacy duplicate IRQ children. */
 	{ .compatible = "qcom,pm8916-pon", .data = (void *)GEN1_REASON_SHIFT },
 	{ .compatible = "qcom,pm8941-pon", .data = (void *)NO_REASON_SHIFT },
 	{ .compatible = "qcom,pms405-pon", .data = (void *)GEN1_REASON_SHIFT },
 	{ .compatible = "qcom,pm8998-pon", .data = (void *)GEN2_REASON_SHIFT },
+	#endif
 	{ .compatible = "qcom,pmk8350-pon", .data = (void *)GEN2_REASON_SHIFT },
 	{ }
 };
