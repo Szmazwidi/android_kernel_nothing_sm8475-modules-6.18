@@ -1,0 +1,11 @@
+# Top-level init script for the 6.18 kernel images, selected with
+# androidboot.init_rc=/vendor_dlkm/etc/init/pong618.rc on the kernel command line.
+# It imports exactly what init would import by default, then the module loading
+# below (stock init does not read /vendor_dlkm/etc/init on its own).
+import /system/etc/init/hw/init.rc
+import /system/etc/init
+import /system_ext/etc/init
+import /vendor/etc/init
+import /odm/etc/init
+import /product/etc/init
+import /vendor_dlkm/etc/init/pong618-modules.rc

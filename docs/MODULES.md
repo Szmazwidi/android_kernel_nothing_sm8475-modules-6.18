@@ -1,0 +1,118 @@
+# Modules by Kleaf target
+
+Every non-GKI module running on the phone in development image 734 and the target that builds it.
+The 84 GKI modules come from `//common:kernel_aarch64_dist`.
+
+| Target | Modules |
+|---|---|
+| `//devices/pong618/adc152r2:adc5` | `qcom-spmi-adc5.ko` |
+| `//devices/pong618/adc152r2:vadc` | `qcom-vadc-common.ko` |
+| `//devices/pong618/av580/qcom/opensource/audio-kernel:waipio_perf_modules` | `adsp_loader_dlkm.ko`, `audio_pkt_dlkm.ko`, `audio_prm_dlkm.ko`, `audpkt_ion_dlkm.ko`, `gpr_dlkm.ko`, `hdmi_dlkm.ko`, `lpass_cdc_dlkm.ko`, `lpass_cdc_rx_macro_dlkm.ko`, `lpass_cdc_tx_macro_dlkm.ko`, `lpass_cdc_va_macro_dlkm.ko`, `lpass_cdc_wsa2_macro_dlkm.ko`, `lpass_cdc_wsa_macro_dlkm.ko`, `machine_dlkm.ko`, `mbhc_dlkm.ko`, `pinctrl_lpi_dlkm.ko`, `q6_dlkm.ko`, `q6_notifier_dlkm.ko`, `q6_pdr_dlkm.ko`, `snd_event_dlkm.ko`, `spf_core_dlkm.ko`, `stub_dlkm.ko`, `swr_ctrl_dlkm.ko`, `swr_dlkm.ko`, `swr_dmic_dlkm.ko`, `swr_haptics_dlkm.ko`, `tfa98xx_dlkm.ko`, `wcd938x_dlkm.ko`, `wcd938x_slave_dlkm.ko`, `wcd9xxx_dlkm.ko`, `wcd_core_dlkm.ko`, `wsa883x_dlkm.ko` |
+| `//devices/pong618/av580/qcom/opensource/camera-kernel:waipio_perf_host_native_camera` | `camera.ko` |
+| `//devices/pong618/av580/qcom/opensource/dsp-kernel:waipio_perf_cdsp-loader` | `cdsp-loader.ko` |
+| `//devices/pong618/av580/qcom/opensource/dsp-kernel:waipio_perf_frpc-adsprpc` | `frpc-adsprpc.ko` |
+| `//devices/pong618/av580/qcom/opensource/mm-drivers/msm_ext_display:waipio_perf_msm_ext_display` | `msm_ext_display.ko` |
+| `//devices/pong618/av580/qcom/opensource/synx-kernel:waipio_perf_modules` | `qcom_ipc_lite.ko`, `synx-driver.ko` |
+| `//devices/pong618/bt541:bt541` | `btpower.ko` |
+| `//devices/pong618/btfm617:bam615` | `bam_dma.ko` |
+| `//devices/pong618/btfm617:btfm615` | `bt_fm_slim.ko` |
+| `//devices/pong618/btfm617:ngd615` | `slim-qcom-ngd-ctrl.ko` |
+| `//devices/pong618/btfm617:slimbus615` | `slimbus.ko` |
+| `//devices/pong618/cfg468:cfg80211` | `cfg80211.ko` |
+| `//devices/pong618/clocks591:camcc591` | `camcc-sm8450.ko` |
+| `//devices/pong618/clocks591:videocc591` | `videocc-sm8450.ko` |
+| `//devices/pong618/display108:heap102` | `pong_membuf_heap.ko` |
+| `//devices/pong618/display76:llcc76` | `llcc-qcom.ko` |
+| `//devices/pong618/display76:notifier80` | `panel_event_notifier.ko` |
+| `//devices/pong618/display87:dispcc` | `dispcc-sm8450.ko` |
+| `//devices/pong618/display87:smmu87` | `arm_smmu.ko` |
+| `//devices/pong618/foundation:hwspinlock` | `qcom_hwspinlock.ko` |
+| `//devices/pong618/foundation:smem` | `smem.ko` |
+| `//devices/pong618/graphics68:adc_thermal` | `thermal-generic-adc.ko` |
+| `//devices/pong618/graphics68:mdt` | `mdt_loader.ko` |
+| `//devices/pong618/graphics68:pon` | `qcom-pon-parent68.ko` |
+| `//devices/pong618/graphics73:gpucc` | `gpucc-sm8450.ko` |
+| `//devices/pong618/heaps269:heaps` | `qcom_reserved_heaps.ko` |
+| `//devices/pong618/input381:display` | `msm_drm.ko` |
+| `//devices/pong618/input381:goodix381` | `goodix_core.ko` |
+| `//devices/pong618/input381:spi381` | `spi-msm-geni.ko` |
+| `//devices/pong618/io-integration:gpi` | `msm_gpi.ko` |
+| `//devices/pong618/io-integration:i2c` | `i2c-msm-geni.ko` |
+| `//devices/pong618/io-integration:ssusb` | `phy-msm-ssusb-qmp.ko` |
+| `//devices/pong618/kgsl71:kgsl` | `msm_kgsl.ko` |
+| `//devices/pong618/mailbox41:cpucp41` | `qcom_cpucp.ko` |
+| `//devices/pong618/mailbox41:ipcc41` | `qcom-ipcc.ko` |
+| `//devices/pong618/membuf158:gh_arm_drv` | `gh_arm_drv.ko` |
+| `//devices/pong618/membuf158:gh_dbl` | `gh_dbl.ko` |
+| `//devices/pong618/membuf158:gh_mem_notifier` | `gh_mem_notifier.ko` |
+| `//devices/pong618/membuf158:gh_msgq` | `gh_msgq.ko` |
+| `//devices/pong618/membuf158:gh_rm_drv` | `gh_rm_drv.ko` |
+| `//devices/pong618/membuf158:mem_buf` | `mem_buf.ko` |
+| `//devices/pong618/membuf158:mem_buf_dev` | `mem_buf_dev.ko` |
+| `//devices/pong618/membuf158:mem_buf_msgq` | `mem_buf_msgq.ko` |
+| `//devices/pong618/membuf158:qrtr_gunyah` | `qrtr-gunyah.ko` |
+| `//devices/pong618/memory:dma_mapping` | `msm_dma_iommu_mapping.ko` |
+| `//devices/pong618/memory:logger` | `iommu-logger.ko` |
+| `//devices/pong618/memory:secure_buffer` | `secure_buffer.ko` |
+| `//devices/pong618/memory:util` | `qcom_iommu_util.ko` |
+| `//devices/pong618/native-llcc70:consumer` | `pong70-llcc-consumer.ko` |
+| `//devices/pong618/pci470:pci470` | `pci-msm-drv.ko` |
+| `//devices/pong618/platform:bcm` | `icc-bcm-voter.ko` |
+| `//devices/pong618/platform:clocks` | `clk-qcom.ko` |
+| `//devices/pong618/platform:icc_clk` | `icc-clk.ko` |
+| `//devices/pong618/platform:icc_debug` | `icc-debug.ko` |
+| `//devices/pong618/platform:icc_rpmh` | `icc-rpmh.ko` |
+| `//devices/pong618/platform:pdc` | `qcom-pdc.ko` |
+| `//devices/pong618/platform:pinctrl` | `pinctrl-msm.ko` |
+| `//devices/pong618/platform:qos` | `qnoc-qos.ko` |
+| `//devices/pong618/platform:rpmh_clk` | `clk-rpmh.ko` |
+| `//devices/pong618/platform:socinfo` | `socinfo.ko` |
+| `//devices/pong618/platform:waipio_noc` | `qnoc-waipio.ko` |
+| `//devices/pong618/platform:waipio_pins` | `pinctrl-waipio.ko` |
+| `//devices/pong618/power-closure:nb7` | `nb7vpq904m.ko` |
+| `//devices/pong618/power-closure:redriver` | `redriver.ko` |
+| `//devices/pong618/power-closure:ufs_phy` | `phy-qcom-ufs.ko` |
+| `//devices/pong618/power-consumers29:fixed` | `qti-fixed-regulator.ko` |
+| `//devices/pong618/power-consumers29:gdsc_reg` | `gdsc-regulator.ko` |
+| `//devices/pong618/power-consumers29:pmic` | `qcom-spmi-pmic.ko` |
+| `//devices/pong618/power-consumers29:pmic_gpio` | `pinctrl-spmi-gpio.ko` |
+| `//devices/pong618/power-consumers29:proxy` | `proxy-consumer.ko` |
+| `//devices/pong618/power-consumers29:reg_debug` | `debug-regulator.ko` |
+| `//devices/pong618/power-consumers29:repeater` | `repeater.ko` |
+| `//devices/pong618/power-consumers29:rpmh_reg` | `rpmh-regulator.ko` |
+| `//devices/pong618/power-consumers29:sdam` | `nvmem_qcom-spmi-sdam.ko` |
+| `//devices/pong618/power-consumers29:spmi` | `spmi-pmic-arb.ko` |
+| `//devices/pong618/providers67:pwrkey` | `pm8941-pwrkey.ko` |
+| `//devices/pong618/providers67:qfprom` | `nvmem_qfprom.ko` |
+| `//devices/pong618/providers67:system_heap` | `system_heap.ko` |
+| `//devices/pong618/providers67:temp_alarm` | `qcom-spmi-temp-alarm.ko` |
+| `//devices/pong618/providers67:tsens` | `qcom_tsens.ko` |
+| `//devices/pong618/qrtr154:qrtr` | `qrtr.ko` |
+| `//devices/pong618/qrtr516:qrtr516` | `qrtr-mhi.ko` |
+| `//devices/pong618/rpmh-native25:cmd_db` | `cmd-db.ko` |
+| `//devices/pong618/rpmh-native25:rpmh` | `qcom_rpmh.ko` |
+| `//devices/pong618/rtc575:rtc575` | `rtc-pm8xxx.ko` |
+| `//devices/pong618/scm590:scm590` | `qcom-scm.ko` |
+| `//devices/pong618/secure256:hdcp` | `hdcp_qseecom_dlkm.ko` |
+| `//devices/pong618/secure256:qseecom` | `qseecom_dlkm.ko` |
+| `//devices/pong618/secure256:smcinvoke` | `smcinvoke_dlkm.ko` |
+| `//devices/pong618/sharedmem457:sharedmem457` | `msm_sharedmem.ko` |
+| `//devices/pong618/subsystems407:remote407` | `pdr_interface.ko`, `pong416_mdt_loader.ko`, `qcom_glink.ko`, `qcom_glink_smem.ko`, `qcom_pil_info.ko`, `qcom_q6v5.ko`, `qcom_q6v5_pas.ko`, `qcom_ramdump.ko`, `qcom_sysmon.ko`, `qmi_helpers.ko`, `qrtr-smd.ko`, `qti_battery_charger.ko`, `qti_pmic_glink.ko`, `rproc_qcom_common.ko`, `smp2p.ko` |
+| `//devices/pong618/subsystems407:wireless407` | `cnss2.ko`, `cnss_plat_ipc_qmi_svc.ko`, `cnss_utils.ko`, `mhi.ko`, `wlan_firmware_service.ko` |
+| `//devices/pong618/uart480:uart480` | `msm_geni_serial.ko` |
+| `//devices/pong618/ufs-diag35:ufs_cape` | `phy-qcom-ufs-qmp-v4-cape.ko` |
+| `//devices/pong618/ufs-reboot39:reboot39` | `qcom-reboot-reason39.ko` |
+| `//devices/pong618/ufs-reboot39:ufs` | `ufs-qcom.ko` |
+| `//devices/pong618/ufs-return37:gcc` | `gcc-sm8450.ko` |
+| `//devices/pong618/ufs-return37:return37` | `pong-return37.ko` |
+| `//devices/pong618/usb-diag31:eusb2` | `phy-msm-snps-eusb2.ko` |
+| `//devices/pong618/usb-diag31:nxp_repeater` | `repeater-i2c-eusb2.ko` |
+| `//devices/pong618/utmi-diag33:usb` | `dwc3-msm.ko` |
+| `//devices/pong618/vendor-foundation:aoss` | `qcom_aoss.ko` |
+| `//devices/pong618/vendor-foundation:ice` | `qcom_ice.ko` |
+| `//devices/pong618/vendor-foundation:qmp` | `msm_qmp.ko` |
+| `//devices/pong618/vendor-foundation:tme` | `tmecom-intf.ko` |
+| `//devices/pong618/wlan452/platform:helpers` | `cnss_nl.ko`, `cnss_prealloc.ko` |
+| `//devices/pong618/wlan452/qcacld-3.0:waipio_gki_qca_cld_qca6490` | `qca_cld3_qca6490.ko` |
+
+Total: 159 modules from 109 targets.

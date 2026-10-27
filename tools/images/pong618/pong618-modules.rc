@@ -1,0 +1,135 @@
+# Late module loading for the android17-6.18 kernel on the Nothing Phone (2).
+#
+# The first-stage modules (vendor_boot) are loaded by first-stage init. Everything
+# else is loaded here, in groups, with the stock vendor_modprobe domain:
+#   automatic: DSP and battery, Bluetooth, then Wi-Fi
+#   on request: audio, Bluetooth audio, camera (setprop debug.pong618.load_<group> 1)
+# Audio and camera are not finished (see the README of the modules repository), which
+# is why they are not loaded automatically.
+
+service vendor.pong618-dsp /vendor/bin/modprobe -a -d /vendor_dlkm/lib/modules smp2p qcom_glink_smem qcom_q6v5_pas qrtr_smd
+    class late_start
+    user root
+    group root system
+    seclabel u:r:vendor_modprobe:s0
+    disabled
+    oneshot
+    timeout_period 45
+
+service vendor.pong618-battery /vendor/bin/modprobe -a -d /vendor_dlkm/lib/modules qti_battery_charger
+    class late_start
+    user root
+    group root system
+    seclabel u:r:vendor_modprobe:s0
+    disabled
+    oneshot
+    timeout_period 45
+
+service vendor.pong618-bluetooth /vendor/bin/modprobe -a -d /vendor_dlkm/lib/modules msm_geni_serial btpower
+    class late_start
+    user root
+    group root system
+    seclabel u:r:vendor_modprobe:s0
+    disabled
+    oneshot
+    timeout_period 45
+
+service vendor.pong618-wireless /vendor/bin/modprobe -a -d /vendor_dlkm/lib/modules qrtr_mhi qca_cld3_qca6490
+    class late_start
+    user root
+    group root system
+    seclabel u:r:vendor_modprobe:s0
+    disabled
+    oneshot
+    timeout_period 45
+
+service vendor.pong618-audiofoundation /vendor/bin/modprobe -a -d /vendor_dlkm/lib/modules q6_dlkm q6_notifier_dlkm gpr_dlkm audio_pkt_dlkm spf_core_dlkm audpkt_ion_dlkm adsp_loader_dlkm audio_prm_dlkm q6_pdr_dlkm snd_event_dlkm frpc_adsprpc cdsp_loader
+    class late_start
+    user root
+    group root system
+    seclabel u:r:vendor_modprobe:s0
+    disabled
+    oneshot
+    timeout_period 45
+
+service vendor.pong618-btaudio /vendor/bin/modprobe -a -d /vendor_dlkm/lib/modules bam_dma slimbus slim_qcom_ngd_ctrl bt_fm_slim
+    class late_start
+    user root
+    group root system
+    seclabel u:r:vendor_modprobe:s0
+    disabled
+    oneshot
+    timeout_period 60
+
+service vendor.pong618-audio /vendor/bin/modprobe -a -d /vendor_dlkm/lib/modules wcd_core_dlkm wcd9xxx_dlkm swr_dlkm mbhc_dlkm stub_dlkm pinctrl_lpi_dlkm lpass_cdc_dlkm swr_ctrl_dlkm lpass_cdc_tx_macro_dlkm lpass_cdc_rx_macro_dlkm lpass_cdc_va_macro_dlkm lpass_cdc_wsa_macro_dlkm lpass_cdc_wsa2_macro_dlkm wcd938x_dlkm wcd938x_slave_dlkm wsa883x_dlkm swr_dmic_dlkm swr_haptics_dlkm tfa98xx_dlkm msm_ext_display hdmi_dlkm machine_dlkm
+    class late_start
+    user root
+    group root system
+    seclabel u:r:vendor_modprobe:s0
+    disabled
+    oneshot
+    timeout_period 60
+
+service vendor.pong618-camera /vendor/bin/modprobe -a -d /vendor_dlkm/lib/modules camcc_sm8450 videocc_sm8450 qcom_ipc_lite synx_driver camera
+    class late_start
+    user root
+    group root system
+    seclabel u:r:vendor_modprobe:s0
+    disabled
+    oneshot
+    timeout_period 60
+
+# Automatic groups.
+on post-fs-data
+    start vendor.pong618-dsp
+    start vendor.pong618-battery
+    exec_start vendor.pong618-bluetooth
+    start vendor.pong618-wireless
+
+# cnss2 is loaded after the firmware filesystems are mounted, so tell it they are ready.
+on property:init.svc.vendor.pong618-wireless=stopped
+    write /sys/bus/platform/devices/b0000000.qcom,cnss-qca6490/recovery 1
+    write /sys/bus/platform/devices/b0000000.qcom,cnss-qca6490/fs_ready 1
+
+# Groups loaded on request.
+on property:debug.pong618.load_audiofoundation=1
+    start vendor.pong618-audiofoundation
+
+on property:init.svc.vendor.pong618-audiofoundation=stopped && property:debug.pong618.load_btaudio=1
+    start vendor.pong618-btaudio
+
+on property:init.svc.vendor.pong618-btaudio=stopped && property:debug.pong618.load_audio=1
+    start vendor.pong618-audio
+
+on property:init.svc.vendor.pong618-audio=stopped && property:debug.pong618.load_audio=1
+    chown media audio /sys/kernel/snd_card/card_state
+    chown media audio /sys/kernel/aud_dev/state
+    setprop vendor.audio.feature.dmabuf.cma.memory.enable false
+    restart vendor.agm-1-0
+    restart vendor.audio-hal
+
+on property:debug.pong618.load_camera=1
+    start vendor.pong618-camera
+
+on property:init.svc.vendor.pong618-camera=stopped && property:debug.pong618.load_camera=1
+    restart vendor.camera-provider-2-7
+
+# UFS workaround used on the development phone: clock gating, clock scaling, auto
+# hibernate and runtime PM of the UFS host are disabled. It costs some power.
+on boot
+    write /sys/bus/platform/devices/1d84000.ufshc/clkgate_enable 0
+    write /sys/bus/platform/devices/1d84000.ufshc/clkscale_enable 0
+    write /sys/bus/platform/devices/1d84000.ufshc/auto_hibern8 0
+    write /sys/bus/platform/devices/1d84000.ufshc/power/control on
+
+on property:sys.boot_completed=1
+    write /sys/bus/platform/devices/1d84000.ufshc/clkgate_enable 0
+    write /sys/bus/platform/devices/1d84000.ufshc/clkscale_enable 0
+    write /sys/bus/platform/devices/1d84000.ufshc/auto_hibern8 0
+    write /sys/bus/platform/devices/1d84000.ufshc/power/control on
+
+on property:init.svc.vendor.charger=running
+    write /sys/bus/platform/devices/1d84000.ufshc/clkgate_enable 0
+    write /sys/bus/platform/devices/1d84000.ufshc/clkscale_enable 0
+    write /sys/bus/platform/devices/1d84000.ufshc/auto_hibern8 0
+    write /sys/bus/platform/devices/1d84000.ufshc/power/control on
