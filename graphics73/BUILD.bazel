@@ -1,0 +1,6 @@
+# Reduced from the original package BUILD.bazel: only targets whose modules run on the phone are kept.
+load("//build/kernel/kleaf:kernel.bzl", "ddk_config", "ddk_module")
+package(default_visibility = ["//visibility:public"])
+
+ddk_config(name="config",kernel_build="//common:kernel_aarch64",kconfigs=["Kconfig"],defconfig="defconfig")
+ddk_module(name='gpucc', out='gpucc-sm8450.ko', kernel_build='//common:kernel_aarch64', config=':config', srcs=['drivers/clk/qcom/gpucc-sm8450.c', 'drivers/clk/qcom/clk-alpha-pll.h', 'drivers/clk/qcom/clk-branch.h', 'drivers/clk/qcom/clk-hfpll.h', 'drivers/clk/qcom/clk-krait.h', 'drivers/clk/qcom/clk-pll.h', 'drivers/clk/qcom/clk-rcg.h', 'drivers/clk/qcom/clk-regmap-divider.h', 'drivers/clk/qcom/clk-regmap-mux-div.h', 'drivers/clk/qcom/clk-regmap-mux.h', 'drivers/clk/qcom/clk-regmap-phy-mux.h', 'drivers/clk/qcom/clk-regmap.h', 'drivers/clk/qcom/common.h', 'drivers/clk/qcom/gdsc.h', 'drivers/clk/qcom/reset.h'], deps=['//devices/pong618/build:prov_platform_clocks'])
