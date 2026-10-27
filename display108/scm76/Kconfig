@@ -1,0 +1,25 @@
+# SPDX-License-Identifier: GPL-2.0-only
+config QTEE_SHM_BRIDGE
+    bool
+config QCOM_TZMEM_LOW_MEMORY
+    bool
+config QCOM_TZMEM_FFA
+    bool
+config SCSI_UFS_CRYPTO_QTI
+    bool
+config MSM_QMP
+    tristate
+config MSM_TMECOM_QMP
+    tristate
+config PONG618_VENDOR_FOUNDATION
+    tristate "Pong vendor foundation source port"
+    select QCOM_SCM
+    select QCOM_TZMEM
+    select QCOM_COMMAND_DB
+    select QCOM_AOSS_QMP
+    select QCOM_SMEM
+    select QCOM_INLINE_CRYPTO_ENGINE
+    select QTEE_SHM_BRIDGE
+    select SCSI_UFS_CRYPTO_QTI
+    select MSM_QMP
+    select MSM_TMECOM_QMP

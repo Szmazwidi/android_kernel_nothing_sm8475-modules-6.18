@@ -1,0 +1,9 @@
+# Reduced from the original package BUILD.bazel: only targets whose modules run on the phone are kept.
+load("//build/kernel/kleaf:kernel.bzl", "ddk_config", "ddk_headers", "ddk_module")
+package(default_visibility = ["//visibility:public"])
+
+ddk_config(name="config",kernel_build="//common:kernel_aarch64",kconfigs=["Kconfig"],defconfig="defconfig",deps=[":scm76"])
+ddk_headers(name="vendor76_headers",hdrs=glob(["vendor/**/*.h"], allow_empty = True),linux_includes=["vendor"])
+ddk_config(name='foundation76_config', kernel_build='//common:kernel_aarch64', kconfigs=['scm76/Kconfig'], defconfig='scm76/defconfig', deps=[])
+ddk_module(name="scm76",out="qcom-scm.ko",kernel_build="//common:kernel_aarch64",config=":foundation76_config",srcs=['scm76/qcom_scm-legacy.c', 'scm76/qcom_scm-smc.c', 'scm76/qcom_scm.c', 'scm76/qcom_scm.h', 'scm76/qcom_tzmem.c', 'scm76/qcom_tzmem.h', 'scm76/qtee_shmbridge.c', 'scm76/qtee_shmbridge_internal.h'],includes=["scm76"],hdrs=[":vendor76_headers"])
+ddk_module(name='heap102', out='pong_membuf_heap.ko', kernel_build='//common:kernel_aarch64', config=':config', srcs=['heap102/pong_membuf_heap.c'], hdrs=[':vendor76_headers'], deps=['//devices/pong618/build:prov_membuf158_mem_buf_dev', '//devices/pong618/build:prov_memory_dma_mapping'])
