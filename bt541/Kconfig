@@ -1,0 +1,14 @@
+config MSM_BT_POWER
+	tristate "Pong541 MSM_BT_POWER"
+config QCOM_AOSS_QMP
+	tristate "Pong541 QCOM_AOSS_QMP"
+config PINCTRL_MSM
+	tristate "Pong541 PINCTRL_MSM"
+config FMD_ENABLE
+	bool "Pong541 FMD_ENABLE"
+config MSM_BT_OOBS
+	bool "Pong541 MSM_BT_OOBS"
+config BT_HW_SECURE_DISABLE
+	bool "Pong541 BT_HW_SECURE_DISABLE"
+config BT_SLIM
+	bool "Pong541 BT_SLIM"

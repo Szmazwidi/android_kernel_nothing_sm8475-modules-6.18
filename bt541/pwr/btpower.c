@@ -39,6 +39,7 @@
 #include <linux/pinctrl/pinctrl.h>
 
 #include "btpower.h"
+#include "bt541_internal.h"
 #ifdef CONFIG_FMD_ENABLE
 #include "cnss_utils.h"
 #endif
@@ -412,6 +413,15 @@ static struct class *bt_class;
 static int bt_major;
 static int soc_id;
 static bool probe_finished;
+
+/* Compatibility with the audited Pong WLAN BT_EN bootstrap patch. */
+static int pong_bt_power_state;
+int btpower_get_power_state(void)
+{
+	return READ_ONCE(pong_bt_power_state);
+}
+EXPORT_SYMBOL_GPL(btpower_get_power_state);
+
 static struct fmdOperationStruct fmdStruct;
 char *default_crash_reason = "Crash reason not found";
 
@@ -1914,7 +1924,7 @@ free_pdata:
 	return ret;
 }
 
-static int bt_power_remove(struct platform_device *pdev)
+static void bt_power_remove(struct platform_device *pdev)
 {
 	dev_dbg(&pdev->dev, "%s\n", __func__);
 	probe_finished = false;
@@ -1923,7 +1933,7 @@ static int bt_power_remove(struct platform_device *pdev)
 	if (pwr_data->is_ganges_dt)
 		destroy_workqueue(pwr_data->workq);
 	kfree(pwr_data);
-	return 0;
+	return;
 }
 
 int btpower_register_slimdev(struct device *dev)
@@ -2905,6 +2915,8 @@ static long bt_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 	case BT_CMD_PWR_CTRL:
 	case UWB_CMD_PWR_CTRL: {
 		ret = btpower_handle_client_request(cmd, (int)arg);
+		if (!ret && cmd == BT_CMD_PWR_CTRL)
+			WRITE_ONCE(pong_bt_power_state, (int)arg);
 		break;
 	}
 	case BT_CMD_FMD_OPERATION: {
@@ -3097,7 +3109,7 @@ driver_err:
 int bt_aop_send_msg(struct platform_pwr_data *plat_priv, char *mbox_msg)
 {
 	int ret = 0;
-	ret = qmp_send(plat_priv->qmp, mbox_msg, BTPOWER_MBOX_MSG_MAX_LEN);
+	ret = qmp_send(plat_priv->qmp, "%s", mbox_msg);
 	if (ret < 0)
 		pr_err("Failed to send AOP qmp  xmsg: %s\n", mbox_msg);
 	else
@@ -3163,7 +3175,7 @@ static int btpower_aop_set_vreg_param(struct platform_pwr_data *pdata,
 		 vreg_param_str[param], tcs_seq_str[seq], val);
 
 	pr_info("%s: sending AOP Mbox msg: %s\n", __func__, mbox_msg);
-	ret = qmp_send(pdata->qmp, mbox_msg, BTPOWER_MBOX_MSG_MAX_LEN);
+	ret = qmp_send(pdata->qmp, "%s", mbox_msg);
 	if (ret < 0)
 		pr_err("%s:Failed to send AOP mbox msg(%s), err(%d)\n",
 					__func__, mbox_msg, ret);

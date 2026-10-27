@@ -1,0 +1,7 @@
+# Reduced from the original package BUILD.bazel: only targets whose modules run on the phone are kept.
+load("//build/kernel/kleaf:kernel.bzl", "ddk_config", "ddk_headers", "ddk_module")
+package(default_visibility = ["//visibility:public"])
+
+ddk_headers(name="headers", hdrs=glob(["vendor/**/*.h"], allow_empty = True), linux_includes=["vendor"])
+ddk_config(name='config541', kernel_build='//common:kernel_aarch64', kconfigs=['Kconfig'], defconfig='defconfig', deps=[])
+ddk_module(name='bt541', kernel_build='//common:kernel_aarch64', config=':config541', out='btpower.ko', srcs=['pwr/btpower.c', 'include/btpower.h', 'include/bt541_internal.h'], includes=['include'], hdrs=[':headers'], deps=['//devices/pong618/build:prov_platform_pinctrl', '//devices/pong618/build:prov_vendor_foundation_aoss'], copts=['-ferror-limit=0'])

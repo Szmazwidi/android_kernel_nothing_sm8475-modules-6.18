@@ -16,12 +16,11 @@ def _get_module_srcs(module, options):
     Gets all the module sources, formats them with the path for that module
     and then groups them together
     It also includes all the headers within the `include` directory
-    `native.glob()` returns a new list with every file need for the current package
+    `native.glob(, allow_empty = True)` returns a new list with every file need for the current package
     """
     srcs = module.srcs + _get_config_choices(module.config_srcs, options)
     return native.glob(
-        ["{}/{}".format(module.path, src) for src in srcs] + ["include/*.h"]
-    )
+        ["{}/{}".format(module.path, src) for src in srcs] + ["include/*.h"], allow_empty = True)
 
 def _get_module_deps(module, options, formatter):
     """
