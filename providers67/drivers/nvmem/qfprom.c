@@ -253,7 +253,7 @@ err_clk_prepared:
  *
  * Return: 0 or -err.
  */
-static int qfprom_reg_write(void *context, unsigned int reg, void *_val,
+static int __maybe_unused qfprom_reg_write(void *context, unsigned int reg, void *_val,
 			    size_t bytes)
 {
 	struct qfprom_priv *priv = context;
@@ -370,6 +370,7 @@ static int qfprom_probe(struct platform_device *pdev)
 {
 	struct nvmem_config econfig = {
 		.name = "qfprom",
+		.read_only = true, /* Pong67: never expose fuse programming. */
 		.add_legacy_fixed_of_cells = true,
 		.stride = 4,
 		.word_size = 4,
@@ -444,7 +445,7 @@ static int qfprom_probe(struct platform_device *pdev)
 
 		/* Only enable writing if we have SoC data and a valid clock */
 		if (priv->soc_data && priv->secclk)
-			econfig.reg_write = qfprom_reg_write;
+			econfig.reg_write = NULL; /* Pong67: diagnostic read-only provider. */
 	}
 
 	pm_runtime_enable(dev);
