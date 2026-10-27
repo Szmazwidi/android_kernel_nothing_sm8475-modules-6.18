@@ -12,6 +12,8 @@
 
 
 #include <linux/module.h>
+#include <linux/mm.h>
+#include <linux/vmalloc.h>
 #include <linux/init.h>
 #include <linux/kernel.h>
 #include <linux/platform_device.h>
@@ -250,7 +252,7 @@ void *qcom_dma_common_contiguous_remap(struct page *page, size_t size,
 	if (!pages)
 		return NULL;
 	for (i = 0; i < count; i++)
-		pages[i] = nth_page(page, i);
+		pages[i] = pfn_to_page(page_to_pfn(page) + i);
 	vaddr = vmap(pages, count, VM_DMA_COHERENT, prot);
 	kfree(pages);
 
@@ -310,8 +312,8 @@ static int atomic_pool_expand(struct gen_pool *pool, size_t pool_size,
 	void *addr;
 	int ret = -ENOMEM;
 
-	/* Cannot allocate larger than MAX_ORDER - 1 */
-	order = min(get_order(pool_size), MAX_ORDER - 1);
+	/* Cannot allocate larger than MAX_PAGE_ORDER */
+	order = min(get_order(pool_size), MAX_PAGE_ORDER);
 
 	do {
 		pool_size = 1 << (PAGE_SHIFT + order);
@@ -390,7 +392,7 @@ static int dma_atomic_pool_init(struct device *dev)
 	int ret = 0;
 	unsigned long pages;
 
-	/* Default the pool size to 128KB per 1 GB of memory, min 128 KB, max MAX_ORDER - 1. */
+	/* Default the pool size to 128KB per 1 GB of memory, min 128 KB, max MAX_PAGE_ORDER. */
 	pages = totalram_pages() / (SZ_1G / SZ_128K);
 	pages = min_t(unsigned long, pages, MAX_ORDER_NR_PAGES);
 	atomic_pool_size = max_t(size_t, pages << PAGE_SHIFT, SZ_128K);
@@ -782,10 +784,9 @@ bool qcom_dma_iommu_is_ready(void)
 }
 EXPORT_SYMBOL(qcom_dma_iommu_is_ready);
 
-static int qcom_dma_iommu_remove(struct platform_device *pdev)
+static void qcom_dma_iommu_remove(struct platform_device *pdev)
 {
 	qcom_dma_atomic_pool_exit(&pdev->dev);
-	return 0;
 }
 
 static const struct of_device_id qcom_dma_iommu_of_match[] = {

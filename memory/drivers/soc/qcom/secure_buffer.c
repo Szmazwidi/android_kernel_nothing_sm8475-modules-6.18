@@ -6,6 +6,7 @@
  */
 
 #include <linux/highmem.h>
+#include <linux/mm.h>
 #include <linux/kernel.h>
 #include <linux/kref.h>
 #include <linux/scatterlist.h>
@@ -31,6 +32,8 @@
 
 static struct device *qcom_secure_buffer_dev;
 static bool vmid_cp_camera_preview_ro;
+
+SRCU_NOTIFIER_HEAD_STATIC(hyp_assign_notifier);
 
 struct hyp_assign_debug_track {
 	depot_stack_handle_t hdl;
@@ -300,7 +303,7 @@ static inline int rollback_batched_assign(struct sg_table *table, unsigned int n
 
 	int ret;
 
-	new_source_nelems = sizeof(*destvms) / destvms_size_bytes;
+	new_source_nelems = destvms_size_bytes / sizeof(*destvms);
 	new_source_vm_list = kmalloc_array(new_source_nelems,
 					   sizeof(*new_source_vm_list),
 					   GFP_KERNEL);
@@ -423,7 +426,7 @@ static int batched_hyp_assign(struct sg_table *table, unsigned int nents,
 			}
 
 			/* Attempt to reclaim the i - 1 entries we already assigned */
-			reclaim_ret = rollback_batched_assign(table, batch_start - 1, destvms,
+			reclaim_ret = rollback_batched_assign(table, batch_start, destvms,
 							      destvms_size_bytes);
 
 			if (reclaim_ret) {
@@ -448,7 +451,7 @@ static int batched_hyp_assign(struct sg_table *table, unsigned int nents,
 		batch_start += batches_processed;
 	}
 	total_delta = ktime_us_delta(ktime_get(), first_assign_ts);
-	trace_hyp_assign_end(total_delta, div64_u64(total_delta, i));
+	trace_hyp_assign_end(total_delta, i ? div64_u64(total_delta, i) : 0);
 	kfree(mem_regions_buf);
 	return ret;
 }
@@ -464,7 +467,7 @@ static inline void set_each_page_of_sg(struct sg_table *table, u64 flag)
 		if (sg->length % PAGE_SIZE)
 			npages++;
 		while (npages--)
-			set_page_private(nth_page(sg_page(sg), npages), flag);
+			set_page_private(pfn_to_page(page_to_pfn(sg_page(sg)) + npages), flag);
 	}
 }
 
@@ -583,11 +586,39 @@ out_free_source:
 	return ret;
 }
 
+static int hyp_assign_table_notify(struct sg_table *table,
+		     u32 *source_vm_list, int source_nelems,
+		     int *dest_vmids, int *dest_perms,
+		     int dest_nelems)
+{
+	struct hyp_assign_notifier_data data = {
+		.table = table,
+		.source_vm_list = source_vm_list,
+		.source_nelems = source_nelems,
+		.dest_vmids = dest_vmids,
+		.dest_perms = dest_perms,
+		.dest_nelems = dest_nelems,
+	};
+
+	return srcu_notifier_call_chain(&hyp_assign_notifier, 0, &data);
+}
+
 int hyp_assign_table(struct sg_table *table,
 		     u32 *source_vm_list, int source_nelems,
 		     int *dest_vmids, int *dest_perms,
 		     int dest_nelems)
 {
+	int ret;
+
+	if (!table || !table->sgl || !table->nents || !source_vm_list ||
+	    source_nelems <= 0 || !dest_vmids || !dest_perms || dest_nelems <= 0)
+		return -EINVAL;
+
+	ret = hyp_assign_table_notify(table, source_vm_list, source_nelems,
+				      dest_vmids, dest_perms, dest_nelems);
+	/* If notifier handled it (NOTIFY_STOP) or returned an error, return early */
+	if (ret & NOTIFY_STOP_MASK)
+		return notifier_to_errno(ret);
 
 	if (!gh_rm_needs_hyp_assign(source_vm_list, source_nelems,
 				dest_vmids, dest_nelems))
@@ -597,6 +628,30 @@ int hyp_assign_table(struct sg_table *table,
 				 dest_vmids, dest_perms, dest_nelems, true);
 }
 EXPORT_SYMBOL(hyp_assign_table);
+
+/**
+ * hyp_assign_notifier_register() -
+ * Register a handler for hyp_assign_table().
+ * The values returned by this notifier have the following interpretation:
+ * NOTIFY_STOP - Success. No fallback to arm 'smc' instruction.
+ * NOTIFY_OK   - No error. Fallback to arm 'smc'.
+ * values that notifier_to_errno() would consider errors -
+ *               Stop. Do not call futher notifiers nor arm 'smc'.
+ *
+ * This notifier is intended to support a compatibility layer between
+ * client-facing apis and different secure memory implemenations.
+ */
+int hyp_assign_notifier_register(struct notifier_block *nb)
+{
+	return srcu_notifier_chain_register(&hyp_assign_notifier, nb);
+}
+EXPORT_SYMBOL_GPL(hyp_assign_notifier_register);
+
+int hyp_assign_notifier_unregister(struct notifier_block *nb)
+{
+	return srcu_notifier_chain_unregister(&hyp_assign_notifier, nb);
+}
+EXPORT_SYMBOL_GPL(hyp_assign_notifier_unregister);
 
 const char *msm_secure_vmid_to_string(int secure_vmid)
 {
@@ -711,3 +766,5 @@ static void __exit qcom_secure_buffer_exit(void)
 module_exit(qcom_secure_buffer_exit);
 
 MODULE_LICENSE("GPL");
+
+MODULE_DESCRIPTION("Qualcomm vendor secure buffer support");

@@ -479,3 +479,5 @@ void msm_dma_buf_freed(void *buffer)
 EXPORT_SYMBOL(msm_dma_buf_freed);
 
 MODULE_LICENSE("GPL");
+
+MODULE_DESCRIPTION("Qualcomm vendor dma mapping support");

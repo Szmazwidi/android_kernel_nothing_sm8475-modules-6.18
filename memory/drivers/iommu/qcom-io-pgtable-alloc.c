@@ -5,6 +5,7 @@
  */
 
 #include <linux/module.h>
+#include "qcom-io-pgtable-alloc.h"
 #include <linux/shrinker.h>
 #include <linux/slab.h>
 #include <linux/firmware/qcom/qcom_scm.h>
@@ -306,18 +307,20 @@ static unsigned long io_pgtable_alloc_scan_objects(struct shrinker *shrinker,
 	return count;
 }
 
-static struct shrinker io_pgtable_alloc_shrinker = {
-	.count_objects = io_pgtable_alloc_count_objects,
-	.scan_objects = io_pgtable_alloc_scan_objects,
-	.seeks = DEFAULT_SEEKS,
-};
-
+static struct shrinker *io_pgtable_alloc_shrinker;
 int qcom_io_pgtable_alloc_init(void)
 {
-	return register_shrinker(&io_pgtable_alloc_shrinker, "io_pgtable_alloc");
+	io_pgtable_alloc_shrinker = shrinker_alloc(0, "io_pgtable_alloc");
+	if (!io_pgtable_alloc_shrinker)
+		return -ENOMEM;
+	io_pgtable_alloc_shrinker->count_objects = io_pgtable_alloc_count_objects;
+	io_pgtable_alloc_shrinker->scan_objects = io_pgtable_alloc_scan_objects;
+	io_pgtable_alloc_shrinker->seeks = DEFAULT_SEEKS;
+	shrinker_register(io_pgtable_alloc_shrinker);
+	return 0;
 }
-
 void qcom_io_pgtable_alloc_exit(void)
 {
-	unregister_shrinker(&io_pgtable_alloc_shrinker);
+	shrinker_free(io_pgtable_alloc_shrinker);
+	io_pgtable_alloc_shrinker = NULL;
 }

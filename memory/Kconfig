@@ -1,0 +1,27 @@
+# SPDX-License-Identifier: GPL-2.0-only
+config QCOM_IOMMU_UTIL
+    tristate
+config QCOM_IOMMU_DEBUG
+    tristate
+config QTI_IOMMU_SUPPORT
+    bool
+config IOMMU_IO_PGTABLE_FAST
+    bool
+config QCOM_LAZY_MAPPING
+    tristate
+config QCOM_SECURE_BUFFER
+    tristate
+config ARM_SMMU_CONTEXT_FAULT_RETRY
+    bool
+config PONG618_VENDOR_MEMORY
+    tristate "Pong complete vendor SMMU and memory batch"
+    select ARM_SMMU
+    select ARM_SMMU_QCOM
+    select QCOM_SCM
+    select QCOM_IOMMU_UTIL
+    select QCOM_IOMMU_DEBUG
+    select QTI_IOMMU_SUPPORT
+    select IOMMU_IO_PGTABLE_FAST
+    select QCOM_LAZY_MAPPING
+    select QCOM_SECURE_BUFFER
+    select ARM_SMMU_CONTEXT_FAULT_RETRY
