@@ -529,6 +529,13 @@ int unregister_hboost_event_notifier(struct notifier_block *nb)
 EXPORT_SYMBOL(unregister_hboost_event_notifier);
 
 #ifdef NT_CHG
+#include "pong417-telemetry.h"
+static noinline int pong417_telemetry_write(struct pmic_glink_client *client, void *data, int len)
+{
+ if (!pong417_telemetry_allowed(data, len)) return -EOPNOTSUPP;
+ return pmic_glink_write(client, data, len);
+}
+
 static int battery_chg_fw_write(struct battery_chg_dev *bcdev, void *data, int len);
 static ssize_t wls_patch_push_store(const struct class *c,
 					const struct class_attribute *attr,
@@ -537,6 +544,7 @@ static ssize_t wls_cfg_push_store(const struct class *c,
 					const struct class_attribute *attr,
 					const char *buf, size_t count);
 
+u32 cal_checksum(u8 *data, int size);
 u32 cal_checksum(u8 *data, int size)
 {
 	int i;
@@ -594,6 +602,7 @@ static int wls_fw_send_st38(struct battery_chg_dev *bcdev, const u8 *data,
 	return 0;
 }
 
+int u32_to_u8_le(u32 src, u8 *dst);
 int u32_to_u8_le(u32 src, u8 *dst)
 {
 	dst[0] = (u8)((src & 0x000000FF) >> 0);
@@ -603,6 +612,7 @@ int u32_to_u8_le(u32 src, u8 *dst)
 	return 0;
 }
 
+int parse_memh_data(u8 *memh, int memh_size, u8 **data, int *data_size);
 int parse_memh_data(u8 *memh, int memh_size, u8 **data, int *data_size)
 {
 	int i = 0;
@@ -640,6 +650,7 @@ int parse_memh_data(u8 *memh, int memh_size, u8 **data, int *data_size)
 	return 0;
 }
 
+int get_fw_file(struct device *dev, char *name, u8 **data, int *size);
 int get_fw_file(struct device *dev, char *name, u8 **data, int *size)
 {
 	int err;
@@ -661,6 +672,7 @@ int get_fw_file(struct device *dev, char *name, u8 **data, int *size)
 	return 0;
 }
 
+int read_memh_file(struct device *dev, char* path, u8 **data, int *size);
 int read_memh_file(struct device *dev, char* path, u8 **data, int *size)
 {
 	int err;
@@ -701,7 +713,7 @@ static int battery_chg_fw_write(struct battery_chg_dev *bcdev, void *data,
 	}
 
 	reinit_completion(&bcdev->fw_buf_ack);
-	rc = pmic_glink_write(bcdev->client, data, len);
+	rc = pong417_telemetry_write(bcdev->client, data, len);
 	if (!rc) {
 		rc = wait_for_completion_timeout(&bcdev->fw_buf_ack,
 					msecs_to_jiffies(WLS_FW_WAIT_TIME_MS));
@@ -726,7 +738,7 @@ static int battery_chg_write(struct battery_chg_dev *bcdev, void *data,
 	/*
 	 * When the subsystem goes down, it's better to return the last
 	 * known values until it comes back up. Hence, return 0 so that
-	 * pmic_glink_write() is not attempted until pmic glink is up.
+	 * pong417_telemetry_write() is not attempted until pmic glink is up.
 	 */
 	down_read(&bcdev->state_sem);
 	if (atomic_read(&bcdev->state) == PMIC_GLINK_STATE_DOWN) {
@@ -743,7 +755,7 @@ static int battery_chg_write(struct battery_chg_dev *bcdev, void *data,
 	mutex_lock(&bcdev->rw_lock);
 	reinit_completion(&bcdev->ack);
 	bcdev->error_prop = false;
-	rc = pmic_glink_write(bcdev->client, data, len);
+	rc = pong417_telemetry_write(bcdev->client, data, len);
 	if (!rc) {
 		rc = wait_for_completion_timeout(&bcdev->ack,
 					msecs_to_jiffies(BC_WAIT_TIME_MS));
@@ -1463,6 +1475,7 @@ static void nt_update_event_work(struct work_struct *work)
 }
 #endif
 #ifdef NT_CHG
+int force_set_usb_icl(struct battery_chg_dev *bcdev, int val);
 int force_set_usb_icl(struct battery_chg_dev *bcdev, int val)
 {
 	struct battman_set_debug_param_req_msg req_msg = { { 0 } };
@@ -2147,6 +2160,7 @@ const struct nt_proc entries[] = {
 
 };
 
+int create_aging_proc_file(struct battery_chg_dev *bcdev, struct proc_dir_entry *nt_chg_proc_dir);
 int create_aging_proc_file(struct battery_chg_dev *bcdev, struct proc_dir_entry *nt_chg_proc_dir)
 {
 	struct proc_dir_entry *dir;
@@ -2449,18 +2463,7 @@ static enum power_supply_property usb_props[] = {
 	POWER_SUPPLY_PROP_SCOPE,
 };
 
-static enum power_supply_usb_type usb_psy_supported_types[] = {
-	POWER_SUPPLY_USB_TYPE_UNKNOWN,
-	POWER_SUPPLY_USB_TYPE_SDP,
-	POWER_SUPPLY_USB_TYPE_DCP,
-	POWER_SUPPLY_USB_TYPE_CDP,
-	POWER_SUPPLY_USB_TYPE_ACA,
-	POWER_SUPPLY_USB_TYPE_C,
-	POWER_SUPPLY_USB_TYPE_PD,
-	POWER_SUPPLY_USB_TYPE_PD_DRP,
-	POWER_SUPPLY_USB_TYPE_PD_PPS,
-	POWER_SUPPLY_USB_TYPE_APPLE_BRICK_ID,
-};
+
 
 static struct power_supply_desc usb_psy_desc = {
 	.name			= "usb",
@@ -2469,8 +2472,8 @@ static struct power_supply_desc usb_psy_desc = {
 	.num_properties		= ARRAY_SIZE(usb_props),
 	.get_property		= usb_psy_get_prop,
 	.set_property		= usb_psy_set_prop,
-	.usb_types		= usb_psy_supported_types,
-	.num_usb_types		= ARRAY_SIZE(usb_psy_supported_types),
+	.usb_types		= BIT(POWER_SUPPLY_USB_TYPE_UNKNOWN) | BIT(POWER_SUPPLY_USB_TYPE_SDP) | BIT(POWER_SUPPLY_USB_TYPE_DCP) | BIT(POWER_SUPPLY_USB_TYPE_CDP) | BIT(POWER_SUPPLY_USB_TYPE_ACA) | BIT(POWER_SUPPLY_USB_TYPE_C) | BIT(POWER_SUPPLY_USB_TYPE_PD) | BIT(POWER_SUPPLY_USB_TYPE_PD_DRP) | BIT(POWER_SUPPLY_USB_TYPE_PD_PPS) | BIT(POWER_SUPPLY_USB_TYPE_APPLE_BRICK_ID),
+
 	.property_is_writeable	= usb_psy_prop_is_writeable,
 };
 
@@ -2654,7 +2657,7 @@ static int battery_chg_init_psy(struct battery_chg_dev *bcdev)
 	int rc;
 
 	psy_cfg.drv_data = bcdev;
-	psy_cfg.of_node = bcdev->dev->of_node;
+	psy_cfg.fwnode = dev_fwnode(bcdev->dev);
 	bcdev->psy_list[PSY_TYPE_USB].psy =
 		devm_power_supply_register(bcdev->dev, &usb_psy_desc, &psy_cfg);
 	if (IS_ERR(bcdev->psy_list[PSY_TYPE_USB].psy)) {
@@ -4474,7 +4477,7 @@ reg_error:
 	return rc;
 }
 
-static int battery_chg_remove(struct platform_device *pdev)
+static void battery_chg_remove(struct platform_device *pdev)
 {
 	struct battery_chg_dev *bcdev = platform_get_drvdata(pdev);
 
@@ -4495,7 +4498,7 @@ static int battery_chg_remove(struct platform_device *pdev)
 	cancel_work_sync(&bcdev->battery_check_work);
 	unregister_reboot_notifier(&bcdev->reboot_notifier);
 
-	return 0;
+	return;
 }
 
 static const struct of_device_id battery_chg_match_table[] = {

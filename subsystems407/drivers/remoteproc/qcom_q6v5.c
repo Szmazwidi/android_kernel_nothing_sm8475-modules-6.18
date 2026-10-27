@@ -93,12 +93,14 @@ int qcom_q6v5_unprepare(struct qcom_q6v5 *q6v5)
 }
 EXPORT_SYMBOL_GPL(qcom_q6v5_unprepare);
 
+void qcom_q6v5_register_ssr_subdev(struct qcom_q6v5 *q6v5, struct rproc_subdev *ssr_subdev);
 void qcom_q6v5_register_ssr_subdev(struct qcom_q6v5 *q6v5, struct rproc_subdev *ssr_subdev)
 {
 	q6v5->ssr_subdev = ssr_subdev;
 }
 EXPORT_SYMBOL_GPL(qcom_q6v5_register_ssr_subdev);
 
+void qcom_q6v5_register_glink_subdev(struct qcom_q6v5 *q6v5, struct rproc_subdev *glink_subdev);
 void qcom_q6v5_register_glink_subdev(struct qcom_q6v5 *q6v5, struct rproc_subdev *glink_subdev)
 {
 	q6v5->glink_subdev = glink_subdev;

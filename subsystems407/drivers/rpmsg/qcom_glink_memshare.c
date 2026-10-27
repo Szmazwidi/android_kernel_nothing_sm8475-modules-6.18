@@ -8,6 +8,8 @@
 #include <linux/list.h>
 #include <linux/types.h>
 #include <linux/slab.h>
+#include <linux/rpmsg/qcom_glink.h>
+#include "qcom_glink_native.h"
 
 struct qcom_glink_mem_entry {
 	struct device *dev;

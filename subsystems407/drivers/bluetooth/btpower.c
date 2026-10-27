@@ -137,6 +137,12 @@ static int bt_power_src_status[BT_POWER_SRC_SIZE];
 static struct btpower_platform_data *bt_power_pdata;
 static bool previous;
 static int pwr_state;
+
+int btpower_get_power_state(void)
+{
+	return READ_ONCE(pwr_state);
+}
+EXPORT_SYMBOL_GPL(btpower_get_power_state);
 static struct class *bt_class;
 static int bt_major;
 static int soc_id;
@@ -1070,7 +1076,7 @@ free_pdata:
 	return ret;
 }
 
-static int bt_power_remove(struct platform_device *pdev)
+static void bt_power_remove(struct platform_device *pdev)
 {
 	probe_finished = false;
 	btpower_rfkill_remove(pdev);
@@ -1078,7 +1084,7 @@ static int bt_power_remove(struct platform_device *pdev)
 
 	kfree(bt_power_pdata);
 
-	return 0;
+	return;
 }
 
 int btpower_register_slimdev(struct device *dev)
@@ -1362,6 +1368,7 @@ driver_err:
  *
  * Return: 0 for success
  */
+int bt_aop_send_msg(struct btpower_platform_data *plat_priv, char *mbox_msg);
 int bt_aop_send_msg(struct btpower_platform_data *plat_priv, char *mbox_msg)
 {
 	struct qmp_pkt pkt;

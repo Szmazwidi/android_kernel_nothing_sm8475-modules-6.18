@@ -61,6 +61,7 @@ static void __iomem *qcom_map_pil_imem_resource(const char *compatible,
  * Return: true if the value 0x53444247 is set in the disable timeout pil
  * imem region, false otherwise.
  */
+bool qcom_pil_timeouts_disabled(void);
 bool qcom_pil_timeouts_disabled(void)
 {
 	const char *compatible = "qcom,msm-imem-pil-disable-timeout";

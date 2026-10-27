@@ -1209,6 +1209,7 @@ static int qcom_glink_rx_defer(struct qcom_glink *glink, size_t extra)
 	return 0;
 }
 
+bool qcom_glink_is_wakeup(bool reset);
 bool qcom_glink_is_wakeup(bool reset)
 {
 	if (!glink_resume_pkt)
@@ -2619,6 +2620,7 @@ static void qcom_glink_work(struct work_struct *work)
 	}
 }
 
+void qcom_glink_early_ssr_notify(void *data);
 void qcom_glink_early_ssr_notify(void *data)
 {
 	struct qcom_glink *glink = data;

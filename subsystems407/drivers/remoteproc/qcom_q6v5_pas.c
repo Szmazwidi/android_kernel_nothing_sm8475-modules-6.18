@@ -25,7 +25,7 @@
 #include <linux/firmware/qcom/qcom_scm.h>
 #include <linux/regulator/consumer.h>
 #include <linux/remoteproc.h>
-#include <linux/soc/qcom/mdt_loader.h>
+#include "../soc/qcom/pong416_mdt_loader.h"
 #include <linux/soc/qcom/smem.h>
 #include <linux/soc/qcom/smem_state.h>
 #include <linux/soc/qcom/qcom_aoss.h>
@@ -221,6 +221,8 @@ custom_segment_dump:
 }
 
 void adsp_segment_dump(struct rproc *rproc, struct rproc_dump_segment *segment,
+		     void *dest, size_t offset, size_t size);
+void adsp_segment_dump(struct rproc *rproc, struct rproc_dump_segment *segment,
 		     void *dest, size_t offset, size_t size)
 {
 	struct qcom_adsp *adsp = rproc->priv;
@@ -350,9 +352,9 @@ static int adsp_unprepare(struct rproc *rproc)
 	 * auth_and_reset() was successful, but in other cases clean it up
 	 * here.
 	 */
-	qcom_scm_pas_metadata_release(&adsp->pas_metadata, dev);
+	pong416_scm_pas_metadata_release(&adsp->pas_metadata, dev);
 	if (adsp->dtb_pas_id)
-		qcom_scm_pas_metadata_release(&adsp->dtb_pas_metadata, dev);
+		pong416_scm_pas_metadata_release(&adsp->dtb_pas_metadata, dev);
 
 	return 0;
 }
@@ -395,13 +397,13 @@ static int adsp_load(struct rproc *rproc, const struct firmware *fw)
 			goto exit_load;
 		}
 
-		ret = qcom_mdt_pas_init(adsp->dev, adsp->dtb_firmware, adsp->dtb_firmware_name,
+		ret = pong416_mdt_pas_init(adsp->dev, adsp->dtb_firmware, adsp->dtb_firmware_name,
 					adsp->dtb_pas_id, adsp->dtb_mem_phys,
 					&adsp->dtb_pas_metadata, adsp->dma_phys_below_32b);
 		if (ret)
 			goto release_dtb_firmware;
 
-		ret = qcom_mdt_load_no_init(adsp->dev, adsp->dtb_firmware, adsp->dtb_firmware_name,
+		ret = pong416_mdt_load_no_init(adsp->dev, adsp->dtb_firmware, adsp->dtb_firmware_name,
 					    adsp->dtb_pas_id, adsp->dtb_mem_region,
 					    adsp->dtb_mem_phys, adsp->dtb_mem_size,
 					    &adsp->dtb_mem_reloc);
@@ -416,7 +418,7 @@ release_dtb_metadata:
 		qcom_scm_pas_shutdown(adsp->dtb_pas_id);
 
 	if (adsp->dtb_pas_id)
-		qcom_scm_pas_metadata_release(&adsp->dtb_pas_metadata, dev);
+		pong416_scm_pas_metadata_release(&adsp->dtb_pas_metadata, dev);
 release_dtb_firmware:
 	release_firmware(adsp->dtb_firmware);
 
@@ -622,12 +624,12 @@ static int adsp_start(struct rproc *rproc)
 
 	trace_rproc_qcom_event(dev_name(adsp->dev), "Q6_firmware_loading", "enter");
 
-	ret = qcom_mdt_pas_init(adsp->dev, adsp->firmware, rproc->firmware, adsp->pas_id,
+	ret = pong416_mdt_pas_init(adsp->dev, adsp->firmware, rproc->firmware, adsp->pas_id,
 				adsp->mem_phys, &adsp->pas_metadata, adsp->dma_phys_below_32b);
 	if (ret)
 		goto disable_regulator;
 
-	ret = qcom_mdt_load_no_init(adsp->dev, adsp->firmware, rproc->firmware, adsp->pas_id,
+	ret = pong416_mdt_load_no_init(adsp->dev, adsp->firmware, rproc->firmware, adsp->pas_id,
 				    adsp->mem_region, adsp->mem_phys, adsp->mem_size,
 				    &adsp->mem_reloc);
 	if (ret)
@@ -655,7 +657,7 @@ static int adsp_start(struct rproc *rproc)
 		}
 	}
 
-	qcom_scm_pas_metadata_release(&adsp->pas_metadata, dev);
+	pong416_scm_pas_metadata_release(&adsp->pas_metadata, dev);
 
 	adsp->q6v5.seq++;
 	goto exit_start;
@@ -663,7 +665,7 @@ static int adsp_start(struct rproc *rproc)
 unlock_pas_metadata:
 	/*
 	 * Unlocking of pas metadata only required either the call to
-	 * auth and reset is not reached after qcom_mdt_pas_init() success.
+	 * auth and reset is not reached after pong416_mdt_pas_init() success.
 	 * In case auth and reset is success, no need to call shutdown or
 	 * unlock pas metadata.
 	 */
@@ -676,7 +678,7 @@ unlock_pas_metadata:
 			      rproc->name);
 	}
 release_pas_metadata:
-	qcom_scm_pas_metadata_release(&adsp->pas_metadata, dev);
+	pong416_scm_pas_metadata_release(&adsp->pas_metadata, dev);
 disable_regulator:
 	disable_regulators(adsp);
 disable_px_supply:
@@ -701,7 +703,7 @@ exit_start:
 		qcom_scm_pas_shutdown(adsp->dtb_pas_id);
 
 	if (adsp->dtb_pas_id)
-		qcom_scm_pas_metadata_release(&adsp->dtb_pas_metadata, dev);
+		pong416_scm_pas_metadata_release(&adsp->dtb_pas_metadata, dev);
 
 	release_firmware(adsp->dtb_firmware);
 	qcom_q6v5_pas_set_bw(&adsp->q6v5, 0, 0);
@@ -872,6 +874,7 @@ static int set_icc_bw(struct qcom_adsp *adsp, bool enable)
  *
  * return: 0 if status is set, else -ETIMEOUT
  */
+int rproc_set_state(struct rproc *rproc, bool state);
 int rproc_set_state(struct rproc *rproc, bool state)
 {
 	int ret = 0;
@@ -1355,6 +1358,7 @@ static void rproc_recovery_set(struct rproc *rproc)
 	adsp->subsys_recovery_disabled = rproc->recovery_disabled;
 }
 
+void qcom_rproc_update_recovery_status(struct rproc *rproc, bool enable, bool locked);
 void qcom_rproc_update_recovery_status(struct rproc *rproc, bool enable, bool locked)
 {
 	struct qcom_adsp *adsp;
@@ -2642,7 +2646,7 @@ MODULE_DEVICE_TABLE(of, adsp_of_match);
 
 static struct platform_driver adsp_driver = {
 	.probe = adsp_probe,
-	.remove_new = adsp_remove,
+	.remove = adsp_remove,
 	.driver = {
 		.name = "qcom_q6v5_pas",
 		.of_match_table = adsp_of_match,

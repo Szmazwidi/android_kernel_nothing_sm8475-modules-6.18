@@ -689,6 +689,7 @@ struct msm_pcie_sid_info_t {
 
 /* PCIe device info structure */
 struct msm_pcie_device_info {
+	struct aer_stats *private_aer;
 	struct list_head pcidev_node;
 	struct pci_dev *dev;
 };
@@ -776,7 +777,7 @@ struct msm_aer_err_info {
 
 	unsigned int status;		/* COR/UNCOR Error Status */
 	unsigned int mask;		/* COR/UNCOR Error Mask */
-	struct aer_header_log_regs tlp;	/* TLP Header */
+	struct { u32 dw0, dw1, dw2, dw3; } tlp;	/* TLP Header */
 
 	u32 l1ss_ctl1;			/* PCI_L1SS_CTL1 reg value */
 	u16 lnksta;			/* PCI_EXP_LNKSTA reg value */
@@ -3560,6 +3561,7 @@ static bool msm_pcie_check_ltssm_state(struct msm_pcie_dev_t *dev, u32 state)
 	return false;
 }
 
+void msm_pcie_clk_dump(struct msm_pcie_dev_t *pcie_dev);
 void msm_pcie_clk_dump(struct msm_pcie_dev_t *pcie_dev)
 {
 	struct msm_pcie_clk_info_t *clk_info;
@@ -3572,13 +3574,23 @@ void msm_pcie_clk_dump(struct msm_pcie_dev_t *pcie_dev)
 	clk_info = pcie_dev->clk;
 	for (i = 0; i < pcie_dev->num_clk; i++, clk_info++) {
 		if (clk_info->hdl)
+			/* Optional vendor register dumper is not present in this kernel. */
+#if IS_ENABLED(CONFIG_PONG407_PCIE_CLOCK_REGISTER_DUMP)
 			qcom_clk_dump(clk_info->hdl, NULL, 0);
+#else
+			PCIE_ERR(pcie_dev, "clock register dump unavailable; rate=%lu Hz\n", clk_get_rate(clk_info->hdl));
+#endif
 	}
 
 	clk_info = pcie_dev->pipe_clk;
 	for (i = 0; i < pcie_dev->num_pipe_clk; i++, clk_info++) {
 		if (clk_info->hdl)
+			/* Optional vendor register dumper is not present in this kernel. */
+#if IS_ENABLED(CONFIG_PONG407_PCIE_CLOCK_REGISTER_DUMP)
 			qcom_clk_dump(clk_info->hdl, NULL, 0);
+#else
+			PCIE_ERR(pcie_dev, "clock register dump unavailable; rate=%lu Hz\n", clk_get_rate(clk_info->hdl));
+#endif
 	}
 }
 
@@ -3957,7 +3969,7 @@ static void __maybe_unused
 }
 
 /* Read the curr perf ol value from the cesta register */
-static const char *const __maybe_unused msm_pcie_cesta_curr_perf_ol(struct msm_pcie_dev_t *dev)
+static const char *__maybe_unused msm_pcie_cesta_curr_perf_ol(struct msm_pcie_dev_t *dev)
 {
 	u32 ret;
 	int res;
@@ -6751,6 +6763,10 @@ static int msm_pcie_config_device_info(struct pci_dev *pcidev, void *pdev)
 		if (!dev_info)
 			return -ENOMEM;
 
+		if (pcie_dev->aer_enable) {
+			dev_info->private_aer = kzalloc(sizeof(*dev_info->private_aer), GFP_KERNEL);
+			if (!dev_info->private_aer) { kfree(dev_info->private_aer); kfree(dev_info); return -ENOMEM; }
+		}
 		dev_info->dev = pcidev;
 		list_add_tail(&dev_info->pcidev_node, &pcie_dev->enum_ep_list);
 	}
@@ -6769,7 +6785,8 @@ static int msm_pcie_config_device_info(struct pci_dev *pcidev, void *pdev)
 
 	if (pcie_dev->aer_enable) {
 		if (pci_pcie_type(pcidev) == PCI_EXP_TYPE_ROOT_PORT)
-			pcie_dev->aer_stats = pcidev->aer_stats;
+			if (!pcie_dev->aer_stats)
+				pcie_dev->aer_stats = devm_kzalloc(&pcie_dev->pdev->dev, sizeof(*pcie_dev->aer_stats), GFP_KERNEL);
 
 		if (msm_pcie_enable_pcie_error_reporting(pcidev))
 			PCIE_ERR(pcie_dev,
@@ -7136,6 +7153,21 @@ static void handle_link_recover(struct work_struct *work)
 	msm_pcie_notify_client(dev, MSM_PCIE_EVENT_LINK_RECOVER);
 }
 
+static struct aer_stats *msm_pcie_private_aer_stats(struct pci_dev *pdev)
+{
+ unsigned int i;
+ struct msm_pcie_device_info *ep;
+ if (!pdev) return NULL;
+ for (i=0; i<MAX_RC_NUM; i++) {
+  struct msm_pcie_dev_t *rc = &msm_pcie_dev[i];
+  if (!rc->dev) continue;
+  if (rc->dev == pdev) return rc->aer_stats;
+  list_for_each_entry(ep, &rc->enum_ep_list, pcidev_node)
+   if (ep->dev == pdev) return ep->private_aer;
+ }
+ return NULL;
+}
+
 /* AER error handling */
 static void msm_pci_dev_aer_stats_incr(struct pci_dev *pdev,
 				       struct msm_aer_err_info *info)
@@ -7143,7 +7175,7 @@ static void msm_pci_dev_aer_stats_incr(struct pci_dev *pdev,
 	unsigned long status = info->status & ~info->mask;
 	int i, max = -1;
 	u64 *counter = NULL;
-	struct aer_stats *aer_stats = pdev->aer_stats;
+	struct aer_stats *aer_stats = msm_pcie_private_aer_stats(pdev);
 
 	if (!aer_stats)
 		return;
@@ -7173,7 +7205,7 @@ static void msm_pci_dev_aer_stats_incr(struct pci_dev *pdev,
 static void msm_pci_rootport_aer_stats_incr(struct pci_dev *pdev,
 					    struct aer_err_source *e_src)
 {
-	struct aer_stats *aer_stats = pdev->aer_stats;
+	struct aer_stats *aer_stats = msm_pcie_private_aer_stats(pdev);
 
 	if (!aer_stats)
 		return;
@@ -7221,6 +7253,7 @@ static void msm_aer_print_error_stats(struct pci_dev *dev,
 	msm_pci_dev_aer_stats_incr(dev, info);
 }
 
+void msm_aer_print_error(struct pci_dev *dev, struct msm_aer_err_info *info);
 void msm_aer_print_error(struct pci_dev *dev, struct msm_aer_err_info *info)
 {
 	int layer, agent;
@@ -9114,7 +9147,7 @@ out:
 	return ret;
 }
 
-static int msm_pcie_remove(struct platform_device *pdev)
+static void msm_pcie_remove(struct platform_device *pdev)
 {
 	int ret = 0;
 	int rc_idx;
@@ -9157,21 +9190,21 @@ static int msm_pcie_remove(struct platform_device *pdev)
 				 &msm_pcie_dev[rc_idx].enum_ep_list,
 				 pcidev_node) {
 		list_del(&dev_info->pcidev_node);
-		kfree(dev_info);
+		kfree(dev_info->private_aer); kfree(dev_info);
 	}
 
 	list_for_each_entry_safe(dev_info, temp,
 				 &msm_pcie_dev[rc_idx].susp_ep_list,
 				 pcidev_node) {
 		list_del(&dev_info->pcidev_node);
-		kfree(dev_info);
+		kfree(dev_info->private_aer); kfree(dev_info);
 	}
 
 	msm_pcie_destroy_ipc_logs(rc_idx);
 out:
 	mutex_unlock(&pcie_drv.drv_lock);
 
-	return ret;
+	return;
 }
 
 static int msm_pcie_link_retrain(struct msm_pcie_dev_t *pcie_dev,
@@ -9284,6 +9317,8 @@ invalid_link_width:
 	return -EINVAL;
 }
 
+int msm_pcie_dsp_link_control(struct pci_dev *pci_dev,
+			      bool link_enable);
 int msm_pcie_dsp_link_control(struct pci_dev *pci_dev,
 			      bool link_enable)
 {

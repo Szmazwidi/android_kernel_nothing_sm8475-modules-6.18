@@ -20,7 +20,9 @@
 #include <linux/soc/qcom/smem.h>
 #include <linux/devcoredump.h>
 #include <trace/hooks/remoteproc.h>
+#define CREATE_TRACE_POINTS
 #include <trace/events/rproc_qcom.h>
+EXPORT_TRACEPOINT_SYMBOL_GPL(rproc_qcom_event);
 
 #include "remoteproc_elf_helpers.h"
 #include "remoteproc_internal.h"
@@ -627,12 +629,14 @@ void *qcom_register_early_ssr_notifier(const char *name, struct notifier_block *
 }
 EXPORT_SYMBOL(qcom_register_early_ssr_notifier);
 
+int qcom_unregister_early_ssr_notifier(void *notify, struct notifier_block *nb);
 int qcom_unregister_early_ssr_notifier(void *notify, struct notifier_block *nb)
 {
 	return srcu_notifier_chain_unregister(notify, nb);
 }
 EXPORT_SYMBOL(qcom_unregister_early_ssr_notifier);
 
+void qcom_notify_early_ssr_clients(struct rproc_subdev *subdev);
 void qcom_notify_early_ssr_clients(struct rproc_subdev *subdev)
 {
 	struct qcom_rproc_ssr *ssr = to_ssr_subdev(subdev);
@@ -653,6 +657,7 @@ EXPORT_SYMBOL(qcom_notify_early_ssr_clients);
  *
  * Return: a subsystem cookie on success, ERR_PTR on failure.
  */
+void *qcom_register_ssr_notifier(const char *name, struct notifier_block *nb);
 void *qcom_register_ssr_notifier(const char *name, struct notifier_block *nb)
 {
 	struct qcom_ssr_subsystem *info;
@@ -669,7 +674,7 @@ EXPORT_SYMBOL_GPL(qcom_register_ssr_notifier);
 
 static void ssr_notif_timeout_handler(struct timer_list *t)
 {
-	struct qcom_rproc_ssr *ssr = from_timer(ssr, t, timer);
+	struct qcom_rproc_ssr *ssr = timer_container_of(ssr, t, timer);
 
 	if (IS_ENABLED(CONFIG_QCOM_PANIC_ON_NOTIF_TIMEOUT) &&
 	    system_state != SYSTEM_RESTART &&
@@ -693,6 +698,7 @@ static void ssr_notif_timeout_handler(struct timer_list *t)
  *
  * Return: 0 on success, %ENOENT otherwise.
  */
+int qcom_unregister_ssr_notifier(void *notify, struct notifier_block *nb);
 int qcom_unregister_ssr_notifier(void *notify, struct notifier_block *nb)
 {
 	return srcu_notifier_chain_unregister(notify, nb);
@@ -706,7 +712,7 @@ static inline void notify_ssr_clients(struct qcom_rproc_ssr *ssr, struct qcom_ss
 	timeout = jiffies + msecs_to_jiffies(SSR_NOTIF_TIMEOUT);
 	mod_timer(&ssr->timer, timeout);
 	srcu_notifier_call_chain(&ssr->info->notifier_list, ssr->notification, data);
-	del_timer_sync(&ssr->timer);
+	timer_delete_sync(&ssr->timer);
 }
 
 static int ssr_notify_prepare(struct rproc_subdev *subdev)

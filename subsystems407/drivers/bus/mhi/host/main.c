@@ -1848,12 +1848,14 @@ static int mhi_update_transfer_state(struct mhi_device *mhi_dev,
 	return 0;
 }
 
+int mhi_stop_transfer(struct mhi_device *mhi_dev);
 int mhi_stop_transfer(struct mhi_device *mhi_dev)
 {
 	return mhi_update_transfer_state(mhi_dev, MHI_CH_STATE_TYPE_STOP);
 }
 EXPORT_SYMBOL(mhi_stop_transfer);
 
+int mhi_start_transfer(struct mhi_device *mhi_dev);
 int mhi_start_transfer(struct mhi_device *mhi_dev)
 {
 	return mhi_update_transfer_state(mhi_dev, MHI_CH_STATE_TYPE_START);

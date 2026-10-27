@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /*
  * Copyright (c) 2016-2021, The Linux Foundation. All rights reserved.
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  */
 
 #ifndef __LINUX_BLUETOOTH_POWER_H
@@ -10,7 +11,6 @@
 #include <linux/types.h>
 #include <linux/mailbox_client.h>
 #include <linux/mailbox/qmp.h>
-
 /*
  * voltage regulator information required for configuring the
  * bluetooth chipset
@@ -58,6 +58,7 @@ struct btpower_platform_data {
 	int wl_gpio_sys_rst;                   /* Wlan reset gpio */
 	int bt_gpio_sw_ctrl;                   /* Bluetooth sw_ctrl gpio */
 	int bt_gpio_debug;                     /* Bluetooth debug gpio */
+	unsigned int wlan_sw_ctrl_gpio;        /* Wlan switch control gpio*/
 #ifdef CONFIG_MSM_BT_OOBS
 	int bt_gpio_dev_wake;                  /* Bluetooth bt_wake */
 	int bt_gpio_host_wake;                 /* Bluetooth bt_host_wake */
@@ -73,8 +74,10 @@ struct btpower_platform_data {
 	struct mbox_client mbox_client_data;
 	struct mbox_chan *mbox_chan;
 	const char *vreg_ipa;
-	struct bt_power_vreg_data *vreg_ipa_info;
-	const char *tsens;
+	bool is_converged_dt;
+	int pdc_init_table_len;
+	const char **pdc_init_table;
+	int bt_device_type;
 #ifdef CONFIG_MSM_BT_OOBS
 	struct file *reffilp_obs;
 	struct task_struct *reftask_obs;
@@ -85,10 +88,12 @@ int btpower_register_slimdev(struct device *dev);
 int btpower_get_chipset_version(void);
 int btpower_get_power_state(void);
 int btpower_aop_mbox_init(struct btpower_platform_data *pdata);
+int bt_aop_pdc_reconfig(struct btpower_platform_data *pdata);
 
-#define BT_CMD_SLIM_TEST		0xbfac
-#define BT_CMD_PWR_CTRL			0xbfad
-#define BT_CMD_CHIPSET_VERS		0xbfae
+#define WLAN_SW_CTRL_GPIO       "qcom,wlan-sw-ctrl-gpio"
+#define BT_CMD_SLIM_TEST	0xbfac
+#define BT_CMD_PWR_CTRL		0xbfad
+#define BT_CMD_CHIPSET_VERS	0xbfae
 #define BT_CMD_GET_CHIPSET_ID	0xbfaf
 #define BT_CMD_CHECK_SW_CTRL	0xbfb0
 #define BT_CMD_GETVAL_POWER_SRCS	0xbfb1
@@ -97,7 +102,6 @@ int btpower_aop_mbox_init(struct btpower_platform_data *pdata);
 #ifdef CONFIG_MSM_BT_OOBS
 #define BT_CMD_OBS_SIGNAL_TASK		0xbfd0
 #define BT_CMD_OBS_VOTE_CLOCK		0xbfd1
-
 /**
  * enum btpower_obs_param: OOBS low power param
  * @BTPOWER_OBS_CLK_OFF: Transport bus is no longer acquired
