@@ -1,0 +1,2 @@
+config RTC_DRV_PM8XXX
+	tristate "Exact PMK8350 RTC source"
