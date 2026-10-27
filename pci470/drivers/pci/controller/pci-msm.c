@@ -689,6 +689,7 @@ struct msm_pcie_sid_info_t {
 
 /* PCIe device info structure */
 struct msm_pcie_device_info {
+	struct aer_stats *private_aer;
 	struct list_head pcidev_node;
 	struct pci_dev *dev;
 };
@@ -776,7 +777,7 @@ struct msm_aer_err_info {
 
 	unsigned int status;		/* COR/UNCOR Error Status */
 	unsigned int mask;		/* COR/UNCOR Error Mask */
-	struct aer_header_log_regs tlp;	/* TLP Header */
+	struct { u32 dw0, dw1, dw2, dw3; } tlp;	/* TLP Header */
 
 	u32 l1ss_ctl1;			/* PCI_L1SS_CTL1 reg value */
 	u16 lnksta;			/* PCI_EXP_LNKSTA reg value */
@@ -3560,6 +3561,7 @@ static bool msm_pcie_check_ltssm_state(struct msm_pcie_dev_t *dev, u32 state)
 	return false;
 }
 
+void msm_pcie_clk_dump(struct msm_pcie_dev_t *pcie_dev);
 void msm_pcie_clk_dump(struct msm_pcie_dev_t *pcie_dev)
 {
 	struct msm_pcie_clk_info_t *clk_info;
@@ -3572,13 +3574,23 @@ void msm_pcie_clk_dump(struct msm_pcie_dev_t *pcie_dev)
 	clk_info = pcie_dev->clk;
 	for (i = 0; i < pcie_dev->num_clk; i++, clk_info++) {
 		if (clk_info->hdl)
+			/* Optional vendor register dumper is not present in this kernel. */
+#if IS_ENABLED(CONFIG_PONG407_PCIE_CLOCK_REGISTER_DUMP)
 			qcom_clk_dump(clk_info->hdl, NULL, 0);
+#else
+			PCIE_ERR(pcie_dev, "clock register dump unavailable; rate=%lu Hz\n", clk_get_rate(clk_info->hdl));
+#endif
 	}
 
 	clk_info = pcie_dev->pipe_clk;
 	for (i = 0; i < pcie_dev->num_pipe_clk; i++, clk_info++) {
 		if (clk_info->hdl)
+			/* Optional vendor register dumper is not present in this kernel. */
+#if IS_ENABLED(CONFIG_PONG407_PCIE_CLOCK_REGISTER_DUMP)
 			qcom_clk_dump(clk_info->hdl, NULL, 0);
+#else
+			PCIE_ERR(pcie_dev, "clock register dump unavailable; rate=%lu Hz\n", clk_get_rate(clk_info->hdl));
+#endif
 	}
 }
 
@@ -3702,6 +3714,8 @@ static int msm_pcie_oper_conf(struct pci_bus *bus, u32 devfn, int oper,
 	spin_lock_irqsave(&dev->cfg_lock, dev->irqsave_flags);
 
 	if (!dev->cfg_access) {
+		if (bus->number == 1 && devfn == 0 && oper == RD && where < 4)
+			pr_info_ratelimited("PONG470_CFG_ID deny=cfg-access-off rc=%u bus=%u where=%x size=%d cfg=%d state=%d bdf=%08x\n", rc_idx, bus->number, where, size, dev->cfg_access, dev->link_status, dev->current_bdf);
 		PCIE_DBG3(dev,
 			"Access denied for RC%d %d:0x%02x + 0x%04x[%d]\n",
 			rc_idx, bus->number, devfn, where, size);
@@ -3719,6 +3733,8 @@ static int msm_pcie_oper_conf(struct pci_bus *bus, u32 devfn, int oper,
 	}
 
 	if (dev->link_status != MSM_PCIE_LINK_ENABLED) {
+		if (bus->number == 1 && devfn == 0 && oper == RD && where < 4)
+			pr_info_ratelimited("PONG470_CFG_ID deny=link-state-not-enabled rc=%u bus=%u where=%x size=%d cfg=%d state=%d bdf=%08x\n", rc_idx, bus->number, where, size, dev->cfg_access, dev->link_status, dev->current_bdf);
 		PCIE_DBG3(dev,
 			"Access to RC%d %d:0x%02x + 0x%04x[%d] is denied because link is down\n",
 			rc_idx, bus->number, devfn, where, size);
@@ -3751,6 +3767,8 @@ static int msm_pcie_oper_conf(struct pci_bus *bus, u32 devfn, int oper,
 
 	if (oper == RD) {
 		*val = ((rd_val & mask) >> (8 * byte_offset));
+		if (bus->number == 1 && devfn == 0 && where < 4)
+			pr_info_ratelimited("PONG470_CFG_ID read rc=%u bus=%u where=%x size=%d cfg=%d state=%d bdf=%08x raw=%08x value=%08x\n", rc_idx, bus->number, where, size, dev->cfg_access, dev->link_status, dev->current_bdf, rd_val, *val);
 		PCIE_DBG3(dev,
 			"RC%d %d:0x%02x + 0x%04x[%d] -> 0x%08x; rd 0x%08x\n",
 			rc_idx, bus->number, devfn, where, size, *val, rd_val);
@@ -3957,7 +3975,7 @@ static void __maybe_unused
 }
 
 /* Read the curr perf ol value from the cesta register */
-static const char *const __maybe_unused msm_pcie_cesta_curr_perf_ol(struct msm_pcie_dev_t *dev)
+static const char *__maybe_unused msm_pcie_cesta_curr_perf_ol(struct msm_pcie_dev_t *dev)
 {
 	u32 ret;
 	int res;
@@ -5691,6 +5709,10 @@ static int msm_pcie_get_reg(struct msm_pcie_dev_t *pcie_dev)
 		res = platform_get_resource_byname(pcie_dev->pdev,
 						IORESOURCE_MEM, res_info->name);
 		if (!res) {
+			if (i == MSM_PCIE_RES_CONF) {
+				dev_err(&pcie_dev->pdev->dev, "required conf resource missing; refusing PCIe enable\n");
+				return -ENODEV;
+			}
 			PCIE_ERR(pcie_dev,
 				"PCIe: RC%d: no %s resource found.\n",
 				pcie_dev->rc_idx, res_info->name);
@@ -6751,6 +6773,10 @@ static int msm_pcie_config_device_info(struct pci_dev *pcidev, void *pdev)
 		if (!dev_info)
 			return -ENOMEM;
 
+		if (pcie_dev->aer_enable) {
+			dev_info->private_aer = kzalloc(sizeof(*dev_info->private_aer), GFP_KERNEL);
+			if (!dev_info->private_aer) { kfree(dev_info->private_aer); kfree(dev_info); return -ENOMEM; }
+		}
 		dev_info->dev = pcidev;
 		list_add_tail(&dev_info->pcidev_node, &pcie_dev->enum_ep_list);
 	}
@@ -6769,7 +6795,8 @@ static int msm_pcie_config_device_info(struct pci_dev *pcidev, void *pdev)
 
 	if (pcie_dev->aer_enable) {
 		if (pci_pcie_type(pcidev) == PCI_EXP_TYPE_ROOT_PORT)
-			pcie_dev->aer_stats = pcidev->aer_stats;
+			if (!pcie_dev->aer_stats)
+				pcie_dev->aer_stats = devm_kzalloc(&pcie_dev->pdev->dev, sizeof(*pcie_dev->aer_stats), GFP_KERNEL);
 
 		if (msm_pcie_enable_pcie_error_reporting(pcidev))
 			PCIE_ERR(pcie_dev,
@@ -6912,7 +6939,11 @@ int msm_pcie_enumerate(u32 rc_idx)
 	bridge->sysdata = dev;
 	bridge->ops = &msm_pcie_ops;
 
-	pci_host_probe(bridge);
+	ret = pci_host_probe(bridge);
+	if (ret) {
+		PCIE_ERR(dev, "PCI host probe failed: %d\n", ret);
+		goto out;
+	}
 
 	dev->bridge = bridge;
 
@@ -7136,6 +7167,21 @@ static void handle_link_recover(struct work_struct *work)
 	msm_pcie_notify_client(dev, MSM_PCIE_EVENT_LINK_RECOVER);
 }
 
+static struct aer_stats *msm_pcie_private_aer_stats(struct pci_dev *pdev)
+{
+ unsigned int i;
+ struct msm_pcie_device_info *ep;
+ if (!pdev) return NULL;
+ for (i=0; i<MAX_RC_NUM; i++) {
+  struct msm_pcie_dev_t *rc = &msm_pcie_dev[i];
+  if (!rc->dev) continue;
+  if (rc->dev == pdev) return rc->aer_stats;
+  list_for_each_entry(ep, &rc->enum_ep_list, pcidev_node)
+   if (ep->dev == pdev) return ep->private_aer;
+ }
+ return NULL;
+}
+
 /* AER error handling */
 static void msm_pci_dev_aer_stats_incr(struct pci_dev *pdev,
 				       struct msm_aer_err_info *info)
@@ -7143,7 +7189,7 @@ static void msm_pci_dev_aer_stats_incr(struct pci_dev *pdev,
 	unsigned long status = info->status & ~info->mask;
 	int i, max = -1;
 	u64 *counter = NULL;
-	struct aer_stats *aer_stats = pdev->aer_stats;
+	struct aer_stats *aer_stats = msm_pcie_private_aer_stats(pdev);
 
 	if (!aer_stats)
 		return;
@@ -7173,7 +7219,7 @@ static void msm_pci_dev_aer_stats_incr(struct pci_dev *pdev,
 static void msm_pci_rootport_aer_stats_incr(struct pci_dev *pdev,
 					    struct aer_err_source *e_src)
 {
-	struct aer_stats *aer_stats = pdev->aer_stats;
+	struct aer_stats *aer_stats = msm_pcie_private_aer_stats(pdev);
 
 	if (!aer_stats)
 		return;
@@ -7221,6 +7267,7 @@ static void msm_aer_print_error_stats(struct pci_dev *dev,
 	msm_pci_dev_aer_stats_incr(dev, info);
 }
 
+void msm_aer_print_error(struct pci_dev *dev, struct msm_aer_err_info *info);
 void msm_aer_print_error(struct pci_dev *dev, struct msm_aer_err_info *info)
 {
 	int layer, agent;
@@ -9114,7 +9161,7 @@ out:
 	return ret;
 }
 
-static int msm_pcie_remove(struct platform_device *pdev)
+static void msm_pcie_remove(struct platform_device *pdev)
 {
 	int ret = 0;
 	int rc_idx;
@@ -9157,21 +9204,21 @@ static int msm_pcie_remove(struct platform_device *pdev)
 				 &msm_pcie_dev[rc_idx].enum_ep_list,
 				 pcidev_node) {
 		list_del(&dev_info->pcidev_node);
-		kfree(dev_info);
+		kfree(dev_info->private_aer); kfree(dev_info);
 	}
 
 	list_for_each_entry_safe(dev_info, temp,
 				 &msm_pcie_dev[rc_idx].susp_ep_list,
 				 pcidev_node) {
 		list_del(&dev_info->pcidev_node);
-		kfree(dev_info);
+		kfree(dev_info->private_aer); kfree(dev_info);
 	}
 
 	msm_pcie_destroy_ipc_logs(rc_idx);
 out:
 	mutex_unlock(&pcie_drv.drv_lock);
 
-	return ret;
+	return;
 }
 
 static int msm_pcie_link_retrain(struct msm_pcie_dev_t *pcie_dev,
@@ -9284,6 +9331,8 @@ invalid_link_width:
 	return -EINVAL;
 }
 
+int msm_pcie_dsp_link_control(struct pci_dev *pci_dev,
+			      bool link_enable);
 int msm_pcie_dsp_link_control(struct pci_dev *pci_dev,
 			      bool link_enable)
 {

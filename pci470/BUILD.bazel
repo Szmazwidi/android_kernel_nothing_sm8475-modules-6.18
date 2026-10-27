@@ -1,0 +1,6 @@
+# Reduced from the original package BUILD.bazel: only targets whose modules run on the phone are kept.
+load("//build/kernel/kleaf:kernel.bzl", "ddk_module", "ddk_config")
+package(default_visibility = ["//visibility:public"])
+
+ddk_config(name='config470', kernel_build='//common:kernel_aarch64', kconfigs=['Kconfig'], defconfig='defconfig', deps=[])
+ddk_module(name='pci470', config=':config470', kernel_build='//common:kernel_aarch64', out='pci-msm-drv.ko', srcs=['drivers/pci/controller/pci-msm.c', 'drivers/pci/controller/pci-msm-msi.c'] + glob(['drivers/pci/**/*.h'], allow_empty = True), includes=['drivers/pci/controller'], hdrs=['//devices/pong618/wlan452/providers:vendor_headers'], deps=['//devices/pong618/build:prov_subsystems407_remote407'], copts=['-ferror-limit=0'])
