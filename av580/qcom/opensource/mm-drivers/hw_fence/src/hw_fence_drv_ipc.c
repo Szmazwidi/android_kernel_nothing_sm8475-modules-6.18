@@ -3,6 +3,7 @@
  * Copyright (c) 2022-2024 Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
+#include <linux/of.h>
 #include <linux/of_platform.h>
 #include "hw_fence_drv_priv.h"
 #include "hw_fence_drv_utils.h"
@@ -119,6 +120,8 @@ struct hw_fence_client_ipc_map hw_fence_clients_ipc_map_v2[HW_FENCE_IPC_MAP_MAX]
 	{HW_FENCE_IPC_CLIENT_ID_IFE7_VID, HW_FENCE_IPC_CLIENT_ID_IFE7_PID, 0, false, true},/* ife7*/
 };
 
+int hw_fence_ipcc_get_client_virt_id(struct hw_fence_driver_data *drv_data, u32 client_id);
+
 int hw_fence_ipcc_get_client_virt_id(struct hw_fence_driver_data *drv_data, u32 client_id)
 {
 	if (!drv_data || client_id >= drv_data->clients_num)
@@ -126,6 +129,8 @@ int hw_fence_ipcc_get_client_virt_id(struct hw_fence_driver_data *drv_data, u32 
 
 	return drv_data->ipc_clients_table[client_id].ipc_client_id_virt;
 }
+
+int hw_fence_ipcc_get_client_phys_id(struct hw_fence_driver_data *drv_data, u32 client_id);
 
 int hw_fence_ipcc_get_client_phys_id(struct hw_fence_driver_data *drv_data, u32 client_id)
 {
@@ -135,6 +140,8 @@ int hw_fence_ipcc_get_client_phys_id(struct hw_fence_driver_data *drv_data, u32 
 	return drv_data->ipc_clients_table[client_id].ipc_client_id_phys;
 }
 
+int hw_fence_ipcc_get_signal_id(struct hw_fence_driver_data *drv_data, u32 client_id);
+
 int hw_fence_ipcc_get_signal_id(struct hw_fence_driver_data *drv_data, u32 client_id)
 {
 	if (!drv_data || client_id >= drv_data->clients_num)
@@ -143,6 +150,8 @@ int hw_fence_ipcc_get_signal_id(struct hw_fence_driver_data *drv_data, u32 clien
 	return drv_data->ipc_clients_table[client_id].ipc_signal_id;
 }
 
+bool hw_fence_ipcc_needs_rxq_update(struct hw_fence_driver_data *drv_data, int client_id);
+
 bool hw_fence_ipcc_needs_rxq_update(struct hw_fence_driver_data *drv_data, int client_id)
 {
 	if (!drv_data || client_id >= drv_data->clients_num)
@@ -150,6 +159,8 @@ bool hw_fence_ipcc_needs_rxq_update(struct hw_fence_driver_data *drv_data, int c
 
 	return drv_data->ipc_clients_table[client_id].update_rxq;
 }
+
+bool hw_fence_ipcc_needs_ipc_irq(struct hw_fence_driver_data *drv_data, int client_id);
 
 bool hw_fence_ipcc_needs_ipc_irq(struct hw_fence_driver_data *drv_data, int client_id)
 {
@@ -232,6 +243,9 @@ static inline char *_get_ipc_virt_client_name(u32 client_id)
 
 	return "UNKNOWN_VID";
 }
+
+void hw_fence_ipcc_trigger_signal(struct hw_fence_driver_data *drv_data,
+	u32 tx_client_pid, u32 rx_client_vid, u32 signal_id);
 
 void hw_fence_ipcc_trigger_signal(struct hw_fence_driver_data *drv_data,
 	u32 tx_client_pid, u32 rx_client_vid, u32 signal_id)
@@ -328,6 +342,8 @@ static int _hw_fence_ipcc_hwrev_init(struct hw_fence_driver_data *drv_data, u32 
 	return ret;
 }
 
+int hw_fence_ipcc_enable_signaling(struct hw_fence_driver_data *drv_data);
+
 int hw_fence_ipcc_enable_signaling(struct hw_fence_driver_data *drv_data)
 {
 	void __iomem *ptr;
@@ -365,6 +381,8 @@ int hw_fence_ipcc_enable_signaling(struct hw_fence_driver_data *drv_data)
 
 	return 0;
 }
+
+int hw_fence_ipcc_enable_dpu_signaling(struct hw_fence_driver_data *drv_data);
 
 int hw_fence_ipcc_enable_dpu_signaling(struct hw_fence_driver_data *drv_data)
 {

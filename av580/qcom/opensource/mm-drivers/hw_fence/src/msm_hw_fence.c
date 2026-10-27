@@ -3,6 +3,7 @@
  * Copyright (c) 2022-2024 Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
+#include <linux/of.h>
 #include <linux/io.h>
 #include <linux/module.h>
 #include <linux/of_platform.h>
@@ -16,6 +17,9 @@
 
 struct hw_fence_driver_data *hw_fence_drv_data;
 bool hw_fence_driver_enable;
+
+void *msm_hw_fence_register(enum hw_fence_client_id client_id_ext,
+	struct msm_hw_fence_mem_addr *mem_descriptor);
 
 void *msm_hw_fence_register(enum hw_fence_client_id client_id_ext,
 	struct msm_hw_fence_mem_addr *mem_descriptor)
@@ -138,6 +142,8 @@ error:
 }
 EXPORT_SYMBOL(msm_hw_fence_register);
 
+int msm_hw_fence_deregister(void *client_handle);
+
 int msm_hw_fence_deregister(void *client_handle)
 {
 	struct msm_hw_fence_client *hw_fence_client;
@@ -163,6 +169,9 @@ int msm_hw_fence_deregister(void *client_handle)
 	return 0;
 }
 EXPORT_SYMBOL(msm_hw_fence_deregister);
+
+int msm_hw_fence_create(void *client_handle,
+	struct msm_hw_fence_create_params *params);
 
 int msm_hw_fence_create(void *client_handle,
 	struct msm_hw_fence_create_params *params)
@@ -218,6 +227,9 @@ int msm_hw_fence_create(void *client_handle,
 EXPORT_SYMBOL(msm_hw_fence_create);
 
 int msm_hw_fence_destroy(void *client_handle,
+	struct dma_fence *fence);
+
+int msm_hw_fence_destroy(void *client_handle,
 	struct dma_fence *fence)
 {
 	struct msm_hw_fence_client *hw_fence_client;
@@ -262,6 +274,8 @@ int msm_hw_fence_destroy(void *client_handle,
 }
 EXPORT_SYMBOL(msm_hw_fence_destroy);
 
+int msm_hw_fence_destroy_with_handle(void *client_handle, u64 handle);
+
 int msm_hw_fence_destroy_with_handle(void *client_handle, u64 handle)
 {
 	struct msm_hw_fence_client *hw_fence_client;
@@ -293,6 +307,10 @@ int msm_hw_fence_destroy_with_handle(void *client_handle, u64 handle)
 	return 0;
 }
 EXPORT_SYMBOL(msm_hw_fence_destroy_with_handle);
+
+int msm_hw_fence_wait_update_v2(void *client_handle,
+	struct dma_fence **fence_list, u64 *handles, u64 *client_data_list, u32 num_fences,
+	bool create);
 
 int msm_hw_fence_wait_update_v2(void *client_handle,
 	struct dma_fence **fence_list, u64 *handles, u64 *client_data_list, u32 num_fences,
@@ -367,12 +385,17 @@ int msm_hw_fence_wait_update_v2(void *client_handle,
 EXPORT_SYMBOL(msm_hw_fence_wait_update_v2);
 
 int msm_hw_fence_wait_update(void *client_handle,
+	struct dma_fence **fence_list, u32 num_fences, bool create);
+
+int msm_hw_fence_wait_update(void *client_handle,
 	struct dma_fence **fence_list, u32 num_fences, bool create)
 {
 	return msm_hw_fence_wait_update_v2(client_handle, fence_list, NULL, NULL, num_fences,
 		create);
 }
 EXPORT_SYMBOL(msm_hw_fence_wait_update);
+
+int msm_hw_fence_reset_client(void *client_handle, u32 reset_flags);
 
 int msm_hw_fence_reset_client(void *client_handle, u32 reset_flags)
 {
@@ -404,6 +427,8 @@ int msm_hw_fence_reset_client(void *client_handle, u32 reset_flags)
 }
 EXPORT_SYMBOL(msm_hw_fence_reset_client);
 
+int msm_hw_fence_reset_client_by_id(enum hw_fence_client_id client_id_ext, u32 reset_flags);
+
 int msm_hw_fence_reset_client_by_id(enum hw_fence_client_id client_id_ext, u32 reset_flags)
 {
 	enum hw_fence_client_id client_id;
@@ -424,6 +449,8 @@ int msm_hw_fence_reset_client_by_id(enum hw_fence_client_id client_id_ext, u32 r
 		reset_flags);
 }
 EXPORT_SYMBOL(msm_hw_fence_reset_client_by_id);
+
+int msm_hw_fence_update_txq(void *client_handle, u64 handle, u64 flags, u32 error);
 
 int msm_hw_fence_update_txq(void *client_handle, u64 handle, u64 flags, u32 error)
 {
@@ -454,6 +481,10 @@ EXPORT_SYMBOL(msm_hw_fence_update_txq);
 /* tx client has to be the physical, rx client virtual id*/
 int msm_hw_fence_trigger_signal(void *client_handle,
 	u32 tx_client_pid, u32 rx_client_vid,
+	u32 signal_id);
+
+int msm_hw_fence_trigger_signal(void *client_handle,
+	u32 tx_client_pid, u32 rx_client_vid,
 	u32 signal_id)
 {
 	struct msm_hw_fence_client *hw_fence_client;
@@ -477,6 +508,8 @@ int msm_hw_fence_trigger_signal(void *client_handle,
 EXPORT_SYMBOL(msm_hw_fence_trigger_signal);
 
 /* Function used for simulation purposes only. */
+int msm_hw_fence_driver_doorbell_sim(u64 db_mask);
+
 int msm_hw_fence_driver_doorbell_sim(u64 db_mask)
 {
 	if (IS_ERR_OR_NULL(hw_fence_drv_data) || !hw_fence_drv_data->resources_ready) {
@@ -565,19 +598,19 @@ err_exit:
 	return rc;
 }
 
-static int msm_hw_fence_remove(struct platform_device *pdev)
+static void msm_hw_fence_remove(struct platform_device *pdev)
 {
 	HWFNC_DBG_H("+\n");
 
 	if (!pdev) {
 		HWFNC_ERR("null platform dev\n");
-		return -EINVAL;
+		return;
 	}
 
 	hw_fence_drv_data = dev_get_drvdata(&pdev->dev);
 	if (!hw_fence_drv_data) {
 		HWFNC_ERR("null driver data\n");
-		return -EINVAL;
+		return;
 	}
 
 	dev_set_drvdata(&pdev->dev, NULL);
@@ -586,7 +619,7 @@ static int msm_hw_fence_remove(struct platform_device *pdev)
 
 	HWFNC_DBG_H("-\n");
 
-	return 0;
+	return;
 }
 
 static const struct of_device_id msm_hw_fence_dt_match[] = {

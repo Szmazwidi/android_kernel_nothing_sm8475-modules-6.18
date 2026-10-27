@@ -17,6 +17,8 @@
 
 #define IS_HW_FENCE_TX_QUEUE(queue_type) ((queue_type) == HW_FENCE_TX_QUEUE - 1)
 
+inline u64 hw_fence_get_qtime(struct hw_fence_driver_data *drv_data);
+
 inline u64 hw_fence_get_qtime(struct hw_fence_driver_data *drv_data)
 {
 #ifdef HWFENCE_USE_SLEEP_TIMER
@@ -179,10 +181,15 @@ static inline bool _lock_client_queue(int queue_type)
 	return (queue_type == (HW_FENCE_RX_QUEUE - 1)) ? true : false;
 }
 
+char *_get_queue_type(int queue_type);
+
 char *_get_queue_type(int queue_type)
 {
 	return (queue_type == (HW_FENCE_RX_QUEUE - 1)) ? "RXQ" : "TXQ";
 }
+
+int hw_fence_read_queue(struct msm_hw_fence_client *hw_fence_client,
+		 struct msm_hw_fence_queue_payload *payload, int queue_type);
 
 int hw_fence_read_queue(struct msm_hw_fence_client *hw_fence_client,
 		 struct msm_hw_fence_queue_payload *payload, int queue_type)
@@ -285,6 +292,10 @@ int hw_fence_read_queue(struct msm_hw_fence_client *hw_fence_client,
  * This function writes to the queue of the client. The 'queue_type' determines
  * if this function is writing to the rx or tx queue
  */
+int hw_fence_update_queue(struct hw_fence_driver_data *drv_data,
+	struct msm_hw_fence_client *hw_fence_client, u64 ctxt_id, u64 seqno, u64 hash,
+	u64 flags, u64 client_data, u32 error, int queue_type);
+
 int hw_fence_update_queue(struct hw_fence_driver_data *drv_data,
 	struct msm_hw_fence_client *hw_fence_client, u64 ctxt_id, u64 seqno, u64 hash,
 	u64 flags, u64 client_data, u32 error, int queue_type)
@@ -540,6 +551,8 @@ static int init_ctrl_queue(struct hw_fence_driver_data *drv_data)
 	return ret;
 }
 
+int hw_fence_init(struct hw_fence_driver_data *drv_data);
+
 int hw_fence_init(struct hw_fence_driver_data *drv_data)
 {
 	int ret;
@@ -619,6 +632,10 @@ exit:
 
 int hw_fence_alloc_client_resources(struct hw_fence_driver_data *drv_data,
 	struct msm_hw_fence_client *hw_fence_client,
+	struct msm_hw_fence_mem_addr *mem_descriptor);
+
+int hw_fence_alloc_client_resources(struct hw_fence_driver_data *drv_data,
+	struct msm_hw_fence_client *hw_fence_client,
 	struct msm_hw_fence_mem_addr *mem_descriptor)
 {
 	int ret;
@@ -647,6 +664,9 @@ int hw_fence_alloc_client_resources(struct hw_fence_driver_data *drv_data,
 exit:
 	return ret;
 }
+
+int hw_fence_init_controller_signal(struct hw_fence_driver_data *drv_data,
+	struct msm_hw_fence_client *hw_fence_client);
 
 int hw_fence_init_controller_signal(struct hw_fence_driver_data *drv_data,
 	struct msm_hw_fence_client *hw_fence_client)
@@ -713,6 +733,8 @@ int hw_fence_init_controller_signal(struct hw_fence_driver_data *drv_data,
 	return ret;
 }
 
+int hw_fence_init_controller_resources(struct msm_hw_fence_client *hw_fence_client);
+
 int hw_fence_init_controller_resources(struct msm_hw_fence_client *hw_fence_client)
 {
 
@@ -732,6 +754,9 @@ int hw_fence_init_controller_resources(struct msm_hw_fence_client *hw_fence_clie
 
 	return 0;
 }
+
+void hw_fence_cleanup_client(struct hw_fence_driver_data *drv_data,
+	struct msm_hw_fence_client *hw_fence_client);
 
 void hw_fence_cleanup_client(struct hw_fence_driver_data *drv_data,
 	struct msm_hw_fence_client *hw_fence_client)
@@ -920,6 +945,8 @@ static void  _fence_found(struct hw_fence_driver_data *drv_data,
 		client_id, context, seqno, hash);
 }
 
+char *_get_op_mode(enum hw_fence_lookup_ops op_code);
+
 char *_get_op_mode(enum hw_fence_lookup_ops op_code)
 {
 	switch (op_code) {
@@ -937,6 +964,10 @@ char *_get_op_mode(enum hw_fence_lookup_ops op_code)
 
 	return "UNKNOWN";
 }
+
+struct msm_hw_fence *_hw_fence_lookup_and_process(struct hw_fence_driver_data *drv_data,
+	struct msm_hw_fence *hw_fences_tbl, u64 context, u64 seqno, u32 client_id,
+	u32 pending_child_cnt, enum hw_fence_lookup_ops op_code, u64 *hash);
 
 struct msm_hw_fence *_hw_fence_lookup_and_process(struct hw_fence_driver_data *drv_data,
 	struct msm_hw_fence *hw_fences_tbl, u64 context, u64 seqno, u32 client_id,
@@ -1056,6 +1087,10 @@ struct msm_hw_fence *_hw_fence_lookup_and_process(struct hw_fence_driver_data *d
 
 int hw_fence_create(struct hw_fence_driver_data *drv_data,
 	struct msm_hw_fence_client *hw_fence_client,
+	u64 context, u64 seqno, u64 *hash);
+
+int hw_fence_create(struct hw_fence_driver_data *drv_data,
+	struct msm_hw_fence_client *hw_fence_client,
 	u64 context, u64 seqno, u64 *hash)
 {
 	u32 client_id = hw_fence_client->client_id;
@@ -1087,6 +1122,10 @@ static  inline int _hw_fence_cleanup(struct hw_fence_driver_data *drv_data,
 
 int hw_fence_destroy(struct hw_fence_driver_data *drv_data,
 	struct msm_hw_fence_client *hw_fence_client,
+	u64 context, u64 seqno);
+
+int hw_fence_destroy(struct hw_fence_driver_data *drv_data,
+	struct msm_hw_fence_client *hw_fence_client,
 	u64 context, u64 seqno)
 {
 	u32 client_id = hw_fence_client->client_id;
@@ -1102,6 +1141,9 @@ int hw_fence_destroy(struct hw_fence_driver_data *drv_data,
 
 	return ret;
 }
+
+int hw_fence_destroy_with_hash(struct hw_fence_driver_data *drv_data,
+	struct msm_hw_fence_client *hw_fence_client, u64 hash);
 
 int hw_fence_destroy_with_hash(struct hw_fence_driver_data *drv_data,
 	struct msm_hw_fence_client *hw_fence_client, u64 hash)
@@ -1176,6 +1218,10 @@ static struct msm_hw_fence *_hw_fence_process_join_fence(struct hw_fence_driver_
 
 	return join_fence;
 }
+
+struct msm_hw_fence *msm_hw_fence_find(struct hw_fence_driver_data *drv_data,
+	struct msm_hw_fence_client *hw_fence_client,
+	u64 context, u64 seqno, u64 *hash);
 
 struct msm_hw_fence *msm_hw_fence_find(struct hw_fence_driver_data *drv_data,
 	struct msm_hw_fence_client *hw_fence_client,
@@ -1283,6 +1329,10 @@ destroy_fence:
 	_hw_fence_process_join_fence(drv_data, hw_fence_client, array, &hash_join_fence,
 		false);
 }
+
+int hw_fence_process_fence_array(struct hw_fence_driver_data *drv_data,
+	struct msm_hw_fence_client *hw_fence_client, struct dma_fence_array *array,
+	u64 *hash_join_fence, u64 client_data);
 
 int hw_fence_process_fence_array(struct hw_fence_driver_data *drv_data,
 	struct msm_hw_fence_client *hw_fence_client, struct dma_fence_array *array,
@@ -1433,6 +1483,10 @@ error_array:
 
 int hw_fence_register_wait_client(struct hw_fence_driver_data *drv_data,
 		struct dma_fence *fence, struct msm_hw_fence_client *hw_fence_client, u64 context,
+		u64 seqno, u64 *hash, u64 client_data);
+
+int hw_fence_register_wait_client(struct hw_fence_driver_data *drv_data,
+		struct dma_fence *fence, struct msm_hw_fence_client *hw_fence_client, u64 context,
 		u64 seqno, u64 *hash, u64 client_data)
 {
 	struct msm_hw_fence *hw_fence;
@@ -1477,6 +1531,10 @@ int hw_fence_register_wait_client(struct hw_fence_driver_data *drv_data,
 
 	return 0;
 }
+
+int hw_fence_process_fence(struct hw_fence_driver_data *drv_data,
+	struct msm_hw_fence_client *hw_fence_client,
+	struct dma_fence *fence, u64 *hash, u64 client_data);
 
 int hw_fence_process_fence(struct hw_fence_driver_data *drv_data,
 	struct msm_hw_fence_client *hw_fence_client,
@@ -1525,6 +1583,9 @@ static void _signal_all_wait_clients(struct hw_fence_driver_data *drv_data,
 		}
 	}
 }
+
+void hw_fence_utils_reset_queues(struct hw_fence_driver_data *drv_data,
+	struct msm_hw_fence_client *hw_fence_client);
 
 void hw_fence_utils_reset_queues(struct hw_fence_driver_data *drv_data,
 	struct msm_hw_fence_client *hw_fence_client)
@@ -1576,6 +1637,10 @@ void hw_fence_utils_reset_queues(struct hw_fence_driver_data *drv_data,
 
 int hw_fence_utils_cleanup_fence(struct hw_fence_driver_data *drv_data,
 	struct msm_hw_fence_client *hw_fence_client, struct msm_hw_fence *hw_fence, u64 hash,
+	u32 reset_flags);
+
+int hw_fence_utils_cleanup_fence(struct hw_fence_driver_data *drv_data,
+	struct msm_hw_fence_client *hw_fence_client, struct msm_hw_fence *hw_fence, u64 hash,
 	u32 reset_flags)
 {
 	int ret = 0;
@@ -1613,6 +1678,8 @@ int hw_fence_utils_cleanup_fence(struct hw_fence_driver_data *drv_data,
 skip_destroy:
 	return ret;
 }
+
+enum hw_fence_client_data_id hw_fence_get_client_data_id(enum hw_fence_client_id client_id);
 
 enum hw_fence_client_data_id hw_fence_get_client_data_id(enum hw_fence_client_id client_id)
 {

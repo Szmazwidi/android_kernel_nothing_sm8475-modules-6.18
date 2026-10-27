@@ -1,24 +1,19 @@
+# Reduced from the original package BUILD.bazel: only targets whose modules run on the phone are kept.
 load("//build/kernel/kleaf:kernel.bzl", "ddk_headers")
-
-package(
-    default_visibility = [
-        "//visibility:public",
-    ],
-)
+package(default_visibility = ["//visibility:public"])
 
 ddk_headers(
     name = "mm_drivers_configs",
-    hdrs = glob(["config/*.h"]),
+    hdrs = glob(["config/*.h"], allow_empty = True),
     includes = ["config"],
 )
-
 ddk_headers(
     name = "mm_drivers_headers",
     hdrs = [
         ":mm_drivers_configs",
-        "//vendor/nothing/pong-modules/qcom/opensource/mm-drivers/hw_fence:hw_fence_headers",
-        "//vendor/nothing/pong-modules/qcom/opensource/mm-drivers/sync_fence:sync_fence_uapi_headers",
-        "//vendor/nothing/pong-modules/qcom/opensource/mm-drivers/msm_ext_display:msm_ext_display_headers",
-        "//vendor/nothing/pong-modules/qcom/opensource/mm-drivers/sync_fence:sync_fence_headers",
+        "//devices/pong618/av580/qcom/opensource/mm-drivers/hw_fence:hw_fence_headers",
+        "//devices/pong618/av580/qcom/opensource/mm-drivers/sync_fence:sync_fence_uapi_headers",
+        "//devices/pong618/av580/qcom/opensource/mm-drivers/msm_ext_display:msm_ext_display_headers",
+        "//devices/pong618/av580/qcom/opensource/mm-drivers/sync_fence:sync_fence_headers",
     ],
 )

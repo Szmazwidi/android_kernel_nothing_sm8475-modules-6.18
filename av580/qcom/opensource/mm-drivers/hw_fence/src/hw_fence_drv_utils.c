@@ -3,6 +3,7 @@
  * Copyright (c) 2022-2024 Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
+#include <linux/of.h>
 #include <linux/of_platform.h>
 #include <linux/of_address.h>
 #include <linux/io.h>
@@ -172,6 +173,8 @@ static void _unlock(struct hw_fence_driver_data *drv_data, uint64_t *lock)
 	}
 }
 
+void global_atomic_store(struct hw_fence_driver_data *drv_data, uint64_t *lock, bool val);
+
 void global_atomic_store(struct hw_fence_driver_data *drv_data, uint64_t *lock, bool val)
 {
 	if (val) {
@@ -207,6 +210,8 @@ static int _process_doorbell_client(struct hw_fence_driver_data *drv_data, int c
 
 	return ret;
 }
+
+void hw_fence_utils_process_doorbell_mask(struct hw_fence_driver_data *drv_data, u64 db_flags);
 
 void hw_fence_utils_process_doorbell_mask(struct hw_fence_driver_data *drv_data, u64 db_flags)
 {
@@ -253,6 +258,8 @@ static void _hw_fence_cb(int irq, void *data)
 
 	hw_fence_utils_process_doorbell_mask(drv_data, clear_flags);
 }
+
+int hw_fence_utils_init_virq(struct hw_fence_driver_data *drv_data);
 
 int hw_fence_utils_init_virq(struct hw_fence_driver_data *drv_data)
 {
@@ -428,6 +435,8 @@ end:
 }
 
 /* Allocates carved-out mapped memory */
+int hw_fence_utils_alloc_mem(struct hw_fence_driver_data *drv_data);
+
 int hw_fence_utils_alloc_mem(struct hw_fence_driver_data *drv_data)
 {
 	struct device_node *node = drv_data->dev->of_node;
@@ -499,6 +508,8 @@ int hw_fence_utils_alloc_mem(struct hw_fence_driver_data *drv_data)
 	return 0;
 }
 
+char *_get_mem_reserve_type(enum hw_fence_mem_reserve type);
+
 char *_get_mem_reserve_type(enum hw_fence_mem_reserve type)
 {
 	switch (type) {
@@ -518,6 +529,9 @@ char *_get_mem_reserve_type(enum hw_fence_mem_reserve type)
 }
 
 /* Calculates the memory range for each of the elements in the carved-out memory */
+int hw_fence_utils_reserve_mem(struct hw_fence_driver_data *drv_data,
+	enum hw_fence_mem_reserve type, phys_addr_t *phys, void **pa, u32 *size, int client_id);
+
 int hw_fence_utils_reserve_mem(struct hw_fence_driver_data *drv_data,
 	enum hw_fence_mem_reserve type, phys_addr_t *phys, void **pa, u32 *size, int client_id)
 {
@@ -815,6 +829,8 @@ static int _parse_client_queue_dt_props(struct hw_fence_driver_data *drv_data)
 	return 0;
 }
 
+int hw_fence_utils_parse_dt_props(struct hw_fence_driver_data *drv_data);
+
 int hw_fence_utils_parse_dt_props(struct hw_fence_driver_data *drv_data)
 {
 	int ret;
@@ -888,6 +904,8 @@ int hw_fence_utils_parse_dt_props(struct hw_fence_driver_data *drv_data)
 	return 0;
 }
 
+int hw_fence_utils_map_ipcc(struct hw_fence_driver_data *drv_data);
+
 int hw_fence_utils_map_ipcc(struct hw_fence_driver_data *drv_data)
 {
 	int ret;
@@ -921,6 +939,8 @@ int hw_fence_utils_map_ipcc(struct hw_fence_driver_data *drv_data)
 	return ret;
 }
 
+int hw_fence_utils_map_qtime(struct hw_fence_driver_data *drv_data);
+
 int hw_fence_utils_map_qtime(struct hw_fence_driver_data *drv_data)
 {
 	int ret = 0;
@@ -949,6 +969,9 @@ int hw_fence_utils_map_qtime(struct hw_fence_driver_data *drv_data)
 }
 
 enum hw_fence_client_id hw_fence_utils_get_client_id_priv(struct hw_fence_driver_data *drv_data,
+	enum hw_fence_client_id client_id);
+
+enum hw_fence_client_id hw_fence_utils_get_client_id_priv(struct hw_fence_driver_data *drv_data,
 	enum hw_fence_client_id client_id)
 {
 	int i, client_type, offset;
@@ -975,6 +998,8 @@ enum hw_fence_client_id hw_fence_utils_get_client_id_priv(struct hw_fence_driver
 
 	return client_id_priv;
 }
+
+int hw_fence_utils_get_queues_num(struct hw_fence_driver_data *drv_data, int client_id);
 
 int hw_fence_utils_get_queues_num(struct hw_fence_driver_data *drv_data, int client_id)
 {

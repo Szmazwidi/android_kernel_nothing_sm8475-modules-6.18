@@ -317,6 +317,8 @@ static int spec_sync_ioctl_create_fence(struct sync_device *obj, unsigned long _
 	return 0;
 }
 
+int spec_sync_wait_bind_array(struct dma_fence_array *fence_array, u32 timeout_ms);
+
 int spec_sync_wait_bind_array(struct dma_fence_array *fence_array, u32 timeout_ms)
 {
 	int ret;

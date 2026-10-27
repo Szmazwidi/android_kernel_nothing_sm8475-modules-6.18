@@ -1,6 +1,6 @@
 load("//build/kernel/kleaf:kernel.bzl", "ddk_module", "ddk_submodule")
-load("//build/bazel_common_rules/dist:dist.bzl", "copy_to_dist_dir")
-load("//vendor/nothing/pong-kernel:target_variants.bzl", "get_all_variants")
+load("//devices/pong618/av580:dist.bzl", "copy_to_dist_dir")
+load("//devices/pong618/av580:variants.bzl", "get_all_variants")
 
 def _define_module(target, variant):
     tv = "{}_{}".format(target, variant)
@@ -23,11 +23,11 @@ def _define_module(target, variant):
             },
         },
         deps = [
-            "//vendor/nothing/pong-kernel:all_headers",
-            "//vendor/nothing/pong-modules/qcom/opensource/synx-kernel:synx_headers",
-            "//vendor/nothing/pong-modules/qcom/opensource/mm-drivers:mm_drivers_headers",
+            "//devices/pong618/av580/providers:vendor_headers",
+            "//devices/pong618/av580/qcom/opensource/synx-kernel:synx_headers",
+            "//devices/pong618/av580/qcom/opensource/mm-drivers:mm_drivers_headers",
         ],
-        kernel_build = "//vendor/nothing/pong-kernel:{}".format(tv),
+        kernel_build = "//common:kernel_aarch64",
     )
 
     copy_to_dist_dir(

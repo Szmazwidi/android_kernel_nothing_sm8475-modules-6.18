@@ -148,6 +148,8 @@ static const struct file_operations hw_fence_dbg_ipcc_fops = {
 	.write = hw_fence_dbg_ipcc_write,
 };
 
+struct client_data *_get_client_node(struct hw_fence_driver_data *drv_data, u32 client_id);
+
 struct client_data *_get_client_node(struct hw_fence_driver_data *drv_data, u32 client_id)
 {
 	struct client_data *node = NULL;
@@ -1026,6 +1028,9 @@ error:
 }
 
 int process_validation_client_loopback(struct hw_fence_driver_data *drv_data,
+		int client_id);
+
+int process_validation_client_loopback(struct hw_fence_driver_data *drv_data,
 		int client_id)
 {
 	struct msm_hw_fence_client *hw_fence_client;
@@ -1100,6 +1105,8 @@ static const struct file_operations hw_fence_create_join_fence_fops = {
 	.write = hw_fence_dbg_create_join_fence,
 };
 
+int hw_fence_debug_debugfs_register(struct hw_fence_driver_data *drv_data);
+
 int hw_fence_debug_debugfs_register(struct hw_fence_driver_data *drv_data)
 {
 	struct dentry *debugfs_root;
@@ -1151,6 +1158,8 @@ int hw_fence_debug_debugfs_register(struct hw_fence_driver_data *drv_data)
 }
 
 #else
+int hw_fence_debug_debugfs_register(struct hw_fence_driver_data *drv_data);
+
 int hw_fence_debug_debugfs_register(struct hw_fence_driver_data *drv_data)
 {
 	return 0;

@@ -95,6 +95,8 @@ static bool is_hw_fence_client(enum synx_client_id synx_client_id)
 		&& synx_client_id < SYNX_HW_FENCE_CLIENT_END;
 }
 
+struct synx_session *synx_hwfence_initialize(struct synx_initialization_params *params);
+
 struct synx_session *synx_hwfence_initialize(struct synx_initialization_params *params)
 {
 	struct synx_session *session = NULL;
@@ -136,6 +138,8 @@ struct synx_session *synx_hwfence_initialize(struct synx_initialization_params *
 }
 EXPORT_SYMBOL(synx_hwfence_initialize);
 
+int synx_hwfence_uninitialize(struct synx_session *session);
+
 int synx_hwfence_uninitialize(struct synx_session *session)
 {
 	int ret;
@@ -155,6 +159,8 @@ int synx_hwfence_uninitialize(struct synx_session *session)
 	return to_synx_status(ret);
 }
 EXPORT_SYMBOL(synx_hwfence_uninitialize);
+
+int synx_hwfence_create(struct synx_session *session, struct synx_create_params *params);
 
 int synx_hwfence_create(struct synx_session *session, struct synx_create_params *params)
 {
@@ -198,6 +204,8 @@ int synx_hwfence_create(struct synx_session *session, struct synx_create_params 
 }
 EXPORT_SYMBOL(synx_hwfence_create);
 
+int synx_hwfence_release(struct synx_session *session, u32 h_synx);
+
 int synx_hwfence_release(struct synx_session *session, u32 h_synx)
 {
 	int ret;
@@ -217,6 +225,8 @@ int synx_hwfence_release(struct synx_session *session, u32 h_synx)
 }
 EXPORT_SYMBOL(synx_hwfence_release);
 
+int synx_hwfence_signal(struct synx_session *session, u32 h_synx, enum synx_signal_status status);
+
 int synx_hwfence_signal(struct synx_session *session, u32 h_synx, enum synx_signal_status status)
 {
 	int ret;
@@ -235,6 +245,8 @@ int synx_hwfence_signal(struct synx_session *session, u32 h_synx, enum synx_sign
 	return to_synx_status(ret);
 }
 EXPORT_SYMBOL(synx_hwfence_signal);
+
+int synx_hwfence_recover(enum synx_client_id id);
 
 int synx_hwfence_recover(enum synx_client_id id)
 {
@@ -309,6 +321,8 @@ static int synx_hwfence_import_arr(void *client, struct synx_import_arr_params *
 
 	return SYNX_SUCCESS;
 }
+
+int synx_hwfence_import(struct synx_session *session, struct synx_import_params *params);
 
 int synx_hwfence_import(struct synx_session *session, struct synx_import_params *params)
 {

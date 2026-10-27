@@ -348,6 +348,9 @@ static void msm_ext_disp_ready_for_display(struct msm_ext_disp *ext_disp)
 }
 
 int msm_hdmi_register_audio_codec(struct platform_device *pdev,
+		struct msm_ext_disp_audio_codec_ops *ops);
+
+int msm_hdmi_register_audio_codec(struct platform_device *pdev,
 		struct msm_ext_disp_audio_codec_ops *ops)
 {
 	return msm_ext_disp_register_audio_codec(pdev, ops);
@@ -360,6 +363,9 @@ int msm_hdmi_register_audio_codec(struct platform_device *pdev,
  * @return 0 on success, negative value on error
  *
  */
+int msm_ext_disp_register_audio_codec(struct platform_device *pdev,
+		struct msm_ext_disp_audio_codec_ops *ops);
+
 int msm_ext_disp_register_audio_codec(struct platform_device *pdev,
 		struct msm_ext_disp_audio_codec_ops *ops)
 {
@@ -408,6 +414,9 @@ end:
 	return ret;
 }
 EXPORT_SYMBOL(msm_ext_disp_register_audio_codec);
+
+int msm_ext_disp_select_audio_codec(struct platform_device *pdev,
+		struct msm_ext_disp_codec_id *codec);
 
 int msm_ext_disp_select_audio_codec(struct platform_device *pdev,
 		struct msm_ext_disp_codec_id *codec)
@@ -487,6 +496,9 @@ static int msm_ext_disp_validate_intf(struct msm_ext_disp_init_data *init_data)
 }
 
 int msm_ext_disp_register_intf(struct platform_device *pdev,
+		struct msm_ext_disp_init_data *init_data);
+
+int msm_ext_disp_register_intf(struct platform_device *pdev,
 		struct msm_ext_disp_init_data *init_data)
 {
 	int ret = 0;
@@ -539,6 +551,9 @@ end:
 	return ret;
 }
 EXPORT_SYMBOL(msm_ext_disp_register_intf);
+
+int msm_ext_disp_deregister_intf(struct platform_device *pdev,
+		struct msm_ext_disp_init_data *init_data);
 
 int msm_ext_disp_deregister_intf(struct platform_device *pdev,
 		struct msm_ext_disp_init_data *init_data)
@@ -638,7 +653,7 @@ end:
 	return ret;
 }
 
-static int msm_ext_disp_remove(struct platform_device *pdev)
+static void msm_ext_disp_remove(struct platform_device *pdev)
 {
 	int ret = 0, id;
 	struct msm_ext_disp *ext_disp = NULL;
@@ -667,7 +682,7 @@ static int msm_ext_disp_remove(struct platform_device *pdev)
 	devm_kfree(&ext_disp->pdev->dev, ext_disp);
 
 end:
-	return ret;
+	return;
 }
 
 static const struct of_device_id msm_ext_dt_match[] = {
