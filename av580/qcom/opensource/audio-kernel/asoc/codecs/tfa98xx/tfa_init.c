@@ -106,6 +106,8 @@ static enum Tfa98xx_Error tfa_dsp_reset(struct tfa_device *tfa, int state)
 	return Tfa98xx_Error_Ok;
 }
 
+int tfa_set_swprofile(struct tfa_device *tfa, unsigned short new_value);
+
 int tfa_set_swprofile(struct tfa_device *tfa, unsigned short new_value)
 {
 	int mtpk, active_value = tfa->profile;
@@ -175,6 +177,8 @@ tfa_set_mute_nodsp(struct tfa_device *tfa, int mute)
 
 	return Tfa98xx_Error_Ok;
 }
+
+void tfa_set_ops_defaults(struct tfa_device_ops *ops);
 
 void tfa_set_ops_defaults(struct tfa_device_ops *ops)
 {
@@ -249,6 +253,8 @@ static int tfanone_get_swvstep(struct tfa_device *tfa)
 	(void)tfa; /* suppress warning */
 	return tfanone_swvstep;
 }
+
+void tfanone_ops(struct tfa_device_ops *ops);
 
 void tfanone_ops(struct tfa_device_ops *ops)
 {
@@ -476,6 +482,8 @@ static uint16_t tfa9912_vboost_fixup(struct tfa_device *tfa, uint16_t dcdc_cnt6)
 }
 
 /* PLMA5322, PLMA5528 - Limit values of DCVOS and DCVOF to range specified in datasheet. */
+enum Tfa98xx_Error tfa9912_reg_write(struct tfa_device *tfa, unsigned char subaddress, unsigned short value);
+
 enum Tfa98xx_Error tfa9912_reg_write(struct tfa_device *tfa, unsigned char subaddress, unsigned short value)
 {
 	if (subaddress == TFA9912_DCDCCNT6_REG) {
@@ -519,6 +527,8 @@ static enum Tfa98xx_Error tfa9912_update_lpm(struct tfa_device *tfa, int state)
 	}
 	return Tfa98xx_Error_Bad_Parameter;
 }
+
+void tfa9912_ops(struct tfa_device_ops *ops);
 
 void tfa9912_ops(struct tfa_device_ops *ops)
 {
@@ -660,6 +670,8 @@ static int tfa9872_get_swvstep(struct tfa_device *tfa)
 {
 	return tfa_get_bf(tfa, TFA9872_BF_SWVSTEP) - 1;
 }
+
+void tfa9872_ops(struct tfa_device_ops *ops);
 
 void tfa9872_ops(struct tfa_device_ops *ops)
 {
@@ -804,6 +816,8 @@ static enum Tfa98xx_Error tfa9873_specific(struct tfa_device* tfa)
 	pr_info("info : disabled FS synchronisation! \n");
 	return error;
 }
+void tfa9873_ops(struct tfa_device_ops *ops);
+
 void tfa9873_ops(struct tfa_device_ops *ops)
 {
 	/* Set defaults for ops */
@@ -972,6 +986,8 @@ static int tfa9874_get_mtpb(struct tfa_device *tfa) {
 	return value;
 }
 
+void tfa9874_ops(struct tfa_device_ops *ops);
+
 void tfa9874_ops(struct tfa_device_ops *ops)
 {
 	/* Set defaults for ops */
@@ -1113,6 +1129,8 @@ static int tfa9878_get_mtpb(struct tfa_device *tfa) {
 	value = tfa_get_bf(tfa, TFA9878_BF_MTPB);
 	return value;
 }
+
+void tfa9878_ops(struct tfa_device_ops *ops);
 
 void tfa9878_ops(struct tfa_device_ops *ops)
 {
@@ -1295,6 +1313,8 @@ tfa9888_set_mute(struct tfa_device *tfa, int mute)
 	return Tfa98xx_Error_Ok;
 }
 
+void tfa9888_ops(struct tfa_device_ops *ops);
+
 void tfa9888_ops(struct tfa_device_ops *ops)
 {
 	/* Set defaults for ops */
@@ -1433,6 +1453,8 @@ static enum Tfa98xx_Error tfa9896_tfa_dsp_write_tables(struct tfa_device *tfa, i
 	return error;
 }
 
+void tfa9896_ops(struct tfa_device_ops *ops);
+
 void tfa9896_ops(struct tfa_device_ops *ops)
 {
 	/* Set defaults for ops */
@@ -1530,6 +1552,8 @@ static enum Tfa98xx_Error tfa9897_tfa_dsp_write_tables(struct tfa_device *tfa, i
 	return error;
 }
 
+void tfa9897_ops(struct tfa_device_ops *ops);
+
 void tfa9897_ops(struct tfa_device_ops *ops)
 {
 	/* Set defaults for ops */
@@ -1569,6 +1593,8 @@ static enum Tfa98xx_Error tfa9895_specific(struct tfa_device *tfa)
 	return error;
 }
 
+void tfa9895_ops(struct tfa_device_ops *ops);
+
 void tfa9895_ops(struct tfa_device_ops *ops)
 {
 	/* Set defaults for ops */
@@ -1599,6 +1625,8 @@ static enum Tfa98xx_Error tfa9891_specific(struct tfa_device *tfa)
 
 	return error;
 }
+
+void tfa9891_ops(struct tfa_device_ops *ops);
 
 void tfa9891_ops(struct tfa_device_ops *ops)
 {
@@ -1750,6 +1778,8 @@ errorExit:
 	*ready = 0;
 	return error;
 }
+
+void tfa9890_ops(struct tfa_device_ops *ops);
 
 void tfa9890_ops(struct tfa_device_ops *ops)
 {
@@ -1915,6 +1945,8 @@ static enum Tfa98xx_Error tfa9894_dsp_system_stable(struct tfa_device *tfa, int 
 
 	return error;
 }
+
+void tfa9894_ops(struct tfa_device_ops *ops);
 
 void tfa9894_ops(struct tfa_device_ops *ops)
 {

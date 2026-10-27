@@ -715,11 +715,11 @@ static int audio_ref_clk_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static int audio_ref_clk_remove(struct platform_device *pdev)
+static void audio_ref_clk_remove(struct platform_device *pdev)
 {
 	audio_put_pinctrl(pdev);
 
-	return 0;
+	return;
 }
 
 static const struct of_device_id audio_ref_clk_match[] = {
@@ -739,10 +739,14 @@ static struct platform_driver audio_ref_clk_driver = {
 	.remove = audio_ref_clk_remove,
 };
 
+int audio_ref_clk_platform_init(void);
+
 int audio_ref_clk_platform_init(void)
 {
 	return platform_driver_register(&audio_ref_clk_driver);
 }
+
+void audio_ref_clk_platform_exit(void);
 
 void audio_ref_clk_platform_exit(void)
 {

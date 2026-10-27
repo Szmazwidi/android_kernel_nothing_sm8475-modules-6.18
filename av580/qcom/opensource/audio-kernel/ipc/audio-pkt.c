@@ -152,6 +152,8 @@ struct audio_pkt_clnt_ch {
  * userspace client do a open() system call. All input arguments are
  * validated by the virtual file system before calling this function.
  */
+int audio_pkt_open(struct inode *inode, struct file *file);
+
 int audio_pkt_open(struct inode *inode, struct file *file)
 {
 	struct audio_pkt_device *audpkt_dev = ap_priv->ap_dev;
@@ -169,6 +171,8 @@ int audio_pkt_open(struct inode *inode, struct file *file)
  * userspace client do a close() system call. All input arguments are
  * validated by the virtual file system before calling this function.
  */
+int audio_pkt_release(struct inode *inode, struct file *file);
+
 int audio_pkt_release(struct inode *inode, struct file *file)
 {
 	struct audio_pkt_priv *ap_priv = file->private_data;
@@ -239,6 +243,9 @@ static int audio_pkt_internal_release(struct platform_device *adev)
  * validated by the virtual file system before calling this function.
  */
 ssize_t audio_pkt_read(struct file *file, char __user *buf,
+		       size_t count, loff_t *ppos);
+
+ssize_t audio_pkt_read(struct file *file, char __user *buf,
 		       size_t count, loff_t *ppos)
 {
 	struct audio_pkt_priv *ap_priv = file->private_data;
@@ -297,6 +304,8 @@ ssize_t audio_pkt_read(struct file *file, char __user *buf,
  * audpkt_update_physical_addr - Update physical address
  * audpkt_hdr:	Pointer to the file structure.
  */
+int audpkt_chk_and_update_physical_addr(struct audio_gpr_pkt *gpr_pkt);
+
 int audpkt_chk_and_update_physical_addr(struct audio_gpr_pkt *gpr_pkt)
 {
 	int ret = 0;
@@ -332,6 +341,9 @@ int audpkt_chk_and_update_physical_addr(struct audio_gpr_pkt *gpr_pkt)
  * userspace client do a write() system call. All input arguments are
  * validated by the virtual file system before calling this function.
  */
+ssize_t audio_pkt_write(struct file *file, const char __user *buf,
+			size_t count, loff_t *ppos);
+
 ssize_t audio_pkt_write(struct file *file, const char __user *buf,
 			size_t count, loff_t *ppos)
 {
@@ -580,6 +592,11 @@ static int audio_pkt_plaform_driver_register_gpr(struct platform_device *pdev,
 	if (!ap_priv)
 		return -ENOMEM;
 
+	mutex_init(&ap_priv->lock);
+	ap_priv->status = AUDIO_PKT_INIT;
+	ap_priv->ap_dev = audpkt_dev;
+	ap_priv->dev = audpkt_dev->dev;
+
 	ret = gpr_driver_register(&audio_pkt_driver);
 	if (ret < 0) {
 		dev_err(&pdev->dev, "%s: registering to gpr driver failed, err = %d\n",
@@ -587,10 +604,7 @@ static int audio_pkt_plaform_driver_register_gpr(struct platform_device *pdev,
 		goto err;
 	}
 
-	mutex_init(&ap_priv->lock);
-	ap_priv->status = AUDIO_PKT_INIT;
-	ap_priv->ap_dev = audpkt_dev;
-	ap_priv->dev = audpkt_dev->dev;
+
 err:
 	return ret;
 }
@@ -638,8 +652,8 @@ static int audio_pkt_platform_driver_probe(struct platform_device *pdev)
 			      PTR_ERR(audpkt_dev->dev));
 		goto err_device;
 	}
-	strlcpy(audpkt_dev->dev_name, AUDPKT_DRIVER_NAME, 20);
-	strlcpy(audpkt_dev->ch_name, CHANNEL_NAME, 20);
+	strscpy(audpkt_dev->dev_name, AUDPKT_DRIVER_NAME, 20);
+	strscpy(audpkt_dev->ch_name, CHANNEL_NAME, 20);
 	dev_set_name(audpkt_dev->dev, audpkt_dev->dev_name);
 
 	mutex_init(&audpkt_dev->lock);
@@ -651,18 +665,20 @@ static int audio_pkt_platform_driver_probe(struct platform_device *pdev)
 	cdev_init(&audpkt_dev->cdev, &audio_pkt_fops);
 	audpkt_dev->cdev.owner = THIS_MODULE;
 
+	ret = audio_pkt_plaform_driver_register_gpr(pdev, audpkt_dev);
+	if (ret < 0) {
+		dev_err(&pdev->dev, "%s: Failed to register with gpr, err = %d\n",
+			__func__, ret);
+		goto free_dev;
+	}
+
+
 	ret = cdev_add(&audpkt_dev->cdev, audpkt_dev->audio_pkt_major,
 		       MINOR_NUMBER_COUNT);
 	if (ret) {
 		AUDIO_PKT_ERR("cdev_add failed for %s ret:%d\n",
 			      audpkt_dev->dev_name, ret);
-		goto free_dev;
-	}
-
-	ret = audio_pkt_plaform_driver_register_gpr(pdev, audpkt_dev);
-	if (ret < 0) {
-		dev_err(&pdev->dev, "%s: Failed to register with gpr, err = %d\n",
-			__func__, ret);
+		gpr_driver_unregister(&audio_pkt_driver);
 		goto free_dev;
 	}
 
@@ -695,7 +711,7 @@ done:
  * This function is called when the underlying device tree driver
  * removes a platform device, mapped to a Audio packet device.
  */
-static int audio_pkt_platform_driver_remove(struct platform_device *adev)
+static void audio_pkt_platform_driver_remove(struct platform_device *adev)
 {
 	struct audio_pkt_priv *ap_priv = platform_get_drvdata(adev);
 	struct audio_pkt_device *audpkt_dev = ap_priv->ap_dev;
@@ -715,7 +731,7 @@ static int audio_pkt_platform_driver_remove(struct platform_device *adev)
 	//of_platform_depopulate(&adev->dev);
 	AUDIO_PKT_INFO("Audio Packet Port Driver Removed\n");
 
-	return 0;
+	return;
 
 }
 

@@ -6,6 +6,11 @@
 int lpass_cdc_load_compander_coeff(struct snd_soc_component *component,
 				   u16 lsb_reg, u16 msb_reg,
 				   struct comp_coeff_val *comp_coeff_table,
+				   u16 arr_size);
+
+int lpass_cdc_load_compander_coeff(struct snd_soc_component *component,
+				   u16 lsb_reg, u16 msb_reg,
+				   struct comp_coeff_val *comp_coeff_table,
 				   u16 arr_size)
 {
 	int i = 0;
@@ -21,6 +26,10 @@ int lpass_cdc_load_compander_coeff(struct snd_soc_component *component,
 	return 0;
 }
 EXPORT_SYMBOL(lpass_cdc_load_compander_coeff);
+
+int lpass_cdc_update_compander_setting(struct snd_soc_component *component,
+				u16 start_addr,
+				struct lpass_cdc_comp_setting *comp_setting);
 
 int lpass_cdc_update_compander_setting(struct snd_soc_component *component,
 				u16 start_addr,

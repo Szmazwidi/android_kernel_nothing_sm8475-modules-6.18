@@ -26,25 +26,25 @@ extern int wsa881x_codec_info_create_codec_entry(
 void wsa881x_regmap_defaults(struct regmap *regmap, u8 version);
 extern int wsa881x_codec_get_dev_num(struct snd_soc_component *component);
 #else
-extern int wsa881x_set_channel_map(struct snd_soc_component *component,
+static inline int wsa881x_set_channel_map(struct snd_soc_component *component,
 				   u8 *port, u8 num_port, unsigned int *ch_mask,
 				   unsigned int *ch_rate, u8 *port_type)
 {
 	return 0;
 }
 
-extern int wsa881x_codec_info_create_codec_entry(
+static inline int wsa881x_codec_info_create_codec_entry(
 					struct snd_info_entry *codec_root,
 					struct snd_soc_component *component)
 {
 	return 0;
 }
 
-void wsa881x_regmap_defaults(struct regmap *regmap, u8 version)
+static inline void wsa881x_regmap_defaults(struct regmap *regmap, u8 version)
 {
 }
 
-int wsa881x_codec_get_dev_num(struct snd_soc_component *component)
+static inline int wsa881x_codec_get_dev_num(struct snd_soc_component *component)
 {
 	return 0;
 }

@@ -1597,7 +1597,7 @@ err_memory_fail:
 	return ret;
 }
 
-static int swrm_remove(struct platform_device *pdev)
+static void swrm_remove(struct platform_device *pdev)
 {
 	struct swr_mstr_ctrl *swrm = platform_get_drvdata(pdev);
 
@@ -1618,7 +1618,7 @@ static int swrm_remove(struct platform_device *pdev)
 	mutex_destroy(&swrm->reslock);
 	mutex_destroy(&swrm->force_down_lock);
 	kfree(swrm);
-	return 0;
+	return;
 }
 
 static int swrm_clk_pause(struct swr_mstr_ctrl *swrm)
@@ -1742,6 +1742,8 @@ static int swrm_device_down(struct device *dev)
  * @id: command id from parent to the soundwire master
  * @data: data from parent device to soundwire master
  */
+int swrm_wcd_notify(struct platform_device *pdev, u32 id, void *data);
+
 int swrm_wcd_notify(struct platform_device *pdev, u32 id, void *data)
 {
 	struct swr_mstr_ctrl *swrm;

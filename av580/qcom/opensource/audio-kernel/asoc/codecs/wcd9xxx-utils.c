@@ -2,6 +2,7 @@
 /* Copyright (c) 2016-2019, The Linux Foundation. All rights reserved.
  */
 
+#include <linux/of.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/of_gpio.h>
@@ -295,6 +296,8 @@ undefined_rate:
  * Returns pointer to the platform data resulting from parsing
  * device tree.
  */
+struct wcd9xxx_pdata *wcd9xxx_populate_dt_data(struct device *dev);
+
 struct wcd9xxx_pdata *wcd9xxx_populate_dt_data(struct device *dev)
 {
 	struct wcd9xxx_pdata *pdata;
@@ -474,6 +477,8 @@ static bool is_wcd9xxx_reg_power_down(struct wcd9xxx *wcd9xxx, u16 rreg)
  *
  * Returns 0 for success and negative error code for failure.
  */
+int wcd9xxx_page_write(struct wcd9xxx *wcd9xxx, unsigned short *reg);
+
 int wcd9xxx_page_write(struct wcd9xxx *wcd9xxx, unsigned short *reg)
 {
 	int ret = 0;
@@ -662,6 +667,9 @@ static struct regmap_bus regmap_bus_config = {
  * or NULL in case of failure.
  */
 struct regmap *wcd9xxx_regmap_init(struct device *dev,
+				   const struct regmap_config *config);
+
+struct regmap *wcd9xxx_regmap_init(struct device *dev,
 				   const struct regmap_config *config)
 {
 	return devm_regmap_init(dev, &regmap_bus_config, dev, config);
@@ -676,6 +684,8 @@ EXPORT_SYMBOL(wcd9xxx_regmap_init);
  *
  * Returns 0 for success or negative error code in case of failure
  */
+int wcd9xxx_reset(struct device *dev);
+
 int wcd9xxx_reset(struct device *dev)
 {
 	struct wcd9xxx *wcd9xxx;
@@ -731,6 +741,8 @@ EXPORT_SYMBOL(wcd9xxx_reset);
  *
  * Returns 0 for success or negative error code in case of failure
  */
+int wcd9xxx_reset_low(struct device *dev);
+
 int wcd9xxx_reset_low(struct device *dev)
 {
 	struct wcd9xxx *wcd9xxx;
@@ -771,6 +783,8 @@ EXPORT_SYMBOL(wcd9xxx_reset_low);
  *
  * Returns 0 for success or negative error code in case of failure
  */
+int wcd9xxx_bringup(struct device *dev);
+
 int wcd9xxx_bringup(struct device *dev)
 {
 	struct wcd9xxx *wcd9xxx;
@@ -807,6 +821,8 @@ EXPORT_SYMBOL(wcd9xxx_bringup);
  *
  * Returns 0 for success or negative error code in case of failure
  */
+int wcd9xxx_bringdown(struct device *dev);
+
 int wcd9xxx_bringdown(struct device *dev)
 {
 	struct wcd9xxx *wcd9xxx;
@@ -843,6 +859,8 @@ EXPORT_SYMBOL(wcd9xxx_bringdown);
  *
  * Returns 0 for success or negative error code in case of failure
  */
+int wcd9xxx_get_codec_info(struct device *dev);
+
 int wcd9xxx_get_codec_info(struct device *dev)
 {
 	struct wcd9xxx *wcd9xxx;
@@ -908,6 +926,9 @@ EXPORT_SYMBOL(wcd9xxx_get_codec_info);
  * Returns 0 for success or negative error code in case of failure
  */
 int wcd9xxx_core_irq_init(
+	struct wcd9xxx_core_resource *wcd9xxx_core_res);
+
+int wcd9xxx_core_irq_init(
 	struct wcd9xxx_core_resource *wcd9xxx_core_res)
 {
 	int ret = 0;
@@ -938,6 +959,11 @@ EXPORT_SYMBOL(wcd9xxx_core_irq_init);
 int wcd9xxx_assign_irq(
 	struct wcd9xxx_core_resource *wcd9xxx_core_res,
 	unsigned int irq,
+	unsigned int irq_base);
+
+int wcd9xxx_assign_irq(
+	struct wcd9xxx_core_resource *wcd9xxx_core_res,
+	unsigned int irq,
 	unsigned int irq_base)
 {
 	if (!wcd9xxx_core_res)
@@ -961,6 +987,10 @@ EXPORT_SYMBOL(wcd9xxx_assign_irq);
  *
  * Returns 0 for success or negative error code in case of failure
  */
+int wcd9xxx_core_res_init(
+	struct wcd9xxx_core_resource *wcd9xxx_core_res,
+	int num_irqs, int num_irq_regs, struct regmap *wcd_regmap);
+
 int wcd9xxx_core_res_init(
 	struct wcd9xxx_core_resource *wcd9xxx_core_res,
 	int num_irqs, int num_irq_regs, struct regmap *wcd_regmap)
@@ -994,6 +1024,8 @@ EXPORT_SYMBOL(wcd9xxx_core_res_init);
  *
  * @wcd9xxx_core_res: pointer to wcd core resource
  */
+void wcd9xxx_core_res_deinit(struct wcd9xxx_core_resource *wcd9xxx_core_res);
+
 void wcd9xxx_core_res_deinit(struct wcd9xxx_core_resource *wcd9xxx_core_res)
 {
 	if (!wcd9xxx_core_res)
@@ -1015,6 +1047,11 @@ EXPORT_SYMBOL(wcd9xxx_core_res_deinit);
  *
  * Returns old state
  */
+enum wcd9xxx_pm_state wcd9xxx_pm_cmpxchg(
+		struct wcd9xxx_core_resource *wcd9xxx_core_res,
+		enum wcd9xxx_pm_state o,
+		enum wcd9xxx_pm_state n);
+
 enum wcd9xxx_pm_state wcd9xxx_pm_cmpxchg(
 		struct wcd9xxx_core_resource *wcd9xxx_core_res,
 		enum wcd9xxx_pm_state o,
@@ -1044,6 +1081,10 @@ EXPORT_SYMBOL(wcd9xxx_pm_cmpxchg);
  *
  * Returns 0 for success or negative error code for failure/busy
  */
+int wcd9xxx_core_res_suspend(
+	struct wcd9xxx_core_resource *wcd9xxx_core_res,
+	pm_message_t pmesg);
+
 int wcd9xxx_core_res_suspend(
 	struct wcd9xxx_core_resource *wcd9xxx_core_res,
 	pm_message_t pmesg)
@@ -1106,6 +1147,9 @@ EXPORT_SYMBOL(wcd9xxx_core_res_suspend);
  * Returns 0 for success or negative error code for failure/busy
  */
 int wcd9xxx_core_res_resume(
+	struct wcd9xxx_core_resource *wcd9xxx_core_res);
+
+int wcd9xxx_core_res_resume(
 	struct wcd9xxx_core_resource *wcd9xxx_core_res)
 {
 	int ret = 0;
@@ -1135,6 +1179,8 @@ EXPORT_SYMBOL(wcd9xxx_core_res_resume);
  *
  * Returns interface type
  */
+enum wcd9xxx_intf_status wcd9xxx_get_intf_type(void);
+
 enum wcd9xxx_intf_status wcd9xxx_get_intf_type(void)
 {
 	return wcd9xxx_intf;
@@ -1146,6 +1192,8 @@ EXPORT_SYMBOL(wcd9xxx_get_intf_type);
  *	Set interface type of wcd9xxx core
  *
  */
+void wcd9xxx_set_intf_type(enum wcd9xxx_intf_status intf_status);
+
 void wcd9xxx_set_intf_type(enum wcd9xxx_intf_status intf_status)
 {
 	wcd9xxx_intf = intf_status;
@@ -1160,6 +1208,10 @@ EXPORT_SYMBOL(wcd9xxx_set_intf_type);
  *
  * Returns error code in case of failure or 0 for success
  */
+int wcd9xxx_set_power_state(struct wcd9xxx *wcd9xxx,
+			    enum codec_power_states state,
+			    enum wcd_power_regions region);
+
 int wcd9xxx_set_power_state(struct wcd9xxx *wcd9xxx,
 			    enum codec_power_states state,
 			    enum wcd_power_regions region)
@@ -1194,6 +1246,9 @@ EXPORT_SYMBOL(wcd9xxx_set_power_state);
  *
  * Returns current power state of the region or error code for failure
  */
+int wcd9xxx_get_current_power_state(struct wcd9xxx *wcd9xxx,
+				    enum wcd_power_regions region);
+
 int wcd9xxx_get_current_power_state(struct wcd9xxx *wcd9xxx,
 				    enum wcd_power_regions region)
 {

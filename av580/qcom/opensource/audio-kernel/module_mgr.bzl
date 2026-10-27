@@ -1,4 +1,5 @@
-load("//build/bazel_common_rules/dist:dist.bzl", "copy_to_dist_dir")
+load("//devices/pong618/build:deps.bzl", "pong_package_deps")
+load("//devices/pong618/av580:dist.bzl", "copy_to_dist_dir")
 load("//build/kernel/kleaf:kernel.bzl", "ddk_module",
                                         "ddk_submodule")
 
@@ -56,7 +57,7 @@ def _define_target_modules(target, variant, registry, modules, product = None, c
     rule_prefix = "{}_{}_{}".format(target, variant, product) if product else "{}_{}".format(target, variant)
     enabled_modules = _get_enabled_module_objs(registry, modules)
     options = _combine_target_module_options(enabled_modules, config_options)
-    headers = ["//vendor/nothing/pong-kernel:all_headers"] + registry.hdrs
+    headers = pong_package_deps() + ["//devices/pong618/av580/providers:vendor_headers"] + registry.hdrs
     submodule_rules = []
 
     for module in enabled_modules:
@@ -68,6 +69,7 @@ def _define_target_modules(target, variant, registry, modules, product = None, c
             continue
 
         ddk_submodule(
+            copts = ["-ferror-limit=0"],
             name = rule_name,
             srcs = srcs,
             out = "{}.ko".format(module.name),
@@ -79,7 +81,7 @@ def _define_target_modules(target, variant, registry, modules, product = None, c
 
     ddk_module(
         name = "{}_modules".format(rule_prefix),
-        kernel_build = "//vendor/nothing/pong-kernel:{}_{}".format(target, variant),
+        kernel_build = "//common:kernel_aarch64",
         deps = submodule_rules
     )
 

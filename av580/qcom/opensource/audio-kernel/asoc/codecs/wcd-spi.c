@@ -1580,7 +1580,7 @@ err_ret:
 	return ret;
 }
 
-static int wcd_spi_remove(struct spi_device *spi)
+static void wcd_spi_remove(struct spi_device *spi)
 {
 	struct wcd_spi_priv *wcd_spi = spi_get_drvdata(spi);
 
@@ -1592,7 +1592,7 @@ static int wcd_spi_remove(struct spi_device *spi)
 	devm_kfree(&spi->dev, wcd_spi);
 	spi_set_drvdata(spi, NULL);
 
-	return 0;
+	return;
 }
 
 #ifdef CONFIG_PM

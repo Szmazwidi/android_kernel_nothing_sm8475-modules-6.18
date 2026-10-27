@@ -249,6 +249,9 @@ ret:
  * according to the impedance value.
  */
 void wcd_clsh_imped_config(struct snd_soc_component *component, int imped,
+			   bool reset);
+
+void wcd_clsh_imped_config(struct snd_soc_component *component, int imped,
 			   bool reset)
 {
 	int i;
@@ -1292,6 +1295,11 @@ static bool wcd_clsh_is_state_valid(u8 state)
 void wcd_clsh_fsm(struct snd_soc_component *component,
 		struct wcd_clsh_cdc_data *cdc_clsh_d,
 		u8 clsh_event, u8 req_state,
+		int int_mode);
+
+void wcd_clsh_fsm(struct snd_soc_component *component,
+		struct wcd_clsh_cdc_data *cdc_clsh_d,
+		u8 clsh_event, u8 req_state,
 		int int_mode)
 {
 	u8 old_state, new_state;
@@ -1361,11 +1369,15 @@ void wcd_clsh_fsm(struct snd_soc_component *component,
 }
 EXPORT_SYMBOL(wcd_clsh_fsm);
 
+int wcd_clsh_get_clsh_state(struct wcd_clsh_cdc_data *clsh);
+
 int wcd_clsh_get_clsh_state(struct wcd_clsh_cdc_data *clsh)
 {
 	return clsh->state;
 }
 EXPORT_SYMBOL(wcd_clsh_get_clsh_state);
+
+void wcd_clsh_init(struct wcd_clsh_cdc_data *clsh);
 
 void wcd_clsh_init(struct wcd_clsh_cdc_data *clsh)
 {

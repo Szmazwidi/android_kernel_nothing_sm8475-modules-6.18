@@ -250,6 +250,9 @@ static void wcd_clsh_flyback_ctrl(struct snd_soc_component *component,
  * the input mode.
  */
 void wcd_clsh_set_hph_mode(struct snd_soc_component *component,
+				  int mode);
+
+void wcd_clsh_set_hph_mode(struct snd_soc_component *component,
 				  int mode)
 {
 	u8 val = 0;
@@ -502,6 +505,11 @@ static bool wcd_clsh_is_state_valid(u8 state)
 void wcd_cls_h_fsm(struct snd_soc_component *component,
 		struct wcd_clsh_cdc_info *cdc_clsh_d,
 		u8 clsh_event, u8 req_state,
+		int int_mode);
+
+void wcd_cls_h_fsm(struct snd_soc_component *component,
+		struct wcd_clsh_cdc_info *cdc_clsh_d,
+		u8 clsh_event, u8 req_state,
 		int int_mode)
 {
 	u8 old_state, new_state;
@@ -576,6 +584,8 @@ EXPORT_SYMBOL(wcd_cls_h_fsm);
  *
  * @clsh: pointer for clsh state information.
  */
+void wcd_cls_h_init(struct wcd_clsh_cdc_info *clsh);
+
 void wcd_cls_h_init(struct wcd_clsh_cdc_info *clsh)
 {
 	int i;

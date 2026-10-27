@@ -924,6 +924,9 @@ static const struct snd_kcontrol_new impedance_detect_controls[] = {
  * return 0 for success or error code in case of failure
  */
 int rouleur_mbhc_get_impedance(struct rouleur_mbhc *rouleur_mbhc,
+			     uint32_t *zl, uint32_t *zr);
+
+int rouleur_mbhc_get_impedance(struct rouleur_mbhc *rouleur_mbhc,
 			     uint32_t *zl, uint32_t *zr)
 {
 	if (!rouleur_mbhc) {
@@ -945,6 +948,9 @@ EXPORT_SYMBOL(rouleur_mbhc_get_impedance);
  * @mbhc_cfg: handle to mbhc configuration structure
  * return 0 if mbhc_start is success or error code in case of failure
  */
+int rouleur_mbhc_hs_detect(struct snd_soc_component *component,
+			 struct wcd_mbhc_config *mbhc_cfg);
+
 int rouleur_mbhc_hs_detect(struct snd_soc_component *component,
 			 struct wcd_mbhc_config *mbhc_cfg)
 {
@@ -977,6 +983,8 @@ EXPORT_SYMBOL(rouleur_mbhc_hs_detect);
  * rouleur_mbhc_hs_detect_exit: stop mbhc insertion/removal functionality
  * @component: handle to snd_soc_component *
  */
+void rouleur_mbhc_hs_detect_exit(struct snd_soc_component *component);
+
 void rouleur_mbhc_hs_detect_exit(struct snd_soc_component *component)
 {
 	struct rouleur_priv *rouleur = NULL;
@@ -1010,6 +1018,9 @@ EXPORT_SYMBOL(rouleur_mbhc_hs_detect_exit);
  * @component: handle to snd_soc_component *
  */
 void rouleur_mbhc_ssr_down(struct rouleur_mbhc *mbhc,
+			   struct snd_soc_component *component);
+
+void rouleur_mbhc_ssr_down(struct rouleur_mbhc *mbhc,
 			   struct snd_soc_component *component)
 {
 	struct wcd_mbhc *wcd_mbhc = NULL;
@@ -1036,6 +1047,9 @@ EXPORT_SYMBOL(rouleur_mbhc_ssr_down);
  *
  * return 0 if mbhc_init is success or error code in case of failure
  */
+int rouleur_mbhc_post_ssr_init(struct rouleur_mbhc *mbhc,
+			     struct snd_soc_component *component);
+
 int rouleur_mbhc_post_ssr_init(struct rouleur_mbhc *mbhc,
 			     struct snd_soc_component *component)
 {
@@ -1071,6 +1085,10 @@ EXPORT_SYMBOL(rouleur_mbhc_post_ssr_init);
  *
  * return 0 if mbhc_init is success or error code in case of failure
  */
+int rouleur_mbhc_init(struct rouleur_mbhc **mbhc,
+		      struct snd_soc_component *component,
+		      struct fw_info *fw_data);
+
 int rouleur_mbhc_init(struct rouleur_mbhc **mbhc,
 		      struct snd_soc_component *component,
 		      struct fw_info *fw_data)
@@ -1138,6 +1156,8 @@ EXPORT_SYMBOL(rouleur_mbhc_init);
  * rouleur_mbhc_deinit: deinitialize mbhc for rouleur
  * @component: handle to snd_soc_component *
  */
+void rouleur_mbhc_deinit(struct snd_soc_component *component);
+
 void rouleur_mbhc_deinit(struct snd_soc_component *component)
 {
 	struct rouleur_priv *rouleur;

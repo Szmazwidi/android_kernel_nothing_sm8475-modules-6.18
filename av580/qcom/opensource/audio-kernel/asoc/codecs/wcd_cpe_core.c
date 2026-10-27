@@ -622,6 +622,9 @@ static void wcd_cpe_load_fw_image(struct work_struct *work)
  * handle to wcd_cpe_core during initialization of wcd_cpe_core
  */
 void *wcd_cpe_get_core_handle(
+	struct snd_soc_component *component);
+
+void *wcd_cpe_get_core_handle(
 	struct snd_soc_component *component)
 {
 	struct wcd_cpe_core *core = NULL;
@@ -789,9 +792,9 @@ static int wcd_cpe_check_new_image(struct wcd_cpe_core *core)
 	 * Different firmware name requested,
 	 * Re-load the instruction section
 	 */
-	strlcpy(temp_img_name, core->fname,
+	strscpy(temp_img_name, core->fname,
 		WCD_CPE_IMAGE_FNAME_MAX);
-	strlcpy(core->fname, core->dyn_fname,
+	strscpy(core->fname, core->dyn_fname,
 		WCD_CPE_IMAGE_FNAME_MAX);
 
 	rc = wcd_cpe_load_fw(core, ELF_FLAG_EXECUTE);
@@ -800,7 +803,7 @@ static int wcd_cpe_check_new_image(struct wcd_cpe_core *core)
 			"%s: Failed to dload new image %s, err = %d\n",
 			__func__, core->fname, rc);
 		/* If new image download failed, revert back to old image */
-		strlcpy(core->fname, temp_img_name,
+		strscpy(core->fname, temp_img_name,
 			WCD_CPE_IMAGE_FNAME_MAX);
 		rc = wcd_cpe_load_fw(core, ELF_FLAG_EXECUTE);
 		if (rc)
@@ -1095,6 +1098,9 @@ err_ret:
  * @core_handle: handle to the cpe core
  * @event: indicates ADSP or CDSP SSR.
  */
+int wcd_cpe_ssr_event(void *core_handle,
+		      enum wcd_cpe_ssr_state_event event);
+
 int wcd_cpe_ssr_event(void *core_handle,
 		      enum wcd_cpe_ssr_state_event event)
 {
@@ -1733,7 +1739,7 @@ static ssize_t fw_name_store(struct wcd_cpe_core *core,
 		return -EINVAL;
 	}
 
-	strlcpy(core->dyn_fname, buf, copy_count + 1);
+	strscpy(core->dyn_fname, buf, copy_count + 1);
 
 	return count;
 }
@@ -1892,6 +1898,10 @@ static int wcd_cpe_validate_params(
  */
 struct wcd_cpe_core *wcd_cpe_init(const char *img_fname,
 	struct snd_soc_component *component,
+	struct wcd_cpe_params *params);
+
+struct wcd_cpe_core *wcd_cpe_init(const char *img_fname,
+	struct snd_soc_component *component,
 	struct wcd_cpe_params *params)
 {
 	struct wcd_cpe_core *core;
@@ -1912,7 +1922,7 @@ struct wcd_cpe_core *wcd_cpe_init(const char *img_fname,
 		return NULL;
 
 	snprintf(core->fname, sizeof(core->fname), "%s", img_fname);
-	strlcpy(core->dyn_fname, core->fname, WCD_CPE_IMAGE_FNAME_MAX);
+	strscpy(core->dyn_fname, core->fname, WCD_CPE_IMAGE_FNAME_MAX);
 
 	wcd_get_cpe_core = params->get_cpe_core;
 
@@ -3911,6 +3921,8 @@ done:
  * @lsm_ops: structure with lsm callbacks
  * @component: codec to which this lsm driver is registered to
  */
+int wcd_cpe_get_lsm_ops(struct wcd_cpe_lsm_ops *lsm_ops);
+
 int wcd_cpe_get_lsm_ops(struct wcd_cpe_lsm_ops *lsm_ops)
 {
 	lsm_ops->lsm_alloc_session = wcd_cpe_alloc_lsm_session;
@@ -4575,6 +4587,8 @@ static int wcd_cpe_afe_port_resume(void *core_handle,
  * @cpe_ops: structure with lsm callbacks
  * @codec: codec to which this lsm driver is registered to
  */
+int wcd_cpe_get_afe_ops(struct wcd_cpe_afe_ops *afe_ops);
+
 int wcd_cpe_get_afe_ops(struct wcd_cpe_afe_ops *afe_ops)
 {
 	afe_ops->afe_set_params = wcd_cpe_afe_set_params;

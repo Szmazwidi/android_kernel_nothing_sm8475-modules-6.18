@@ -97,6 +97,8 @@ static int wcd_resmgr_codec_reg_read(struct wcd9xxx_resmgr_v2 *resmgr,
  * wcd_resmgr_get_clk_type()
  * Returns clk type that is currently enabled
  */
+int wcd_resmgr_get_clk_type(struct wcd9xxx_resmgr_v2 *resmgr);
+
 int wcd_resmgr_get_clk_type(struct wcd9xxx_resmgr_v2 *resmgr)
 {
 	if (!resmgr) {
@@ -125,6 +127,8 @@ static void wcd_resmgr_cdc_specific_get_clk(struct wcd9xxx_resmgr_v2 *resmgr,
  * wcd_resmgr_post_ssr_v2
  * @resmgr: handle to struct wcd9xxx_resmgr_v2
  */
+void wcd_resmgr_post_ssr_v2(struct wcd9xxx_resmgr_v2 *resmgr);
+
 void wcd_resmgr_post_ssr_v2(struct wcd9xxx_resmgr_v2 *resmgr)
 {
 	int old_bg_audio_users;
@@ -165,6 +169,8 @@ EXPORT_SYMBOL(wcd_resmgr_post_ssr_v2);
  * wcd_resmgr_enable_master_bias: enable codec master bias
  * @resmgr: handle to struct wcd9xxx_resmgr_v2
  */
+int wcd_resmgr_enable_master_bias(struct wcd9xxx_resmgr_v2 *resmgr);
+
 int wcd_resmgr_enable_master_bias(struct wcd9xxx_resmgr_v2 *resmgr)
 {
 	mutex_lock(&resmgr->master_bias_lock);
@@ -198,6 +204,8 @@ EXPORT_SYMBOL(wcd_resmgr_enable_master_bias);
  * wcd_resmgr_disable_master_bias: disable codec master bias
  * @resmgr: handle to struct wcd9xxx_resmgr_v2
  */
+int wcd_resmgr_disable_master_bias(struct wcd9xxx_resmgr_v2 *resmgr);
+
 int wcd_resmgr_disable_master_bias(struct wcd9xxx_resmgr_v2 *resmgr)
 {
 	mutex_lock(&resmgr->master_bias_lock);
@@ -488,6 +496,9 @@ static int wcd_resmgr_disable_clk_rco(struct wcd9xxx_resmgr_v2 *resmgr)
  * @type: Clock type to enable
  */
 int wcd_resmgr_enable_clk_block(struct wcd9xxx_resmgr_v2 *resmgr,
+				enum wcd_clock_type type);
+
+int wcd_resmgr_enable_clk_block(struct wcd9xxx_resmgr_v2 *resmgr,
 				enum wcd_clock_type type)
 {
 	int ret;
@@ -513,6 +524,9 @@ int wcd_resmgr_enable_clk_block(struct wcd9xxx_resmgr_v2 *resmgr,
 	return ret;
 }
 EXPORT_SYMBOL(wcd_resmgr_enable_clk_block);
+
+void wcd_resmgr_set_sido_input_src(struct wcd9xxx_resmgr_v2 *resmgr,
+					  int sido_src);
 
 void wcd_resmgr_set_sido_input_src(struct wcd9xxx_resmgr_v2 *resmgr,
 					  int sido_src)
@@ -562,6 +576,9 @@ EXPORT_SYMBOL(wcd_resmgr_set_sido_input_src);
  * @sido_src: Select the SIDO input source
  */
 void wcd_resmgr_set_sido_input_src_locked(struct wcd9xxx_resmgr_v2 *resmgr,
+					  int sido_src);
+
+void wcd_resmgr_set_sido_input_src_locked(struct wcd9xxx_resmgr_v2 *resmgr,
 					  int sido_src)
 {
 	if (!resmgr)
@@ -578,6 +595,9 @@ EXPORT_SYMBOL(wcd_resmgr_set_sido_input_src_locked);
  * @resmgr: handle to struct wcd9xxx_resmgr_v2
  * @type: Clock type to disable
  */
+int wcd_resmgr_disable_clk_block(struct wcd9xxx_resmgr_v2 *resmgr,
+				enum wcd_clock_type type);
+
 int wcd_resmgr_disable_clk_block(struct wcd9xxx_resmgr_v2 *resmgr,
 				enum wcd_clock_type type)
 {
@@ -611,6 +631,10 @@ EXPORT_SYMBOL(wcd_resmgr_disable_clk_block);
  *
  * Early init call without a handle to snd_soc_component *
  */
+struct wcd9xxx_resmgr_v2 *wcd_resmgr_init(
+		struct wcd9xxx_core_resource *core_res,
+		struct snd_soc_component *component);
+
 struct wcd9xxx_resmgr_v2 *wcd_resmgr_init(
 		struct wcd9xxx_core_resource *core_res,
 		struct snd_soc_component *component)
@@ -648,6 +672,8 @@ EXPORT_SYMBOL(wcd_resmgr_init);
  * wcd_resmgr_remove: Clean-up wcd resource manager
  * @resmgr: handle to struct wcd9xxx_resmgr_v2
  */
+void wcd_resmgr_remove(struct wcd9xxx_resmgr_v2 *resmgr);
+
 void wcd_resmgr_remove(struct wcd9xxx_resmgr_v2 *resmgr)
 {
 	mutex_destroy(&resmgr->master_bias_lock);
@@ -661,6 +687,10 @@ EXPORT_SYMBOL(wcd_resmgr_remove);
  * @resmgr_cb: codec callback function for resmgr
  * @component: handle to struct snd_soc_component
  */
+int wcd_resmgr_post_init(struct wcd9xxx_resmgr_v2 *resmgr,
+			 const struct wcd_resmgr_cb *resmgr_cb,
+			 struct snd_soc_component *component);
+
 int wcd_resmgr_post_init(struct wcd9xxx_resmgr_v2 *resmgr,
 			 const struct wcd_resmgr_cb *resmgr_cb,
 			 struct snd_soc_component *component)

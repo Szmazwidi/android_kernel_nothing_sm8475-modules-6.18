@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /* Copyright (c) 2015-2021, The Linux Foundation. All rights reserved.
  */
+#include <linux/of.h>
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/firmware.h>
@@ -667,6 +668,8 @@ static int __tavil_enable_efuse_sensing(struct tavil_priv *tavil);
  *
  * Returns 0 on success or -EINVAL on error.
  */
+int tavil_set_spkr_gain_offset(struct snd_soc_component *component, int offset);
+
 int tavil_set_spkr_gain_offset(struct snd_soc_component *component, int offset)
 {
 	struct tavil_priv *priv = snd_soc_component_get_drvdata(component);
@@ -688,6 +691,8 @@ EXPORT_SYMBOL(tavil_set_spkr_gain_offset);
  *
  * Returns 0 on success or -EINVAL on error.
  */
+int tavil_set_spkr_mode(struct snd_soc_component *component, int mode);
+
 int tavil_set_spkr_mode(struct snd_soc_component *component, int mode)
 {
 	struct tavil_priv *priv = snd_soc_component_get_drvdata(component);
@@ -723,6 +728,9 @@ EXPORT_SYMBOL(tavil_set_spkr_mode);
  * @component: codec component instance
  * @config_type: Indicates type of configuration to write.
  */
+void *tavil_get_afe_config(struct snd_soc_component *component,
+			   enum afe_config_type config_type);
+
 void *tavil_get_afe_config(struct snd_soc_component *component,
 			   enum afe_config_type config_type)
 {
@@ -3900,6 +3908,9 @@ static void tavil_codec_idle_detect_control(struct snd_soc_component *component,
  * Returns number of main clock users
  */
 int tavil_codec_enable_interp_clk(struct snd_soc_component *component,
+				  int event, int interp_idx);
+
+int tavil_codec_enable_interp_clk(struct snd_soc_component *component,
 				  int event, int interp_idx)
 {
 	struct tavil_priv *tavil;
@@ -4186,6 +4197,9 @@ static int tavil_codec_enable_mix_path(struct snd_soc_dapm_widget *w,
  *
  * Returns pointer to tavil_dsd_config structure
  */
+struct tavil_dsd_config *tavil_get_dsd_config(
+			struct snd_soc_component *component);
+
 struct tavil_dsd_config *tavil_get_dsd_config(
 			struct snd_soc_component *component)
 {
@@ -4981,6 +4995,9 @@ static int tavil_codec_enable_dmic(struct snd_soc_dapm_widget *w,
  * return 0 if adjustment is success or error code in case of failure
  */
 int tavil_mbhc_micb_adjust_voltage(struct snd_soc_component *component,
+				   int req_volt, int micb_num);
+
+int tavil_mbhc_micb_adjust_voltage(struct snd_soc_component *component,
 				   int req_volt, int micb_num)
 {
 	struct tavil_priv *tavil = snd_soc_component_get_drvdata(component);
@@ -5060,6 +5077,9 @@ EXPORT_SYMBOL(tavil_mbhc_micb_adjust_voltage);
  *
  * return 0 if control is success or error code in case of failure
  */
+int tavil_micbias_control(struct snd_soc_component *component,
+			  int micb_num, int req, bool is_dapm);
+
 int tavil_micbias_control(struct snd_soc_component *component,
 			  int micb_num, int req, bool is_dapm)
 {
@@ -5229,6 +5249,10 @@ static int __tavil_codec_enable_micbias(struct snd_soc_dapm_widget *w,
  *
  * Return: error code in case of failure or 0 for success
  */
+int tavil_codec_enable_standalone_micbias(struct snd_soc_component *component,
+					  int micb_num,
+					  bool enable);
+
 int tavil_codec_enable_standalone_micbias(struct snd_soc_component *component,
 					  int micb_num,
 					  bool enable)
@@ -8452,7 +8476,7 @@ static const struct snd_soc_dapm_widget tavil_dapm_widgets[] = {
 	SND_SOC_DAPM_OUTPUT("WDMA3_OUT"),
 };
 
-static int tavil_get_channel_map(struct snd_soc_dai *dai,
+static int tavil_get_channel_map(const struct snd_soc_dai *dai,
 				 unsigned int *tx_num, unsigned int *tx_slot,
 				 unsigned int *rx_num, unsigned int *rx_slot)
 {
@@ -8971,7 +8995,7 @@ static int tavil_set_dai_fmt(struct snd_soc_dai *dai, unsigned int fmt)
 	}
 
 	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
-	case SND_SOC_DAIFMT_CBS_CFS:
+	case SND_SOC_DAIFMT_CBC_CFC:
 		/* CPU is master */
 		snd_soc_component_update_bits(dai->component, i2s_reg,
 					0x2, 0x0);
@@ -9473,6 +9497,9 @@ static struct snd_info_entry_ops tavil_codec_info_ops = {
  * Return: 0 on success or negative error code on failure.
  */
 int tavil_codec_info_create_codec_entry(struct snd_info_entry *codec_root,
+					struct snd_soc_component *component);
+
+int tavil_codec_info_create_codec_entry(struct snd_info_entry *codec_root,
 					struct snd_soc_component *component)
 {
 	struct snd_info_entry *version_entry;
@@ -9524,6 +9551,8 @@ EXPORT_SYMBOL(tavil_codec_info_create_codec_entry);
  *
  * Returns 0 on Success and error on failure
  */
+int tavil_cdc_mclk_enable(struct snd_soc_component *component, bool enable);
+
 int tavil_cdc_mclk_enable(struct snd_soc_component *component, bool enable)
 {
 	struct tavil_priv *tavil = snd_soc_component_get_drvdata(component);
@@ -9595,6 +9624,8 @@ static int tavil_codec_internal_rco_ctrl(struct snd_soc_component *component,
  * @component: Handle to codec
  * @enable: Indicates whether clock should be enabled or disabled
  */
+int tavil_cdc_mclk_tx_enable(struct snd_soc_component *component, bool enable);
+
 int tavil_cdc_mclk_tx_enable(struct snd_soc_component *component, bool enable)
 {
 	struct tavil_priv *tavil_p;
@@ -10047,6 +10078,8 @@ static void tavil_cleanup_irqs(struct tavil_priv *tavil)
  *
  * return register value converted
  */
+int wcd934x_get_micb_vout_ctl_val(u32 micb_mv);
+
 int wcd934x_get_micb_vout_ctl_val(u32 micb_mv)
 {
 	/* min micbias voltage is 1V and maximum is 2.85V */
@@ -10237,6 +10270,8 @@ static int tavil_wdsp_initialize(struct snd_soc_component *component)
  *
  * return wcd934x_mbhc handle or error code in case of failure
  */
+struct wcd934x_mbhc *tavil_soc_get_mbhc(struct snd_soc_component *component);
+
 struct wcd934x_mbhc *tavil_soc_get_mbhc(struct snd_soc_component *component)
 {
 	struct tavil_priv *tavil;
@@ -11077,11 +11112,11 @@ static void tavil_add_child_devices(struct work_struct *work)
 
 		/* Parse other child device nodes and add platform device */
 		if (!strcmp(node->name, "swr_master"))
-			strlcpy(plat_dev_name, "tavil_swr_ctrl",
+			strscpy(plat_dev_name, "tavil_swr_ctrl",
 				(WCD934X_STRING_LEN - 1));
 		else if (strnstr(node->name, "msm_cdc_pinctrl",
 				 strlen("msm_cdc_pinctrl")) != NULL)
-			strlcpy(plat_dev_name, node->name,
+			strscpy(plat_dev_name, node->name,
 				(WCD934X_STRING_LEN - 1));
 		else
 			continue;
@@ -11224,6 +11259,8 @@ static void ___tavil_get_codec_fine_version(struct tavil_priv *tavil)
  *
  * This API gets the reference to codec's struct wcd_dsp_cntl
  */
+struct wcd_dsp_cntl *tavil_get_wcd_dsp_cntl(struct device *dev);
+
 struct wcd_dsp_cntl *tavil_get_wcd_dsp_cntl(struct device *dev)
 {
 	struct platform_device *pdev;
@@ -11438,14 +11475,14 @@ err_resmgr:
 	return ret;
 }
 
-static int tavil_remove(struct platform_device *pdev)
+static void tavil_remove(struct platform_device *pdev)
 {
 	struct tavil_priv *tavil;
 	int count = 0;
 
 	tavil = platform_get_drvdata(pdev);
 	if (!tavil)
-		return -EINVAL;
+		return;
 
 	/* do dsd deinit before codec->component->regmap becomes freed */
 	if (tavil->dsd_config) {
@@ -11475,7 +11512,7 @@ static int tavil_remove(struct platform_device *pdev)
 	clk_put(tavil->wcd_ext_clk);
 	wcd_resmgr_remove(tavil->resmgr);
 	devm_kfree(&pdev->dev, tavil);
-	return 0;
+	return;
 }
 
 static struct platform_driver tavil_codec_driver = {

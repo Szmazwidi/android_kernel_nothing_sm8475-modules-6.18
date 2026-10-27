@@ -27,6 +27,9 @@
  * Return: 0 on success or negative error code on failure.
  */
 int wsa883x_get_temp(struct thermal_zone_device *thermal,
+		     int *temp);
+
+int wsa883x_get_temp(struct thermal_zone_device *thermal,
 		     int *temp)
 {
 	struct wsa883x_tz_priv *pdata;
@@ -147,6 +150,8 @@ static int wsa883x_pm_notify(struct notifier_block *nb,
 	return 0;
 }
 
+int wsa883x_init_thermal(struct wsa883x_tz_priv *tz_pdata);
+
 int wsa883x_init_thermal(struct wsa883x_tz_priv *tz_pdata)
 {
 	struct thermal_zone_device *tz_dev;
@@ -171,6 +176,8 @@ int wsa883x_init_thermal(struct wsa883x_tz_priv *tz_pdata)
 	return 0;
 }
 EXPORT_SYMBOL(wsa883x_init_thermal);
+
+void wsa883x_deinit_thermal(struct thermal_zone_device *tz_dev);
 
 void wsa883x_deinit_thermal(struct thermal_zone_device *tz_dev)
 {

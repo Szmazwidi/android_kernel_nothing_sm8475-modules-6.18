@@ -19,6 +19,8 @@
  *
  * Returns handle pointer on success or error PTR on failure
  */
+void *audio_ssr_register(const char *domain_name, struct notifier_block *nb);
+
 void *audio_ssr_register(const char *domain_name, struct notifier_block *nb)
 {
 	if (domain_name  == NULL) {
@@ -39,6 +41,8 @@ EXPORT_SYMBOL(audio_ssr_register);
  *
  * Returns 0 on success or error on failure
  */
+int audio_ssr_deregister(void *handle, struct notifier_block *nb);
+
 int audio_ssr_deregister(void *handle, struct notifier_block *nb)
 {
 	return qcom_unregister_ssr_notifier(handle, nb);

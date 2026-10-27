@@ -3,6 +3,7 @@
  * Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
+#include <linux/of_platform.h>
 #include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/io.h>
@@ -66,6 +67,8 @@ static struct msm_cdc_pinctrl_info *msm_cdc_pinctrl_get_gpiodata(
  *
  * Returns error code for failure and GPIO value on success
  */
+int msm_cdc_get_gpio_state(struct device_node *np);
+
 int msm_cdc_get_gpio_state(struct device_node *np)
 {
 	struct msm_cdc_pinctrl_info *gpio_data;
@@ -88,6 +91,8 @@ EXPORT_SYMBOL(msm_cdc_get_gpio_state);
  *
  * Returns error code for failure
  */
+int msm_cdc_pinctrl_select_sleep_state(struct device_node *np);
+
 int msm_cdc_pinctrl_select_sleep_state(struct device_node *np)
 {
 	struct msm_cdc_pinctrl_info *gpio_data;
@@ -113,6 +118,8 @@ EXPORT_SYMBOL(msm_cdc_pinctrl_select_sleep_state);
  *
  * Returns error code for failure
  */
+int msm_cdc_pinctrl_select_alt_active_state(struct device_node *np);
+
 int msm_cdc_pinctrl_select_alt_active_state(struct device_node *np)
 {
 	struct msm_cdc_pinctrl_info *gpio_data;
@@ -138,6 +145,8 @@ EXPORT_SYMBOL(msm_cdc_pinctrl_select_alt_active_state);
  *
  * Returns error code for failure
  */
+int msm_cdc_pinctrl_select_active_state(struct device_node *np);
+
 int msm_cdc_pinctrl_select_active_state(struct device_node *np)
 {
 	struct msm_cdc_pinctrl_info *gpio_data;
@@ -164,6 +173,8 @@ EXPORT_SYMBOL(msm_cdc_pinctrl_select_active_state);
  * Returns 0 for sleep state, 1 for active state,
  * error code for failure
  */
+int msm_cdc_pinctrl_get_state(struct device_node *np);
+
 int msm_cdc_pinctrl_get_state(struct device_node *np)
 {
 	struct msm_cdc_pinctrl_info *gpio_data;
@@ -183,6 +194,8 @@ EXPORT_SYMBOL(msm_cdc_pinctrl_get_state);
  *
  * Returns 0 for success and error code for failure
  */
+int msm_cdc_pinctrl_set_wakeup_capable(struct device_node *np, bool enable);
+
 int msm_cdc_pinctrl_set_wakeup_capable(struct device_node *np, bool enable)
 {
 	struct msm_cdc_pinctrl_info *gpio_data;
@@ -346,7 +359,7 @@ err_pctrl_get:
 	return ret;
 }
 
-static int msm_cdc_pinctrl_remove(struct platform_device *pdev)
+static void msm_cdc_pinctrl_remove(struct platform_device *pdev)
 {
 	struct msm_cdc_pinctrl_info *gpio_data;
 
@@ -363,7 +376,7 @@ static int msm_cdc_pinctrl_remove(struct platform_device *pdev)
 
 	devm_kfree(&pdev->dev, gpio_data);
 
-	return 0;
+	return;
 }
 
 static const struct of_device_id msm_cdc_pinctrl_match[] = {
@@ -382,10 +395,14 @@ static struct platform_driver msm_cdc_pinctrl_driver = {
 	.remove = msm_cdc_pinctrl_remove,
 };
 
+int msm_cdc_pinctrl_drv_init(void);
+
 int msm_cdc_pinctrl_drv_init(void)
 {
 	return platform_driver_register(&msm_cdc_pinctrl_driver);
 }
+
+void msm_cdc_pinctrl_drv_exit(void);
 
 void msm_cdc_pinctrl_drv_exit(void)
 {

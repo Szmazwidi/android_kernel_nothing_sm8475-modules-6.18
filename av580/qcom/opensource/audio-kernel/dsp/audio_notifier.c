@@ -3,6 +3,7 @@
  * Copyright (c) 2016-2017, 2020-2021 The Linux Foundation. All rights reserved.
  */
 
+#include <linux/of.h>
 #include <linux/init.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -495,6 +496,8 @@ static int audio_notifier_ssr_modem_cb(struct notifier_block *this,
 					AUDIO_NOTIFIER_MODEM_DOMAIN);
 }
 
+int audio_notifier_deregister(char *client_name);
+
 int audio_notifier_deregister(char *client_name)
 {
 	int ret = 0;
@@ -530,6 +533,9 @@ done:
 EXPORT_SYMBOL(audio_notifier_deregister);
 
 int audio_notifier_register(char *client_name, int domain,
+			    struct notifier_block *nb);
+
+int audio_notifier_register(char *client_name, int domain,
 			    struct notifier_block *nb)
 {
 	int ret;
@@ -552,7 +558,7 @@ int audio_notifier_register(char *client_name, int domain,
 	}
 	INIT_LIST_HEAD(&client_data->list);
 	client_data->nb = nb;
-	strlcpy(client_data->client_name, client_name,
+	strscpy(client_data->client_name, client_name,
 		sizeof(client_data->client_name));
 	client_data->service = NO_SERVICE;
 	client_data->domain = domain;
@@ -605,6 +611,8 @@ static int audio_notifier_late_init(void)
 	mutex_unlock(&notifier_mutex);
 	return 0;
 }
+
+bool audio_notifier_probe_status(void);
 
 bool audio_notifier_probe_status(void)
 {
@@ -673,9 +681,9 @@ static int audio_notify_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static int audio_notify_remove(struct platform_device *pdev)
+static void audio_notify_remove(struct platform_device *pdev)
 {
-	return 0;
+	return;
 }
 
 static const struct of_device_id adsp_notify_dt_match[] = {

@@ -3,6 +3,8 @@
  * Copyright (c) 2016-2020, The Linux Foundation. All rights reserved.
  */
 
+#include <linux/of_platform.h>
+#include <linux/of.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/of_irq.h>
@@ -148,6 +150,12 @@ bool msm_cdc_is_ondemand_supply(struct device *dev,
 				struct regulator_bulk_data *supplies,
 				struct cdc_regulator *cdc_vreg,
 				int num_supplies,
+				char *supply_name);
+
+bool msm_cdc_is_ondemand_supply(struct device *dev,
+				struct regulator_bulk_data *supplies,
+				struct cdc_regulator *cdc_vreg,
+				int num_supplies,
 				char *supply_name)
 {
 	bool rc = false;
@@ -186,6 +194,12 @@ EXPORT_SYMBOL(msm_cdc_is_ondemand_supply);
  * @override_min_vol: True if override min voltage from default
  * Return error code if unable to set voltage
  */
+int msm_cdc_set_supply_min_voltage(struct device *dev,
+				    struct regulator_bulk_data *supplies,
+				    struct cdc_regulator *cdc_vreg,
+				    int num_supplies, char *supply_name,
+				    int vval_min, bool override_min_vol);
+
 int msm_cdc_set_supply_min_voltage(struct device *dev,
 				    struct regulator_bulk_data *supplies,
 				    struct cdc_regulator *cdc_vreg,
@@ -231,6 +245,12 @@ EXPORT_SYMBOL(msm_cdc_set_supply_min_voltage);
  *
  * Return error code if supply disable is failed
  */
+int msm_cdc_disable_ondemand_supply(struct device *dev,
+				    struct regulator_bulk_data *supplies,
+				    struct cdc_regulator *cdc_vreg,
+				    int num_supplies,
+				    char *supply_name);
+
 int msm_cdc_disable_ondemand_supply(struct device *dev,
 				    struct regulator_bulk_data *supplies,
 				    struct cdc_regulator *cdc_vreg,
@@ -281,6 +301,12 @@ EXPORT_SYMBOL(msm_cdc_disable_ondemand_supply);
  *
  * Return error code if supply enable is failed
  */
+int msm_cdc_enable_ondemand_supply(struct device *dev,
+				   struct regulator_bulk_data *supplies,
+				   struct cdc_regulator *cdc_vreg,
+				   int num_supplies,
+				   char *supply_name);
+
 int msm_cdc_enable_ondemand_supply(struct device *dev,
 				   struct regulator_bulk_data *supplies,
 				   struct cdc_regulator *cdc_vreg,
@@ -336,6 +362,12 @@ int msm_cdc_set_supplies_lpm_mode(struct device *dev,
 				struct regulator_bulk_data *supplies,
 				struct cdc_regulator *cdc_vreg,
 				int num_supplies,
+				bool flag);
+
+int msm_cdc_set_supplies_lpm_mode(struct device *dev,
+				struct regulator_bulk_data *supplies,
+				struct cdc_regulator *cdc_vreg,
+				int num_supplies,
 				bool flag)
 {
 	int rc = 0, i;
@@ -386,6 +418,11 @@ EXPORT_SYMBOL(msm_cdc_set_supplies_lpm_mode);
 int msm_cdc_disable_static_supplies(struct device *dev,
 				    struct regulator_bulk_data *supplies,
 				    struct cdc_regulator *cdc_vreg,
+				    int num_supplies);
+
+int msm_cdc_disable_static_supplies(struct device *dev,
+				    struct regulator_bulk_data *supplies,
+				    struct cdc_regulator *cdc_vreg,
 				    int num_supplies)
 {
 	int rc, i;
@@ -431,6 +468,11 @@ EXPORT_SYMBOL(msm_cdc_disable_static_supplies);
 int msm_cdc_release_supplies(struct device *dev,
 			     struct regulator_bulk_data *supplies,
 			     struct cdc_regulator *cdc_vreg,
+			     int num_supplies);
+
+int msm_cdc_release_supplies(struct device *dev,
+			     struct regulator_bulk_data *supplies,
+			     struct cdc_regulator *cdc_vreg,
 			     int num_supplies)
 {
 	int rc = 0;
@@ -472,6 +514,11 @@ EXPORT_SYMBOL(msm_cdc_release_supplies);
  *
  * Return error code if supply enable is failed
  */
+int msm_cdc_enable_static_supplies(struct device *dev,
+				   struct regulator_bulk_data *supplies,
+				   struct cdc_regulator *cdc_vreg,
+				   int num_supplies);
+
 int msm_cdc_enable_static_supplies(struct device *dev,
 				   struct regulator_bulk_data *supplies,
 				   struct cdc_regulator *cdc_vreg,
@@ -523,6 +570,11 @@ EXPORT_SYMBOL(msm_cdc_enable_static_supplies);
 int msm_cdc_init_supplies(struct device *dev,
 			  struct regulator_bulk_data **supplies,
 			  struct cdc_regulator *cdc_vreg,
+			  int num_supplies);
+
+int msm_cdc_init_supplies(struct device *dev,
+			  struct regulator_bulk_data **supplies,
+			  struct cdc_regulator *cdc_vreg,
 			  int num_supplies)
 {
 	return msm_cdc_init_supplies_v2(dev, supplies, cdc_vreg,
@@ -543,6 +595,11 @@ EXPORT_SYMBOL(msm_cdc_init_supplies);
  *
  * Return error code if supply init is failed
  */
+int msm_cdc_init_supplies_v2(struct device *dev,
+			  struct regulator_bulk_data **supplies,
+			  struct cdc_regulator *cdc_vreg,
+			  int num_supplies, u32 vote_regulator_on_demand);
+
 int msm_cdc_init_supplies_v2(struct device *dev,
 			  struct regulator_bulk_data **supplies,
 			  struct cdc_regulator *cdc_vreg,
@@ -631,6 +688,10 @@ EXPORT_SYMBOL(msm_cdc_init_supplies_v2);
  *
  * Return error code if supply disable is failed
  */
+int msm_cdc_get_power_supplies(struct device *dev,
+			       struct cdc_regulator **cdc_vreg,
+			       int *total_num_supplies);
+
 int msm_cdc_get_power_supplies(struct device *dev,
 			       struct cdc_regulator **cdc_vreg,
 			       int *total_num_supplies)
@@ -730,6 +791,9 @@ EXPORT_SYMBOL(msm_cdc_get_power_supplies);
  * Return error code if init failed
  */
 int msm_cdc_init_wcd_supply(struct device_node *np, const char *name,
+			    struct cdc_wcd_supply *cdc_supply);
+
+int msm_cdc_init_wcd_supply(struct device_node *np, const char *name,
 			    struct cdc_wcd_supply *cdc_supply)
 {
 	struct platform_device *pdev = NULL;
@@ -758,6 +822,8 @@ EXPORT_SYMBOL(msm_cdc_init_wcd_supply);
  *
  * Return error code if enable/disable failed
  */
+int msm_cdc_enable_wcd_supply(struct cdc_wcd_supply *cdc_supply, bool enable);
+
 int msm_cdc_enable_wcd_supply(struct cdc_wcd_supply *cdc_supply, bool enable)
 {
 	struct snd_soc_component *component = cdc_supply->component;

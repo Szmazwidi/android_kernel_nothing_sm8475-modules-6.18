@@ -906,6 +906,9 @@ static const struct snd_kcontrol_new impedance_detect_controls[] = {
  * return 0 for success or error code in case of failure
  */
 int wcd938x_mbhc_get_impedance(struct wcd938x_mbhc *wcd938x_mbhc,
+			     uint32_t *zl, uint32_t *zr);
+
+int wcd938x_mbhc_get_impedance(struct wcd938x_mbhc *wcd938x_mbhc,
 			     uint32_t *zl, uint32_t *zr)
 {
 	if (!wcd938x_mbhc) {
@@ -927,6 +930,9 @@ EXPORT_SYMBOL(wcd938x_mbhc_get_impedance);
  * @mbhc_cfg: handle to mbhc configuration structure
  * return 0 if mbhc_start is success or error code in case of failure
  */
+int wcd938x_mbhc_hs_detect(struct snd_soc_component *component,
+			 struct wcd_mbhc_config *mbhc_cfg);
+
 int wcd938x_mbhc_hs_detect(struct snd_soc_component *component,
 			 struct wcd_mbhc_config *mbhc_cfg)
 {
@@ -958,6 +964,8 @@ EXPORT_SYMBOL(wcd938x_mbhc_hs_detect);
  * wcd938x_mbhc_hs_detect_exit: stop mbhc insertion/removal functionality
  * @component: handle to snd_soc_component *
  */
+void wcd938x_mbhc_hs_detect_exit(struct snd_soc_component *component);
+
 void wcd938x_mbhc_hs_detect_exit(struct snd_soc_component *component)
 {
 	struct wcd938x_priv *wcd938x = NULL;
@@ -990,6 +998,9 @@ EXPORT_SYMBOL(wcd938x_mbhc_hs_detect_exit);
  * component: handle to snd_soc_component *
  */
 void wcd938x_mbhc_ssr_down(struct wcd938x_mbhc *mbhc,
+			struct snd_soc_component *component);
+
+void wcd938x_mbhc_ssr_down(struct wcd938x_mbhc *mbhc,
 			struct snd_soc_component *component)
 {
 	struct wcd_mbhc *wcd_mbhc = NULL;
@@ -1016,6 +1027,9 @@ EXPORT_SYMBOL(wcd938x_mbhc_ssr_down);
  *
  * return 0 if mbhc_init is success or error code in case of failure
  */
+int wcd938x_mbhc_post_ssr_init(struct wcd938x_mbhc *mbhc,
+			     struct snd_soc_component *component);
+
 int wcd938x_mbhc_post_ssr_init(struct wcd938x_mbhc *mbhc,
 			     struct snd_soc_component *component)
 {
@@ -1055,6 +1069,10 @@ EXPORT_SYMBOL(wcd938x_mbhc_post_ssr_init);
  *
  * return 0 if mbhc_init is success or error code in case of failure
  */
+int wcd938x_mbhc_init(struct wcd938x_mbhc **mbhc,
+				struct snd_soc_component *component,
+				struct fw_info *fw_data);
+
 int wcd938x_mbhc_init(struct wcd938x_mbhc **mbhc,
 				struct snd_soc_component *component,
 				struct fw_info *fw_data)
@@ -1121,6 +1139,8 @@ EXPORT_SYMBOL(wcd938x_mbhc_init);
  * wcd938x_mbhc_deinit: deinitialize mbhc for wcd938x
  * @codec: handle to snd_soc_component *
  */
+void wcd938x_mbhc_deinit(struct snd_soc_component *component);
+
 void wcd938x_mbhc_deinit(struct snd_soc_component *component)
 {
 	struct wcd938x_priv *wcd938x;

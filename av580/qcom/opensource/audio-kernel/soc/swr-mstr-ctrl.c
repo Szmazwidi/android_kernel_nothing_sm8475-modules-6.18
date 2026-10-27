@@ -1202,6 +1202,8 @@ end:
 	return is_removed;
 }
 
+int swrm_get_clk_div_rate(int mclk_freq, int bus_clk_freq);
+
 int swrm_get_clk_div_rate(int mclk_freq, int bus_clk_freq)
 {
 	if (!bus_clk_freq)
@@ -3094,7 +3096,7 @@ err_memory_fail:
 	return ret;
 }
 
-static int swrm_remove(struct platform_device *pdev)
+static void swrm_remove(struct platform_device *pdev)
 {
 	struct swr_mstr_ctrl *swrm = platform_get_drvdata(pdev);
 
@@ -3129,7 +3131,7 @@ static int swrm_remove(struct platform_device *pdev)
 	mutex_destroy(&swrm->runtime_lock);
 	cpu_latency_qos_remove_request(&swrm->pm_qos_req);
 	devm_kfree(&pdev->dev, swrm);
-	return 0;
+	return;
 }
 
 static int swrm_clk_pause(struct swr_mstr_ctrl *swrm)
@@ -3453,6 +3455,8 @@ static int swrm_device_down(struct device *dev)
 	return 0;
 }
 
+int swrm_register_wake_irq(struct swr_mstr_ctrl *swrm);
+
 int swrm_register_wake_irq(struct swr_mstr_ctrl *swrm)
 {
 	int ret = 0;
@@ -3546,6 +3550,8 @@ static int swrm_copy_port_config(struct swr_mstr_ctrl *swrm,
  * @id: command id from parent to the soundwire master
  * @data: data from parent device to soundwire master
  */
+int swrm_wcd_notify(struct platform_device *pdev, u32 id, void *data);
+
 int swrm_wcd_notify(struct platform_device *pdev, u32 id, void *data)
 {
 	struct swr_mstr_ctrl *swrm;

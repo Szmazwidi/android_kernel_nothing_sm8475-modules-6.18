@@ -2,6 +2,7 @@
 /* Copyright (c) 2011-2021, The Linux Foundation. All rights reserved.
  */
 
+#include <linux/of.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/of_device.h>
@@ -114,6 +115,11 @@ struct wcd9xxx_i2c wcd9xxx_modules[MAX_WCD9XXX_DEVICE];
 int wcd9xxx_vote_ondemand_regulator(struct wcd9xxx *wcd9xxx,
 				    struct wcd9xxx_pdata *pdata,
 				    const char *supply_name,
+				    bool enable);
+
+int wcd9xxx_vote_ondemand_regulator(struct wcd9xxx *wcd9xxx,
+				    struct wcd9xxx_pdata *pdata,
+				    const char *supply_name,
 				    bool enable)
 {
 	int i, rc, index = -EINVAL;
@@ -223,6 +229,8 @@ static int wcd9xxx_slim_multi_reg_write(struct wcd9xxx *wcd9xxx,
  *
  * Returns register value in success and negative error code in case of failure
  */
+int wcd9xxx_interface_reg_read(struct wcd9xxx *wcd9xxx, unsigned short reg);
+
 int wcd9xxx_interface_reg_read(struct wcd9xxx *wcd9xxx, unsigned short reg)
 {
 	u8 val;
@@ -256,6 +264,9 @@ EXPORT_SYMBOL(wcd9xxx_interface_reg_read);
  *
  * Returns 0 for success and negative error code in case of failure
  */
+int wcd9xxx_interface_reg_write(struct wcd9xxx *wcd9xxx, unsigned short reg,
+		     u8 val);
+
 int wcd9xxx_interface_reg_write(struct wcd9xxx *wcd9xxx, unsigned short reg,
 		     u8 val)
 {
@@ -377,6 +388,9 @@ static int wcd9xxx_slim_get_allowed_slice(struct wcd9xxx *wcd9xxx,
  * transaction. All values from 1 to 16 are supported by this API.
  */
 int wcd9xxx_slim_write_repeat(struct wcd9xxx *wcd9xxx, unsigned short reg,
+			      int bytes, void *src);
+
+int wcd9xxx_slim_write_repeat(struct wcd9xxx *wcd9xxx, unsigned short reg,
 			      int bytes, void *src)
 {
 	int ret = 0, bytes_to_write = bytes, bytes_allowed;
@@ -444,6 +458,9 @@ EXPORT_SYMBOL(wcd9xxx_slim_write_repeat);
  *	    right away
  */
 int wcd9xxx_slim_reserve_bw(struct wcd9xxx *wcd9xxx,
+		u32 bw_ops, bool commit);
+
+int wcd9xxx_slim_reserve_bw(struct wcd9xxx *wcd9xxx,
 		u32 bw_ops, bool commit)
 {
 	if (!wcd9xxx || !wcd9xxx->slim) {
@@ -467,6 +484,10 @@ EXPORT_SYMBOL(wcd9xxx_slim_reserve_bw);
  * @return: returns 0 if success or error information to the caller in case
  *	    of failure.
  */
+int wcd9xxx_slim_bulk_write(struct wcd9xxx *wcd9xxx,
+			    struct wcd9xxx_reg_val *bulk_reg,
+			    unsigned int size, bool is_interface);
+
 int wcd9xxx_slim_bulk_write(struct wcd9xxx *wcd9xxx,
 			    struct wcd9xxx_reg_val *bulk_reg,
 			    unsigned int size, bool is_interface)
@@ -994,10 +1015,16 @@ static int wcd9xxx_i2c_read_device(struct wcd9xxx *wcd9xxx, unsigned short reg,
 }
 
 int wcd9xxx_i2c_read(struct wcd9xxx *wcd9xxx, unsigned short reg,
+			int bytes, void *dest, bool interface_reg);
+
+int wcd9xxx_i2c_read(struct wcd9xxx *wcd9xxx, unsigned short reg,
 			int bytes, void *dest, bool interface_reg)
 {
 	return wcd9xxx_i2c_read_device(wcd9xxx, reg, bytes, dest);
 }
+
+int wcd9xxx_i2c_write(struct wcd9xxx *wcd9xxx, unsigned short reg,
+			 int bytes, void *src, bool interface_reg);
 
 int wcd9xxx_i2c_write(struct wcd9xxx *wcd9xxx, unsigned short reg,
 			 int bytes, void *src, bool interface_reg)
@@ -1220,7 +1247,7 @@ fail:
 	return ret;
 }
 
-static int wcd9xxx_i2c_remove(struct i2c_client *client)
+static void wcd9xxx_i2c_remove(struct i2c_client *client)
 {
 	struct wcd9xxx *wcd9xxx;
 	struct wcd9xxx_pdata *pdata = client->dev.platform_data;
@@ -1231,7 +1258,7 @@ static int wcd9xxx_i2c_remove(struct i2c_client *client)
 				 pdata->num_supplies);
 	wcd9xxx_device_exit(wcd9xxx);
 	dev_set_drvdata(&client->dev, NULL);
-	return 0;
+	return;
 }
 
 static int wcd9xxx_dt_parse_slim_interface_dev_info(struct device *dev,
@@ -1755,6 +1782,8 @@ static struct i2c_driver wcd934x_i2c_driver = {
 	.remove                 =       wcd9xxx_i2c_remove,
 };
 
+int wcd9xxx_init(void);
+
 int wcd9xxx_init(void)
 {
 	int ret[NUM_WCD9XXX_REG_RET] = {0};
@@ -1794,6 +1823,8 @@ int wcd9xxx_init(void)
 
 	return 0;
 }
+
+void wcd9xxx_exit(void);
 
 void wcd9xxx_exit(void)
 {

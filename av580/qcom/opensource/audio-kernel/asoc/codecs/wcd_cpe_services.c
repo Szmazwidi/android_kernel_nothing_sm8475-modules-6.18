@@ -1517,6 +1517,10 @@ static enum cpe_svc_result cpe_mt_validate_cmd(
 
 void *cpe_svc_initialize(
 		void irq_control_callback(u32 enable),
+		const void *codec_info, void *context);
+
+void *cpe_svc_initialize(
+		void irq_control_callback(u32 enable),
 		const void *codec_info, void *context)
 {
 	struct cpe_info *t_info = NULL;
@@ -1605,6 +1609,8 @@ err_register:
 	return NULL;
 }
 
+enum cpe_svc_result cpe_svc_deinitialize(void *cpe_handle);
+
 enum cpe_svc_result cpe_svc_deinitialize(void *cpe_handle)
 {
 	enum cpe_svc_result rc = CPE_SVC_SUCCESS;
@@ -1639,6 +1645,11 @@ enum cpe_svc_result cpe_svc_deinitialize(void *cpe_handle)
 void *cpe_svc_register(void *cpe_handle,
 		void (*notification_callback)
 			(const struct cpe_svc_notification *parameter),
+		u32 mask, const char *name);
+
+void *cpe_svc_register(void *cpe_handle,
+		void (*notification_callback)
+			(const struct cpe_svc_notification *parameter),
 		u32 mask, const char *name)
 {
 	void *reg_handle;
@@ -1668,6 +1679,8 @@ void *cpe_svc_register(void *cpe_handle,
 	return reg_handle;
 }
 
+enum cpe_svc_result cpe_svc_deregister(void *cpe_handle, void *reg_handle);
+
 enum cpe_svc_result cpe_svc_deregister(void *cpe_handle, void *reg_handle)
 {
 	enum cpe_svc_result rc;
@@ -1682,6 +1695,9 @@ enum cpe_svc_result cpe_svc_deregister(void *cpe_handle, void *reg_handle)
 
 	return rc;
 }
+
+enum cpe_svc_result cpe_svc_download_segment(void *cpe_handle,
+	const struct cpe_svc_mem_segment *segment);
 
 enum cpe_svc_result cpe_svc_download_segment(void *cpe_handle,
 	const struct cpe_svc_mem_segment *segment)
@@ -1711,6 +1727,8 @@ enum cpe_svc_result cpe_svc_download_segment(void *cpe_handle,
 
 	return rc;
 }
+
+enum cpe_svc_result cpe_svc_boot(void *cpe_handle, int debug_mode);
 
 enum cpe_svc_result cpe_svc_boot(void *cpe_handle, int debug_mode)
 {
@@ -1742,6 +1760,8 @@ enum cpe_svc_result cpe_svc_boot(void *cpe_handle, int debug_mode)
 	return rc;
 }
 
+enum cpe_svc_result cpe_svc_process_irq(void *cpe_handle, u32 cpe_irq);
+
 enum cpe_svc_result cpe_svc_process_irq(void *cpe_handle, u32 cpe_irq)
 {
 	enum cpe_svc_result rc = CPE_SVC_SUCCESS;
@@ -1756,6 +1776,9 @@ enum cpe_svc_result cpe_svc_process_irq(void *cpe_handle, u32 cpe_irq)
 
 	return rc;
 }
+
+enum cpe_svc_result cpe_svc_route_notification(void *cpe_handle,
+		enum cpe_svc_module module, enum cpe_svc_route_dest dest);
 
 enum cpe_svc_result cpe_svc_route_notification(void *cpe_handle,
 		enum cpe_svc_module module, enum cpe_svc_route_dest dest)
@@ -1832,6 +1855,8 @@ static enum cpe_svc_result __cpe_svc_shutdown(void *cpe_handle)
 	return rc;
 }
 
+enum cpe_svc_result cpe_svc_shutdown(void *cpe_handle);
+
 enum cpe_svc_result cpe_svc_shutdown(void *cpe_handle)
 {
 	enum cpe_svc_result rc = CPE_SVC_SUCCESS;
@@ -1841,6 +1866,8 @@ enum cpe_svc_result cpe_svc_shutdown(void *cpe_handle)
 	CPE_SVC_REL_LOCK(&cpe_d.cpe_api_mutex, "cpe_api");
 	return rc;
 }
+
+enum cpe_svc_result cpe_svc_reset(void *cpe_handle);
 
 enum cpe_svc_result cpe_svc_reset(void *cpe_handle)
 {
@@ -1873,6 +1900,9 @@ enum cpe_svc_result cpe_svc_reset(void *cpe_handle)
 }
 
 enum cpe_svc_result cpe_svc_ramdump(void *cpe_handle,
+		struct cpe_svc_mem_segment *buffer);
+
+enum cpe_svc_result cpe_svc_ramdump(void *cpe_handle,
 		struct cpe_svc_mem_segment *buffer)
 {
 	enum cpe_svc_result rc = CPE_SVC_SUCCESS;
@@ -1901,6 +1931,8 @@ enum cpe_svc_result cpe_svc_ramdump(void *cpe_handle,
 	return rc;
 }
 
+enum cpe_svc_result cpe_svc_set_debug_mode(void *cpe_handle, u32 mode);
+
 enum cpe_svc_result cpe_svc_set_debug_mode(void *cpe_handle, u32 mode)
 {
 	struct cpe_info *t_info = (struct cpe_info *)cpe_handle;
@@ -1917,6 +1949,8 @@ enum cpe_svc_result cpe_svc_set_debug_mode(void *cpe_handle, u32 mode)
 	return rc;
 }
 
+const struct cpe_svc_hw_cfg *cpe_svc_get_hw_cfg(void *cpe_handle);
+
 const struct cpe_svc_hw_cfg *cpe_svc_get_hw_cfg(void *cpe_handle)
 {
 	struct cpe_info *t_info = (struct cpe_info *)cpe_handle;
@@ -1929,6 +1963,11 @@ const struct cpe_svc_hw_cfg *cpe_svc_get_hw_cfg(void *cpe_handle)
 
 	return NULL;
 }
+
+void *cmi_register(
+		void notification_callback(
+			const struct cmi_api_notification *parameter),
+		u32 service);
 
 void *cmi_register(
 		void notification_callback(
@@ -1949,6 +1988,8 @@ void *cmi_register(
 
 	return reg_handle;
 }
+
+enum cmi_api_result cmi_deregister(void *reg_handle);
 
 enum cmi_api_result cmi_deregister(void *reg_handle)
 {
@@ -1978,6 +2019,8 @@ enum cmi_api_result cmi_deregister(void *reg_handle)
 	CPE_SVC_REL_LOCK(&cpe_d.cpe_api_mutex, "cpe_api");
 	return rc;
 }
+
+enum cmi_api_result cmi_send_msg(void *message);
 
 enum cmi_api_result cmi_send_msg(void *message)
 {
@@ -2026,6 +2069,8 @@ enum cmi_api_result cmi_send_msg(void *message)
 	CPE_SVC_REL_LOCK(&cpe_d.cpe_api_mutex, "cpe_api");
 	return rc;
 }
+
+enum cpe_svc_result cpe_svc_ftm_test(void *cpe_handle, u32 *status);
 
 enum cpe_svc_result cpe_svc_ftm_test(void *cpe_handle, u32 *status)
 {
@@ -2156,10 +2201,14 @@ static enum cpe_svc_result cpe_tgt_tomtom_reset(void)
 	return CPE_SVC_SUCCESS;
 }
 
+enum cpe_svc_result cpe_tgt_tomtom_voicetx(bool enable);
+
 enum cpe_svc_result cpe_tgt_tomtom_voicetx(bool enable)
 {
 	return CPE_SVC_SUCCESS;
 }
+
+enum cpe_svc_result cpe_svc_toggle_lab(void *cpe_handle, bool enable);
 
 enum cpe_svc_result cpe_svc_toggle_lab(void *cpe_handle, bool enable)
 {

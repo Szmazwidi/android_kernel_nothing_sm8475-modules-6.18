@@ -1280,7 +1280,7 @@ err_dt_parse:
 	return ret;
 }
 
-static int wdsp_mgr_remove(struct platform_device *pdev)
+static void wdsp_mgr_remove(struct platform_device *pdev)
 {
 	struct device *mdev = &pdev->dev;
 	struct wdsp_mgr_priv *wdsp = dev_get_drvdata(mdev);
@@ -1293,7 +1293,7 @@ static int wdsp_mgr_remove(struct platform_device *pdev)
 	devm_kfree(mdev, wdsp);
 	dev_set_drvdata(mdev, NULL);
 
-	return 0;
+	return;
 };
 
 static const struct of_device_id wdsp_mgr_dt_match[] = {
@@ -1312,10 +1312,14 @@ static struct platform_driver wdsp_mgr_driver = {
 	.remove = wdsp_mgr_remove,
 };
 
+int wcd_dsp_mgr_init(void);
+
 int wcd_dsp_mgr_init(void)
 {
 	return platform_driver_register(&wdsp_mgr_driver);
 }
+
+void wcd_dsp_mgr_exit(void);
 
 void wcd_dsp_mgr_exit(void)
 {

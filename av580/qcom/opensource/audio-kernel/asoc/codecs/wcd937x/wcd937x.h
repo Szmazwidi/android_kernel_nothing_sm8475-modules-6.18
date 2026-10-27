@@ -82,7 +82,7 @@ static inline int wcd937x_slave_get_slave_ch_val(int ch)
 	return -EINVAL;
 }
 #else
-extern int wcd937x_info_create_codec_entry(struct snd_info_entry *codec_root,
+static inline int wcd937x_info_create_codec_entry(struct snd_info_entry *codec_root,
 				    struct snd_soc_component *component)
 {
 	return 0;

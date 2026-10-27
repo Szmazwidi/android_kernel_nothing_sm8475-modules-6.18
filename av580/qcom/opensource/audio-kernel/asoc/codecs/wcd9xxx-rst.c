@@ -376,6 +376,8 @@ version_unknown:
 	return rc;
 }
 
+codec_bringdown_fn wcd9xxx_bringdown_fn(int type);
+
 codec_bringdown_fn wcd9xxx_bringdown_fn(int type)
 {
 	codec_bringdown_fn cdc_bdown_fn;
@@ -395,6 +397,8 @@ codec_bringdown_fn wcd9xxx_bringdown_fn(int type)
 	return cdc_bdown_fn;
 }
 
+codec_bringup_fn wcd9xxx_bringup_fn(int type);
+
 codec_bringup_fn wcd9xxx_bringup_fn(int type)
 {
 	codec_bringup_fn cdc_bup_fn;
@@ -413,6 +417,8 @@ codec_bringup_fn wcd9xxx_bringup_fn(int type)
 
 	return cdc_bup_fn;
 }
+
+codec_type_fn wcd9xxx_get_codec_info_fn(int type);
 
 codec_type_fn wcd9xxx_get_codec_info_fn(int type)
 {

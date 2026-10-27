@@ -104,6 +104,8 @@ bad_seg:
  * seg_list, release the firmware for each segment and delete the
  * segment from the list.
  */
+void wdsp_flush_segment_list(struct list_head *seg_list);
+
 void wdsp_flush_segment_list(struct list_head *seg_list)
 {
 	struct wdsp_img_segment *seg, *next;
@@ -128,6 +130,12 @@ EXPORT_SYMBOL(wdsp_flush_segment_list);
  * an struct wdsp_img_segment for each segment that matches segment_type
  * and add this structure to list pointed by seg_list
  */
+int wdsp_get_segment_list(struct device *dev,
+			  const char *img_fname,
+			  unsigned int segment_type,
+			  struct list_head *seg_list,
+			  u32 *entry_point);
+
 int wdsp_get_segment_list(struct device *dev,
 			  const char *img_fname,
 			  unsigned int segment_type,

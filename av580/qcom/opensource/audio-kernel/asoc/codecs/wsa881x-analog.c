@@ -3,6 +3,7 @@
  * Copyright (c) 2015-2016, 2018-2020, The Linux Foundation. All rights reserved.
  */
 
+#include <linux/of.h>
 #include <linux/clk.h>
 #include <linux/clk-provider.h>
 #include <linux/module.h>
@@ -1296,17 +1297,23 @@ static int wsa881x_reset(struct wsa881x_pdata *pdata, bool enable)
 	return ret;
 }
 
+int wsa881x_get_client_index(void);
+
 int wsa881x_get_client_index(void)
 {
 	return wsa881x_i2c_addr;
 }
 EXPORT_SYMBOL(wsa881x_get_client_index);
 
+int wsa881x_get_probing_count(void);
+
 int wsa881x_get_probing_count(void)
 {
 	return wsa881x_probing_count;
 }
 EXPORT_SYMBOL(wsa881x_get_probing_count);
+
+int wsa881x_get_presence_count(void);
 
 int wsa881x_get_presence_count(void)
 {
@@ -1585,7 +1592,7 @@ err:
 	return ret;
 }
 
-static int wsa881x_i2c_remove(struct i2c_client *client)
+static void wsa881x_i2c_remove(struct i2c_client *client)
 {
 	struct wsa881x_pdata *wsa881x = client->dev.platform_data;
 
@@ -1602,7 +1609,7 @@ static int wsa881x_i2c_remove(struct i2c_client *client)
 	}
 	i2c_set_clientdata(client, NULL);
 	kfree(wsa881x);
-	return 0;
+	return;
 }
 
 #ifdef CONFIG_PM_SLEEP

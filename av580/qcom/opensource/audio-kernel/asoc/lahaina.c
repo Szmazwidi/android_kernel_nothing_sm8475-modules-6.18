@@ -3,6 +3,7 @@
  * Copyright (c) 2016-2020, The Linux Foundation. All rights reserved.
  */
 
+#include <linux/of.h>
 #include <linux/clk.h>
 #include <linux/delay.h>
 #include <linux/gpio.h>
@@ -1255,6 +1256,8 @@ static int msm_audio_ssr_register(struct device *dev)
 	return ret;
 }
 
+struct msm_common_pdata *msm_common_get_pdata(struct snd_soc_card *card);
+
 struct msm_common_pdata *msm_common_get_pdata(struct snd_soc_card *card)
 {
 	struct msm_asoc_mach_data *pdata = snd_soc_card_get_drvdata(card);
@@ -1264,6 +1267,9 @@ struct msm_common_pdata *msm_common_get_pdata(struct snd_soc_card *card)
 
 	return pdata->common_pdata;
 }
+
+void msm_common_set_pdata(struct snd_soc_card *card,
+			  struct msm_common_pdata *common_pdata);
 
 void msm_common_set_pdata(struct snd_soc_card *card,
 			  struct msm_common_pdata *common_pdata)
@@ -1480,7 +1486,7 @@ err:
 	return ret;
 }
 
-static int msm_asoc_machine_remove(struct platform_device *pdev)
+static void msm_asoc_machine_remove(struct platform_device *pdev)
 {
 	struct snd_soc_card *card = platform_get_drvdata(pdev);
 	struct msm_asoc_mach_data *pdata = NULL;
@@ -1497,7 +1503,7 @@ static int msm_asoc_machine_remove(struct platform_device *pdev)
 	snd_soc_unregister_card(card);
 	msm_audio_remove_qos_request();
 
-	return 0;
+	return;
 }
 
 static struct platform_driver lahaina_asoc_machine_driver = {

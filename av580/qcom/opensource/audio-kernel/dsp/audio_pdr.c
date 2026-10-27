@@ -20,6 +20,8 @@ static struct audio_pdr_service audio_pdr_services[AUDIO_PDR_DOMAIN_MAX] = {
 	}
 };
 
+void *audio_pdr_service_register(int domain_id, void (*cb)(int, char *, void *));
+
 void *audio_pdr_service_register(int domain_id, void (*cb)(int, char *, void *))
 {
 	if ((domain_id < 0) ||
@@ -35,6 +37,8 @@ void *audio_pdr_service_register(int domain_id, void (*cb)(int, char *, void *))
 			      audio_pdr_services[domain_id].service_path);
 }
 EXPORT_SYMBOL(audio_pdr_service_register);
+
+int audio_pdr_service_deregister(int domain_id);
 
 int audio_pdr_service_deregister(int domain_id)
 {

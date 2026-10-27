@@ -115,6 +115,9 @@ static bool is_valid_dsd_interpolator(int interp_num)
  * Returns 0 on success or -EINVAL on failure
  */
 int tavil_dsd_set_mixer_value(struct tavil_dsd_config *dsd_conf,
+			      int interp_num, int sw_value);
+
+int tavil_dsd_set_mixer_value(struct tavil_dsd_config *dsd_conf,
 			      int interp_num, int sw_value)
 {
 	if (!dsd_conf)
@@ -138,6 +141,9 @@ EXPORT_SYMBOL(tavil_dsd_set_mixer_value);
  * Returns current mixer val for success or -EINVAL for failure
  */
 int tavil_dsd_get_current_mixer_value(struct tavil_dsd_config *dsd_conf,
+				      int interp_num);
+
+int tavil_dsd_get_current_mixer_value(struct tavil_dsd_config *dsd_conf,
 				      int interp_num)
 {
 	if (!dsd_conf)
@@ -158,6 +164,9 @@ EXPORT_SYMBOL(tavil_dsd_get_current_mixer_value);
  *
  * Returns 0 for success or -EINVAL for failure
  */
+int tavil_dsd_set_out_select(struct tavil_dsd_config *dsd_conf,
+			     int interp_num);
+
 int tavil_dsd_set_out_select(struct tavil_dsd_config *dsd_conf,
 			     int interp_num)
 {
@@ -208,6 +217,8 @@ EXPORT_SYMBOL(tavil_dsd_set_out_select);
  * @dsd_conf: pointer to dsd config
  *
  */
+void tavil_dsd_reset(struct tavil_dsd_config *dsd_conf);
+
 void tavil_dsd_reset(struct tavil_dsd_config *dsd_conf)
 {
 	if (!dsd_conf || !dsd_conf->component)
@@ -236,6 +247,9 @@ EXPORT_SYMBOL(tavil_dsd_reset);
  * @sample_rate: Sample rate of the RX interpolator
  * @sample_rate_val: Interpolator rate value
  */
+void tavil_dsd_set_interp_rate(struct tavil_dsd_config *dsd_conf, u16 rx_port,
+			       u32 sample_rate, u8 sample_rate_val);
+
 void tavil_dsd_set_interp_rate(struct tavil_dsd_config *dsd_conf, u16 rx_port,
 			       u32 sample_rate, u8 sample_rate_val)
 {
@@ -656,6 +670,8 @@ static const struct snd_soc_dapm_widget tavil_dsd_widgets[] = {
  *
  * Returns 0 on success or error on failure
  */
+int tavil_dsd_post_ssr_init(struct tavil_dsd_config *dsd_conf);
+
 int tavil_dsd_post_ssr_init(struct tavil_dsd_config *dsd_conf)
 {
 	struct snd_soc_component *component;
@@ -721,6 +737,8 @@ EXPORT_SYMBOL(tavil_dsd_post_ssr_init);
  *
  * Returns pointer to tavil_dsd_config for success or NULL for failure
  */
+struct tavil_dsd_config *tavil_dsd_init(struct snd_soc_component *component);
+
 struct tavil_dsd_config *tavil_dsd_init(struct snd_soc_component *component)
 {
 	struct snd_soc_dapm_context *dapm;
@@ -809,6 +827,8 @@ EXPORT_SYMBOL(tavil_dsd_init);
  *
  * @dsd_conf: pointer to tavil_dsd_config
  */
+void tavil_dsd_deinit(struct tavil_dsd_config *dsd_conf);
+
 void tavil_dsd_deinit(struct tavil_dsd_config *dsd_conf)
 {
 	struct snd_soc_component *component;

@@ -181,6 +181,8 @@ static struct reg_sequence wsa881x_rev_2_0[] = {
  * Update regmap default register values based on version id
  *
  */
+void wsa881x_regmap_defaults(struct regmap *regmap, u8 version);
+
 void wsa881x_regmap_defaults(struct regmap *regmap, u8 version)
 {
 	u16 ret = 0;

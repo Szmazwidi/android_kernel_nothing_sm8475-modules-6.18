@@ -4,6 +4,7 @@
  * Copyright (c) 2022, 2024 Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
+#include <linux/of.h>
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/slab.h>
@@ -340,6 +341,9 @@ static struct snd_info_entry_ops wsa881x_codec_info_ops = {
  * Return: 0 on success or negative error code on failure.
  */
 int wsa881x_codec_info_create_codec_entry(struct snd_info_entry *codec_root,
+					  struct snd_soc_component *component);
+
+int wsa881x_codec_info_create_codec_entry(struct snd_info_entry *codec_root,
 					  struct snd_soc_component *component)
 {
 	struct snd_info_entry *version_entry;
@@ -402,6 +406,8 @@ EXPORT_SYMBOL(wsa881x_codec_info_create_codec_entry);
  * Return: swr device number on success or negative error
  * code on failure.
  */
+int wsa881x_codec_get_dev_num(struct snd_soc_component *component);
+
 int wsa881x_codec_get_dev_num(struct snd_soc_component *component)
 {
 	struct wsa881x_priv *wsa881x;
@@ -1177,6 +1183,10 @@ static const struct snd_soc_dapm_route wsa881x_audio_map[] = {
 	{"SPKR PGA", NULL, "RDAC"},
 	{"SPKR", NULL, "SPKR PGA"},
 };
+
+int wsa881x_set_channel_map(struct snd_soc_component *component, u8 *port,
+			    u8 num_port, unsigned int *ch_mask,
+			    unsigned int *ch_rate, u8 *port_type);
 
 int wsa881x_set_channel_map(struct snd_soc_component *component, u8 *port,
 			    u8 num_port, unsigned int *ch_mask,

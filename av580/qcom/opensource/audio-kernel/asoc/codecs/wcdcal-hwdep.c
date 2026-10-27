@@ -29,6 +29,9 @@ const char *cal_name_info[WCD9XXX_MAX_CAL] = {
 };
 
 struct firmware_cal *wcdcal_get_fw_cal(struct fw_info *fw_data,
+					enum wcd_cal_type type);
+
+struct firmware_cal *wcdcal_get_fw_cal(struct fw_info *fw_data,
 					enum wcd_cal_type type)
 {
 	if (!fw_data) {
@@ -159,6 +162,9 @@ static int wcdcal_hwdep_release(struct snd_hwdep *hw, struct file *file)
 }
 
 int wcd_cal_create_hwdep(void *data, int node,
+			 struct snd_soc_component *component);
+
+int wcd_cal_create_hwdep(void *data, int node,
 			 struct snd_soc_component *component)
 {
 	char hwname[40];
@@ -220,6 +226,9 @@ end:
 	return -ENOMEM;
 }
 #else
+int wcd_cal_create_hwdep(void *data, int node,
+			 struct snd_soc_component *component);
+
 int wcd_cal_create_hwdep(void *data, int node,
 			 struct snd_soc_component *component)
 {

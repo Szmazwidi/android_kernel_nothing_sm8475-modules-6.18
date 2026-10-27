@@ -32,6 +32,9 @@ static int wcd_map_irq(struct wcd_irq_info *irq_info, int irq)
  * Returns 0 on success or error on failure
  */
 int wcd_request_irq(struct wcd_irq_info *irq_info, int irq, const char *name,
+			irq_handler_t handler, void *data);
+
+int wcd_request_irq(struct wcd_irq_info *irq_info, int irq, const char *name,
 			irq_handler_t handler, void *data)
 {
 	if (!irq_info) {
@@ -54,6 +57,8 @@ EXPORT_SYMBOL(wcd_request_irq);
  * @irq: irq number
  * @data: data pointer
  */
+void wcd_free_irq(struct wcd_irq_info *irq_info, int irq, void *data);
+
 void wcd_free_irq(struct wcd_irq_info *irq_info, int irq, void *data)
 {
 	if (!irq_info) {
@@ -74,6 +79,8 @@ EXPORT_SYMBOL(wcd_free_irq);
  * @irq_info: pointer to IRQ info structure
  * @irq: irq number
  */
+void wcd_enable_irq(struct wcd_irq_info *irq_info, int irq);
+
 void wcd_enable_irq(struct wcd_irq_info *irq_info, int irq)
 {
 	if (!irq_info)
@@ -88,6 +95,8 @@ EXPORT_SYMBOL(wcd_enable_irq);
  * @irq_info: pointer to IRQ info structure
  * @irq: irq number
  */
+void wcd_disable_irq(struct wcd_irq_info *irq_info, int irq);
+
 void wcd_disable_irq(struct wcd_irq_info *irq_info, int irq)
 {
 	if (!irq_info)
@@ -136,6 +145,8 @@ static const struct irq_domain_ops wcd_domain_ops = {
  *
  * Returns 0 on success or error on failure
  */
+int wcd_irq_init(struct wcd_irq_info *irq_info, struct irq_domain **virq);
+
 int wcd_irq_init(struct wcd_irq_info *irq_info, struct irq_domain **virq)
 {
 	int ret = 0;
@@ -171,6 +182,8 @@ EXPORT_SYMBOL(wcd_irq_init);
  *
  * Returns 0 on success or error on failure
  */
+int wcd_irq_exit(struct wcd_irq_info *irq_info, struct irq_domain *virq);
+
 int wcd_irq_exit(struct wcd_irq_info *irq_info, struct irq_domain *virq)
 {
 	if (!irq_info) {

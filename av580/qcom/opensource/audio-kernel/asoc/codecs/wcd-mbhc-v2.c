@@ -2,6 +2,7 @@
 /* Copyright (c) 2015-2021, The Linux Foundation. All rights reserved.
  * Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
  */
+#include <linux/of.h>
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/slab.h>
@@ -18,9 +19,7 @@
 #include <linux/input.h>
 #include <linux/firmware.h>
 #include <linux/completion.h>
-#if IS_ENABLED(CONFIG_QCOM_FSA4480_I2C)
 #include <linux/soc/qcom/fsa4480-i2c.h>
-#endif
 #include <linux/usb/typec.h>
 #include <sound/soc.h>
 #include <sound/jack.h>
@@ -40,6 +39,9 @@ static const unsigned int mbhc_ext_dev_supported_table[] = {
 
 struct mutex hphl_pa_lock;
 struct mutex hphr_pa_lock;
+
+void wcd_mbhc_jack_report(struct wcd_mbhc *mbhc,
+			  struct snd_soc_jack *jack, int status, int mask);
 
 void wcd_mbhc_jack_report(struct wcd_mbhc *mbhc,
 			  struct snd_soc_jack *jack, int status, int mask)
@@ -123,6 +125,9 @@ static void wcd_program_btn_threshold(const struct wcd_mbhc *mbhc, bool micbias)
 	mbhc->mbhc_cb->set_btn_thr(component, btn_low, btn_high,
 				btn_det->num_btn, micbias);
 }
+
+void wcd_enable_curr_micbias(const struct wcd_mbhc *mbhc,
+				const enum wcd_mbhc_cs_mb_en_flag cs_mb_en);
 
 void wcd_enable_curr_micbias(const struct wcd_mbhc *mbhc,
 				const enum wcd_mbhc_cs_mb_en_flag cs_mb_en)
@@ -401,6 +406,8 @@ out_micb_en:
 	return 0;
 }
 
+int wcd_cancel_btn_work(struct wcd_mbhc *mbhc);
+
 int wcd_cancel_btn_work(struct wcd_mbhc *mbhc)
 {
 	int r;
@@ -415,6 +422,8 @@ int wcd_cancel_btn_work(struct wcd_mbhc *mbhc)
 	return r;
 }
 EXPORT_SYMBOL(wcd_cancel_btn_work);
+
+bool wcd_swch_level_remove(struct wcd_mbhc *mbhc);
 
 bool wcd_swch_level_remove(struct wcd_mbhc *mbhc)
 {
@@ -527,6 +536,9 @@ static void wcd_mbhc_set_and_turnoff_hph_padac(struct wcd_mbhc *mbhc)
 }
 
 int wcd_mbhc_get_impedance(struct wcd_mbhc *mbhc, uint32_t *zl,
+			uint32_t *zr);
+
+int wcd_mbhc_get_impedance(struct wcd_mbhc *mbhc, uint32_t *zl,
 			uint32_t *zr)
 {
 	*zl = mbhc->zl;
@@ -538,6 +550,9 @@ int wcd_mbhc_get_impedance(struct wcd_mbhc *mbhc, uint32_t *zl,
 		return -EINVAL;
 }
 EXPORT_SYMBOL(wcd_mbhc_get_impedance);
+
+void wcd_mbhc_hs_elec_irq(struct wcd_mbhc *mbhc, int irq_type,
+				 bool enable);
 
 void wcd_mbhc_hs_elec_irq(struct wcd_mbhc *mbhc, int irq_type,
 				 bool enable)
@@ -567,6 +582,9 @@ void wcd_mbhc_hs_elec_irq(struct wcd_mbhc *mbhc, int irq_type,
 	}
 }
 EXPORT_SYMBOL(wcd_mbhc_hs_elec_irq);
+
+void wcd_mbhc_report_plug(struct wcd_mbhc *mbhc, int insertion,
+				enum snd_jack_types jack_type);
 
 void wcd_mbhc_report_plug(struct wcd_mbhc *mbhc, int insertion,
 				enum snd_jack_types jack_type)
@@ -799,6 +817,8 @@ void wcd_mbhc_report_plug(struct wcd_mbhc *mbhc, int insertion,
 }
 EXPORT_SYMBOL(wcd_mbhc_report_plug);
 
+void wcd_mbhc_elec_hs_report_unplug(struct wcd_mbhc *mbhc);
+
 void wcd_mbhc_elec_hs_report_unplug(struct wcd_mbhc *mbhc)
 {
 	/* cancel pending button press */
@@ -838,6 +858,9 @@ void wcd_mbhc_elec_hs_report_unplug(struct wcd_mbhc *mbhc)
 			     true);
 }
 EXPORT_SYMBOL(wcd_mbhc_elec_hs_report_unplug);
+
+void wcd_mbhc_find_plug_and_report(struct wcd_mbhc *mbhc,
+				   enum wcd_mbhc_plug_type plug_type);
 
 void wcd_mbhc_find_plug_and_report(struct wcd_mbhc *mbhc,
 				   enum wcd_mbhc_plug_type plug_type)
@@ -1162,6 +1185,8 @@ static irqreturn_t wcd_mbhc_mech_plug_detect_irq(int irq, void *data)
 	pr_debug("%s: leave %d\n", __func__, r);
 	return r;
 }
+
+int wcd_mbhc_get_button_mask(struct wcd_mbhc *mbhc);
 
 int wcd_mbhc_get_button_mask(struct wcd_mbhc *mbhc)
 {
@@ -1691,6 +1716,8 @@ static int wcd_mbhc_usbc_ana_event_handler(struct notifier_block *nb,
 }
 #endif
 
+int wcd_mbhc_start(struct wcd_mbhc *mbhc, struct wcd_mbhc_config *mbhc_cfg);
+
 int wcd_mbhc_start(struct wcd_mbhc *mbhc, struct wcd_mbhc_config *mbhc_cfg)
 {
 	int rc = 0;
@@ -1774,6 +1801,8 @@ err:
 }
 EXPORT_SYMBOL(wcd_mbhc_start);
 
+void wcd_mbhc_stop(struct wcd_mbhc *mbhc);
+
 void wcd_mbhc_stop(struct wcd_mbhc *mbhc)
 {
 	pr_debug("%s: enter\n", __func__);
@@ -1814,6 +1843,12 @@ EXPORT_SYMBOL(wcd_mbhc_stop);
  *
  * NOTE: mbhc->mbhc_cfg is not YET configure so shouldn't be used
  */
+int wcd_mbhc_init(struct wcd_mbhc *mbhc, struct snd_soc_component *component,
+		      const struct wcd_mbhc_cb *mbhc_cb,
+		      const struct wcd_mbhc_intr *mbhc_cdc_intr_ids,
+		      struct wcd_mbhc_register *wcd_mbhc_regs,
+		      bool impedance_det_en);
+
 int wcd_mbhc_init(struct wcd_mbhc *mbhc, struct snd_soc_component *component,
 		      const struct wcd_mbhc_cb *mbhc_cb,
 		      const struct wcd_mbhc_intr *mbhc_cdc_intr_ids,
@@ -2104,6 +2139,8 @@ err:
 	return ret;
 }
 EXPORT_SYMBOL(wcd_mbhc_init);
+
+void wcd_mbhc_deinit(struct wcd_mbhc *mbhc);
 
 void wcd_mbhc_deinit(struct wcd_mbhc *mbhc)
 {

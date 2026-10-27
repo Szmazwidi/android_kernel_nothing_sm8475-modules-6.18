@@ -308,7 +308,7 @@ static int lpi_config_get(struct pinctrl_dev *pctldev,
 		arg = pad->pullup == LPI_GPIO_PULL_UP;
 		break;
 	case PIN_CONFIG_INPUT_ENABLE:
-	case PIN_CONFIG_OUTPUT:
+	case PIN_CONFIG_LEVEL:
 		arg = pad->output_enabled;
 		break;
 	default:
@@ -358,7 +358,7 @@ static int lpi_config_set(struct pinctrl_dev *pctldev, unsigned int pin,
 		case PIN_CONFIG_INPUT_ENABLE:
 			pad->output_enabled = false;
 			break;
-		case PIN_CONFIG_OUTPUT:
+		case PIN_CONFIG_LEVEL:
 			pad->output_enabled = true;
 			pad->value = arg;
 			break;
@@ -448,7 +448,7 @@ static int lpi_gpio_direction_output(struct gpio_chip *chip,
 	struct lpi_gpio_state *state = gpiochip_get_data(chip);
 	unsigned long config;
 
-	config = pinconf_to_config_packed(PIN_CONFIG_OUTPUT, val);
+	config = pinconf_to_config_packed(PIN_CONFIG_LEVEL, val);
 
 	return lpi_config_set(state->ctrl, pin, &config, 1);
 }
@@ -465,14 +465,14 @@ static int lpi_gpio_get(struct gpio_chip *chip, unsigned int pin)
 	return value;
 }
 
-static void lpi_gpio_set(struct gpio_chip *chip, unsigned int pin, int value)
+static int lpi_gpio_set(struct gpio_chip *chip, unsigned int pin, int value)
 {
 	struct lpi_gpio_state *state = gpiochip_get_data(chip);
 	unsigned long config;
 
-	config = pinconf_to_config_packed(PIN_CONFIG_OUTPUT, value);
+	config = pinconf_to_config_packed(PIN_CONFIG_LEVEL, value);
 
-	lpi_config_set(state->ctrl, pin, &config, 1);
+	return lpi_config_set(state->ctrl, pin, &config, 1);
 }
 
 static int lpi_notifier_service_cb(struct notifier_block *this,
@@ -502,6 +502,8 @@ static int lpi_notifier_service_cb(struct notifier_block *this,
 	return NOTIFY_OK;
 }
 
+int lpi_pinctrl_suspend(struct device *dev);
+
 int lpi_pinctrl_suspend(struct device *dev)
 {
 	int ret = 0;
@@ -529,6 +531,8 @@ int lpi_pinctrl_suspend(struct device *dev)
 
 	return ret;
 }
+
+int lpi_pinctrl_resume(struct device *dev);
 
 int lpi_pinctrl_resume(struct device *dev)
 {
@@ -869,7 +873,7 @@ err_io:
 	return ret;
 }
 
-static int lpi_pinctrl_remove(struct platform_device *pdev)
+static void lpi_pinctrl_remove(struct platform_device *pdev)
 {
 	struct lpi_gpio_state *state = platform_get_drvdata(pdev);
 
@@ -882,7 +886,7 @@ static int lpi_pinctrl_remove(struct platform_device *pdev)
 	mutex_destroy(&state->core_hw_vote_lock);
 	mutex_destroy(&state->slew_access_lock);
 
-	return 0;
+	return;
 }
 
 static const struct of_device_id lpi_pinctrl_of_match[] = {
@@ -891,6 +895,8 @@ static const struct of_device_id lpi_pinctrl_of_match[] = {
 };
 
 MODULE_DEVICE_TABLE(of, lpi_pinctrl_of_match);
+
+int lpi_pinctrl_runtime_resume(struct device *dev);
 
 int lpi_pinctrl_runtime_resume(struct device *dev)
 {
@@ -925,6 +931,8 @@ exit:
 	mutex_unlock(&state->core_hw_vote_lock);
 	return 0;
 }
+
+int lpi_pinctrl_runtime_suspend(struct device *dev);
 
 int lpi_pinctrl_runtime_suspend(struct device *dev)
 {

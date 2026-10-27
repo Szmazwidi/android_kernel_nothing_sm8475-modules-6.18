@@ -867,6 +867,8 @@ static const struct tasha_reg_mask_val tasha_spkr_mode1[] = {
  *
  * Returns 0 on success or -EINVAL on error.
  */
+int tasha_set_spkr_gain_offset(struct snd_soc_component *component, int offset);
+
 int tasha_set_spkr_gain_offset(struct snd_soc_component *component, int offset)
 {
 	struct tasha_priv *priv = snd_soc_component_get_drvdata(component);
@@ -888,6 +890,8 @@ EXPORT_SYMBOL(tasha_set_spkr_gain_offset);
  *
  * Returns 0 on success or -EINVAL on error.
  */
+int tasha_set_spkr_mode(struct snd_soc_component *component, int mode);
+
 int tasha_set_spkr_mode(struct snd_soc_component *component, int mode)
 {
 	struct tasha_priv *priv = snd_soc_component_get_drvdata(component);
@@ -1093,6 +1097,8 @@ err:
 	return ret;
 }
 
+int tasha_enable_efuse_sensing(struct snd_soc_component *component);
+
 int tasha_enable_efuse_sensing(struct snd_soc_component *component)
 {
 	struct tasha_priv *priv = snd_soc_component_get_drvdata(component);
@@ -1129,6 +1135,9 @@ int tasha_enable_efuse_sensing(struct snd_soc_component *component)
 	return 0;
 }
 EXPORT_SYMBOL(tasha_enable_efuse_sensing);
+
+void *tasha_get_afe_config(struct snd_soc_component *component,
+			   enum afe_config_type config_type);
 
 void *tasha_get_afe_config(struct snd_soc_component *component,
 			   enum afe_config_type config_type)
@@ -1169,6 +1178,11 @@ EXPORT_SYMBOL(tasha_get_afe_config);
  *
  * Return: none
  */
+void tasha_event_register(
+	int (*machine_event_cb)(struct snd_soc_component *component,
+				enum wcd9335_codec_event),
+	struct snd_soc_component *component);
+
 void tasha_event_register(
 	int (*machine_event_cb)(struct snd_soc_component *component,
 				enum wcd9335_codec_event),
@@ -1726,6 +1740,11 @@ ramp_down:
  *
  * Return: none
  */
+void tasha_mbhc_zdet_gpio_ctrl(
+		int (*zdet_gpio_cb)(
+			struct snd_soc_component *component, bool high),
+		struct snd_soc_component *component);
+
 void tasha_mbhc_zdet_gpio_ctrl(
 		int (*zdet_gpio_cb)(
 			struct snd_soc_component *component, bool high),
@@ -6435,6 +6454,10 @@ static int tasha_codec_enable_standalone_ldo_h(
  *
  * Return: error code in case of failure or 0 for success
  */
+int tasha_codec_enable_standalone_micbias(struct snd_soc_component *component,
+					  int micb_num,
+					  bool enable);
+
 int tasha_codec_enable_standalone_micbias(struct snd_soc_component *component,
 					  int micb_num,
 					  bool enable)
@@ -11489,7 +11512,7 @@ static const struct snd_soc_dapm_widget tasha_dapm_widgets[] = {
 			    &anc_spkr_pa_switch),
 };
 
-static int tasha_get_channel_map(struct snd_soc_dai *dai,
+static int tasha_get_channel_map(const struct snd_soc_dai *dai,
 				 unsigned int *tx_num, unsigned int *tx_slot,
 				 unsigned int *rx_num, unsigned int *rx_slot)
 {
@@ -12030,7 +12053,7 @@ static int tasha_set_dai_fmt(struct snd_soc_dai *dai, unsigned int fmt)
 		snd_soc_component_get_drvdata(dai->component);
 
 	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
-	case SND_SOC_DAIFMT_CBS_CFS:
+	case SND_SOC_DAIFMT_CBC_CFC:
 		/* CPU is master */
 		if (tasha->intf_type == WCD9XXX_INTERFACE_TYPE_I2C) {
 			if (dai->id == AIF1_CAP)
@@ -12501,6 +12524,9 @@ static int __tasha_cdc_mclk_enable(struct tasha_priv *tasha,
 }
 
 int tasha_cdc_mclk_enable(struct snd_soc_component *component,
+			  int enable, bool dapm);
+
+int tasha_cdc_mclk_enable(struct snd_soc_component *component,
 			  int enable, bool dapm)
 {
 	struct tasha_priv *tasha = snd_soc_component_get_drvdata(component);
@@ -12508,6 +12534,9 @@ int tasha_cdc_mclk_enable(struct snd_soc_component *component,
 	return __tasha_cdc_mclk_enable(tasha, enable);
 }
 EXPORT_SYMBOL(tasha_cdc_mclk_enable);
+
+int tasha_cdc_mclk_tx_enable(struct snd_soc_component *component,
+			     int enable, bool dapm);
 
 int tasha_cdc_mclk_tx_enable(struct snd_soc_component *component,
 			     int enable, bool dapm)
@@ -12594,6 +12623,9 @@ static struct snd_info_entry_ops tasha_codec_info_ops = {
  *
  * Return: 0 on success or negative error code on failure.
  */
+int tasha_codec_info_create_codec_entry(struct snd_info_entry *codec_root,
+					struct snd_soc_component *component);
+
 int tasha_codec_info_create_codec_entry(struct snd_info_entry *codec_root,
 					struct snd_soc_component *component)
 {
@@ -12696,6 +12728,9 @@ static int tasha_codec_internal_rco_ctrl(struct snd_soc_component *component,
  * return 0 if mbhc_start is success or error code in case of failure
  */
 int tasha_mbhc_hs_detect(struct snd_soc_component *component,
+			 struct wcd_mbhc_config *mbhc_cfg);
+
+int tasha_mbhc_hs_detect(struct snd_soc_component *component,
 			 struct wcd_mbhc_config *mbhc_cfg)
 {
 	struct tasha_priv *tasha = snd_soc_component_get_drvdata(component);
@@ -12708,6 +12743,8 @@ EXPORT_SYMBOL(tasha_mbhc_hs_detect);
  * tasha_mbhc_hs_detect_exit: stop mbhc insertion/removal functionality
  * @component: handle to snd_soc_component *
  */
+void tasha_mbhc_hs_detect_exit(struct snd_soc_component *component);
+
 void tasha_mbhc_hs_detect_exit(struct snd_soc_component *component)
 {
 	struct tasha_priv *tasha = snd_soc_component_get_drvdata(component);
@@ -14496,11 +14533,11 @@ static void tasha_add_child_devices(struct work_struct *work)
 
 	for_each_child_of_node(wcd9xxx->dev->of_node, node) {
 		if (!strcmp(node->name, "swr_master"))
-			strlcpy(plat_dev_name, "tasha_swr_ctrl",
+			strscpy(plat_dev_name, "tasha_swr_ctrl",
 				(WCD9335_STRING_LEN - 1));
 		else if (strnstr(node->name, "msm_cdc_pinctrl",
 				 strlen("msm_cdc_pinctrl")) != NULL)
-			strlcpy(plat_dev_name, node->name,
+			strscpy(plat_dev_name, node->name,
 				(WCD9335_STRING_LEN - 1));
 		else
 			continue;
@@ -14573,6 +14610,8 @@ err:
  * @codec: handle to snd_soc_component *
  * return enum codec_variant - version
  */
+enum codec_variant tasha_codec_ver(void);
+
 enum codec_variant tasha_codec_ver(void)
 {
 	return codec_ver;
@@ -14605,6 +14644,8 @@ static int __tasha_enable_efuse_sensing(struct tasha_priv *tasha)
 
 	return rc;
 }
+
+void tasha_get_codec_ver(struct tasha_priv *tasha);
 
 void tasha_get_codec_ver(struct tasha_priv *tasha)
 {
@@ -14765,7 +14806,7 @@ err_cdc_pwr:
 	return ret;
 }
 
-static int tasha_remove(struct platform_device *pdev)
+static void tasha_remove(struct platform_device *pdev)
 {
 	struct tasha_priv *tasha;
 	int count = 0;
@@ -14773,7 +14814,7 @@ static int tasha_remove(struct platform_device *pdev)
 	tasha = platform_get_drvdata(pdev);
 
 	if (!tasha)
-		return -EINVAL;
+		return;
 
 	snd_event_client_deregister(pdev->dev.parent);
 	for (count = 0; count < tasha->child_count &&
@@ -14788,7 +14829,7 @@ static int tasha_remove(struct platform_device *pdev)
 	mutex_destroy(&tasha->sb_clk_gear_lock);
 	snd_soc_unregister_component(&pdev->dev);
 	devm_kfree(&pdev->dev, tasha);
-	return 0;
+	return;
 }
 
 static struct platform_driver tasha_codec_driver = {

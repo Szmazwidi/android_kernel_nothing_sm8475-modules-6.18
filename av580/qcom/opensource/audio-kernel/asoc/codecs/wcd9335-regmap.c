@@ -1435,6 +1435,8 @@ static const struct reg_default wcd9335_defaults[] = {
  *
  * Returns error code in case of failure or 0 for success
  */
+int wcd9335_regmap_register_patch(struct regmap *regmap, int version);
+
 int wcd9335_regmap_register_patch(struct regmap *regmap, int version)
 {
 	int rc;

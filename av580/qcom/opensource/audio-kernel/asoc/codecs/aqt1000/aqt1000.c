@@ -716,6 +716,9 @@ static int aqt_codec_enable_rx_bias(struct snd_soc_dapm_widget *w,
  * return 0 if adjustment is success or error code in case of failure
  */
 int aqt_mbhc_micb_adjust_voltage(struct snd_soc_component *component,
+				   int req_volt, int micb_num);
+
+int aqt_mbhc_micb_adjust_voltage(struct snd_soc_component *component,
 				   int req_volt, int micb_num)
 {
 	struct aqt1000 *aqt;
@@ -791,6 +794,9 @@ EXPORT_SYMBOL(aqt_mbhc_micb_adjust_voltage);
  *
  * return 0 if control is success or error code in case of failure
  */
+int aqt_micbias_control(struct snd_soc_component *component,
+			  int micb_num, int req, bool is_dapm);
+
 int aqt_micbias_control(struct snd_soc_component *component,
 			  int micb_num, int req, bool is_dapm)
 {
@@ -3284,6 +3290,8 @@ static int __aqt_cdc_mclk_enable(struct aqt1000 *aqt,
  *
  * Returns 0 on Success and error on failure
  */
+int aqt_cdc_mclk_enable(struct snd_soc_component *component, bool enable);
+
 int aqt_cdc_mclk_enable(struct snd_soc_component *component, bool enable)
 {
 	struct aqt1000 *aqt = snd_soc_component_get_drvdata(component);
@@ -3298,6 +3306,8 @@ EXPORT_SYMBOL(aqt_cdc_mclk_enable);
  *
  * return register value converted
  */
+int aqt_get_micb_vout_ctl_val(u32 micb_mv);
+
 int aqt_get_micb_vout_ctl_val(u32 micb_mv)
 {
 	/* min micbias voltage is 1V and maximum is 2.85V */
@@ -3360,6 +3370,9 @@ static struct snd_info_entry_ops aqt_codec_info_ops = {
  *
  * Return: 0 on success or negative error code on failure.
  */
+int aqt_codec_info_create_codec_entry(struct snd_info_entry *codec_root,
+				struct snd_soc_component *component);
+
 int aqt_codec_info_create_codec_entry(struct snd_info_entry *codec_root,
 				struct snd_soc_component *component)
 {
@@ -3603,6 +3616,8 @@ static const struct snd_soc_component_driver snd_cdc_dev_aqt = {
  *
  * return 0 success or error code in case of failure
  */
+int aqt_register_codec(struct device *dev);
+
 int aqt_register_codec(struct device *dev)
 {
 	return snd_soc_register_component(dev, &snd_cdc_dev_aqt, aqt_dai,

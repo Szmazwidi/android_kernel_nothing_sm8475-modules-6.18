@@ -293,7 +293,7 @@ err:
 	return ret;
 }
 
-static int audio_ref_clk_remove(struct platform_device *pdev)
+static void audio_ref_clk_remove(struct platform_device *pdev)
 {
 	struct pinctrl_info *pnctrl_info = &audio_ap_clk2.pnctrl_info;
 
@@ -307,7 +307,7 @@ static int audio_ref_clk_remove(struct platform_device *pdev)
 		pnctrl_info->pinctrl = NULL;
 	}
 
-	return 0;
+	return;
 }
 
 static const struct of_device_id audio_ref_clk_match[] = {
@@ -327,10 +327,14 @@ static struct platform_driver audio_ref_clk_driver = {
 	.remove = audio_ref_clk_remove,
 };
 
+int audio_ref_clk_platform_init(void);
+
 int audio_ref_clk_platform_init(void)
 {
 	return platform_driver_register(&audio_ref_clk_driver);
 }
+
+void audio_ref_clk_platform_exit(void);
 
 void audio_ref_clk_platform_exit(void)
 {

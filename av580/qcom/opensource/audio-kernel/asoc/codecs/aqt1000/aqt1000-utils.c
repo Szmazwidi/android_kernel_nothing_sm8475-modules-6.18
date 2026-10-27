@@ -184,6 +184,9 @@ static struct regmap_bus regmap_bus_config = {
  * or NULL in case of failure.
  */
 struct regmap *aqt1000_regmap_init(struct device *dev,
+				   const struct regmap_config *config);
+
+struct regmap *aqt1000_regmap_init(struct device *dev,
 				   const struct regmap_config *config)
 {
 	return devm_regmap_init(dev, &regmap_bus_config, dev, config);

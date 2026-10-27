@@ -12,6 +12,8 @@ static BLOCKING_NOTIFIER_HEAD(msm_aud_evt_blocking_notifier_list);
  *	msm_aud_evt_register_client - register a client notifier
  *	@nb: notifier block to callback on events
  */
+int msm_aud_evt_register_client(struct notifier_block *nb);
+
 int msm_aud_evt_register_client(struct notifier_block *nb)
 {
 	return atomic_notifier_chain_register(&msm_aud_evt_notifier_list, nb);
@@ -22,6 +24,8 @@ EXPORT_SYMBOL(msm_aud_evt_register_client);
  *	msm_aud_evt_unregister_client - unregister a client notifier
  *	@nb: notifier block to callback on events
  */
+int msm_aud_evt_unregister_client(struct notifier_block *nb);
+
 int msm_aud_evt_unregister_client(struct notifier_block *nb)
 {
 	return atomic_notifier_chain_unregister(&msm_aud_evt_notifier_list, nb);
@@ -32,6 +36,8 @@ EXPORT_SYMBOL(msm_aud_evt_unregister_client);
  * msm_aud_evt_notifier_call_chain - notify clients of fb_events
  *
  */
+int msm_aud_evt_notifier_call_chain(unsigned long val, void *v);
+
 int msm_aud_evt_notifier_call_chain(unsigned long val, void *v)
 {
 	return atomic_notifier_call_chain(&msm_aud_evt_notifier_list, val, v);
@@ -42,6 +48,8 @@ EXPORT_SYMBOL_GPL(msm_aud_evt_notifier_call_chain);
  *	msm_aud_evt_blocking_register_client - register a client notifier
  *	@nb: notifier block to callback on events
  */
+int msm_aud_evt_blocking_register_client(struct notifier_block *nb);
+
 int msm_aud_evt_blocking_register_client(struct notifier_block *nb)
 {
 	return blocking_notifier_chain_register(
@@ -53,6 +61,8 @@ EXPORT_SYMBOL(msm_aud_evt_blocking_register_client);
  *	msm_aud_evt_unregister_client - unregister a client notifier
  *	@nb: notifier block to callback on events
  */
+int msm_aud_evt_blocking_unregister_client(struct notifier_block *nb);
+
 int msm_aud_evt_blocking_unregister_client(struct notifier_block *nb)
 {
 	return blocking_notifier_chain_unregister(
@@ -66,6 +76,8 @@ EXPORT_SYMBOL(msm_aud_evt_blocking_unregister_client);
  * @v: private data pointer
  *
  */
+int msm_aud_evt_blocking_notifier_call_chain(unsigned long val, void *v);
+
 int msm_aud_evt_blocking_notifier_call_chain(unsigned long val, void *v)
 {
 	return blocking_notifier_call_chain(

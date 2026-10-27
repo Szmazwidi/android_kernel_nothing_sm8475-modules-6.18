@@ -882,6 +882,9 @@ static const struct snd_kcontrol_new impedance_detect_controls[] = {
  * return 0 for success or error code in case of failure
  */
 int aqt_mbhc_get_impedance(struct aqt1000_mbhc *aqt_mbhc,
+			     uint32_t *zl, uint32_t *zr);
+
+int aqt_mbhc_get_impedance(struct aqt1000_mbhc *aqt_mbhc,
 			     uint32_t *zl, uint32_t *zr)
 {
 	if (!aqt_mbhc) {
@@ -903,6 +906,9 @@ EXPORT_SYMBOL(aqt_mbhc_get_impedance);
  * @mbhc_cfg: handle to mbhc configuration structure
  * return 0 if mbhc_start is success or error code in case of failure
  */
+int aqt_mbhc_hs_detect(struct snd_soc_component *component,
+			 struct wcd_mbhc_config *mbhc_cfg);
+
 int aqt_mbhc_hs_detect(struct snd_soc_component *component,
 			 struct wcd_mbhc_config *mbhc_cfg)
 {
@@ -935,6 +941,8 @@ EXPORT_SYMBOL(aqt_mbhc_hs_detect);
  * aqt_mbhc_hs_detect_exit: stop mbhc insertion/removal functionality
  * @component: handle to snd_soc_component *
  */
+void aqt_mbhc_hs_detect_exit(struct snd_soc_component *component);
+
 void aqt_mbhc_hs_detect_exit(struct snd_soc_component *component)
 {
 	struct aqt1000 *aqt;
@@ -968,6 +976,9 @@ EXPORT_SYMBOL(aqt_mbhc_hs_detect_exit);
  *
  * return 0 if mbhc_init is success or error code in case of failure
  */
+int aqt_mbhc_post_ssr_init(struct aqt1000_mbhc *mbhc,
+			     struct snd_soc_component *component);
+
 int aqt_mbhc_post_ssr_init(struct aqt1000_mbhc *mbhc,
 			     struct snd_soc_component *component)
 {
@@ -1005,6 +1016,10 @@ EXPORT_SYMBOL(aqt_mbhc_post_ssr_init);
  *
  * return 0 if mbhc_init is success or error code in case of failure
  */
+int aqt_mbhc_init(struct aqt1000_mbhc **mbhc,
+		  struct snd_soc_component *component,
+		  struct fw_info *fw_data);
+
 int aqt_mbhc_init(struct aqt1000_mbhc **mbhc,
 		  struct snd_soc_component *component,
 		  struct fw_info *fw_data)
@@ -1063,6 +1078,8 @@ EXPORT_SYMBOL(aqt_mbhc_init);
  * aqt_mbhc_deinit: deinitialize mbhc for aqt
  * @component: handle to snd_soc_component *
  */
+void aqt_mbhc_deinit(struct snd_soc_component *component);
+
 void aqt_mbhc_deinit(struct snd_soc_component *component)
 {
 	struct aqt1000 *aqt;

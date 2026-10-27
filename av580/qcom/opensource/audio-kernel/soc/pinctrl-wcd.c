@@ -396,13 +396,13 @@ err_priv_alloc:
 	return ret;
 }
 
-static int wcd_pinctrl_remove(struct platform_device *pdev)
+static void wcd_pinctrl_remove(struct platform_device *pdev)
 {
 	struct wcd_gpio_priv *priv_data = platform_get_drvdata(pdev);
 
 	gpiochip_remove(&priv_data->chip);
 
-	return 0;
+	return;
 }
 
 static const struct of_device_id wcd_pinctrl_of_match[] = {

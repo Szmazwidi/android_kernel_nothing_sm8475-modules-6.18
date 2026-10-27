@@ -2,6 +2,7 @@
 /*
  * Copyright (c) 2018-2020, The Linux Foundation. All rights reserved.
  */
+#include <linux/of.h>
 #include <linux/init.h>
 #include <linux/delay.h>
 #include <linux/module.h>
@@ -608,6 +609,8 @@ static const struct snd_soc_dapm_route csra66x0_dapm_routes[] = {
  * @component - csra66x0 component
  *
  */
+void csra66x0_hw_free_mute(struct snd_soc_component *component);
+
 void csra66x0_hw_free_mute(struct snd_soc_component *component)
 {
 	int val = 0;
@@ -916,11 +919,11 @@ static int csra66x0_soc_probe(struct snd_soc_component *component)
 		/* master slave config */
 		csra66x0_msconfig(csra66x0);
 		if (dapm->component) {
-			strlcpy(name, dapm->component->name_prefix,
+			strscpy(name, dapm->component->name_prefix,
 					sizeof(name));
 			strlcat(name, " IN", sizeof(name));
 			snd_soc_dapm_ignore_suspend(dapm, name);
-			strlcpy(name, dapm->component->name_prefix,
+			strscpy(name, dapm->component->name_prefix,
 					sizeof(name));
 			strlcat(name, " SPKR", sizeof(name));
 			snd_soc_dapm_ignore_suspend(dapm, name);
@@ -1462,7 +1465,7 @@ err_debugfs:
 #endif
 }
 
-static int csra66x0_i2c_remove(struct i2c_client *client_i2c)
+static void csra66x0_i2c_remove(struct i2c_client *client_i2c)
 {
 	struct csra66x0_priv *csra66x0 = i2c_get_clientdata(client_i2c);
 
@@ -1479,7 +1482,7 @@ static int csra66x0_i2c_remove(struct i2c_client *client_i2c)
 	csra66x0_sysfs_remove(client_i2c, csra66x0);
 	snd_soc_unregister_component(&i2c_client->dev);
 
-	return 0;
+	return;
 }
 
 static const struct i2c_device_id csra66x0_i2c_id[] = {

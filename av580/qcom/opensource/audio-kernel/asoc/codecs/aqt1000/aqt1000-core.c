@@ -543,7 +543,7 @@ fail:
 	return ret;
 }
 
-static int aqt1000_i2c_remove(struct i2c_client *client)
+static void aqt1000_i2c_remove(struct i2c_client *client)
 {
 	struct aqt1000 *aqt;
 	struct aqt1000_pdata *pdata = client->dev.platform_data;
@@ -556,7 +556,7 @@ static int aqt1000_i2c_remove(struct i2c_client *client)
 				 pdata->num_supplies);
 	aqt1000_device_exit(aqt);
 	dev_set_drvdata(&client->dev, NULL);
-	return 0;
+	return;
 }
 
 #ifdef CONFIG_PM

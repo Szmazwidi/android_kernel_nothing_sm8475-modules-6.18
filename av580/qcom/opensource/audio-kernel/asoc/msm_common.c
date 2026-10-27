@@ -3,6 +3,7 @@
  * Copyright (c) 2022-2024 Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
+#include <linux/of.h>
 #include <linux/gpio.h>
 #include <linux/of_gpio.h>
 #include <linux/platform_device.h>
@@ -103,21 +104,22 @@ static ssize_t aud_dev_sysfs_store(struct kobject *kobj,
 {
 	ssize_t ret = -EINVAL;
 	struct msm_common_pdata *pdata = to_asoc_mach_common_pdata(kobj);
-	uint32_t pcm_id, state = 0;
+	uint32_t pcm_id = 0, state = 0;
 
 	if (count > MAX_USR_INPUT) {
 		pr_err("%s: invalid string written", __func__);
 		goto done;
 	}
 
-	sscanf(buf, "%d %d", &pcm_id, &state);
+	if (sscanf(buf, "%u %u", &pcm_id, &state) != 2)
+		goto done;
 
-	if ((pcm_id > pdata->num_aud_devs) || (pcm_id < 0)) {
+	if (pcm_id >= pdata->num_aud_devs) {
 		pr_err("%s: invalid pcm id %d \n", __func__, pcm_id);
 		goto done;
 	}
 
-	if ((state > DEVICE_ENABLE) || (state < DEVICE_DISABLE)) {
+	if (state > DEVICE_ENABLE) {
 		pr_err("%s: invalid state %d \n", __func__, state);
 		goto done;
 	}
@@ -168,12 +170,16 @@ done:
 	return ret;
 }
 
+int snd_card_notify_user(snd_card_status_t card_status);
+
 int snd_card_notify_user(snd_card_status_t card_status)
 {
 	snd_card_pdata->card_status = card_status;
 	sysfs_notify(&snd_card_pdata->snd_card_kobj, NULL, "card_state");
 	return 0;
 }
+
+int snd_card_set_card_status(snd_card_status_t card_status);
 
 int snd_card_set_card_status(snd_card_status_t card_status)
 {
@@ -203,6 +209,8 @@ static const struct sysfs_ops snd_card_sysfs_ops = {
 static struct kobj_type snd_card_ktype = {
 	.sysfs_ops = &snd_card_sysfs_ops,
 };
+
+int snd_card_sysfs_init(void);
 
 int snd_card_sysfs_init(void)
 {
@@ -236,10 +244,15 @@ done:
 static void check_userspace_service_state(struct snd_soc_pcm_runtime *rtd,
 						struct msm_common_pdata *pdata)
 {
-	dev_info(rtd->card->dev,"%s: pcm_id %d state %d\n", __func__,
-				rtd->num, pdata->aud_dev_state[rtd->num]);
+	if (rtd->id >= pdata->num_aud_devs) {
+		dev_err(rtd->card->dev, "Invalid PCM runtime id %u\n", rtd->id);
+		return;
+	}
 
-	if (pdata->aud_dev_state[rtd->num] == DEVICE_ENABLE) {
+	dev_info(rtd->card->dev,"%s: pcm_id %d state %d\n", __func__,
+				rtd->id, pdata->aud_dev_state[rtd->id]);
+
+	if (pdata->aud_dev_state[rtd->id] == DEVICE_ENABLE) {
 		dev_info(rtd->card->dev, "%s userspace service crashed\n",
 					__func__);
 		if (pdata->dsp_sessions_closed == 0) {
@@ -250,7 +263,7 @@ static void check_userspace_service_state(struct snd_soc_pcm_runtime *rtd,
 			pdata->dsp_sessions_closed = 1;
 		}
 		/*Reset the state as sysfs node wont be triggred*/
-		pdata->aud_dev_state[rtd->num] = 0;
+		pdata->aud_dev_state[rtd->id] = 0;
 	}
 }
 
@@ -354,6 +367,8 @@ static int get_tdm_clk_id(int index)
 	return clk_id;
 }
 
+int mi2s_tdm_hw_vote_req(struct msm_common_pdata *pdata, int enable);
+
 int mi2s_tdm_hw_vote_req(struct msm_common_pdata *pdata, int enable)
 {
 	int ret = 0;
@@ -385,6 +400,9 @@ int mi2s_tdm_hw_vote_req(struct msm_common_pdata *pdata, int enable)
 	}
 	return ret;
 }
+
+int msm_common_snd_hw_params(struct snd_pcm_substream *substream,
+				struct snd_pcm_hw_params *params);
 
 int msm_common_snd_hw_params(struct snd_pcm_substream *substream,
 				struct snd_pcm_hw_params *params)
@@ -499,6 +517,8 @@ done:
 	return ret;
 }
 
+int msm_common_snd_startup(struct snd_pcm_substream *substream);
+
 int msm_common_snd_startup(struct snd_pcm_substream *substream)
 {
 	int ret = 0;
@@ -539,6 +559,8 @@ done:
 	}
 	return ret;
 }
+
+void msm_common_snd_shutdown(struct snd_pcm_substream *substream);
 
 void msm_common_snd_shutdown(struct snd_pcm_substream *substream)
 {
@@ -677,6 +699,8 @@ static void msm_audio_remove_qos_request(void)
 	}
 }
 
+int msm_common_snd_init(struct platform_device *pdev, struct snd_soc_card *card);
+
 int msm_common_snd_init(struct platform_device *pdev, struct snd_soc_card *card)
 {
 	struct msm_common_pdata *common_pdata = NULL;
@@ -789,6 +813,8 @@ int msm_common_snd_init(struct platform_device *pdev, struct snd_soc_card *card)
 	return 0;
 };
 
+void msm_common_snd_deinit(struct msm_common_pdata *common_pdata);
+
 void msm_common_snd_deinit(struct msm_common_pdata *common_pdata)
 {
 	int count;
@@ -804,6 +830,9 @@ void msm_common_snd_deinit(struct msm_common_pdata *common_pdata)
 }
 
 int msm_channel_map_info(struct snd_kcontrol *kcontrol,
+			struct snd_ctl_elem_info *uinfo);
+
+int msm_channel_map_info(struct snd_kcontrol *kcontrol,
 			struct snd_ctl_elem_info *uinfo)
 {
 	uinfo->type = SNDRV_CTL_ELEM_TYPE_BYTES;
@@ -811,6 +840,9 @@ int msm_channel_map_info(struct snd_kcontrol *kcontrol,
 
 	return 0;
 }
+
+int msm_channel_map_get(struct snd_kcontrol *kcontrol,
+			struct snd_ctl_elem_value *ucontrol);
 
 int msm_channel_map_get(struct snd_kcontrol *kcontrol,
 			struct snd_ctl_elem_value *ucontrol)
@@ -932,6 +964,8 @@ int msm_channel_map_get(struct snd_kcontrol *kcontrol,
 	return ret;
 }
 
+void msm_common_get_backend_name(const char *stream_name, char **backend_name);
+
 void msm_common_get_backend_name(const char *stream_name, char **backend_name)
 {
 	char arg[ARRAY_SZ] = {0};
@@ -942,7 +976,7 @@ void msm_common_get_backend_name(const char *stream_name, char **backend_name)
 	if (!(*backend_name))
 		return;
 
-	strlcpy(*backend_name, arg, ARRAY_SZ);
+	strscpy(*backend_name, arg, ARRAY_SZ);
 }
 
 static void msm_audio_update_qos_request(u32 latency)
@@ -1032,9 +1066,11 @@ static int register_pm_qos_latency_controls(struct snd_soc_pcm_runtime *rtd) {
 	return 0;
 }
 
+int msm_common_dai_link_init(struct snd_soc_pcm_runtime *rtd);
+
 int msm_common_dai_link_init(struct snd_soc_pcm_runtime *rtd)
 {
-	struct snd_soc_dai *codec_dai = asoc_rtd_to_codec(rtd, 0);
+	struct snd_soc_dai *codec_dai = snd_soc_rtd_to_codec(rtd, 0);
 	struct snd_soc_component *component = NULL;
 	struct snd_soc_dai_link *dai_link = rtd->dai_link;
 	struct device *dev = rtd->card->dev;

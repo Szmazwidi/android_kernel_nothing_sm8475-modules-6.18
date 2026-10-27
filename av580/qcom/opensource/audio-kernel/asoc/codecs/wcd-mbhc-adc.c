@@ -1189,6 +1189,8 @@ static struct wcd_mbhc_fn mbhc_fn = {
  * @mbhc: MBHC function pointer
  * Description: Initialize MBHC ADC related function pointers to MBHC structure
  */
+void wcd_mbhc_adc_init(struct wcd_mbhc *mbhc);
+
 void wcd_mbhc_adc_init(struct wcd_mbhc *mbhc)
 {
 	if (!mbhc) {

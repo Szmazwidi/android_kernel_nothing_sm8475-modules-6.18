@@ -14,6 +14,7 @@
 
 #define pr_fmt(fmt) "%s(): " fmt, __func__
 
+#include <linux/of.h>
 #include <linux/module.h>
 #include <linux/i2c.h>
 #include <sound/core.h>
@@ -2120,6 +2121,10 @@ static void tfa98xx_add_widgets(struct tfa98xx *tfa98xx)
 /* I2C wrapper functions */
 enum Tfa98xx_Error tfa98xx_write_register16(struct tfa_device *tfa,
 	unsigned char subaddress,
+	unsigned short value);
+
+enum Tfa98xx_Error tfa98xx_write_register16(struct tfa_device *tfa,
+	unsigned char subaddress,
 	unsigned short value)
 {
 	enum Tfa98xx_Error error = Tfa98xx_Error_Ok;
@@ -2159,6 +2164,10 @@ retry:
 			ret < 0 ? "Error!!" : "");
 	return error;
 }
+
+enum Tfa98xx_Error tfa98xx_read_register16(struct tfa_device *tfa,
+	unsigned char subaddress,
+	unsigned short *val);
 
 enum Tfa98xx_Error tfa98xx_read_register16(struct tfa_device *tfa,
 	unsigned char subaddress,
@@ -2210,10 +2219,15 @@ retry:
  * init external dsp
  */
 enum Tfa98xx_Error
+	tfa98xx_init_dsp(struct tfa_device *tfa);
+
+enum Tfa98xx_Error
 	tfa98xx_init_dsp(struct tfa_device *tfa)
 {
 	return Tfa98xx_Error_Not_Supported;
 }
+
+int tfa98xx_get_dsp_status(struct tfa_device *tfa);
 
 int tfa98xx_get_dsp_status(struct tfa_device *tfa)
 {
@@ -2223,6 +2237,9 @@ int tfa98xx_get_dsp_status(struct tfa_device *tfa)
 /*
  * write external dsp message
  */
+enum Tfa98xx_Error
+	tfa98xx_write_dsp(struct tfa_device *tfa, int num_bytes, const char *command_buffer);
+
 enum Tfa98xx_Error
 	tfa98xx_write_dsp(struct tfa_device *tfa, int num_bytes, const char *command_buffer)
 {
@@ -2251,6 +2268,9 @@ enum Tfa98xx_Error
  * read external dsp message
  */
 enum Tfa98xx_Error
+	tfa98xx_read_dsp(struct tfa_device *tfa, int num_bytes, unsigned char *result_buffer);
+
+enum Tfa98xx_Error
 	tfa98xx_read_dsp(struct tfa_device *tfa, int num_bytes, unsigned char *result_buffer)
 {
 	int ret = 0;
@@ -2269,10 +2289,18 @@ enum Tfa98xx_Error
  */
 enum Tfa98xx_Error
 	tfa98xx_writeread_dsp(struct tfa_device *tfa, int command_length, void *command_buffer,
+		int result_length, void *result_buffer);
+
+enum Tfa98xx_Error
+	tfa98xx_writeread_dsp(struct tfa_device *tfa, int command_length, void *command_buffer,
 		int result_length, void *result_buffer)
 {
 	return Tfa98xx_Error_Not_Supported;
 }
+
+enum Tfa98xx_Error tfa98xx_read_data(struct tfa_device *tfa,
+	unsigned char reg,
+	int len, unsigned char value[]);
 
 enum Tfa98xx_Error tfa98xx_read_data(struct tfa_device *tfa,
 	unsigned char reg,
@@ -2341,6 +2369,10 @@ enum Tfa98xx_Error tfa98xx_read_data(struct tfa_device *tfa,
 	kfree(reg_buf);
 	return error;
 }
+
+enum Tfa98xx_Error tfa98xx_write_raw(struct tfa_device *tfa,
+	int len,
+	const unsigned char data[]);
 
 enum Tfa98xx_Error tfa98xx_write_raw(struct tfa_device *tfa,
 	int len,
@@ -2464,6 +2496,24 @@ static void tfa98xx_interrupt_enable(struct tfa98xx *tfa98xx, bool enable)
 }
 
 /* Firmware management */
+
+/* Read existing factory calibration only. The no_start gate remains active:
+ * no amplifier start, calibration run, MTP programming or gain replacement.
+ */
+static void pong729_tfa_factory_read(struct tfa98xx *tfa98xx)
+{
+ struct tfa_device *tfa=tfa98xx->tfa;
+ int mtpex,otc,re25;
+ if (!tfa || !tfa->in_use) {
+  dev_info(tfa98xx->dev,"PONG729_TFA_FACTORY addr=%#x status=unopened read_only=1 no_start=1\n",tfa98xx->i2c->addr);
+  return;
+ }
+ mtpex=tfa_dev_mtp_get(tfa,TFA_MTP_EX);
+ otc=tfa_dev_mtp_get(tfa,TFA_MTP_OTC);
+ re25=tfa_dev_mtp_get(tfa,TFA_MTP_RE25_PRIM);
+ dev_info(tfa98xx->dev,"PONG729_TFA_FACTORY addr=%#x rev=%#x mtpex=%d otc=%d re25_raw=%d read_only=1 no_start=1\n",tfa98xx->i2c->addr,tfa->rev,mtpex,otc,re25);
+}
+
 static void tfa98xx_container_loaded(const struct firmware *cont, void *context)
 {
 	TfaContainer_t *container = NULL;
@@ -2574,8 +2624,10 @@ static void tfa98xx_container_loaded(const struct firmware *cont, void *context)
 	tfa98xx->dsp_fw_state = TFA98XX_DSP_FW_OK;
 	pr_debug("Firmware init complete\n");
 
-	if (no_start != 0)
+	if (no_start != 0) {
+		pong729_tfa_factory_read(tfa98xx);
 		return;
+	}
 
 #ifndef DISABLE_TFA98XX_ALSA_SUPPORT
 	/* Only controls for master device */
@@ -2705,6 +2757,8 @@ static void tfa98xx_monitor(struct work_struct *work)
 }
 
 #ifdef CONFIG_MTK_PLATFORM
+static void tfa98xx_adsp_send_calib_values(void);
+
 static void tfa98xx_adsp_send_calib_values(void)
 {
 	struct tfa98xx *tfa98xx_pri = NULL, *tfa98xx_sec = NULL;
@@ -2783,6 +2837,8 @@ static void tfa98xx_adsp_send_calib_values(void)
 }
 #else
 static uint8_t bytes[3*3+1] = {0};
+
+enum Tfa98xx_Error tfa98xx_adsp_send_calib_values(void);
 
 enum Tfa98xx_Error tfa98xx_adsp_send_calib_values(void)
 {
@@ -3185,7 +3241,7 @@ static int tfa98xx_set_fmt(struct snd_soc_dai *dai, unsigned int fmt)
 	/* Supported mode: regular I2S, slave, or PDM */
 	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
 	case SND_SOC_DAIFMT_I2S:
-		if ((fmt & SND_SOC_DAIFMT_MASTER_MASK) != SND_SOC_DAIFMT_CBS_CFS) {
+		if ((fmt & SND_SOC_DAIFMT_MASTER_MASK) != SND_SOC_DAIFMT_CBC_CFC) {
 			dev_err(codec->dev, "Invalid Codec master mode\n");
 			return -EINVAL;
 		}
@@ -3282,6 +3338,8 @@ int gtemp[2] = {0};
 
 typedef enum Tfa98xx_Error Tfa98xx_Error_t;
 
+const char* Tfa98xx_GetErrorString(Tfa98xx_Error_t error);
+
 const char* Tfa98xx_GetErrorString(Tfa98xx_Error_t error)
 {
 	const char* pErrStr;
@@ -3358,6 +3416,8 @@ const char* Tfa98xx_GetErrorString(Tfa98xx_Error_t error)
 	return pErrStr;
 }
 
+nxpTfaLiveData_t* tfaGetLiveDataItem(nxpTfaDescPtr_t *dsc, nxpTfaContainer_t *cont);
+
 nxpTfaLiveData_t* tfaGetLiveDataItem(nxpTfaDescPtr_t *dsc, nxpTfaContainer_t *cont)
 {
         nxpTfaLiveData_t *liveD;
@@ -3365,6 +3425,8 @@ nxpTfaLiveData_t* tfaGetLiveDataItem(nxpTfaDescPtr_t *dsc, nxpTfaContainer_t *co
         liveD = (nxpTfaLiveData_t *)(dsc->offset+(uint8_t *)cont);
         return liveD;
 }
+
+int compare_strings(char *buffer, char *name, int buffersize);
 
 int compare_strings(char *buffer, char *name, int buffersize)
 {
@@ -3385,6 +3447,8 @@ int compare_strings(char *buffer, char *name, int buffersize)
 	}
 }
 
+Tfa98xx_Error_t tfa98xx_get_live_data_raw(struct tfa98xx *tfa98xx,int dev_idx, unsigned char *bytes, int length);
+
 Tfa98xx_Error_t tfa98xx_get_live_data_raw(struct tfa98xx *tfa98xx,int dev_idx, unsigned char *bytes, int length)
 {
     Tfa98xx_Error_t err = Tfa98xx_Error_Ok;
@@ -3394,6 +3458,8 @@ Tfa98xx_Error_t tfa98xx_get_live_data_raw(struct tfa98xx *tfa98xx,int dev_idx, u
 
     return err;
 }
+
+Tfa98xx_Error_t tfa98xx_get_live_data(struct tfa98xx *tfa98xx,int dev_idx, int *live_data, int *nr_of_items);
 
 Tfa98xx_Error_t tfa98xx_get_live_data(struct tfa98xx *tfa98xx,int dev_idx, int *live_data, int *nr_of_items)
 {
@@ -3541,6 +3607,8 @@ static void create_memtrack_buffer_msg(struct nxpTfa98xx_Memtrack_data *mRecord,
 	*size = (6+(mRecord->length*3)) * sizeof(char);
 }
 
+enum Tfa98xx_Error tfa_append_substring(char *substring, char *str_buff, int maxlength);
+
 enum Tfa98xx_Error tfa_append_substring(char *substring, char *str_buff, int maxlength)
 {
 	int substring_len = (int)(strlen(substring));
@@ -3553,6 +3621,8 @@ enum Tfa98xx_Error tfa_append_substring(char *substring, char *str_buff, int max
 
 	return Tfa98xx_Error_Ok;
 }
+
+Tfa98xx_Error_t tfa98xx_set_live_data(struct tfa98xx *tfa98xx,int dev_idx);
 
 Tfa98xx_Error_t tfa98xx_set_live_data(struct tfa98xx *tfa98xx,int dev_idx)
 {
@@ -3616,6 +3686,8 @@ Tfa98xx_Error_t tfa98xx_set_live_data(struct tfa98xx *tfa98xx,int dev_idx)
 	return err;
 }
 
+Tfa98xx_Error_t tfa98xx_get_live_data_items(struct tfa98xx *tfa98xx,int dev_idx, char *strings);
+
 Tfa98xx_Error_t tfa98xx_get_live_data_items(struct tfa98xx *tfa98xx,int dev_idx, char *strings)
 {
 	Tfa98xx_Error_t error = Tfa98xx_Error_Ok;
@@ -3663,6 +3735,8 @@ error_exit:
 	kfree(str);
 	return error;
 }
+
+int exTfa98xx_getf0_req( struct tfa98xx *tfa98xx);
 
 int exTfa98xx_getf0_req( struct tfa98xx *tfa98xx)
 {
@@ -4231,7 +4305,7 @@ static int tfa98xx_parse_dt(struct device *dev, struct tfa98xx *tfa98xx,
 }
 
 static ssize_t tfa98xx_reg_write(struct file *filp, struct kobject *kobj,
-	struct bin_attribute *bin_attr,
+	const struct bin_attribute *bin_attr,
 	char *buf, loff_t off, size_t count)
 {
 	struct device *dev = container_of(kobj, struct device, kobj);
@@ -4248,7 +4322,7 @@ static ssize_t tfa98xx_reg_write(struct file *filp, struct kobject *kobj,
 }
 
 static ssize_t tfa98xx_rw_write(struct file *filp, struct kobject *kobj,
-	struct bin_attribute *bin_attr,
+	const struct bin_attribute *bin_attr,
 	char *buf, loff_t off, size_t count)
 {
 	struct device *dev = container_of(kobj, struct device, kobj);
@@ -4289,7 +4363,7 @@ retry:
 }
 
 static ssize_t tfa98xx_rw_read(struct file *filp, struct kobject *kobj,
-	struct bin_attribute *bin_attr,
+	const struct bin_attribute *bin_attr,
 	char *buf, loff_t off, size_t count)
 {
 	struct device *dev = container_of(kobj, struct device, kobj);
@@ -5471,6 +5545,8 @@ static const struct file_operations tfa98xx_fops = {
 
 extern void tfa98xx_set_vendor_info(int id, char *chip) __attribute__((weak));
 
+void tfa98xx_set_vendor_info(int id, char *chip);
+
 void tfa98xx_set_vendor_info(int id, char *chip){
 	(void)id;
 	(void)chip;
@@ -5542,7 +5618,7 @@ static int tfa98xx_i2c_probe(struct i2c_client *i2c)
 
 	if (gpio_is_valid(tfa98xx->irq_gpio)) {
 		ret = devm_gpio_request_one(&i2c->dev, tfa98xx->irq_gpio,
-			GPIOF_DIR_IN, "TFA98XX_INT");
+			GPIOF_IN, "TFA98XX_INT");
 		if (ret)
 			return ret;
 	}
@@ -5861,8 +5937,7 @@ static int __init tfa98xx_i2c_init(void)
 	tfa98xx_cache = kmem_cache_create("tfa98xx_cache", /* Cache name /proc/slabinfo */
 		PAGE_SIZE, /* Structure size, we should fit in single page */
 		0, /* Structure alignment */
-		(SLAB_HWCACHE_ALIGN | SLAB_RECLAIM_ACCOUNT |
-			SLAB_MEM_SPREAD), /* Cache property */
+		(SLAB_HWCACHE_ALIGN | SLAB_RECLAIM_ACCOUNT), /* Cache property */
 		NULL); /* Object constructor */
 	if (!tfa98xx_cache) {
 		pr_err("tfa98xx can't create memory pool\n");

@@ -4,6 +4,7 @@
  * Copyright (c) 2024, Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
+#include <linux/of.h>
 #include <linux/of_platform.h>
 #include <linux/module.h>
 #include <linux/io.h>
@@ -100,6 +101,8 @@ static char __iomem *bolero_clk_rsc_get_clk_muxsel(struct bolero_clk_rsc *priv,
 	return NULL;
 }
 
+int bolero_rsc_clk_reset(struct device *dev, int clk_id);
+
 int bolero_rsc_clk_reset(struct device *dev, int clk_id)
 {
 	struct device *clk_dev = NULL;
@@ -145,6 +148,8 @@ int bolero_rsc_clk_reset(struct device *dev, int clk_id)
 	return 0;
 }
 EXPORT_SYMBOL(bolero_rsc_clk_reset);
+
+void bolero_clk_rsc_enable_all_clocks(struct device *dev, bool enable);
 
 void bolero_clk_rsc_enable_all_clocks(struct device *dev, bool enable)
 {
@@ -443,6 +448,8 @@ err:
  * @dev: Macro device pointer
  * @enable: enable or disable flag
  */
+void bolero_clk_rsc_fs_gen_request(struct device *dev, bool enable);
+
 void bolero_clk_rsc_fs_gen_request(struct device *dev, bool enable)
 {
 	int i;
@@ -516,6 +523,11 @@ EXPORT_SYMBOL(bolero_clk_rsc_fs_gen_request);
  *
  * Returns 0 on success or -EINVAL on error.
  */
+int bolero_clk_rsc_request_clock(struct device *dev,
+				int default_clk_id,
+				int clk_id_req,
+				bool enable);
+
 int bolero_clk_rsc_request_clock(struct device *dev,
 				int default_clk_id,
 				int clk_id_req,
@@ -724,18 +736,18 @@ err:
 	return ret;
 }
 
-static int bolero_clk_rsc_remove(struct platform_device *pdev)
+static void bolero_clk_rsc_remove(struct platform_device *pdev)
 {
 	struct bolero_clk_rsc *priv = dev_get_drvdata(&pdev->dev);
 
 	bolero_unregister_res_clk(&pdev->dev);
 	of_platform_depopulate(&pdev->dev);
 	if (!priv)
-		return -EINVAL;
+		return;
 	mutex_destroy(&priv->rsc_clk_lock);
 	mutex_destroy(&priv->fs_gen_lock);
 
-	return 0;
+	return;
 }
 
 static const struct of_device_id bolero_clk_rsc_dt_match[] = {
@@ -755,10 +767,14 @@ static struct platform_driver bolero_clk_rsc_mgr = {
 	.remove = bolero_clk_rsc_remove,
 };
 
+int bolero_clk_rsc_mgr_init(void);
+
 int bolero_clk_rsc_mgr_init(void)
 {
 	return platform_driver_register(&bolero_clk_rsc_mgr);
 }
+
+void bolero_clk_rsc_mgr_exit(void);
 
 void bolero_clk_rsc_mgr_exit(void)
 {

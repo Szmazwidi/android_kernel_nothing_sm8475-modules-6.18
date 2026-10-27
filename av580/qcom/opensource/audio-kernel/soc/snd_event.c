@@ -176,6 +176,10 @@ static int snd_event_find_clients(struct snd_master *master)
  */
 int snd_event_client_register(struct device *dev,
 			      const struct snd_event_ops *snd_ev_ops,
+			      void *data);
+
+int snd_event_client_register(struct device *dev,
+			      const struct snd_event_ops *snd_ev_ops,
 			      void *data)
 {
 	struct snd_event_client *c;
@@ -221,6 +225,8 @@ EXPORT_SYMBOL(snd_event_client_register);
  *
  * Returns 0 on success or error on failure.
  */
+int snd_event_client_deregister(struct device *dev);
+
 int snd_event_client_deregister(struct device *dev)
 {
 	struct snd_event_client *c;
@@ -290,6 +296,10 @@ EXPORT_SYMBOL(snd_event_client_deregister);
  */
 void snd_event_mstr_add_client(struct snd_event_clients **snd_clients,
 			       int (*compare)(struct device *, void *),
+			       void *data);
+
+void snd_event_mstr_add_client(struct snd_event_clients **snd_clients,
+			       int (*compare)(struct device *, void *),
 			       void *data)
 {
 	struct snd_event_clients *client = *snd_clients;
@@ -353,6 +363,11 @@ EXPORT_SYMBOL(snd_event_mstr_add_client);
 int snd_event_master_register(struct device *dev,
 			      const struct snd_event_ops *ops,
 			      struct snd_event_clients *clients,
+			      void *data);
+
+int snd_event_master_register(struct device *dev,
+			      const struct snd_event_ops *ops,
+			      struct snd_event_clients *clients,
 			      void *data)
 {
 	struct snd_master *new_master;
@@ -413,6 +428,8 @@ EXPORT_SYMBOL(snd_event_master_register);
  *
  * Returns 0 on success or error on failure.
  */
+int snd_event_master_deregister(struct device *dev);
+
 int snd_event_master_deregister(struct device *dev)
 {
 	int ret = 0;
@@ -458,6 +475,8 @@ EXPORT_SYMBOL(snd_event_master_deregister);
  *
  * Returns 0 on success or error on failure.
  */
+int snd_event_notify(struct device *dev, unsigned int state);
+
 int snd_event_notify(struct device *dev, unsigned int state)
 {
 	struct snd_event_client *c;

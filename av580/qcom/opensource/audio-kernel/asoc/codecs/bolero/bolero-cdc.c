@@ -3,6 +3,7 @@
  * Copyright (c) 2024, Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
+#include <linux/of.h>
 #include <linux/of_platform.h>
 #include <linux/module.h>
 #include <linux/io.h>
@@ -41,6 +42,9 @@ static u16 bolero_mclk_mux_tbl[MAX_MACRO][MCLK_MUX_MAX] = {
 };
 
 static bool bolero_is_valid_codec_dev(struct device *dev);
+
+int bolero_set_port_map(struct snd_soc_component *component,
+			u32 size, void *data);
 
 int bolero_set_port_map(struct snd_soc_component *component,
 			u32 size, void *data)
@@ -312,6 +316,8 @@ static bool bolero_is_valid_codec_dev(struct device *dev)
  * @dev: bolero device ptr.
  *
  */
+void bolero_clear_amic_tx_hold(struct device *dev, u16 adc_n);
+
 void bolero_clear_amic_tx_hold(struct device *dev, u16 adc_n)
 {
 	struct bolero_priv *priv;
@@ -356,6 +362,8 @@ EXPORT_SYMBOL(bolero_clear_amic_tx_hold);
  *
  * Returns dev ptr on success or NULL on error.
  */
+struct device *bolero_get_device_ptr(struct device *dev, u16 macro_id);
+
 struct device *bolero_get_device_ptr(struct device *dev, u16 macro_id)
 {
 	struct bolero_priv *priv;
@@ -386,6 +394,8 @@ EXPORT_SYMBOL(bolero_get_device_ptr);
  *
  * Returns dev ptr on success or NULL on error.
  */
+struct device *bolero_get_rsc_clk_device_ptr(struct device *dev);
+
 struct device *bolero_get_rsc_clk_device_ptr(struct device *dev)
 {
 	struct bolero_priv *priv;
@@ -446,6 +456,8 @@ static int bolero_copy_dais_from_macro(struct bolero_priv *priv)
  *
  * Returns 0 on success or -EINVAL on error.
  */
+int bolero_register_res_clk(struct device *dev, rsc_clk_cb_t rsc_clk_cb);
+
 int bolero_register_res_clk(struct device *dev, rsc_clk_cb_t rsc_clk_cb)
 {
 	struct bolero_priv *priv;
@@ -477,6 +489,8 @@ EXPORT_SYMBOL(bolero_register_res_clk);
  *
  * @dev: resource clk device ptr.
  */
+void bolero_unregister_res_clk(struct device *dev);
+
 void bolero_unregister_res_clk(struct device *dev)
 {
 	struct bolero_priv *priv;
@@ -516,6 +530,9 @@ static u8 bolero_dmic_clk_div_get(struct snd_soc_component *component,
 
 	return 1;
 }
+
+int bolero_dmic_clk_enable(struct snd_soc_component *component,
+			   u32 dmic, u32 tx_mode, bool enable);
 
 int bolero_dmic_clk_enable(struct snd_soc_component *component,
 			   u32 dmic, u32 tx_mode, bool enable)
@@ -624,6 +641,8 @@ int bolero_dmic_clk_enable(struct snd_soc_component *component,
 }
 EXPORT_SYMBOL(bolero_dmic_clk_enable);
 
+bool bolero_is_va_macro_registered(struct device *dev);
+
 bool bolero_is_va_macro_registered(struct device *dev)
 {
 	struct bolero_priv *priv;
@@ -655,6 +674,9 @@ EXPORT_SYMBOL(bolero_is_va_macro_registered);
  *
  * Returns 0 on success or -EINVAL on error.
  */
+int bolero_register_macro(struct device *dev, u16 macro_id,
+			  struct macro_ops *ops);
+
 int bolero_register_macro(struct device *dev, u16 macro_id,
 			  struct macro_ops *ops)
 {
@@ -739,6 +761,8 @@ EXPORT_SYMBOL(bolero_register_macro);
  * @macro_id: ID of macro calling this API.
  *
  */
+void bolero_unregister_macro(struct device *dev, u16 macro_id);
+
 void bolero_unregister_macro(struct device *dev, u16 macro_id)
 {
 	struct bolero_priv *priv;
@@ -781,6 +805,8 @@ void bolero_unregister_macro(struct device *dev, u16 macro_id)
 }
 EXPORT_SYMBOL(bolero_unregister_macro);
 
+void bolero_wsa_pa_on(struct device *dev, bool adie_lb);
+
 void bolero_wsa_pa_on(struct device *dev, bool adie_lb)
 {
 	struct bolero_priv *priv;
@@ -807,6 +833,8 @@ void bolero_wsa_pa_on(struct device *dev, bool adie_lb)
 			BOLERO_SLV_EVT_PA_ON_POST_FSCLK);
 }
 EXPORT_SYMBOL(bolero_wsa_pa_on);
+
+int bolero_get_version(struct device *dev);
 
 int bolero_get_version(struct device *dev)
 {
@@ -972,6 +1000,9 @@ static const struct snd_event_ops bolero_ssr_ops = {
  * Return: 0 on success or negative error code on failure.
  */
 int bolero_info_create_codec_entry(struct snd_info_entry *codec_root,
+				   struct snd_soc_component *component);
+
+int bolero_info_create_codec_entry(struct snd_info_entry *codec_root,
 				   struct snd_soc_component *component)
 {
 	struct snd_info_entry *version_entry;
@@ -1036,6 +1067,9 @@ EXPORT_SYMBOL(bolero_info_create_codec_entry);
  * Return: 0 on success or negative error code on failure.
  */
 int bolero_register_wake_irq(struct snd_soc_component *component,
+			     u32 ipc_wakeup);
+
+int bolero_register_wake_irq(struct snd_soc_component *component,
 			     u32 ipc_wakeup)
 {
 	struct bolero_priv *priv = NULL;
@@ -1075,6 +1109,8 @@ EXPORT_SYMBOL(bolero_register_wake_irq);
  *
  * Returns 0 on success or -EINVAL on error.
  */
+int bolero_tx_clk_switch(struct snd_soc_component *component, int clk_src);
+
 int bolero_tx_clk_switch(struct snd_soc_component *component, int clk_src)
 {
 	struct bolero_priv *priv = NULL;
@@ -1108,6 +1144,9 @@ EXPORT_SYMBOL(bolero_tx_clk_switch);
  *
  * Returns 0 on success or -EINVAL on error.
  */
+int bolero_tx_mclk_enable(struct snd_soc_component *component,
+			  bool enable);
+
 int bolero_tx_mclk_enable(struct snd_soc_component *component,
 			  bool enable)
 {
@@ -1143,6 +1182,9 @@ EXPORT_SYMBOL(bolero_tx_mclk_enable);
  *
  * Returns 0 on success or -EINVAL on error.
  */
+int bolero_register_event_listener(struct snd_soc_component *component,
+				   bool enable);
+
 int bolero_register_event_listener(struct snd_soc_component *component,
 				   bool enable)
 {
@@ -1287,7 +1329,7 @@ static void bolero_add_child_devices(struct work_struct *work)
 				__func__);
 		}
 
-		strlcpy(plat_dev_name, node->name,
+		strscpy(plat_dev_name, node->name,
 				(BOLERO_CDC_STRING_LEN - 1));
 
 		pdev = platform_device_alloc(plat_dev_name, -1);
@@ -1424,21 +1466,23 @@ static int bolero_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static int bolero_remove(struct platform_device *pdev)
+static void bolero_remove(struct platform_device *pdev)
 {
 	struct bolero_priv *priv = dev_get_drvdata(&pdev->dev);
 
 	if (!priv)
-		return -EINVAL;
+		return;
 
 	of_platform_depopulate(&pdev->dev);
 	mutex_destroy(&priv->io_lock);
 	mutex_destroy(&priv->clk_lock);
 	mutex_destroy(&priv->vote_lock);
-	return 0;
+	return;
 }
 
 #ifdef CONFIG_PM
+int bolero_runtime_resume(struct device *dev);
+
 int bolero_runtime_resume(struct device *dev)
 {
 	struct bolero_priv *priv = dev_get_drvdata(dev->parent);
@@ -1485,6 +1529,8 @@ done:
 }
 EXPORT_SYMBOL(bolero_runtime_resume);
 
+int bolero_runtime_suspend(struct device *dev);
+
 int bolero_runtime_suspend(struct device *dev)
 {
 	struct bolero_priv *priv = dev_get_drvdata(dev->parent);
@@ -1517,6 +1563,8 @@ int bolero_runtime_suspend(struct device *dev)
 }
 EXPORT_SYMBOL(bolero_runtime_suspend);
 #endif /* CONFIG_PM */
+
+bool bolero_check_core_votes(struct device *dev);
 
 bool bolero_check_core_votes(struct device *dev)
 {

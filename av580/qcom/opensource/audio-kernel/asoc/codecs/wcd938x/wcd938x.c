@@ -4,6 +4,7 @@
  * Copyright (c) 2022, 2024 Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
+#include <linux/of.h>
 #include <linux/module.h>
 #include <linux/slab.h>
 #include <linux/platform_device.h>
@@ -619,6 +620,8 @@ static int wcd938x_rx_clk_disable(struct snd_soc_component *component)
  *
  * return wcd938x_mbhc handle or error code in case of failure
  */
+struct wcd938x_mbhc *wcd938x_soc_get_mbhc(struct snd_soc_component *component);
+
 struct wcd938x_mbhc *wcd938x_soc_get_mbhc(struct snd_soc_component *component)
 {
 	struct wcd938x_priv *wcd938x;
@@ -1536,6 +1539,8 @@ static int wcd938x_codec_enable_dmic(struct snd_soc_dapm_widget *w,
  *
  * return register value converted
  */
+int wcd938x_get_micb_vout_ctl_val(u32 micb_mv);
+
 int wcd938x_get_micb_vout_ctl_val(u32 micb_mv)
 {
 	/* min micbias voltage is 1V and maximum is 2.85V */
@@ -1556,6 +1561,9 @@ EXPORT_SYMBOL(wcd938x_get_micb_vout_ctl_val);
  *
  * return 0 if adjustment is success or error code in case of failure
  */
+int wcd938x_mbhc_micb_adjust_voltage(struct snd_soc_component *component,
+				   int req_volt, int micb_num);
+
 int wcd938x_mbhc_micb_adjust_voltage(struct snd_soc_component *component,
 				   int req_volt, int micb_num)
 {
@@ -1762,6 +1770,9 @@ static int wcd938x_get_adc_mode(int val)
 }
 
 int wcd938x_tx_channel_config(struct snd_soc_component *component,
+			      int channel, int mode);
+
+int wcd938x_tx_channel_config(struct snd_soc_component *component,
 			      int channel, int mode)
 {
 	int reg = WCD938X_ANA_TX_CH2, mask = 0, val = 0;
@@ -1867,6 +1878,9 @@ static int wcd938x_codec_enable_adc(struct snd_soc_dapm_widget *w,
 
 	return ret;
 }
+
+void wcd938x_disable_bcs_before_slow_insert(struct snd_soc_component *component,
+					    bool bcs_disable);
 
 void wcd938x_disable_bcs_before_slow_insert(struct snd_soc_component *component,
 					    bool bcs_disable)
@@ -1993,6 +2007,9 @@ static int wcd938x_enable_req(struct snd_soc_dapm_widget *w,
 	};
 	return ret;
 }
+
+int wcd938x_micbias_control(struct snd_soc_component *component,
+				int micb_num, int req, bool is_dapm);
 
 int wcd938x_micbias_control(struct snd_soc_component *component,
 				int micb_num, int req, bool is_dapm)
@@ -2185,6 +2202,10 @@ static bool get_usbc_hs_status(struct snd_soc_component *component,
 	}
 	return false;
 }
+
+int wcd938x_swr_dmic_register_notifier(struct snd_soc_component *component,
+					struct notifier_block *nblock,
+					bool enable);
 
 int wcd938x_swr_dmic_register_notifier(struct snd_soc_component *component,
 					struct notifier_block *nblock,
@@ -2540,6 +2561,9 @@ static int wcd938x_enable_micbias(struct wcd938x_priv *wcd938x,
 }
 
 int wcd938x_codec_force_enable_micbias_v2(struct snd_soc_component *component,
+					int event, int micb_num);
+
+int wcd938x_codec_force_enable_micbias_v2(struct snd_soc_component *component,
 					int event, int micb_num)
 {
 	struct wcd938x_priv *wcd938x_priv = NULL;
@@ -2771,6 +2795,8 @@ static int wcd938x_ear_pa_gain_put(struct snd_kcontrol *kcontrol,
  * Return: swr device number on success or negative error
  * code on failure.
  */
+int wcd938x_codec_get_dev_num(struct snd_soc_component *component);
+
 int wcd938x_codec_get_dev_num(struct snd_soc_component *component)
 {
 	struct wcd938x_priv *wcd938x;
@@ -3847,6 +3873,8 @@ static struct snd_info_entry_ops wcd938x_variant_ops = {
  *
  * Return: codec variant or -EINVAL in error.
  */
+int wcd938x_get_codec_variant(struct snd_soc_component *component);
+
 int wcd938x_get_codec_variant(struct snd_soc_component *component)
 {
 	struct wcd938x_priv *priv = NULL;
@@ -3875,6 +3903,9 @@ EXPORT_SYMBOL(wcd938x_get_codec_variant);
  *
  * Return: 0 on success or negative error code on failure.
  */
+int wcd938x_info_create_codec_entry(struct snd_info_entry *codec_root,
+				   struct snd_soc_component *component);
+
 int wcd938x_info_create_codec_entry(struct snd_info_entry *codec_root,
 				   struct snd_soc_component *component)
 {
@@ -4306,6 +4337,8 @@ static int wcd938x_reset_low(struct device *dev)
 	return rc;
 }
 
+struct wcd938x_pdata *wcd938x_populate_dt_data(struct device *dev);
+
 struct wcd938x_pdata *wcd938x_populate_dt_data(struct device *dev)
 {
 	struct wcd938x_pdata *pdata = NULL;
@@ -4639,7 +4672,7 @@ err:
 	return ret;
 }
 
-static int wcd938x_remove(struct platform_device *pdev)
+static void wcd938x_remove(struct platform_device *pdev)
 {
 	struct wcd938x_priv *wcd938x = NULL;
 
@@ -4649,7 +4682,7 @@ static int wcd938x_remove(struct platform_device *pdev)
 	mutex_destroy(&wcd938x->wakeup_lock);
 	dev_set_drvdata(&pdev->dev, NULL);
 
-	return 0;
+	return;
 }
 
 #ifdef CONFIG_PM_SLEEP

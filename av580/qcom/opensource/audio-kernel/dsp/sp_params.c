@@ -324,6 +324,8 @@ static struct attribute_group afe_spk_cal_attr_grp = {
  *
  * Returns 0 on success or error on failure
  */
+int afe_get_sp_xt_logging_data(u16 port_id);
+
 int afe_get_sp_xt_logging_data(u16 port_id)
 {
 	int ret = 0;
@@ -393,6 +395,8 @@ int afe_get_sp_xt_logging_data(u16 port_id)
 }
 EXPORT_SYMBOL(afe_get_sp_xt_logging_data);
 
+int __init spk_params_init(void);
+
 int __init spk_params_init(void)
 {
 	/* initialize xt param value with 0 */
@@ -418,6 +422,8 @@ int __init spk_params_init(void)
 	}
 	return 0;
 }
+
+void spk_params_exit(void);
 
 void spk_params_exit(void)
 {

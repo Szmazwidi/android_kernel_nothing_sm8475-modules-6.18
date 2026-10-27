@@ -4,6 +4,7 @@
  * Copyright (c) 2022-2024, Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
+#include <linux/of.h>
 #include <linux/init.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -31,7 +32,7 @@
 #include <linux/firmware/qcom/qcom_scm.h>
 #include <soc/qcom/secure_buffer.h>
 
-MODULE_IMPORT_NS(DMA_BUF);
+MODULE_IMPORT_NS("DMA_BUF");
 
 #define MSM_AUDIO_ION_PROBED (1 << 0)
 
@@ -388,6 +389,8 @@ err:
 	return rc;
 }
 
+void msm_audio_fd_list_debug(void);
+
 void msm_audio_fd_list_debug(void)
 {
 	struct msm_audio_fd_data *msm_audio_fd_data = NULL;
@@ -399,6 +402,8 @@ void msm_audio_fd_list_debug(void)
 			(void *)msm_audio_fd_data->paddr);
 	}
 }
+
+void msm_audio_update_fd_list(struct msm_audio_fd_data *msm_audio_fd_data);
 
 void msm_audio_update_fd_list(struct msm_audio_fd_data *msm_audio_fd_data)
 {
@@ -417,6 +422,8 @@ void msm_audio_update_fd_list(struct msm_audio_fd_data *msm_audio_fd_data)
 	list_add_tail(&msm_audio_fd_data->list, &msm_audio_ion_fd_list.fd_list);
 	mutex_unlock(&(msm_audio_ion_fd_list.list_mutex));
 }
+
+void msm_audio_delete_fd_entry(void *handle, int handle_fd);
 
 void msm_audio_delete_fd_entry(void *handle, int handle_fd)
 {
@@ -444,6 +451,8 @@ void msm_audio_delete_fd_entry(void *handle, int handle_fd)
 	}
 	mutex_unlock(&(msm_audio_ion_fd_list.list_mutex));
 }
+
+int msm_audio_get_phy_addr(int fd, dma_addr_t *paddr, size_t *pa_len);
 
 int msm_audio_get_phy_addr(int fd, dma_addr_t *paddr, size_t *pa_len)
 {
@@ -493,6 +502,8 @@ static int msm_audio_set_hyp_assign(int fd, bool assign)
 	mutex_unlock(&(msm_audio_ion_fd_list.list_mutex));
 	return status;
 }
+
+void msm_audio_get_handle(int fd, void **handle);
 
 void msm_audio_get_handle(int fd, void **handle)
 {
@@ -639,6 +650,8 @@ static int msm_audio_hyp_unassign(struct msm_audio_fd_data *msm_audio_fd_data)
  *
  * To be called from machine driver.
  */
+void msm_audio_ion_crash_handler(void);
+
 void msm_audio_ion_crash_handler(void)
 {
 	struct msm_audio_fd_data *msm_audio_fd_data = NULL;
@@ -979,13 +992,13 @@ static int msm_audio_ion_probe(struct platform_device *pdev)
 	return rc;
 }
 
-static int msm_audio_ion_remove(struct platform_device *pdev)
+static void msm_audio_ion_remove(struct platform_device *pdev)
 {
 	struct msm_audio_ion_private *ion_data = dev_get_drvdata(&pdev->dev);
 	ion_data->smmu_enabled = 0;
 	ion_data->device_status = 0;
 	msm_audio_ion_unreg_chrdev(ion_data);
-	return 0;
+	return;
 }
 
 static struct platform_driver msm_audio_ion_driver = {
@@ -999,11 +1012,15 @@ static struct platform_driver msm_audio_ion_driver = {
 	.remove = msm_audio_ion_remove,
 };
 
+int __init msm_audio_ion_init(void);
+
 int __init msm_audio_ion_init(void)
 {
 	pr_debug("%s: msm_audio_ion_init called \n",__func__);
 	return platform_driver_register(&msm_audio_ion_driver);
 }
+
+void msm_audio_ion_exit(void);
 
 void msm_audio_ion_exit(void)
 {

@@ -17,6 +17,8 @@ const u16 macro_id_base_offset[MAX_MACRO] = {
 	VA_START_OFFSET,
 };
 
+int bolero_get_macro_id(bool va_no_dec_flag, u16 reg);
+
 int bolero_get_macro_id(bool va_no_dec_flag, u16 reg)
 {
 	if (reg >= TX_START_OFFSET
@@ -164,6 +166,9 @@ static struct regmap_bus regmap_bus_config = {
 	.reg_format_endian_default = REGMAP_ENDIAN_NATIVE,
 	.val_format_endian_default = REGMAP_ENDIAN_NATIVE,
 };
+
+struct regmap *bolero_regmap_init(struct device *dev,
+				      const struct regmap_config *config);
 
 struct regmap *bolero_regmap_init(struct device *dev,
 				      const struct regmap_config *config)

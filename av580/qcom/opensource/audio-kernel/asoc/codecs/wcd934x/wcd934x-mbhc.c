@@ -990,6 +990,9 @@ static const struct snd_kcontrol_new impedance_detect_controls[] = {
  * return 0 for success or error code in case of failure
  */
 int tavil_mbhc_get_impedance(struct wcd934x_mbhc *wcd934x_mbhc,
+			     uint32_t *zl, uint32_t *zr);
+
+int tavil_mbhc_get_impedance(struct wcd934x_mbhc *wcd934x_mbhc,
 			     uint32_t *zl, uint32_t *zr)
 {
 	if (!wcd934x_mbhc) {
@@ -1012,6 +1015,9 @@ EXPORT_SYMBOL(tavil_mbhc_get_impedance);
  * return 0 if mbhc_start is success or error code in case of failure
  */
 int tavil_mbhc_hs_detect(struct snd_soc_component *component,
+			 struct wcd_mbhc_config *mbhc_cfg);
+
+int tavil_mbhc_hs_detect(struct snd_soc_component *component,
 			 struct wcd_mbhc_config *mbhc_cfg)
 {
 	struct wcd934x_mbhc *wcd934x_mbhc = tavil_soc_get_mbhc(component);
@@ -1030,6 +1036,8 @@ EXPORT_SYMBOL(tavil_mbhc_hs_detect);
  * tavil_mbhc_hs_detect_exit: stop mbhc insertion/removal functionality
  * @component: handle to snd_soc_component *
  */
+void tavil_mbhc_hs_detect_exit(struct snd_soc_component *component);
+
 void tavil_mbhc_hs_detect_exit(struct snd_soc_component *component)
 {
 	struct wcd934x_mbhc *wcd934x_mbhc = tavil_soc_get_mbhc(component);
@@ -1050,6 +1058,9 @@ EXPORT_SYMBOL(tavil_mbhc_hs_detect_exit);
  *
  * return 0 if mbhc_init is success or error code in case of failure
  */
+int tavil_mbhc_post_ssr_init(struct wcd934x_mbhc *mbhc,
+			     struct snd_soc_component *component);
+
 int tavil_mbhc_post_ssr_init(struct wcd934x_mbhc *mbhc,
 			     struct snd_soc_component *component)
 {
@@ -1094,6 +1105,10 @@ EXPORT_SYMBOL(tavil_mbhc_post_ssr_init);
  *
  * return 0 if mbhc_init is success or error code in case of failure
  */
+int tavil_mbhc_init(struct wcd934x_mbhc **mbhc,
+		    struct snd_soc_component *component,
+		    struct fw_info *fw_data);
+
 int tavil_mbhc_init(struct wcd934x_mbhc **mbhc,
 		    struct snd_soc_component *component,
 		    struct fw_info *fw_data)
@@ -1175,6 +1190,8 @@ EXPORT_SYMBOL(tavil_mbhc_init);
  * tavil_mbhc_deinit: deinitialize mbhc for tavil
  * @component: handle to snd_soc_component *
  */
+void tavil_mbhc_deinit(struct snd_soc_component *component);
+
 void tavil_mbhc_deinit(struct snd_soc_component *component)
 {
 	struct wcd934x_mbhc *wcd934x_mbhc = tavil_soc_get_mbhc(component);

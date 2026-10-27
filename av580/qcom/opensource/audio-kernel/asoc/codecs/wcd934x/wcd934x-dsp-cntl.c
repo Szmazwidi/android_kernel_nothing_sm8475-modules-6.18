@@ -1369,6 +1369,8 @@ static const struct component_ops wcd_ctrl_component_ops = {
  * Notifies the manager driver about the SSR event.
  * Returns 0 on success and negative error code on error.
  */
+int wcd_dsp_ssr_event(struct wcd_dsp_cntl *cntl, enum cdc_ssr_event event);
+
 int wcd_dsp_ssr_event(struct wcd_dsp_cntl *cntl, enum cdc_ssr_event event)
 {
 	int ret = 0;
@@ -1424,6 +1426,10 @@ EXPORT_SYMBOL(wcd_dsp_ssr_event);
  * provide information essential for the wcd dsp control to
  * configure and initialize the dsp
  */
+void wcd_dsp_cntl_init(struct snd_soc_component *component,
+		       struct wcd_dsp_params *params,
+		       struct wcd_dsp_cntl **cntl);
+
 void wcd_dsp_cntl_init(struct snd_soc_component *component,
 		       struct wcd_dsp_params *params,
 		       struct wcd_dsp_cntl **cntl)
@@ -1498,6 +1504,8 @@ EXPORT_SYMBOL(wcd_dsp_cntl_init);
  * This API is intended to be invoked by the codec driver
  * to de-initialize the wcd dsp control
  */
+void wcd_dsp_cntl_deinit(struct wcd_dsp_cntl **cntl);
+
 void wcd_dsp_cntl_deinit(struct wcd_dsp_cntl **cntl)
 {
 	struct wcd_dsp_cntl *control = *cntl;

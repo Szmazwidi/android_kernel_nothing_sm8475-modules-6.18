@@ -160,6 +160,9 @@ static struct irq_chip wcd9xxx_irq_chip = {
 };
 
 bool wcd9xxx_lock_sleep(
+	struct wcd9xxx_core_resource *wcd9xxx_res);
+
+bool wcd9xxx_lock_sleep(
 	struct wcd9xxx_core_resource *wcd9xxx_res)
 {
 	enum wcd9xxx_pm_state os;
@@ -206,6 +209,9 @@ bool wcd9xxx_lock_sleep(
 EXPORT_SYMBOL(wcd9xxx_lock_sleep);
 
 void wcd9xxx_unlock_sleep(
+	struct wcd9xxx_core_resource *wcd9xxx_res);
+
+void wcd9xxx_unlock_sleep(
 	struct wcd9xxx_core_resource *wcd9xxx_res)
 {
 	mutex_lock(&wcd9xxx_res->pm_lock);
@@ -227,10 +233,14 @@ void wcd9xxx_unlock_sleep(
 }
 EXPORT_SYMBOL(wcd9xxx_unlock_sleep);
 
+void wcd9xxx_nested_irq_lock(struct wcd9xxx_core_resource *wcd9xxx_res);
+
 void wcd9xxx_nested_irq_lock(struct wcd9xxx_core_resource *wcd9xxx_res)
 {
 	mutex_lock(&wcd9xxx_res->nested_irq_lock);
 }
+
+void wcd9xxx_nested_irq_unlock(struct wcd9xxx_core_resource *wcd9xxx_res);
 
 void wcd9xxx_nested_irq_unlock(struct wcd9xxx_core_resource *wcd9xxx_res)
 {
@@ -427,6 +437,9 @@ err_disable_irq:
  *
  */
 void wcd9xxx_free_irq(struct wcd9xxx_core_resource *wcd9xxx_res,
+			int irq, void *data);
+
+void wcd9xxx_free_irq(struct wcd9xxx_core_resource *wcd9xxx_res,
 			int irq, void *data)
 {
 	free_irq(phyirq_to_virq(wcd9xxx_res, irq), data);
@@ -440,6 +453,8 @@ EXPORT_SYMBOL(wcd9xxx_free_irq);
  * irq: irq number
  *
  */
+void wcd9xxx_enable_irq(struct wcd9xxx_core_resource *wcd9xxx_res, int irq);
+
 void wcd9xxx_enable_irq(struct wcd9xxx_core_resource *wcd9xxx_res, int irq)
 {
 	if (wcd9xxx_res->irq)
@@ -454,6 +469,8 @@ EXPORT_SYMBOL(wcd9xxx_enable_irq);
  * irq: irq number
  *
  */
+void wcd9xxx_disable_irq(struct wcd9xxx_core_resource *wcd9xxx_res, int irq);
+
 void wcd9xxx_disable_irq(struct wcd9xxx_core_resource *wcd9xxx_res, int irq)
 {
 	if (wcd9xxx_res->irq)
@@ -468,6 +485,9 @@ EXPORT_SYMBOL(wcd9xxx_disable_irq);
  * irq: irq number
  *
  */
+void wcd9xxx_disable_irq_sync(
+			struct wcd9xxx_core_resource *wcd9xxx_res, int irq);
+
 void wcd9xxx_disable_irq_sync(
 			struct wcd9xxx_core_resource *wcd9xxx_res, int irq)
 {
@@ -522,6 +542,8 @@ static int wcd9xxx_irq_setup_downstream_irq(
  *
  * Returns 0 on success, appropriate error code otherwise
  */
+int wcd9xxx_irq_init(struct wcd9xxx_core_resource *wcd9xxx_res);
+
 int wcd9xxx_irq_init(struct wcd9xxx_core_resource *wcd9xxx_res)
 {
 	int i, ret;
@@ -629,6 +651,10 @@ EXPORT_SYMBOL(wcd9xxx_irq_init);
 
 int wcd9xxx_request_irq(struct wcd9xxx_core_resource *wcd9xxx_res,
 			int irq, irq_handler_t handler,
+			const char *name, void *data);
+
+int wcd9xxx_request_irq(struct wcd9xxx_core_resource *wcd9xxx_res,
+			int irq, irq_handler_t handler,
 			const char *name, void *data)
 {
 	int virq;
@@ -639,6 +665,8 @@ int wcd9xxx_request_irq(struct wcd9xxx_core_resource *wcd9xxx_res,
 				    name, data);
 }
 EXPORT_SYMBOL(wcd9xxx_request_irq);
+
+void wcd9xxx_irq_exit(struct wcd9xxx_core_resource *wcd9xxx_res);
 
 void wcd9xxx_irq_exit(struct wcd9xxx_core_resource *wcd9xxx_res)
 {
@@ -845,7 +873,7 @@ static int wcd9xxx_irq_probe(struct platform_device *pdev)
 	return ret;
 }
 
-static int wcd9xxx_irq_remove(struct platform_device *pdev)
+static void wcd9xxx_irq_remove(struct platform_device *pdev)
 {
 	struct irq_domain *domain;
 	struct wcd9xxx_irq_drv_data *data;
@@ -853,7 +881,7 @@ static int wcd9xxx_irq_remove(struct platform_device *pdev)
 	domain = irq_find_host(pdev->dev.of_node);
 	if (unlikely(!domain)) {
 		pr_err("%s: domain is NULL", __func__);
-		return -EINVAL;
+		return;
 	}
 	data = (struct wcd9xxx_irq_drv_data *)domain->host_data;
 	data->irq = 0;
@@ -863,7 +891,7 @@ static int wcd9xxx_irq_remove(struct platform_device *pdev)
 	irq_domain_remove(data->domain);
 	kfree(data);
 
-	return 0;
+	return;
 }
 
 static const struct of_device_id of_match[] = {
@@ -882,10 +910,14 @@ static struct platform_driver wcd9xxx_irq_driver = {
 	},
 };
 
+int wcd9xxx_irq_drv_init(void);
+
 int wcd9xxx_irq_drv_init(void)
 {
 	return platform_driver_register(&wcd9xxx_irq_driver);
 }
+
+void wcd9xxx_irq_drv_exit(void);
 
 void wcd9xxx_irq_drv_exit(void)
 {

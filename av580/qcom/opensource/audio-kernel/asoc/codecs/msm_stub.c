@@ -48,10 +48,10 @@ static int msm_stub_dev_probe(struct platform_device *pdev)
 	&soc_msm_stub, msm_stub_dais, ARRAY_SIZE(msm_stub_dais));
 }
 
-static int msm_stub_dev_remove(struct platform_device *pdev)
+static void msm_stub_dev_remove(struct platform_device *pdev)
 {
 	snd_soc_unregister_component(&pdev->dev);
-	return 0;
+	return;
 }
 static const struct of_device_id msm_stub_codec_dt_match[] = {
 	{ .compatible = "qcom,msm-stub-codec", },

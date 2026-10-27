@@ -53,6 +53,10 @@ static int wcd9xxx_configure_ports(struct wcd9xxx *wcd9xxx)
  */
 int wcd9xxx_init_slimslave(struct wcd9xxx *wcd9xxx, u8 wcd9xxx_pgd_la,
 			   unsigned int tx_num, unsigned int *tx_slot,
+			   unsigned int rx_num, unsigned int *rx_slot);
+
+int wcd9xxx_init_slimslave(struct wcd9xxx *wcd9xxx, u8 wcd9xxx_pgd_la,
+			   unsigned int tx_num, unsigned int *tx_slot,
 			   unsigned int rx_num, unsigned int *rx_slot)
 {
 	int ret = 0;
@@ -121,6 +125,8 @@ err:
 	return ret;
 }
 EXPORT_SYMBOL(wcd9xxx_init_slimslave);
+
+int wcd9xxx_deinit_slimslave(struct wcd9xxx *wcd9xxx);
 
 int wcd9xxx_deinit_slimslave(struct wcd9xxx *wcd9xxx)
 {
@@ -197,6 +203,11 @@ static int wcd9xxx_dealloc_slim_sh_ch(struct slim_device *slim,
 }
 
 /* Enable slimbus slave device for RX path */
+int wcd9xxx_cfg_slim_sch_rx(struct wcd9xxx *wcd9xxx,
+			    struct list_head *wcd9xxx_ch_list,
+			    unsigned int rate, unsigned int bit_width,
+			    u16 *grph);
+
 int wcd9xxx_cfg_slim_sch_rx(struct wcd9xxx *wcd9xxx,
 			    struct list_head *wcd9xxx_ch_list,
 			    unsigned int rate, unsigned int bit_width,
@@ -320,6 +331,11 @@ EXPORT_SYMBOL(wcd9xxx_cfg_slim_sch_rx);
 int wcd9xxx_cfg_slim_sch_tx(struct wcd9xxx *wcd9xxx,
 			    struct list_head *wcd9xxx_ch_list,
 			    unsigned int rate, unsigned int bit_width,
+			    u16 *grph);
+
+int wcd9xxx_cfg_slim_sch_tx(struct wcd9xxx *wcd9xxx,
+			    struct list_head *wcd9xxx_ch_list,
+			    unsigned int rate, unsigned int bit_width,
 			    u16 *grph)
 {
 	u16 ch_cnt = 0;
@@ -424,6 +440,9 @@ err:
 EXPORT_SYMBOL(wcd9xxx_cfg_slim_sch_tx);
 
 int wcd9xxx_close_slim_sch_rx(struct wcd9xxx *wcd9xxx,
+			      struct list_head *wcd9xxx_ch_list, u16 grph);
+
+int wcd9xxx_close_slim_sch_rx(struct wcd9xxx *wcd9xxx,
 			      struct list_head *wcd9xxx_ch_list, u16 grph)
 {
 	u32 sph[SLIM_MAX_RX_PORTS] = {0};
@@ -448,6 +467,10 @@ err:
 	return ret;
 }
 EXPORT_SYMBOL(wcd9xxx_close_slim_sch_rx);
+
+int wcd9xxx_close_slim_sch_tx(struct wcd9xxx *wcd9xxx,
+			      struct list_head *wcd9xxx_ch_list,
+			      u16 grph);
 
 int wcd9xxx_close_slim_sch_tx(struct wcd9xxx *wcd9xxx,
 			      struct list_head *wcd9xxx_ch_list,
@@ -476,6 +499,8 @@ err:
 }
 EXPORT_SYMBOL(wcd9xxx_close_slim_sch_tx);
 
+int wcd9xxx_get_slave_port(unsigned int ch_num);
+
 int wcd9xxx_get_slave_port(unsigned int ch_num)
 {
 	int ret = 0;
@@ -490,6 +515,9 @@ int wcd9xxx_get_slave_port(unsigned int ch_num)
 	return ret;
 }
 EXPORT_SYMBOL(wcd9xxx_get_slave_port);
+
+int wcd9xxx_disconnect_port(struct wcd9xxx *wcd9xxx,
+			    struct list_head *wcd9xxx_ch_list, u16 grph);
 
 int wcd9xxx_disconnect_port(struct wcd9xxx *wcd9xxx,
 			    struct list_head *wcd9xxx_ch_list, u16 grph)
@@ -514,6 +542,9 @@ EXPORT_SYMBOL(wcd9xxx_disconnect_port);
 
 /* This function is called with mutex acquired */
 int wcd9xxx_rx_vport_validation(u32 port_id,
+				struct list_head *codec_dai_list);
+
+int wcd9xxx_rx_vport_validation(u32 port_id,
 				struct list_head *codec_dai_list)
 {
 	struct wcd9xxx_ch *ch;
@@ -535,6 +566,10 @@ EXPORT_SYMBOL(wcd9xxx_rx_vport_validation);
 
 
 /* This function is called with mutex acquired */
+int wcd9xxx_tx_vport_validation(u32 table, u32 port_id,
+				struct wcd9xxx_codec_dai_data *codec_dai,
+				u32 num_codec_dais);
+
 int wcd9xxx_tx_vport_validation(u32 table, u32 port_id,
 				struct wcd9xxx_codec_dai_data *codec_dai,
 				u32 num_codec_dais)

@@ -2,6 +2,7 @@
 /* Copyright (c) 2012-2021, The Linux Foundation. All rights reserved.
  * Copyright (c) 2022-2024 Qualcomm Innovation Center, Inc. All rights reserved.
  */
+#include <linux/of_platform.h>
 #include <linux/platform_device.h>
 #include <linux/slab.h>
 #include <linux/module.h>
@@ -546,7 +547,7 @@ static int msm_ext_disp_audio_codec_rx_dai_startup(
 	struct msm_ext_disp_audio_codec_rx_data *codec_data =
 			dev_get_drvdata(dai->component->dev);
 	int type;
-	struct snd_soc_pcm_runtime *rtd = asoc_substream_to_rtd(substream);
+	struct snd_soc_pcm_runtime *rtd = snd_soc_substream_to_rtd(substream);
 
 	if (!codec_data) {
 		dev_err(dai->dev, "%s() codec_data is null\n",
@@ -917,11 +918,11 @@ static int msm_ext_disp_audio_codec_rx_plat_probe(
 		ARRAY_SIZE(msm_ext_disp_audio_codec_rx_dais));
 }
 
-static int msm_ext_disp_audio_codec_rx_plat_remove(
+static void msm_ext_disp_audio_codec_rx_plat_remove(
 		struct platform_device *pdev)
 {
 	snd_soc_unregister_component(&pdev->dev);
-	return 0;
+	return;
 }
 static const struct of_device_id msm_ext_disp_audio_codec_rx_dt_match[] = {
 	{ .compatible = "qcom,msm-ext-disp-audio-codec-rx", },

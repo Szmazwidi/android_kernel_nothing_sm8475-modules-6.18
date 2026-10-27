@@ -188,12 +188,22 @@ static struct regmap_bus regmap_swr = {
 struct regmap *__regmap_init_swr(struct swr_device *swr,
 				 const struct regmap_config *config,
 				 struct lock_class_key *lock_key,
+				 const char *lock_name);
+
+struct regmap *__regmap_init_swr(struct swr_device *swr,
+				 const struct regmap_config *config,
+				 struct lock_class_key *lock_key,
 				 const char *lock_name)
 {
 	return __regmap_init(&swr->dev, &regmap_swr, &swr->dev, config,
 			   lock_key, lock_name);
 }
 EXPORT_SYMBOL(__regmap_init_swr);
+
+struct regmap *__devm_regmap_init_swr(struct swr_device *swr,
+				      const struct regmap_config *config,
+				      struct lock_class_key *lock_key,
+				      const char *lock_name);
 
 struct regmap *__devm_regmap_init_swr(struct swr_device *swr,
 				      const struct regmap_config *config,

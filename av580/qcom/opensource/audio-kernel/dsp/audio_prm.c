@@ -141,6 +141,8 @@ static int prm_gpr_send_pkt(struct gpr_pkt *pkt, wait_queue_head_t *wait)
 
 /**
  */
+int audio_prm_set_lpass_hw_core_req(struct clk_cfg *cfg, uint32_t hw_core_id, uint8_t enable);
+
 int audio_prm_set_lpass_hw_core_req(struct clk_cfg *cfg, uint32_t hw_core_id, uint8_t enable)
 {
 	struct gpr_pkt *pkt;
@@ -307,6 +309,9 @@ static int audio_prm_set_lpass_clk_cfg_rel(struct clk_cfg *cfg)
  * Return: 0 if reg passing is success.
  */
 int audio_prm_set_cdc_earpa_duty_cycling_req(struct prm_earpa_hw_intf_config *earpa_config,
+								uint32_t enable);
+
+int audio_prm_set_cdc_earpa_duty_cycling_req(struct prm_earpa_hw_intf_config *earpa_config,
 								uint32_t enable)
 {
 	struct gpr_pkt *pkt;
@@ -390,6 +395,8 @@ int audio_prm_set_cdc_earpa_duty_cycling_req(struct prm_earpa_hw_intf_config *ea
 	return ret;
 }
 EXPORT_SYMBOL(audio_prm_set_cdc_earpa_duty_cycling_req);
+
+int audio_prm_set_lpass_clk_cfg (struct clk_cfg *clk, uint8_t enable);
 
 int audio_prm_set_lpass_clk_cfg (struct clk_cfg *clk, uint8_t enable)
 {

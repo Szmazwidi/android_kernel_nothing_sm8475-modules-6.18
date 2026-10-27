@@ -4,6 +4,7 @@
  * Copyright (c) 2022, 2024 Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
+#include <linux/of.h>
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/slab.h>
@@ -766,6 +767,9 @@ static struct snd_info_entry_ops wsa883x_variant_ops = {
  * Return: 0 on success or negative error code on failure.
  */
 int wsa883x_codec_info_create_codec_entry(struct snd_info_entry *codec_root,
+					  struct snd_soc_component *component);
+
+int wsa883x_codec_info_create_codec_entry(struct snd_info_entry *codec_root,
 					  struct snd_soc_component *component)
 {
 	struct snd_info_entry *version_entry;
@@ -860,6 +864,8 @@ EXPORT_SYMBOL(wsa883x_codec_info_create_codec_entry);
  * Return: swr device number on success or negative error
  * code on failure.
  */
+int wsa883x_codec_get_dev_num(struct snd_soc_component *component);
+
 int wsa883x_codec_get_dev_num(struct snd_soc_component *component)
 {
 	struct wsa883x_priv *wsa883x;
@@ -1252,6 +1258,10 @@ static const struct snd_soc_dapm_route wsa883x_audio_map[] = {
 
 int wsa883x_set_channel_map(struct snd_soc_component *component, u8 *port,
 			    u8 num_port, unsigned int *ch_mask,
+			    unsigned int *ch_rate, u8 *port_type);
+
+int wsa883x_set_channel_map(struct snd_soc_component *component, u8 *port,
+			    u8 num_port, unsigned int *ch_mask,
 			    unsigned int *ch_rate, u8 *port_type)
 {
 	struct wsa883x_priv *wsa883x = snd_soc_component_get_drvdata(component);
@@ -1447,20 +1457,20 @@ static int wsa883x_codec_probe(struct snd_soc_component *component)
 	wsa883x->global_pa_cnt = 0;
 
 	memset(w_name, 0, sizeof(w_name));
-	strlcpy(w_name, wsa883x->dai_driver->playback.stream_name,
+	strscpy(w_name, wsa883x->dai_driver->playback.stream_name,
 				sizeof(w_name));
 	snd_soc_dapm_ignore_suspend(dapm, w_name);
 
 	memset(w_name, 0, sizeof(w_name));
-	strlcpy(w_name, "IN", sizeof(w_name));
+	strscpy(w_name, "IN", sizeof(w_name));
 	snd_soc_dapm_ignore_suspend(dapm, w_name);
 
 	memset(w_name, 0, sizeof(w_name));
-	strlcpy(w_name, "SWR DAC_Port", sizeof(w_name));
+	strscpy(w_name, "SWR DAC_Port", sizeof(w_name));
 	snd_soc_dapm_ignore_suspend(dapm, w_name);
 
 	memset(w_name, 0, sizeof(w_name));
-	strlcpy(w_name, "SPKR", sizeof(w_name));
+	strscpy(w_name, "SPKR", sizeof(w_name));
 	snd_soc_dapm_ignore_suspend(dapm, w_name);
 
 	snd_soc_dapm_sync(dapm);

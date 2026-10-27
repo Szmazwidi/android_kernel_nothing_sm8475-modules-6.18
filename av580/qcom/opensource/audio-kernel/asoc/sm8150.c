@@ -2,6 +2,7 @@
 /* Copyright (c) 2016-2019, The Linux Foundation. All rights reserved.
  */
 
+#include <linux/of.h>
 #include <linux/clk.h>
 #include <linux/delay.h>
 #include <linux/gpio.h>
@@ -4825,7 +4826,7 @@ static int msm_mi2s_snd_startup(struct snd_pcm_substream *substream)
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct snd_soc_dai *cpu_dai = rtd->cpu_dai;
 	int index = cpu_dai->id;
-	unsigned int fmt = SND_SOC_DAIFMT_CBS_CFS;
+	unsigned int fmt = SND_SOC_DAIFMT_CBC_CFC;
 	struct snd_soc_card *card = rtd->card;
 	struct msm_asoc_mach_data *pdata = snd_soc_card_get_drvdata(card);
 	struct msm_pinctrl_info *pinctrl_info = &pdata->pinctrl_info;
@@ -7230,13 +7231,13 @@ err:
 	return ret;
 }
 
-static int msm_asoc_machine_remove(struct platform_device *pdev)
+static void msm_asoc_machine_remove(struct platform_device *pdev)
 {
 	audio_notifier_deregister("sm8150");
 	msm_i2s_auxpcm_deinit();
 
 	msm_release_pinctrl(pdev);
-	return 0;
+	return;
 }
 
 static struct platform_driver sm8150_asoc_machine_driver = {
@@ -7251,11 +7252,15 @@ static struct platform_driver sm8150_asoc_machine_driver = {
 	.remove = msm_asoc_machine_remove,
 };
 
+int __init sm8150_init(void);
+
 int __init sm8150_init(void)
 {
 	pr_debug("%s\n", __func__);
 	return platform_driver_register(&sm8150_asoc_machine_driver);
 }
+
+void sm8150_exit(void);
 
 void sm8150_exit(void)
 {

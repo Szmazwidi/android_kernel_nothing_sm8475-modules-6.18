@@ -63,6 +63,9 @@ static int aqt_map_irq(struct aqt1000 *aqt, int irq)
  * Returns 0 on success or error on failure
  */
 int aqt_request_irq(struct aqt1000 *aqt, int irq, const char *name,
+			irq_handler_t handler, void *data);
+
+int aqt_request_irq(struct aqt1000 *aqt, int irq, const char *name,
 			irq_handler_t handler, void *data)
 {
 	irq = aqt_map_irq(aqt, irq);
@@ -81,6 +84,8 @@ EXPORT_SYMBOL(aqt_request_irq);
  * @irq: irq number
  * @data: data pointer
  */
+void aqt_free_irq(struct aqt1000 *aqt, int irq, void *data);
+
 void aqt_free_irq(struct aqt1000 *aqt, int irq, void *data)
 {
 	irq = aqt_map_irq(aqt, irq);
@@ -96,6 +101,8 @@ EXPORT_SYMBOL(aqt_free_irq);
  * @aqt: pointer to aqt1000 structure
  * @irq: irq number
  */
+void aqt_enable_irq(struct aqt1000 *aqt, int irq);
+
 void aqt_enable_irq(struct aqt1000 *aqt, int irq)
 {
 	if (aqt)
@@ -108,6 +115,8 @@ EXPORT_SYMBOL(aqt_enable_irq);
  * @aqt: pointer to aqt1000 structure
  * @irq: irq number
  */
+void aqt_disable_irq(struct aqt1000 *aqt, int irq);
+
 void aqt_disable_irq(struct aqt1000 *aqt, int irq)
 {
 	if (aqt)
@@ -182,6 +191,8 @@ static const struct irq_domain_ops aqt_domain_ops = {
  *
  * Returns 0 on success or error on failure
  */
+int aqt_irq_init(struct aqt1000 *aqt);
+
 int aqt_irq_init(struct aqt1000 *aqt)
 {
 	int i, ret;
@@ -269,6 +280,8 @@ EXPORT_SYMBOL(aqt_irq_init);
  *
  * Returns 0 on success or error on failure
  */
+int aqt_irq_exit(struct aqt1000 *aqt);
+
 int aqt_irq_exit(struct aqt1000 *aqt)
 {
 	if (!aqt) {

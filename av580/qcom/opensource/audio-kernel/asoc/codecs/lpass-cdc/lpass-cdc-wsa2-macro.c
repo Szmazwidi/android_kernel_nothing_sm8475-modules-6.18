@@ -3,6 +3,7 @@
  * Copyright (c) 2022-2024, Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
+#include <linux/of.h>
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/io.h>
@@ -191,7 +192,7 @@ static int lpass_cdc_wsa2_macro_core_vote(void *handle, bool enable);
 static int lpass_cdc_wsa2_macro_hw_params(struct snd_pcm_substream *substream,
 			       struct snd_pcm_hw_params *params,
 			       struct snd_soc_dai *dai);
-static int lpass_cdc_wsa2_macro_get_channel_map(struct snd_soc_dai *dai,
+static int lpass_cdc_wsa2_macro_get_channel_map(const struct snd_soc_dai *dai,
 				unsigned int *tx_num, unsigned int *tx_slot,
 				unsigned int *rx_num, unsigned int *rx_slot);
 static int lpass_cdc_wsa2_macro_mute_stream(struct snd_soc_dai *dai, int mute, int stream);
@@ -751,7 +752,7 @@ static int lpass_cdc_wsa2_macro_hw_params(struct snd_pcm_substream *substream,
 	return 0;
 }
 
-static int lpass_cdc_wsa2_macro_get_channel_map(struct snd_soc_dai *dai,
+static int lpass_cdc_wsa2_macro_get_channel_map(const struct snd_soc_dai *dai,
 				unsigned int *tx_num, unsigned int *tx_slot,
 				unsigned int *rx_num, unsigned int *rx_slot)
 {
@@ -3183,11 +3184,11 @@ static void lpass_cdc_wsa2_macro_add_child_devices(struct work_struct *work)
 	for_each_available_child_of_node(wsa2_priv->dev->of_node, node) {
 		if (strnstr(node->name, "wsa2_swr_master",
 				strlen("wsa2_swr_master")) != NULL)
-			strlcpy(plat_dev_name, "wsa2_swr_ctrl",
+			strscpy(plat_dev_name, "wsa2_swr_ctrl",
 				(LPASS_CDC_WSA2_MACRO_SWR_STRING_LEN - 1));
 		else if (strnstr(node->name, "msm_cdc_pinctrl",
 				 strlen("msm_cdc_pinctrl")) != NULL)
-			strlcpy(plat_dev_name, node->name,
+			strscpy(plat_dev_name, node->name,
 				(LPASS_CDC_WSA2_MACRO_SWR_STRING_LEN - 1));
 		else
 			continue;
@@ -3451,7 +3452,7 @@ reg_macro_fail:
 	return ret;
 }
 
-static int lpass_cdc_wsa2_macro_remove(struct platform_device *pdev)
+static void lpass_cdc_wsa2_macro_remove(struct platform_device *pdev)
 {
 	struct lpass_cdc_wsa2_macro_priv *wsa2_priv;
 	u16 count = 0;
@@ -3459,7 +3460,7 @@ static int lpass_cdc_wsa2_macro_remove(struct platform_device *pdev)
 	wsa2_priv = dev_get_drvdata(&pdev->dev);
 
 	if (!wsa2_priv)
-		return -EINVAL;
+		return;
 
 	if (wsa2_priv->tcdev)
 		thermal_cooling_device_unregister(wsa2_priv->tcdev);
@@ -3473,7 +3474,7 @@ static int lpass_cdc_wsa2_macro_remove(struct platform_device *pdev)
 	lpass_cdc_unregister_macro(&pdev->dev, WSA2_MACRO);
 	mutex_destroy(&wsa2_priv->mclk_lock);
 	mutex_destroy(&wsa2_priv->swr_clk_lock);
-	return 0;
+	return;
 }
 
 static const struct of_device_id lpass_cdc_wsa2_macro_dt_match[] = {

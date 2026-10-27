@@ -4,6 +4,7 @@
  * Copyright (c) 2024, Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
+#include <linux/of.h>
 #include <linux/module.h>
 #include <linux/slab.h>
 #include <linux/platform_device.h>
@@ -316,6 +317,8 @@ static int rouleur_rx_connect_port(struct snd_soc_component *component,
 	return ret;
 }
 
+int rouleur_global_mbias_enable(struct snd_soc_component *component);
+
 int rouleur_global_mbias_enable(struct snd_soc_component *component)
 {
 	struct rouleur_priv *rouleur = snd_soc_component_get_drvdata(component);
@@ -333,6 +336,8 @@ int rouleur_global_mbias_enable(struct snd_soc_component *component)
 
 	return 0;
 }
+
+int rouleur_global_mbias_disable(struct snd_soc_component *component);
 
 int rouleur_global_mbias_disable(struct snd_soc_component *component)
 {
@@ -419,6 +424,8 @@ static int rouleur_rx_clk_disable(struct snd_soc_component *component)
  *
  * return rouleur_mbhc handle or error code in case of failure
  */
+struct rouleur_mbhc *rouleur_soc_get_mbhc(struct snd_soc_component *component);
+
 struct rouleur_mbhc *rouleur_soc_get_mbhc(struct snd_soc_component *component)
 {
 	struct rouleur_priv *rouleur;
@@ -1130,6 +1137,8 @@ static int rouleur_codec_enable_adc(struct snd_soc_dapm_widget *w,
  *
  * return register value converted
  */
+int rouleur_get_micb_vout_ctl_val(u32 micb_mv);
+
 int rouleur_get_micb_vout_ctl_val(u32 micb_mv)
 {
 	/* min micbias voltage is 1.6V and maximum is 2.85V */
@@ -1150,6 +1159,9 @@ EXPORT_SYMBOL(rouleur_get_micb_vout_ctl_val);
  *
  * return 0 if adjustment is success or error code in case of failure
  */
+int rouleur_mbhc_micb_adjust_voltage(struct snd_soc_component *component,
+				   int req_volt, int micb_num);
+
 int rouleur_mbhc_micb_adjust_voltage(struct snd_soc_component *component,
 				   int req_volt, int micb_num)
 {
@@ -1226,6 +1238,9 @@ exit:
 	return ret;
 }
 EXPORT_SYMBOL(rouleur_mbhc_micb_adjust_voltage);
+
+int rouleur_micbias_control(struct snd_soc_component *component,
+				int micb_num, int req, bool is_dapm);
 
 int rouleur_micbias_control(struct snd_soc_component *component,
 				int micb_num, int req, bool is_dapm)
@@ -1368,6 +1383,9 @@ done:
 	return 0;
 }
 EXPORT_SYMBOL(rouleur_micbias_control);
+
+void rouleur_disable_bcs_before_slow_insert(struct snd_soc_component *component,
+					    bool bcs_disable);
 
 void rouleur_disable_bcs_before_slow_insert(struct snd_soc_component *component,
 					    bool bcs_disable)
@@ -1966,6 +1984,9 @@ static struct snd_info_entry_ops rouleur_info_ops = {
  * Return: 0 on success or negative error code on failure.
  */
 int rouleur_info_create_codec_entry(struct snd_info_entry *codec_root,
+				   struct snd_soc_component *component);
+
+int rouleur_info_create_codec_entry(struct snd_info_entry *codec_root,
 				   struct snd_soc_component *component)
 {
 	struct snd_info_entry *version_entry;
@@ -2441,6 +2462,8 @@ static void rouleur_dt_parse_micbias_info(struct device *dev,
 	}
 }
 
+struct rouleur_pdata *rouleur_populate_dt_data(struct device *dev);
+
 struct rouleur_pdata *rouleur_populate_dt_data(struct device *dev)
 {
 	struct rouleur_pdata *pdata = NULL;
@@ -2789,12 +2812,12 @@ static int rouleur_probe(struct platform_device *pdev)
 					&rouleur_comp_ops, match);
 }
 
-static int rouleur_remove(struct platform_device *pdev)
+static void rouleur_remove(struct platform_device *pdev)
 {
 	component_master_del(&pdev->dev, &rouleur_comp_ops);
 	dev_set_drvdata(&pdev->dev, NULL);
 
-	return 0;
+	return;
 }
 
 #ifdef CONFIG_PM_SLEEP

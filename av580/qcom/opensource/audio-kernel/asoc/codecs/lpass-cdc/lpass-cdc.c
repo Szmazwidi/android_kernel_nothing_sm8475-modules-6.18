@@ -3,6 +3,7 @@
  * Copyright (c) 2022, 2024 Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
+#include <linux/of.h>
 #include <linux/of_platform.h>
 #include <linux/module.h>
 #include <linux/io.h>
@@ -40,6 +41,9 @@ static u16 lpass_cdc_mclk_mux_tbl[MAX_MACRO][MCLK_MUX_MAX] = {
 };
 
 static bool lpass_cdc_is_valid_codec_dev(struct device *dev);
+
+int lpass_cdc_set_port_map(struct snd_soc_component *component,
+			u32 size, void *data);
 
 int lpass_cdc_set_port_map(struct snd_soc_component *component,
 			u32 size, void *data)
@@ -275,6 +279,8 @@ static bool lpass_cdc_is_valid_codec_dev(struct device *dev)
  * @dev: lpass_cdc device ptr.
  *
  */
+void lpass_cdc_clear_amic_tx_hold(struct device *dev, u16 adc_n);
+
 void lpass_cdc_clear_amic_tx_hold(struct device *dev, u16 adc_n)
 {
 	struct lpass_cdc_priv *priv;
@@ -319,6 +325,8 @@ EXPORT_SYMBOL(lpass_cdc_clear_amic_tx_hold);
  *
  * Returns dev ptr on success or NULL on error.
  */
+struct device *lpass_cdc_get_device_ptr(struct device *dev, u16 macro_id);
+
 struct device *lpass_cdc_get_device_ptr(struct device *dev, u16 macro_id)
 {
 	struct lpass_cdc_priv *priv;
@@ -349,6 +357,8 @@ EXPORT_SYMBOL(lpass_cdc_get_device_ptr);
  *
  * Returns dev ptr on success or NULL on error.
  */
+struct device *lpass_cdc_get_rsc_clk_device_ptr(struct device *dev);
+
 struct device *lpass_cdc_get_rsc_clk_device_ptr(struct device *dev)
 {
 	struct lpass_cdc_priv *priv;
@@ -409,6 +419,8 @@ static int lpass_cdc_copy_dais_from_macro(struct lpass_cdc_priv *priv)
  *
  * Returns 0 on success or -EINVAL on error.
  */
+int lpass_cdc_register_res_clk(struct device *dev, rsc_clk_cb_t rsc_clk_cb);
+
 int lpass_cdc_register_res_clk(struct device *dev, rsc_clk_cb_t rsc_clk_cb)
 {
 	struct lpass_cdc_priv *priv;
@@ -440,6 +452,8 @@ EXPORT_SYMBOL(lpass_cdc_register_res_clk);
  *
  * @dev: resource clk device ptr.
  */
+void lpass_cdc_unregister_res_clk(struct device *dev);
+
 void lpass_cdc_unregister_res_clk(struct device *dev)
 {
 	struct lpass_cdc_priv *priv;
@@ -479,6 +493,9 @@ static u8 lpass_cdc_dmic_clk_div_get(struct snd_soc_component *component,
 
 	return 1;
 }
+
+int lpass_cdc_dmic_clk_enable(struct snd_soc_component *component,
+			   u32 dmic, u32 tx_mode, bool enable);
 
 int lpass_cdc_dmic_clk_enable(struct snd_soc_component *component,
 			   u32 dmic, u32 tx_mode, bool enable)
@@ -587,6 +604,8 @@ int lpass_cdc_dmic_clk_enable(struct snd_soc_component *component,
 }
 EXPORT_SYMBOL(lpass_cdc_dmic_clk_enable);
 
+bool lpass_cdc_is_va_macro_registered(struct device *dev);
+
 bool lpass_cdc_is_va_macro_registered(struct device *dev)
 {
 	struct lpass_cdc_priv *priv;
@@ -618,6 +637,9 @@ EXPORT_SYMBOL(lpass_cdc_is_va_macro_registered);
  *
  * Returns 0 on success or -EINVAL on error.
  */
+int lpass_cdc_register_macro(struct device *dev, u16 macro_id,
+			  struct macro_ops *ops);
+
 int lpass_cdc_register_macro(struct device *dev, u16 macro_id,
 			  struct macro_ops *ops)
 {
@@ -699,6 +721,8 @@ EXPORT_SYMBOL(lpass_cdc_register_macro);
  * @macro_id: ID of macro calling this API.
  *
  */
+void lpass_cdc_unregister_macro(struct device *dev, u16 macro_id);
+
 void lpass_cdc_unregister_macro(struct device *dev, u16 macro_id)
 {
 	struct lpass_cdc_priv *priv;
@@ -740,6 +764,8 @@ void lpass_cdc_unregister_macro(struct device *dev, u16 macro_id)
 }
 EXPORT_SYMBOL(lpass_cdc_unregister_macro);
 
+void lpass_cdc_wsa_pa_on(struct device *dev, bool adie_lb);
+
 void lpass_cdc_wsa_pa_on(struct device *dev, bool adie_lb)
 {
 	struct lpass_cdc_priv *priv;
@@ -766,6 +792,8 @@ void lpass_cdc_wsa_pa_on(struct device *dev, bool adie_lb)
 			LPASS_CDC_WCD_EVT_PA_ON_POST_FSCLK);
 }
 EXPORT_SYMBOL(lpass_cdc_wsa_pa_on);
+
+int lpass_cdc_get_version(struct device *dev);
 
 int lpass_cdc_get_version(struct device *dev)
 {
@@ -936,6 +964,9 @@ static const struct snd_event_ops lpass_cdc_ssr_ops = {
  * Return: 0 on success or negative error code on failure.
  */
 int lpass_cdc_info_create_codec_entry(struct snd_info_entry *codec_root,
+				   struct snd_soc_component *component);
+
+int lpass_cdc_info_create_codec_entry(struct snd_info_entry *codec_root,
 				   struct snd_soc_component *component)
 {
 	struct snd_info_entry *version_entry;
@@ -1000,6 +1031,9 @@ EXPORT_SYMBOL(lpass_cdc_info_create_codec_entry);
  * Return: 0 on success or negative error code on failure.
  */
 int lpass_cdc_register_wake_irq(struct snd_soc_component *component,
+			     u32 ipc_wakeup);
+
+int lpass_cdc_register_wake_irq(struct snd_soc_component *component,
 			     u32 ipc_wakeup)
 {
 	struct lpass_cdc_priv *priv = NULL;
@@ -1032,6 +1066,9 @@ EXPORT_SYMBOL(lpass_cdc_register_wake_irq);
  *
  * Returns 0 on success or -EINVAL on error.
  */
+int lpass_cdc_tx_mclk_enable(struct snd_soc_component *component,
+			  bool enable);
+
 int lpass_cdc_tx_mclk_enable(struct snd_soc_component *component,
 			  bool enable)
 {
@@ -1067,6 +1104,9 @@ EXPORT_SYMBOL(lpass_cdc_tx_mclk_enable);
  *
  * Returns 0 on success or -EINVAL on error.
  */
+int lpass_cdc_register_event_listener(struct snd_soc_component *component,
+				   bool enable);
+
 int lpass_cdc_register_event_listener(struct snd_soc_component *component,
 				   bool enable)
 {
@@ -1213,7 +1253,7 @@ static void lpass_cdc_add_child_devices(struct work_struct *work)
 				__func__);
 		}
 
-		strlcpy(plat_dev_name, node->name,
+		strscpy(plat_dev_name, node->name,
 				(LPASS_CDC_STRING_LEN - 1));
 
 		pdev = platform_device_alloc(plat_dev_name, -1);
@@ -1345,21 +1385,23 @@ static int lpass_cdc_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static int lpass_cdc_remove(struct platform_device *pdev)
+static void lpass_cdc_remove(struct platform_device *pdev)
 {
 	struct lpass_cdc_priv *priv = dev_get_drvdata(&pdev->dev);
 
 	if (!priv)
-		return -EINVAL;
+		return;
 
 	of_platform_depopulate(&pdev->dev);
 	mutex_destroy(&priv->io_lock);
 	mutex_destroy(&priv->clk_lock);
 	mutex_destroy(&priv->vote_lock);
-	return 0;
+	return;
 }
 
 #ifdef CONFIG_PM
+int lpass_cdc_runtime_resume(struct device *dev);
+
 int lpass_cdc_runtime_resume(struct device *dev)
 {
 	struct lpass_cdc_priv *priv = dev_get_drvdata(dev->parent);
@@ -1407,6 +1449,8 @@ done:
 }
 EXPORT_SYMBOL(lpass_cdc_runtime_resume);
 
+int lpass_cdc_runtime_suspend(struct device *dev);
+
 int lpass_cdc_runtime_suspend(struct device *dev)
 {
 	struct lpass_cdc_priv *priv = dev_get_drvdata(dev->parent);
@@ -1442,6 +1486,8 @@ int lpass_cdc_runtime_suspend(struct device *dev)
 }
 EXPORT_SYMBOL(lpass_cdc_runtime_suspend);
 #endif /* CONFIG_PM */
+
+bool lpass_cdc_check_core_votes(struct device *dev);
 
 bool lpass_cdc_check_core_votes(struct device *dev)
 {

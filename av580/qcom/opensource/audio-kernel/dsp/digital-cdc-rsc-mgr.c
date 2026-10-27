@@ -21,6 +21,8 @@ static bool is_init_done;
  *
  * Returns 0 on success or -EINVAL/error code on failure
  */
+int digital_cdc_rsc_mgr_hw_vote_enable(struct clk *vote_handle, struct device *dev);
+
 int digital_cdc_rsc_mgr_hw_vote_enable(struct clk *vote_handle, struct device *dev)
 {
 	int ret = 0;
@@ -47,6 +49,8 @@ EXPORT_SYMBOL(digital_cdc_rsc_mgr_hw_vote_enable);
  * @dev: indicate which device unvotes
  *
  */
+void digital_cdc_rsc_mgr_hw_vote_disable(struct clk *vote_handle, struct device *dev);
+
 void digital_cdc_rsc_mgr_hw_vote_disable(struct clk *vote_handle, struct device *dev)
 {
 	if (!is_init_done || vote_handle == NULL) {
@@ -66,6 +70,8 @@ EXPORT_SYMBOL(digital_cdc_rsc_mgr_hw_vote_disable);
  * digital_cdc_rsc_mgr_hw_vote_reset - Resets hw vote count
  *
  */
+void digital_cdc_rsc_mgr_hw_vote_reset(struct clk* vote_handle);
+
 void digital_cdc_rsc_mgr_hw_vote_reset(struct clk* vote_handle)
 {
 	int count = 0;
@@ -89,11 +95,15 @@ void digital_cdc_rsc_mgr_hw_vote_reset(struct clk* vote_handle)
 }
 EXPORT_SYMBOL(digital_cdc_rsc_mgr_hw_vote_reset);
 
+void digital_cdc_rsc_mgr_init(void);
+
 void digital_cdc_rsc_mgr_init(void)
 {
 	mutex_init(&hw_vote_lock);
 	is_init_done = true;
 }
+
+void digital_cdc_rsc_mgr_exit(void);
 
 void digital_cdc_rsc_mgr_exit(void)
 {

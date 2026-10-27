@@ -1025,6 +1025,8 @@ static struct wcd_mbhc_fn mbhc_fn = {
  * @mbhc: MBHC function pointer
  * Description: Initialize MBHC legacy based function pointers to MBHC structure
  */
+void wcd_mbhc_legacy_init(struct wcd_mbhc *mbhc);
+
 void wcd_mbhc_legacy_init(struct wcd_mbhc *mbhc)
 {
 	if (!mbhc) {

@@ -31,6 +31,8 @@ MODULE_DEVICE_TABLE(of, pm2250_id_table);
  * @reg: PMIC register to write value
  * @value: Value to be written to PMIC register
  */
+int pm2250_spmi_write(struct device *dev, int reg, int value);
+
 int pm2250_spmi_write(struct device *dev, int reg, int value)
 {
 	int rc;
@@ -59,6 +61,8 @@ EXPORT_SYMBOL(pm2250_spmi_write);
  * @reg: PMIC register to read value
  * @value: Pointer to value of reg to be read
  */
+int pm2250_spmi_read(struct device *dev, int reg, int *value);
+
 int pm2250_spmi_read(struct device *dev, int reg, int *value)
 {
 	int rc;
@@ -107,10 +111,10 @@ static int pm2250_spmi_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static int pm2250_spmi_remove(struct platform_device *pdev)
+static void pm2250_spmi_remove(struct platform_device *pdev)
 {
 	of_platform_depopulate(&pdev->dev);
-	return 0;
+	return;
 }
 
 static struct platform_driver pm2250_spmi_driver = {

@@ -47,11 +47,15 @@ struct gpr {
 static struct gpr_q6 q6;
 static struct gpr *gpr_priv;
 
+enum gpr_subsys_state gpr_get_q6_state(void);
+
 enum gpr_subsys_state gpr_get_q6_state(void)
 {
 	return atomic_read(&q6.q6_state);
 }
 EXPORT_SYMBOL(gpr_get_q6_state);
+
+enum gpr_subsys_state gpr_get_modem_state(void);
 
 enum gpr_subsys_state gpr_get_modem_state(void)
 {
@@ -59,6 +63,9 @@ enum gpr_subsys_state gpr_get_modem_state(void)
 }
 EXPORT_SYMBOL(gpr_get_modem_state);
 
+
+void gpr_subsys_notif_register(char *client_name, int domain,
+			   struct notifier_block *nb);
 
 void gpr_subsys_notif_register(char *client_name, int domain,
 			   struct notifier_block *nb)
@@ -70,6 +77,8 @@ void gpr_subsys_notif_register(char *client_name, int domain,
 		dev_err_ratelimited(gpr_priv->dev, "%s: Audio notifier register failed for domain %d ret = %d\n",
 			__func__, domain, ret);
 }
+
+void gpr_subsys_notif_deregister(char *client_name);
 
 void gpr_subsys_notif_deregister(char *client_name)
 {
@@ -89,6 +98,8 @@ void gpr_subsys_notif_deregister(char *client_name)
  *
  * Return: Will be an negative and/or packet size on success.
  */
+int gpr_send_pkt(struct gpr_device *adev, struct gpr_pkt *pkt);
+
 int gpr_send_pkt(struct gpr_device *adev, struct gpr_pkt *pkt)
 {
 	struct gpr *gpr;
@@ -154,6 +165,8 @@ EXPORT_SYMBOL_GPL(gpr_send_pkt);
   * @state: State to update modem load status
   *
  */
+void gpr_set_modem_state(enum gpr_subsys_state state);
+
 void gpr_set_modem_state(enum gpr_subsys_state state)
 {
 	atomic_set(&q6.modem_state, state);
@@ -175,6 +188,8 @@ static void gpr_modem_up(void)
 	//is_modem_up = 1;
 }
 
+
+int gpr_set_q6_state(enum gpr_subsys_state state);
 
 int gpr_set_q6_state(enum gpr_subsys_state state)
 {
@@ -347,7 +362,7 @@ static int gpr_callback(struct rpmsg_device *rpdev, void *buf,
 	return 0;
 }
 
-static int gpr_device_match(struct device *dev, struct device_driver *drv)
+static int gpr_device_match(struct device *dev, const struct device_driver *drv)
 {
 	struct gpr_device *adev = to_gpr_device(dev);
 	struct gpr_driver *adrv = to_gpr_driver(drv);
@@ -595,6 +610,8 @@ static void gpr_remove(struct rpmsg_device *rpdev)
  * This API will register the client driver with the gprbus
  * It is called from the driver's module-init function.
  */
+int __gpr_driver_register(struct gpr_driver *drv, struct module *owner);
+
 int __gpr_driver_register(struct gpr_driver *drv, struct module *owner)
 {
 	drv->driver.bus = &gprbus;
@@ -609,6 +626,8 @@ EXPORT_SYMBOL_GPL(__gpr_driver_register);
  *
  * @drv: Client driver to be unregistered
  */
+void gpr_driver_unregister(struct gpr_driver *drv);
+
 void gpr_driver_unregister(struct gpr_driver *drv)
 {
 	driver_unregister(&drv->driver);

@@ -368,6 +368,8 @@ struct reg_default wsa881x_rev_2_0_regmap_ana[] = {
  * registers compared to v1.x. Therefore, update the values of these registers
  * with the values from tables defined above for v2.0.
  */
+void wsa881x_update_reg_defaults_2_0(void);
+
 void wsa881x_update_reg_defaults_2_0(void)
 {
 	int i, j;
@@ -397,6 +399,8 @@ EXPORT_SYMBOL(wsa881x_update_reg_defaults_2_0);
  * wsa881x v2.0 has some new registers for both analog and digital slaves.
  * Update the regmap framework with all the new registers.
  */
+void wsa881x_update_regmap_2_0(struct regmap *regmap, int flag);
+
 void wsa881x_update_regmap_2_0(struct regmap *regmap, int flag)
 {
 	u16 ret = 0;

@@ -6,7 +6,7 @@
 #ifndef _LINUX_MSM_AUDIO_ION_H
 #define _LINUX_MSM_AUDIO_ION_H
 #include <sound/pcm.h>
-#include <linux/msm_ion.h>
+#include <linux/dma-buf.h>
 #include <linux/dma-mapping.h>
 
 enum {

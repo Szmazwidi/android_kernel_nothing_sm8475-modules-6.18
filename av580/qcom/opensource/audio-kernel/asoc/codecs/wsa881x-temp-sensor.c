@@ -30,6 +30,9 @@ static struct thermal_trip trip = { .type = THERMAL_TRIP_CRITICAL } ;
  * Return: 0 on success or negative error code on failure.
  */
 int wsa881x_get_temp(struct thermal_zone_device *thermal,
+		     int *temp);
+
+int wsa881x_get_temp(struct thermal_zone_device *thermal,
 		     int *temp)
 {
 	struct wsa881x_tz_priv *pdata;
@@ -150,6 +153,8 @@ static int wsa881x_pm_notify(struct notifier_block *nb,
 	return 0;
 }
 
+int wsa881x_init_thermal(struct wsa881x_tz_priv *tz_pdata);
+
 int wsa881x_init_thermal(struct wsa881x_tz_priv *tz_pdata)
 {
 	struct thermal_zone_device *tz_dev;
@@ -174,6 +179,8 @@ int wsa881x_init_thermal(struct wsa881x_tz_priv *tz_pdata)
 	return 0;
 }
 EXPORT_SYMBOL(wsa881x_init_thermal);
+
+void wsa881x_deinit_thermal(struct thermal_zone_device *tz_dev);
 
 void wsa881x_deinit_thermal(struct thermal_zone_device *tz_dev)
 {

@@ -4,6 +4,7 @@
  * Copyright (c) 2022, 2024 Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
+#include <linux/of.h>
 #include <linux/init.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -302,14 +303,14 @@ error_return:
 	return ret;
 }
 
-static int adsp_loader_remove(struct platform_device *pdev)
+static void adsp_loader_remove(struct platform_device *pdev)
 {
 	struct adsp_loader_private *priv = NULL;
 
 	priv = platform_get_drvdata(pdev);
 
 	if (!priv)
-		return 0;
+		return;
 
 	if (priv->pil_h) {
 		rproc_shutdown(priv->pil_h);
@@ -322,7 +323,7 @@ static int adsp_loader_remove(struct platform_device *pdev)
 		priv->boot_adsp_obj = NULL;
 	}
 
-	return 0;
+	return;
 }
 
 static int adsp_loader_probe(struct platform_device *pdev)
@@ -406,7 +407,7 @@ static int adsp_loader_probe(struct platform_device *pdev)
 						GFP_KERNEL);
 			if (!priv->adsp_fw_name)
 				goto wqueue;
-			strlcpy(priv->adsp_fw_name, adsp_fw_name,
+			strscpy(priv->adsp_fw_name, adsp_fw_name,
 				fw_name_size);
 		}
 		goto wqueue;
@@ -477,7 +478,7 @@ static int adsp_loader_probe(struct platform_device *pdev)
 						GFP_KERNEL);
 			if (!priv->adsp_fw_name)
 				goto wqueue;
-			strlcpy(priv->adsp_fw_name, adsp_fw_name_array[i],
+			strscpy(priv->adsp_fw_name, adsp_fw_name_array[i],
 				fw_name_size);
 			break;
 		}

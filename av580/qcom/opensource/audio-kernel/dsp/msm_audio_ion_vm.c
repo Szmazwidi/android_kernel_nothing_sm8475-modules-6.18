@@ -3,6 +3,7 @@
  * Copyright (c) 2013-2020, The Linux Foundation. All rights reserved.
  */
 
+#include <linux/of.h>
 #include <linux/init.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -555,6 +556,9 @@ err:
  * Returns 0 on success or error on failure
  */
 int msm_audio_ion_alloc(struct dma_buf **dma_buf, size_t bufsz,
+			dma_addr_t *paddr, size_t *plen, void **vaddr);
+
+int msm_audio_ion_alloc(struct dma_buf **dma_buf, size_t bufsz,
 			dma_addr_t *paddr, size_t *plen, void **vaddr)
 {
 	int rc = -EINVAL;
@@ -611,6 +615,13 @@ int msm_audio_ion_phys_free(void *handle,
 			   size_t *pa_len,
 			   u8 assign_type,
 			   int id,
+			   int key);
+
+int msm_audio_ion_phys_free(void *handle,
+			   dma_addr_t *paddr,
+			   size_t *pa_len,
+			   u8 assign_type,
+			   int id,
 			   int key)
 {
 	handle = NULL;
@@ -619,12 +630,17 @@ int msm_audio_ion_phys_free(void *handle,
 EXPORT_SYMBOL(msm_audio_ion_phys_free);
 
 int msm_audio_ion_phys_assign(void **handle, int fd,
+		dma_addr_t *paddr, size_t *pa_len, u8 assign_type, int id);
+
+int msm_audio_ion_phys_assign(void **handle, int fd,
 		dma_addr_t *paddr, size_t *pa_len, u8 assign_type, int id)
 {
 	*handle = NULL;
 	return 0;
 }
 EXPORT_SYMBOL(msm_audio_ion_phys_assign);
+
+bool msm_audio_is_hypervisor_supported(void);
 
 bool msm_audio_is_hypervisor_supported(void)
 {
@@ -645,6 +661,10 @@ EXPORT_SYMBOL(msm_audio_is_hypervisor_supported);
  *
  * Returns 0 on success or error on failure
  */
+int msm_audio_ion_import(struct dma_buf **dma_buf, int fd,
+			unsigned long *ionflag, size_t bufsz,
+			dma_addr_t *paddr, size_t *plen, void **vaddr);
+
 int msm_audio_ion_import(struct dma_buf **dma_buf, int fd,
 			unsigned long *ionflag, size_t bufsz,
 			dma_addr_t *paddr, size_t *plen, void **vaddr)
@@ -713,6 +733,10 @@ EXPORT_SYMBOL(msm_audio_ion_import);
  */
 int msm_audio_ion_import_cma(struct dma_buf **dma_buf, int fd,
 			unsigned long *ionflag, size_t bufsz,
+			dma_addr_t *paddr, size_t *plen, void **vaddr);
+
+int msm_audio_ion_import_cma(struct dma_buf **dma_buf, int fd,
+			unsigned long *ionflag, size_t bufsz,
 			dma_addr_t *paddr, size_t *plen, void **vaddr)
 {
 	int rc = 0;
@@ -766,6 +790,8 @@ EXPORT_SYMBOL(msm_audio_ion_import_cma);
  *
  * Returns 0 on success or error on failure
  */
+int msm_audio_ion_free(struct dma_buf *dma_buf);
+
 int msm_audio_ion_free(struct dma_buf *dma_buf)
 {
 	int ret = 0;
@@ -800,6 +826,8 @@ EXPORT_SYMBOL(msm_audio_ion_free);
  *
  * Returns 0 on success or error on failure
  */
+int msm_audio_ion_free_cma(struct dma_buf *dma_buf);
+
 int msm_audio_ion_free_cma(struct dma_buf *dma_buf)
 {
 	if (!dma_buf) {
@@ -822,6 +850,9 @@ EXPORT_SYMBOL(msm_audio_ion_free_cma);
  *
  * Returns 0 on success or error on failure
  */
+int msm_audio_ion_mmap(struct audio_buffer *abuff,
+		       struct vm_area_struct *vma);
+
 int msm_audio_ion_mmap(struct audio_buffer *abuff,
 		       struct vm_area_struct *vma)
 {
@@ -906,6 +937,8 @@ EXPORT_SYMBOL(msm_audio_ion_mmap);
  * @pa: 64bit physical address
  *
  */
+u32 msm_audio_populate_upper_32_bits(dma_addr_t pa);
+
 u32 msm_audio_populate_upper_32_bits(dma_addr_t pa)
 {
 	return upper_32_bits(pa);
@@ -974,7 +1007,7 @@ exit:
 	return rc;
 }
 
-static int msm_audio_ion_remove(struct platform_device *pdev)
+static void msm_audio_ion_remove(struct platform_device *pdev)
 {
 	if (msm_audio_ion_data.smmu_enabled) {
 		if (msm_audio_ion_hab_handle)
@@ -984,7 +1017,7 @@ static int msm_audio_ion_remove(struct platform_device *pdev)
 	}
 	msm_audio_ion_data.smmu_enabled = 0;
 	msm_audio_ion_data.device_status = 0;
-	return 0;
+	return;
 }
 
 static struct platform_driver msm_audio_ion_driver = {
@@ -997,10 +1030,14 @@ static struct platform_driver msm_audio_ion_driver = {
 	.remove = msm_audio_ion_remove,
 };
 
+int __init msm_audio_ion_init(void);
+
 int __init msm_audio_ion_init(void)
 {
 	return platform_driver_register(&msm_audio_ion_driver);
 }
+
+void msm_audio_ion_exit(void);
 
 void msm_audio_ion_exit(void)
 {

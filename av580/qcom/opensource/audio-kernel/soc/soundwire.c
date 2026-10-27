@@ -4,6 +4,7 @@
  * Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
+#include <linux/of.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/errno.h>
@@ -69,6 +70,8 @@ static void swr_dev_release(struct device *dev)
  * device list that master has and remove swr_dev from
  * it.
  */
+void swr_remove_device(struct swr_device *swr_dev);
+
 void swr_remove_device(struct swr_device *swr_dev)
 {
 	struct swr_device *swr_dev_loop, *safe;
@@ -100,6 +103,9 @@ EXPORT_SYMBOL(swr_remove_device);
  * Returns a soundwire new device or NULL
  */
 struct swr_device *swr_new_device(struct swr_master *master,
+				 struct swr_boardinfo const *info);
+
+struct swr_device *swr_new_device(struct swr_master *master,
 				 struct swr_boardinfo const *info)
 {
 	int result;
@@ -117,7 +123,7 @@ struct swr_device *swr_new_device(struct swr_master *master,
 	}
 	swr->master = master;
 	swr->addr = info->addr;
-	strlcpy(swr->name, info->name, sizeof(swr->name));
+	strscpy(swr->name, info->name, sizeof(swr->name));
 	swr->dev.type = &swr_dev_type;
 	swr->dev.parent = &master->dev;
 	swr->dev.bus = &soundwire_type;
@@ -156,6 +162,8 @@ EXPORT_SYMBOL(swr_new_device);
  * a "swr-devid" property
  *
  */
+int of_register_swr_devices(struct swr_master *master);
+
 int of_register_swr_devices(struct swr_master *master)
 {
 	struct swr_device *swr;
@@ -201,6 +209,8 @@ EXPORT_SYMBOL(of_register_swr_devices);
  *
  * Master calls this function to free the compeleted transaction memory
  */
+void swr_port_response(struct swr_master *mstr, u8 tid);
+
 void swr_port_response(struct swr_master *mstr, u8 tid)
 {
 	struct swr_params *txn;
@@ -224,6 +234,8 @@ EXPORT_SYMBOL(swr_port_response);
  *
  * Returns error code for failure and 0 for success
  */
+int swr_remove_from_group(struct swr_device *dev, u8 dev_num);
+
 int swr_remove_from_group(struct swr_device *dev, u8 dev_num)
 {
 	struct swr_master *master;
@@ -257,6 +269,9 @@ EXPORT_SYMBOL(swr_remove_from_group);
  *
  * Returns error code for failure and 0 for success
  */
+int swr_slvdev_datapath_control(struct swr_device *dev, u8 dev_num,
+				bool enable);
+
 int swr_slvdev_datapath_control(struct swr_device *dev, u8 dev_num,
 				bool enable)
 {
@@ -301,6 +316,9 @@ EXPORT_SYMBOL(swr_slvdev_datapath_control);
  * call master connect_port callback function to calculate frame structure
  * and enable master and slave ports
  */
+int swr_connect_port(struct swr_device *dev, u8 *port_id, u8 num_port,
+			u8 *ch_mask, u32 *ch_rate, u8 *num_ch, u8 *port_type);
+
 int swr_connect_port(struct swr_device *dev, u8 *port_id, u8 num_port,
 			u8 *ch_mask, u32 *ch_rate, u8 *num_ch, u8 *port_type)
 {
@@ -387,6 +405,9 @@ EXPORT_SYMBOL(swr_connect_port);
  * disable master and slave port and (re)configure frame structure
  */
 int swr_disconnect_port(struct swr_device *dev, u8 *port_id, u8 num_port,
+					u8 *ch_mask, u8 *port_type);
+
+int swr_disconnect_port(struct swr_device *dev, u8 *port_id, u8 num_port,
 					u8 *ch_mask, u8 *port_type)
 {
 	u8 i = 0;
@@ -462,6 +483,9 @@ EXPORT_SYMBOL(swr_disconnect_port);
  * This API will get the logical device number of soundwire slave device
  */
 int swr_get_logical_dev_num(struct swr_device *dev, u64 dev_id,
+			u8 *dev_num);
+
+int swr_get_logical_dev_num(struct swr_device *dev, u64 dev_id,
 			u8 *dev_num)
 {
 	int ret = 0;
@@ -487,6 +511,9 @@ EXPORT_SYMBOL(swr_get_logical_dev_num);
  * This API will set soundwire port params from slave
  */
 int swr_init_port_params(struct swr_device *dev,
+			 u32 num_ports, struct swr_dev_frame_config *pp);
+
+int swr_init_port_params(struct swr_device *dev,
 			 u32 num_ports, struct swr_dev_frame_config *pp)
 {
 	int ret = 0;
@@ -511,6 +538,8 @@ EXPORT_SYMBOL(swr_init_port_params);
  * This API will wake up soundwire master and slave device(s) from
  * clock stop.
  */
+int swr_device_wakeup_vote(struct swr_device *dev);
+
 int swr_device_wakeup_vote(struct swr_device *dev)
 {
 	int ret = 0;
@@ -539,6 +568,8 @@ EXPORT_SYMBOL(swr_device_wakeup_vote);
  * This API will remove vote for wakeup so that soundwire master and
  * slave device(s) can go back to clock stop.
  */
+int swr_device_wakeup_unvote(struct swr_device *dev);
+
 int swr_device_wakeup_unvote(struct swr_device *dev)
 {
 	int ret = 0;
@@ -571,6 +602,9 @@ EXPORT_SYMBOL(swr_device_wakeup_unvote);
  * soundwire slave device
  */
 int swr_read(struct swr_device *dev, u8 dev_num, u16 reg_addr,
+	     void *buf, u32 len);
+
+int swr_read(struct swr_device *dev, u8 dev_num, u16 reg_addr,
 	     void *buf, u32 len)
 {
 	struct swr_master *master = dev->master;
@@ -592,6 +626,9 @@ EXPORT_SYMBOL(swr_read);
  * This API will write the value of the register address to
  * soundwire slave device
  */
+int swr_bulk_write(struct swr_device *dev, u8 dev_num, void *reg,
+		   const void *buf, size_t len);
+
 int swr_bulk_write(struct swr_device *dev, u8 dev_num, void *reg,
 		   const void *buf, size_t len)
 {
@@ -628,6 +665,9 @@ EXPORT_SYMBOL(swr_bulk_write);
  * soundwire slave device
  */
 int swr_write(struct swr_device *dev, u8 dev_num, u16 reg_addr,
+	      const void *buf);
+
+int swr_write(struct swr_device *dev, u8 dev_num, u16 reg_addr,
 	      const void *buf)
 {
 	struct swr_master *master = dev->master;
@@ -656,6 +696,8 @@ EXPORT_SYMBOL(swr_write);
  * This API will be called by soundwire master to bringup the slave
  * device.
  */
+int swr_device_up(struct swr_device *swr_dev);
+
 int swr_device_up(struct swr_device *swr_dev)
 {
 	struct device *dev;
@@ -684,6 +726,8 @@ EXPORT_SYMBOL(swr_device_up);
  * This API will be called by soundwire master to put slave device in
  * shutdown state.
  */
+int swr_device_down(struct swr_device *swr_dev);
+
 int swr_device_down(struct swr_device *swr_dev)
 {
 	struct device *dev;
@@ -713,6 +757,8 @@ EXPORT_SYMBOL(swr_device_down);
  * device when the slave device is not responding or in undefined
  * state
  */
+int swr_reset_device(struct swr_device *swr_dev);
+
 int swr_reset_device(struct swr_device *swr_dev)
 {
 	struct device *dev;
@@ -742,6 +788,8 @@ EXPORT_SYMBOL(swr_reset_device);
  * This API will be called either from soundwire master or slave
  * device to assign group id.
  */
+int swr_set_device_group(struct swr_device *swr_dev, u8 id);
+
 int swr_set_device_group(struct swr_device *swr_dev, u8 id)
 {
 	struct swr_master *master;
@@ -798,6 +846,8 @@ static void swr_drv_shutdown(struct device *dev)
  * @drv: the driver to register
  * Context: can sleep
  */
+int swr_driver_register(struct swr_driver *drv);
+
 int swr_driver_register(struct swr_driver *drv)
 {
 	drv->driver.bus = &soundwire_type;
@@ -817,6 +867,8 @@ EXPORT_SYMBOL(swr_driver_register);
  * swr_driver_unregister - unregister a soundwire driver
  * @drv: the driver to unregister
  */
+void swr_driver_unregister(struct swr_driver *drv);
+
 void swr_driver_unregister(struct swr_driver *drv)
 {
 	if (drv)
@@ -850,6 +902,8 @@ static void swr_match_ctrl_to_boardinfo(struct swr_master *master,
  * on a master were registered before master, this will make sure that
  * they get probed when master is up.
  */
+void swr_master_add_boarddevices(struct swr_master *master);
+
 void swr_master_add_boarddevices(struct swr_master *master)
 {
 	struct boardinfo *bi;
@@ -861,6 +915,8 @@ void swr_master_add_boarddevices(struct swr_master *master)
 	mutex_unlock(&board_lock);
 }
 EXPORT_SYMBOL(swr_master_add_boarddevices);
+
+struct swr_device *get_matching_swr_slave_device(struct device_node *np);
 
 struct swr_device *get_matching_swr_slave_device(struct device_node *np)
 {
@@ -918,6 +974,8 @@ static int __unregister(struct device *dev, void *null)
  * This API is called by master controller driver to unregister
  *  master controller that was registered by swr_register_master API.
  */
+void swr_unregister_master(struct swr_master *master);
+
 void swr_unregister_master(struct swr_master *master)
 {
 	int dummy;
@@ -951,6 +1009,8 @@ EXPORT_SYMBOL(swr_unregister_master);
  * is the desired number with which soundwire framework registers the
  * master.
  */
+int swr_register_master(struct swr_master *master);
+
 int swr_register_master(struct swr_master *master)
 {
 	int id;
@@ -1012,10 +1072,10 @@ static const struct swr_device_id *swr_match(const struct swr_device_id *id,
 	return NULL;
 }
 
-static int swr_device_match(struct device *dev, struct device_driver *driver)
+static int swr_device_match(struct device *dev, const struct device_driver *driver)
 {
 	struct swr_device *swr_dev;
-	struct swr_driver *drv = to_swr_driver(driver);
+	const struct swr_driver *drv = driver ? container_of_const(driver, struct swr_driver, driver) : NULL;
 
 	if (!drv)
 		return -EINVAL;

@@ -190,6 +190,8 @@ struct ep92_mclk_cfg_info {
  *
  * Returns 0 for sucess or appropriate negative error code
  */
+int ep92_set_ext_mclk(struct snd_soc_codec *codec, uint32_t mclk_freq);
+
 int ep92_set_ext_mclk(struct snd_soc_codec *codec, uint32_t mclk_freq)
 {
 	unsigned int samp_freq = 0;
@@ -838,6 +840,8 @@ static struct regmap_config ep92_regmap_config = {
 	.readable_reg = ep92_readable_registers,
 };
 
+void ep92_read_status(struct work_struct *work);
+
 void ep92_read_status(struct work_struct *work)
 {
 	struct ep92_pdata *ep92 = container_of(work, struct ep92_pdata,
@@ -894,6 +898,8 @@ static irqreturn_t ep92_irq(int irq, void *data)
 
 	return IRQ_HANDLED;
 };
+
+void ep92_poll_status(struct timer_list *t);
 
 void ep92_poll_status(struct timer_list *t)
 {
@@ -1939,18 +1945,18 @@ static int ep92_i2c_probe(struct i2c_client *client,
 err_sysfs:
 	snd_soc_unregister_component(&client->dev);
 err_reg:
-	del_timer(&ep92->timer);
+	timer_delete(&ep92->timer);
 
 	return ret;
 }
 
-static int ep92_i2c_remove(struct i2c_client *client)
+static void ep92_i2c_remove(struct i2c_client *client)
 {
 	struct ep92_pdata *ep92;
 
 	ep92 = i2c_get_clientdata(client);
 	if (ep92) {
-		del_timer(&ep92->timer);
+		timer_delete(&ep92->timer);
 
 #if IS_ENABLED(CONFIG_DEBUG_FS)
 		debugfs_remove_recursive(ep92->debugfs_dir);
@@ -1960,7 +1966,7 @@ static int ep92_i2c_remove(struct i2c_client *client)
 
 	ep92_sysfs_remove(client, ep92);
 
-	return 0;
+	return;
 }
 
 static const struct i2c_device_id ep92_i2c_id[] = {
