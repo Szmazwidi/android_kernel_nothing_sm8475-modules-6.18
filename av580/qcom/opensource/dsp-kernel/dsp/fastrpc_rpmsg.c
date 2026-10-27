@@ -3,6 +3,7 @@
  * Copyright (c) 2018, Linaro Limited
  * Copyright (c) 2022-2023 Qualcomm Innovation Center, Inc. All rights reserved.
  */
+#include <linux/of.h>
 #include <linux/device.h>
 #include <linux/dma-mapping.h>
 #include <linux/idr.h>
@@ -28,6 +29,8 @@ void fastrpc_register_wakeup_source(struct device *dev,
 	const char *client_name, struct wakeup_source **device_wake_source);
 int fastrpc_mmap_remove_ssr(struct fastrpc_channel_ctx *cctx);
 void fastrpc_queue_pd_status(struct fastrpc_user *fl, int domain, int status, int sessionid);
+
+struct fastrpc_channel_ctx* get_current_channel_ctx(struct device *dev);
 
 struct fastrpc_channel_ctx* get_current_channel_ctx(struct device *dev)
 {
@@ -302,6 +305,8 @@ static struct rpmsg_driver fastrpc_driver = {
 	},
 };
 
+int fastrpc_transport_send(struct fastrpc_channel_ctx *cctx, void *rpc_msg, uint32_t rpc_msg_size);
+
 int fastrpc_transport_send(struct fastrpc_channel_ctx *cctx, void *rpc_msg, uint32_t rpc_msg_size) {
 	int err = 0;
 
@@ -316,6 +321,8 @@ int fastrpc_transport_send(struct fastrpc_channel_ctx *cctx, void *rpc_msg, uint
 	return err;
 }
 
+int fastrpc_transport_init(void);
+
 int fastrpc_transport_init(void) {
 	int ret;
 
@@ -327,6 +334,8 @@ int fastrpc_transport_init(void) {
 
 	return 0;
 }
+
+void fastrpc_transport_deinit(void);
 
 void fastrpc_transport_deinit(void) {
 	unregister_rpmsg_driver(&fastrpc_driver);

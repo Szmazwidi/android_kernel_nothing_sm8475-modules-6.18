@@ -11,7 +11,7 @@ package(
 
 ddk_headers(
     name = "fastrpc_headers",
-    hdrs = glob(["include/linux/*.h"]),
+    hdrs = glob(["include/linux/*.h"], allow_empty = True),
     includes = ["include"],
 )
 

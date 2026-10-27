@@ -1,6 +1,7 @@
+load("//devices/pong618/build:deps.bzl", "pong_package_deps")
 # TODO
 # Add ddk module definition for frpc-trusted driver
-load("//build/bazel_common_rules/dist:dist.bzl", "copy_to_dist_dir")
+load("//devices/pong618/av580:dist.bzl", "copy_to_dist_dir")
 
 load(
     "//build/kernel/kleaf:kernel.bzl",
@@ -17,9 +18,10 @@ def define_modules(target, variant):
     trace_include_path = "../../../../../{}/dsp".format(native.package_name())
 
     ddk_module(
+            copts = ["-ferror-limit=0"],
         name = "{}_frpc-adsprpc".format(kernel_build_variant),
-        kernel_build = "//vendor/nothing/pong-kernel:{}".format(kernel_build_variant),
-        deps = ["//vendor/nothing/pong-kernel:all_headers"],
+        kernel_build = "//common:kernel_aarch64",
+        deps = pong_package_deps() + ["//devices/pong618/av580/providers:vendor_headers"],
         srcs = [
             "dsp/fastrpc.c",
             "dsp/fastrpc_rpmsg.c",
@@ -39,9 +41,10 @@ def define_modules(target, variant):
     )
 
     ddk_module(
+            copts = ["-ferror-limit=0"],
         name = "{}_cdsp-loader".format(kernel_build_variant),
-        kernel_build = "//vendor/nothing/pong-kernel:{}".format(kernel_build_variant),
-        deps = ["//vendor/nothing/pong-kernel:all_headers"],
+        kernel_build = "//common:kernel_aarch64",
+        deps = pong_package_deps() + ["//devices/pong618/av580/providers:vendor_headers"],
         srcs = ["dsp/cdsp-loader.c"],
         out = "cdsp-loader.ko",
     )

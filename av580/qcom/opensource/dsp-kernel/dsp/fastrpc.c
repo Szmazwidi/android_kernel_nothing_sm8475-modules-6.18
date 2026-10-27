@@ -75,6 +75,8 @@ static int fastrpc_device_create(struct fastrpc_user *fl);
 *
 */
 
+void fastrpc_update_gctx(struct fastrpc_channel_ctx *cctx, int flag);
+
 void fastrpc_update_gctx(struct fastrpc_channel_ctx *cctx, int flag)
 {
 	struct fastrpc_channel_ctx **ctx = &g_frpc.gctx[cctx->domain_id];
@@ -630,6 +632,8 @@ static void fastrpc_channel_ctx_get(struct fastrpc_channel_ctx *cctx)
 {
 	kref_get(&cctx->refcount);
 }
+
+void fastrpc_channel_ctx_put(struct fastrpc_channel_ctx *cctx);
 
 void fastrpc_channel_ctx_put(struct fastrpc_channel_ctx *cctx)
 {
@@ -2423,6 +2427,8 @@ static void fastrpc_check_privileged_process(struct fastrpc_user *fl,
 	kfree(gidlist.gids);
 }
 
+int fastrpc_mmap_remove_ssr(struct fastrpc_channel_ctx *cctx);
+
 int fastrpc_mmap_remove_ssr(struct fastrpc_channel_ctx *cctx)
 {
 	struct fastrpc_buf *buf, *b, *match;
@@ -2566,6 +2572,8 @@ static int fastrpc_init_sensor_static_pd_status(struct fastrpc_user *fl)
 }
 
 #ifdef CONFIG_DEBUG_FS
+void print_buf_info(struct seq_file *s_file, struct fastrpc_buf *buf);
+
 void print_buf_info(struct seq_file *s_file, struct fastrpc_buf *buf)
 {
     seq_printf(s_file,"\n %s %2s 0x%p", "virt", ":", buf->virt);
@@ -2575,6 +2583,8 @@ void print_buf_info(struct seq_file *s_file, struct fastrpc_buf *buf)
 	seq_printf(s_file,"\n %s %2s 0x%llx", "size", ":", buf->size);
 	seq_printf(s_file,"\n %s %s %d", "in_use", ":", buf->in_use);
 }
+
+void print_ictx_info(struct seq_file *s_file, struct fastrpc_invoke_ctx *ictx);
 
 void print_ictx_info(struct seq_file *s_file, struct fastrpc_invoke_ctx *ictx)
 {
@@ -2592,6 +2602,8 @@ void print_ictx_info(struct seq_file *s_file, struct fastrpc_invoke_ctx *ictx)
 	seq_printf(s_file,"\n %s %3s %d", "is_work_done", ":", ictx->is_work_done);
 	seq_printf(s_file,"\n %s %9s %llu", "msg_sz", ":", ictx->msg_sz);
 }
+
+void print_sctx_info(struct seq_file *s_file, struct fastrpc_pool_ctx *sctx);
 
 void print_sctx_info(struct seq_file *s_file, struct fastrpc_pool_ctx *sctx)
 {
@@ -2623,6 +2635,8 @@ void print_sctx_info(struct seq_file *s_file, struct fastrpc_pool_ctx *sctx)
 	}
 }
 
+void print_ctx_info(struct seq_file *s_file, struct fastrpc_channel_ctx *ctx);
+
 void print_ctx_info(struct seq_file *s_file, struct fastrpc_channel_ctx *ctx)
 {
 	seq_printf(s_file,"%s %8s %d\n", "domain_id", ":", ctx->domain_id);
@@ -2635,6 +2649,8 @@ void print_ctx_info(struct seq_file *s_file, struct fastrpc_channel_ctx *ctx)
 	seq_printf(s_file,"%s %11s %d\n", "secure", ":", ctx->secure);
 	seq_printf(s_file,"%s %s %d\n", "unsigned_support", ":", ctx->unsigned_support);
 }
+
+void print_map_info(struct seq_file *s_file, struct fastrpc_map *map);
 
 void print_map_info(struct seq_file *s_file, struct fastrpc_map *map)
 {
@@ -3386,6 +3402,8 @@ static inline void fastrpc_channel_update_invoke_cnt(
 	}
 }
 
+void fastrpc_free_user(struct fastrpc_user *fl);
+
 void fastrpc_free_user(struct fastrpc_user *fl)
 {
 	struct fastrpc_map *map = NULL, *m = NULL;
@@ -3812,6 +3830,8 @@ static int fastrpc_invoke(struct fastrpc_user *fl, char __user *argp)
 	return err;
 }
 
+void fastrpc_queue_pd_status(struct fastrpc_user *fl, int domain, int status, int sessionid);
+
 void fastrpc_queue_pd_status(struct fastrpc_user *fl, int domain, int status, int sessionid)
 {
 	struct fastrpc_notif_rsp *notif_rsp = NULL;
@@ -4104,6 +4124,9 @@ static int fastrpc_dspsignal_signal(struct fastrpc_user *fl,
 }
 
 int fastrpc_dspsignal_wait(struct fastrpc_user *fl,
+			     struct fastrpc_internal_dspsignal *fsig);
+
+int fastrpc_dspsignal_wait(struct fastrpc_user *fl,
 			     struct fastrpc_internal_dspsignal *fsig)
 {
 	int err = 0;
@@ -4308,6 +4331,8 @@ static int fastrpc_dspsignal_cancel_wait(struct fastrpc_user *fl,
  *
  * Return: void
  */
+void fastrpc_ssr_dspsignal_cancel_wait(struct fastrpc_user *fl);
+
 void fastrpc_ssr_dspsignal_cancel_wait(struct fastrpc_user *fl)
 {
 	unsigned long irq_flags = 0;
@@ -5164,6 +5189,9 @@ static long fastrpc_device_ioctl(struct file *file, unsigned int cmd,
 }
 
 int fastrpc_init_privileged_gids(struct device *dev, char *prop_name,
+						struct gid_list *gidlist);
+
+int fastrpc_init_privileged_gids(struct device *dev, char *prop_name,
 						struct gid_list *gidlist)
 {
 	int err = 0;
@@ -5216,6 +5244,9 @@ union fastrpc_dev_param {
 	* Return: 0 on success.
 	*
 	*/
+long fastrpc_dev_map_dma(struct fastrpc_device *dev,
+			unsigned long invoke_param);
+
 long fastrpc_dev_map_dma(struct fastrpc_device *dev,
 			unsigned long invoke_param)
 {
@@ -5335,6 +5366,9 @@ error:
 	*
 	*/
 long fastrpc_dev_unmap_dma(struct fastrpc_device *dev,
+			unsigned long invoke_param);
+
+long fastrpc_dev_unmap_dma(struct fastrpc_device *dev,
 			unsigned long invoke_param)
 {
 	int err = 0;
@@ -5442,6 +5476,9 @@ error:
 	*
 	*/
 long fastrpc_dev_get_hlos_pid(struct fastrpc_device *dev,
+			unsigned long invoke_param);
+
+long fastrpc_dev_get_hlos_pid(struct fastrpc_device *dev,
 			unsigned long invoke_param)
 {
 	int err = 0;
@@ -5491,6 +5528,9 @@ long fastrpc_dev_get_hlos_pid(struct fastrpc_device *dev,
 	* Return: 0 on success.
 	*
 	*/
+long fastrpc_driver_invoke(struct fastrpc_device *dev, unsigned int invoke_num,
+			unsigned long invoke_param);
+
 long fastrpc_driver_invoke(struct fastrpc_device *dev, unsigned int invoke_num,
 			unsigned long invoke_param)
 {
@@ -5556,6 +5596,8 @@ static int fastrpc_device_create(struct fastrpc_user *fl)
 	* Return: void.
 	*
 	*/
+void fastrpc_driver_unregister(struct fastrpc_driver *frpc_driver);
+
 void fastrpc_driver_unregister(struct fastrpc_driver *frpc_driver){
 
 	struct fastrpc_device *frpc_dev = NULL;
@@ -5620,6 +5662,8 @@ EXPORT_SYMBOL_GPL(fastrpc_driver_unregister);
 	*
 	*/
 
+int fastrpc_driver_register(struct fastrpc_driver *frpc_driver);
+
 int fastrpc_driver_register(struct fastrpc_driver *frpc_driver)
 {
 	int err = 0, i = 0;
@@ -5673,6 +5717,8 @@ process_found:
 	return err;
 }
 EXPORT_SYMBOL_GPL(fastrpc_driver_register);
+void fastrpc_notify_users(struct fastrpc_user *user);
+
 void fastrpc_notify_users(struct fastrpc_user *user)
 {
 	struct fastrpc_invoke_ctx *ctx;
@@ -6020,7 +6066,7 @@ static void fastrpc_genpool_free(struct fastrpc_smmu *smmucb)
 	}
 }
 
-static int fastrpc_cb_remove(struct platform_device *pdev)
+static void fastrpc_cb_remove(struct platform_device *pdev)
 {
 	struct fastrpc_channel_ctx *cctx = dev_get_drvdata(pdev->dev.parent);
 	struct fastrpc_smmu *smmucb = dev_get_drvdata(&pdev->dev),
@@ -6051,7 +6097,7 @@ static int fastrpc_cb_remove(struct platform_device *pdev)
 	}
 	spin_unlock_irqrestore(&cctx->lock, flags);
 	dev_info(&pdev->dev, "Successfully removed %s", pdev->dev.kobj.name);
-	return 0;
+	return;
 }
 
 static const struct of_device_id fastrpc_match_table[] = {
@@ -6068,6 +6114,9 @@ static struct platform_driver fastrpc_cb_driver = {
 		.suppress_bind_attrs = true,
 	},
 };
+
+int fastrpc_device_register(struct device *dev, struct fastrpc_channel_ctx *cctx,
+				   bool is_secured, const char *domain);
 
 int fastrpc_device_register(struct device *dev, struct fastrpc_channel_ctx *cctx,
 				   bool is_secured, const char *domain)
@@ -6100,6 +6149,8 @@ int fastrpc_device_register(struct device *dev, struct fastrpc_channel_ctx *cctx
 	return err;
 }
 
+void fastrpc_lowest_capacity_corecount(struct device *dev, struct fastrpc_channel_ctx *cctx);
+
 void fastrpc_lowest_capacity_corecount(struct device *dev, struct fastrpc_channel_ctx *cctx)
 {
 	u32 cpu = 0;
@@ -6112,6 +6163,9 @@ void fastrpc_lowest_capacity_corecount(struct device *dev, struct fastrpc_channe
 	dev_info(dev, "Lowest capacity core count: %u\n",
 					cctx->lowest_capacity_core_count);
 }
+
+int fastrpc_setup_service_locator(struct fastrpc_channel_ctx *cctx, char *client_name,
+					char *service_name, char *service_path, int spd_session);
 
 int fastrpc_setup_service_locator(struct fastrpc_channel_ctx *cctx, char *client_name,
 					char *service_name, char *service_path, int spd_session)
@@ -6144,6 +6198,9 @@ bail:
 				__func__, service_name, client_name, service_path, err);
 	return err;
 }
+
+void fastrpc_register_wakeup_source(struct device *dev,
+	const char *client_name, struct wakeup_source **device_wake_source);
 
 void fastrpc_register_wakeup_source(struct device *dev,
 	const char *client_name, struct wakeup_source **device_wake_source)
@@ -6242,6 +6299,8 @@ static void fastrpc_handle_signal_rpmsg(uint64_t msg, struct fastrpc_channel_ctx
 	}
 	spin_unlock_irqrestore(&fl->dspsignals_lock, irq_flags);
 }
+
+int fastrpc_handle_rpc_response(struct fastrpc_channel_ctx *cctx, void *data, int len);
 
 int fastrpc_handle_rpc_response(struct fastrpc_channel_ctx *cctx, void *data, int len)
 {
@@ -6368,4 +6427,4 @@ static void fastrpc_exit(void)
 module_exit(fastrpc_exit);
 
 MODULE_LICENSE("GPL v2");
-MODULE_IMPORT_NS(DMA_BUF);
+MODULE_IMPORT_NS("DMA_BUF");

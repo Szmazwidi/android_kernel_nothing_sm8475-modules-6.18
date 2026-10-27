@@ -4,6 +4,7 @@
  * Copyright (c) 2022-2023 Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
+#include <linux/of.h>
 #include <linux/init.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -218,14 +219,14 @@ error_return:
 	return ret;
 }
 
-static int cdsp_loader_remove(struct platform_device *pdev)
+static void cdsp_loader_remove(struct platform_device *pdev)
 {
 	struct cdsp_loader_private *priv = NULL;
 
 	priv = platform_get_drvdata(pdev);
 
 	if (!priv)
-		return 0;
+		return;
 
 	if (priv->pil_h) {
 		rproc_shutdown(priv->pil_h);
@@ -239,7 +240,7 @@ static int cdsp_loader_remove(struct platform_device *pdev)
 		priv->boot_cdsp_obj = NULL;
 	}
 
-	return 0;
+	return;
 }
 
 static int cdsp_loader_probe(struct platform_device *pdev)

@@ -15,6 +15,8 @@
 
 struct fastrpc_channel_ctx *scctx = NULL;
 
+struct fastrpc_channel_ctx* get_current_channel_ctx(struct device *dev);
+
 struct fastrpc_channel_ctx* get_current_channel_ctx(struct device *dev)
 {
 	if (scctx)
@@ -249,6 +251,8 @@ static void fastrpc_socket_callback(struct sock *sk)
  *
  * Return: 0 on success or negative errno value on failure.
  */
+int fastrpc_transport_send(struct fastrpc_channel_ctx *cctx, void *rpc_msg, uint32_t rpc_msg_size);
+
 int fastrpc_transport_send(struct fastrpc_channel_ctx *cctx, void *rpc_msg, uint32_t rpc_msg_size)
 {
 	int ret = 0;
@@ -363,6 +367,8 @@ static int register_remote_server_notifications(struct fastrpc_socket *frpc_sock
  *
  * Return: 0 on success or negative errno value on failure.
  */
+int fastrpc_transport_init(void);
+
 int fastrpc_transport_init(void)
 {
 	int err = 0;
@@ -428,6 +434,8 @@ bail:
  * Traverse array configurations and deinitialize corresponding session from
  * glist_session_ctrl.
  */
+void fastrpc_transport_deinit(void);
+
 void fastrpc_transport_deinit(void)
 {
 	struct fastrpc_socket *frpc_socket = NULL;
