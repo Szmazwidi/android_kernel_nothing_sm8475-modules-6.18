@@ -1,0 +1,7 @@
+# Reduced from the original package BUILD.bazel: only targets whose modules run on the phone are kept.
+load("//build/kernel/kleaf:kernel.bzl", "ddk_config", "ddk_headers", "ddk_module")
+package(default_visibility = ["//visibility:public"])
+
+ddk_headers(name="headers", hdrs=glob(["include/**/*.h"], allow_empty = True), linux_includes=["include"])
+ddk_config(name="config", kernel_build="//common:kernel_aarch64", kconfigs=["Kconfig"], defconfig="defconfig")
+ddk_module(name='ufs_cape', out='phy-qcom-ufs-qmp-v4-cape.ko', kernel_build='//common:kernel_aarch64', config=':config', srcs=['drivers/phy/qualcomm/phy-qcom-ufs-qmp-v4-cape.c', 'drivers/dma/qcom/msm_gpi_mmio.h', 'drivers/i2c/busses/i2c-qup-trace.h', 'drivers/phy/qualcomm/phy-qcom-ufs-i.h', 'drivers/phy/qualcomm/phy-qcom-ufs-qmp-v4-cape.h', 'drivers/dma/dmaengine.h', 'drivers/dma/virt-dma.h', 'drivers/ufs/host/ufs-qcom.h', 'drivers/ufs/host/ufshcd-pltfrm.h'], includes=['drivers/dma', 'drivers/dma/qcom', 'drivers/i2c/busses', 'drivers/phy/qualcomm', 'drivers/ufs/host'], hdrs=[':headers'], deps=['//devices/pong618/build:prov_power_closure_ufs_phy'])

@@ -93,8 +93,10 @@ static int ufs_qcom_phy_qmp_v4_init(struct phy *generic_phy)
 		goto out;
 	}
 
-	/* Optional */
-	ufs_qcom_phy_get_reset(phy_common);
+	/* A declared reset provider must be ready before calibration. */
+	if (of_find_property(phy_common->dev->of_node, "resets", NULL))
+		err = ufs_qcom_phy_get_reset(phy_common);
+	dev_info(phy_common->dev, "PONG618_UFS35 stage=phy_reset_get ret=%d\n", err);
 
 out:
 	return err;
@@ -293,7 +295,7 @@ static int ufs_qcom_phy_qmp_v4_probe(struct platform_device *pdev)
 
 	phy_set_drvdata(generic_phy, phy);
 
-	strlcpy(phy->common_cfg.name, UFS_PHY_NAME,
+	strscpy(phy->common_cfg.name, UFS_PHY_NAME,
 		sizeof(phy->common_cfg.name));
 
 out:
