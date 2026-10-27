@@ -10,6 +10,8 @@
 #include <linux/string.h>
 #include <drm/msm_drm_pp.h>
 #include "sde_color_processing.h"
+#include "pong363-sixzone-compat.h"
+#include <linux/vmalloc.h>
 #include "sde_kms.h"
 #include "sde_crtc.h"
 #include "sde_hw_dspp.h"
@@ -1337,6 +1339,37 @@ static int _sde_cp_crtc_cache_blob_property(struct drm_crtc *crtc,
 		DRM_ERROR("invalid blob id %lld feature %d\n", val, prop_node->feature);
 		return -EINVAL;
 	}
+	if (blob->length != prop_node->prop_blob_sz &&
+		prop_node->feature == SDE_CP_CRTC_DSPP_SIXZONE &&
+		blob->length == PONG363_SIXZONE_LEGACY_SIZE) {
+		struct sde_kms *kms = get_kms(crtc);
+		struct drm_property_blob *expanded;
+		struct drm_msm_sixzone *payload;
+		u64 flags;
+
+		memcpy(&flags, blob->data, sizeof(flags));
+		if (!kms || !kms->catalog || !kms->catalog->dspp_count ||
+			!kms->catalog->dspp[0].sblk ||
+			!pong363_sixzone_legacy(
+				kms->catalog->dspp[0].sblk->sixzone.version,
+				blob->length, prop_node->prop_blob_sz, flags)) {
+			drm_property_blob_put(blob);
+			return -EINVAL;
+		}
+		payload = kmalloc(sizeof(*payload), GFP_KERNEL);
+		if (!payload) {
+			drm_property_blob_put(blob);
+			return -ENOMEM;
+		}
+		pong363_sixzone_expand(payload, blob->data);
+		expanded = drm_property_create_blob(crtc->dev, sizeof(*payload), payload);
+		kfree(payload);
+		drm_property_blob_put(blob);
+		if (IS_ERR(expanded))
+			return PTR_ERR(expanded);
+		blob = expanded;
+		DRM_INFO_ONCE("PONG363_SIXZONE_V17_LEGACY_ADAPTER\n");
+	}
 	if (blob->length != prop_node->prop_blob_sz) {
 		DRM_ERROR("invalid blob len %zd exp %d feature %d\n",
 		    blob->length, prop_node->prop_blob_sz, prop_node->feature);
@@ -1778,12 +1811,16 @@ static int _sde_cp_crtc_checkfeature(u32 feature,
 	return ret;
 }
 
+bool sde_is_fod_pressed(struct drm_crtc *crtc);
+
 bool sde_is_fod_pressed(struct drm_crtc *crtc)
 {
 	struct sde_crtc_state *cstate = to_sde_crtc_state(crtc->state);
 
 	return !!cstate->fod_dim_layer;
 }
+
+bool sde_cp_crtc_update_pcc(struct drm_crtc *crtc);
 
 bool sde_cp_crtc_update_pcc(struct drm_crtc *crtc)
 {
@@ -2494,6 +2531,8 @@ exit:
 	if (disable_pending_cp)
 		sde_cp_disable_features(crtc);
 }
+
+void sde_cp_reset_unsupported_feature_wrappers(struct sde_mdss_cfg *catalog);
 
 void sde_cp_reset_unsupported_feature_wrappers(struct sde_mdss_cfg *catalog)
 {

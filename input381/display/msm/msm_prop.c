@@ -220,6 +220,11 @@ void msm_property_install_volatile_range(struct msm_property_info *info,
 void msm_property_install_enum_helper(struct msm_property_info *info,
 		const char *name, int flags, int is_bitmask,
 		const struct drm_prop_enum_list *values, int num_values,
+		u32 init_idx, uint32_t property_idx, bool force_dirty);
+
+void msm_property_install_enum_helper(struct msm_property_info *info,
+		const char *name, int flags, int is_bitmask,
+		const struct drm_prop_enum_list *values, int num_values,
 		u32 init_idx, uint32_t property_idx, bool force_dirty)
 {
 	struct drm_property **prop;

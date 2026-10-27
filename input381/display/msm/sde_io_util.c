@@ -175,8 +175,6 @@ int msm_dss_get_pmic_io_mem(struct platform_device *pdev,
 	struct list_head temp_head;
 	struct msm_io_mem_entry *io_mem;
 	struct resource *res = NULL;
-	struct property *prop;
-	const __be32 *cur;
 	int rc = 0;
 	u32 val;
 
@@ -187,7 +185,7 @@ int msm_dss_get_pmic_io_mem(struct platform_device *pdev,
 		return -ENOMEM;
 
 	of_property_for_each_u32(pdev->dev.of_node, "qcom,pmic-arb-address",
-			prop, cur, val) {
+			val) {
 		rc = spmi_pmic_arb_map_address(&pdev->dev, val, res);
 		if (rc < 0) {
 			DEV_ERR("%pS - failed to map pmic address, rc:%d\n",
@@ -592,7 +590,7 @@ int msm_dss_mmrm_register(struct device *dev, struct dss_module_power *mp,
 			MMRM_CLIENT_DOMAIN_DISPLAY;
 		desc.client_info.desc.client_id =
 			clk_array[i].mmrm.clk_id;
-		strlcpy(name, clk_array[i].clk_name,
+		strscpy(name, clk_array[i].clk_name,
 			sizeof(desc.client_info.desc.name));
 		desc.client_info.desc.clk = clk_array[i].clk;
 		desc.priority = MMRM_CLIENT_PRIOR_LOW;
@@ -682,7 +680,14 @@ int msm_dss_single_clk_set_rate(struct dss_clk *clk)
 	/* When MMRM enabled, avoid setting the rate for the branch clock,
 	 * MMRM is always expecting the vote from the SRC clock only
 	 */
-	if (!strcmp(clk->clk_name, "branch_clk"))
+	if (IS_ENABLED(CONFIG_MSM_MMRM) && !strcmp(clk->clk_name, "branch_clk"))
+		return 0;
+
+	/* An idle MMRM vote does not request a zero-Hz CCF rate. Gating is
+	 * still performed by the real enable/disable path. Every positive
+	 * direct vote below reaches clk_set_rate and propagates its errno.
+	 */
+	if (!IS_ENABLED(CONFIG_MSM_MMRM) && clk->mmrm.clk_id && !clk->rate)
 		return 0;
 
 	if (clk->type != DSS_CLK_AHB &&

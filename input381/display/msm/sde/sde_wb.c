@@ -1028,6 +1028,7 @@ static int sde_wb_probe(struct platform_device *pdev)
 
 	if (!_sde_wb_dev_init(wb_dev)) {
 		ret = component_add(&pdev->dev, &sde_wb_comp_ops);
+		dev_info(&pdev->dev, "DRM91 real writeback component registration rc=%d\n", ret);
 		if (ret)
 			pr_err("component add failed\n");
 	}
@@ -1069,6 +1070,11 @@ static int sde_wb_remove(struct platform_device *pdev)
 
 	return 0;
 }
+static void sde_wb_remove76_cb(struct platform_device *pdev)
+{
+	(void)sde_wb_remove(pdev);
+}
+
 
 static const struct of_device_id dt_match[] = {
 	{ .compatible = "qcom,wb-display"},
@@ -1077,7 +1083,7 @@ static const struct of_device_id dt_match[] = {
 
 static struct platform_driver sde_wb_driver = {
 	.probe = sde_wb_probe,
-	.remove = sde_wb_remove,
+	.remove = sde_wb_remove76_cb,
 	.driver = {
 		.name = "sde_wb",
 		.of_match_table = dt_match,

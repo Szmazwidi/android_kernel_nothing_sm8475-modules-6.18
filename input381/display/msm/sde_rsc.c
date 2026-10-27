@@ -114,7 +114,7 @@ struct sde_rsc_client *sde_rsc_client_create(u32 rsc_index, char *client_name,
 		return ERR_PTR(-ENOMEM);
 
 	mutex_lock(&rsc->client_lock);
-	strlcpy(client->name, client_name, MAX_RSC_CLIENT_NAME_LEN);
+	strscpy(client->name, client_name, MAX_RSC_CLIENT_NAME_LEN);
 	client->current_state = SDE_RSC_IDLE_STATE;
 	client->rsc_index = rsc_index;
 	client->id = id;
@@ -1590,7 +1590,8 @@ static void sde_rsc_deinit(struct platform_device *pdev,
 	if (!rsc)
 		return;
 
-	sde_rsc_resource_disable(rsc);
+	if (atomic_read(&rsc->resource_refcount) > 0)
+		sde_rsc_resource_disable(rsc);
 	if (rsc->sw_fs_enabled)
 		regulator_disable(rsc->fs);
 	if (rsc->fs)
@@ -1788,6 +1789,7 @@ static int sde_rsc_probe(struct platform_device *pdev)
 
 	rsc->fs = devm_regulator_get(&pdev->dev, "vdd");
 	if (IS_ERR_OR_NULL(rsc->fs)) {
+		ret = rsc->fs ? PTR_ERR(rsc->fs) : -ENODEV;
 		rsc->fs = NULL;
 		pr_err("unable to get regulator\n");
 		goto sde_rsc_fail;
@@ -1816,7 +1818,8 @@ static int sde_rsc_probe(struct platform_device *pdev)
 		goto sde_rsc_fail;
 	}
 
-	if (sde_rsc_timer_calculate(rsc, NULL, SDE_RSC_IDLE_STATE))
+	ret = sde_rsc_timer_calculate(rsc, NULL, SDE_RSC_IDLE_STATE);
+	if (ret)
 		goto sde_rsc_fail;
 
 	sde_rsc_resource_disable(rsc);
@@ -1855,6 +1858,11 @@ static int sde_rsc_remove(struct platform_device *pdev)
 	sde_rsc_deinit(pdev, rsc);
 	return 0;
 }
+static void sde_rsc_remove76_cb(struct platform_device *pdev)
+{
+	(void)sde_rsc_remove(pdev);
+}
+
 
 static int sde_rsc_rpmh_probe(struct platform_device *pdev)
 {
@@ -1874,6 +1882,8 @@ static int sde_rsc_rpmh_probe(struct platform_device *pdev)
 	return 0;
 }
 
+int sde_rsc_rpmh_remove(struct platform_device *pdev);
+
 int sde_rsc_rpmh_remove(struct platform_device *pdev)
 {
 	int i;
@@ -1883,6 +1893,11 @@ int sde_rsc_rpmh_remove(struct platform_device *pdev)
 
 	return 0;
 }
+static void sde_rsc_rpmh_remove76_cb(struct platform_device *pdev)
+{
+	(void)sde_rsc_rpmh_remove(pdev);
+}
+
 
 static const struct of_device_id dt_match[] = {
 	{ .compatible = "qcom,sde-rsc"},
@@ -1891,7 +1906,7 @@ static const struct of_device_id dt_match[] = {
 
 static struct platform_driver sde_rsc_platform_driver = {
 	.probe      = sde_rsc_probe,
-	.remove     = sde_rsc_remove,
+	.remove     = sde_rsc_remove76_cb,
 	.driver     = {
 		.name   = "sde_rsc",
 		.of_match_table = dt_match,
@@ -1906,7 +1921,7 @@ static const struct of_device_id sde_rsc_rpmh_match[] = {
 
 static struct platform_driver sde_rsc_rpmh_driver = {
 	.probe = sde_rsc_rpmh_probe,
-	.remove = sde_rsc_rpmh_remove,
+	.remove = sde_rsc_rpmh_remove76_cb,
 	.driver = {
 		.name = "sde_rsc_rpmh",
 		.of_match_table = sde_rsc_rpmh_match,

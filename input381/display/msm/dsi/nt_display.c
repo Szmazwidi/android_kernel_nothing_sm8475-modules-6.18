@@ -5,6 +5,7 @@
 #include <linux/list.h>
 #include <linux/of.h>
 #include <linux/err.h>
+#include <linux/string.h>
 
 const char *cmd_set_sfm_map[DSI_CMD_SFM_MAX] = {
 	"set-frame-command",
@@ -27,40 +28,75 @@ extern struct dsi_panel *nt_panel;
 extern struct sde_connector *panel_feature_sde_conn;
 
 int nt_display_alloc_sfm_cmd_packets(struct dsi_display_refresh_rate_cmd_set *cmd,
-					u32 packet_count)
+					u32 packet_count);
+
+int nt_display_alloc_sfm_cmd_packets(struct dsi_display_refresh_rate_cmd_set *cmd,
+                                     u32 packet_count)
 {
-	u32 size;
+    if (!cmd || !packet_count || cmd->cmds)
+        return -EINVAL;
 
-	size = packet_count * sizeof(*cmd->cmds);
-	cmd->cmds = kzalloc(size, GFP_KERNEL);
-	if (!cmd->cmds)
-		return -ENOMEM;
+    /* count remains the wire text length; storage includes its NUL. */
+    cmd->cmds = kcalloc((size_t)packet_count + 1, sizeof(*cmd->cmds), GFP_KERNEL);
+    if (!cmd->cmds)
+        return -ENOMEM;
 
-	cmd->count = packet_count;
-	return 0;
+    cmd->count = packet_count;
+    return 0;
 }
 
 int nt_display_parse_switch_cmds(struct dsi_panel *panel)
 {
-	struct dsi_parser_utils *nt_utils = &panel->utils;
-	int i, rc = 0;
+    struct dsi_parser_utils *nt_utils;
+    int i, j, rc;
+    ssize_t copied;
 
-	for (i = DSI_CMD_SET_FRAME; i < DSI_CMD_SFM_MAX; i++) {
-		const char *string = NULL;
+    if (!panel)
+        return -EINVAL;
+    nt_utils = &panel->utils;
+    if (!nt_utils->read_string)
+        return -EINVAL;
 
-		if (i < DSI_CMD_30HZ_DIMMING) {
-			nt_display_alloc_sfm_cmd_packets(&panel->nt_cmd_sets[i], COMMAND_LENGTH_1_BYTE_SEND);
-		} else {
-			nt_display_alloc_sfm_cmd_packets(&panel->nt_cmd_sets[i], COMMAND_LENGTH_2_BYTE_SEND);
-		}
+    /* Do not discard previously allocated panel command buffers on reparse. */
+    for (i = DSI_CMD_SET_FRAME; i < DSI_CMD_SFM_MAX; i++) {
+        if (panel->nt_cmd_sets[i].cmds)
+            return -EALREADY;
+    }
 
-		rc = nt_utils->read_string(nt_utils->data, cmd_set_sfm_map[i], &string);
-		if (rc)
-			SDE_ERROR("sfm failed to parse set %d\n", i);
-		strcpy(panel->nt_cmd_sets[i].cmds, string);
-	}
+    for (i = DSI_CMD_SET_FRAME; i < DSI_CMD_SFM_MAX; i++) {
+        struct dsi_display_refresh_rate_cmd_set *cmd = &panel->nt_cmd_sets[i];
+        const char *value = NULL;
+        u32 capacity = i < DSI_CMD_30HZ_DIMMING ?
+            COMMAND_LENGTH_1_BYTE_SEND : COMMAND_LENGTH_2_BYTE_SEND;
 
-	return rc;
+        rc = nt_display_alloc_sfm_cmd_packets(cmd, capacity);
+        if (rc)
+            goto free_partial;
+
+        rc = nt_utils->read_string(nt_utils->data, cmd_set_sfm_map[i], &value);
+        if (rc || !value) {
+            SDE_ERROR("sfm failed to parse set %d, rc=%d\n", i, rc);
+            if (!rc)
+                rc = -EINVAL;
+            goto free_partial;
+        }
+
+        copied = strscpy(cmd->cmds, value, (size_t)cmd->count + 1);
+        if (copied < 0) {
+            SDE_ERROR("sfm command too long at set %d\n", i);
+            rc = -E2BIG;
+            goto free_partial;
+        }
+    }
+    return 0;
+
+free_partial:
+    for (j = DSI_CMD_SET_FRAME; j <= i && j < DSI_CMD_SFM_MAX; j++) {
+        kfree(panel->nt_cmd_sets[j].cmds);
+        panel->nt_cmd_sets[j].cmds = NULL;
+        panel->nt_cmd_sets[j].count = 0;
+    }
+    return rc;
 }
 
 int set_refresh_rate(struct sde_connector *sde_conn, int index)

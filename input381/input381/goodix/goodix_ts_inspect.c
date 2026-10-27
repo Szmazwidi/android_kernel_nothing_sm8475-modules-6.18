@@ -1979,6 +1979,7 @@ exit:
 	goodix_cap_test_finish(ts_test);
 }
 
+char *goodix_strncat(char *dest, char *src, size_t dest_size);
 char *goodix_strncat(char *dest, char *src, size_t dest_size)
 {
 	size_t dest_len = 0;
@@ -1987,6 +1988,7 @@ char *goodix_strncat(char *dest, char *src, size_t dest_size)
 	return strncat(&dest[dest_len], src, dest_size - dest_len - 1);
 }
 
+char *goodix_strncatint(char *dest, int src, char *format, size_t dest_size);
 char *goodix_strncatint(char *dest, int src, char *format, size_t dest_size)
 {
 	char src_str[MAX_STR_LEN] = {0};

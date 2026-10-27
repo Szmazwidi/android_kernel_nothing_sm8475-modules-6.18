@@ -18,6 +18,7 @@
  */
 
 #define pr_fmt(fmt)	"[drm:%s:%d] " fmt, __func__, __LINE__
+#include <linux/vmalloc.h>
 #include <linux/sort.h>
 #include <linux/debugfs.h>
 #include <linux/ktime.h>
@@ -28,10 +29,12 @@
 #include <drm/drm_flip_work.h>
 #include <soc/qcom/of_common.h>
 #include <linux/version.h>
+#if IS_ENABLED(CONFIG_QCOM_SPEC_SYNC)
 #if (KERNEL_VERSION(6, 3, 0) <= LINUX_VERSION_CODE)
 #include <qcom_sync_file.h>
 #else
 #include <linux/soc/qcom/qcom_sync_file.h>
+#endif
 #endif
 #include <linux/file.h>
 
@@ -647,6 +650,9 @@ static void sde_crtc_destroy(struct drm_crtc *crtc)
 	mutex_destroy(&sde_crtc->crtc_lock);
 	kfree(sde_crtc);
 }
+
+struct sde_connector_state *_sde_crtc_get_sde_connector_state(struct drm_crtc *crtc,
+		struct drm_atomic_state *state);
 
 struct sde_connector_state *_sde_crtc_get_sde_connector_state(struct drm_crtc *crtc,
 		struct drm_atomic_state *state)
@@ -2789,6 +2795,8 @@ static void _sde_crtc_frame_data_notify(struct drm_crtc *crtc,
 	sde_crtc->frame_data.idx = ++sde_crtc->frame_data.idx % sde_crtc->frame_data.cnt;
 }
 
+void sde_crtc_get_frame_data(struct drm_crtc *crtc);
+
 void sde_crtc_get_frame_data(struct drm_crtc *crtc)
 {
 	struct sde_crtc *sde_crtc;
@@ -3139,6 +3147,8 @@ static void _sde_crtc_retire_event(struct drm_connector *connector,
 	sde_connector_complete_commit(connector, ts, fence_event);
 	SDE_ATRACE_END("signal_retire_fence");
 }
+
+void sde_crtc_opr_event_notify(struct drm_crtc *crtc);
 
 void sde_crtc_opr_event_notify(struct drm_crtc *crtc)
 {
@@ -3826,6 +3836,7 @@ static struct sde_hw_ctl *_sde_crtc_get_hw_ctl(struct drm_crtc *drm_crtc)
 
 static struct dma_fence *_sde_plane_get_input_hw_fence(struct drm_plane *plane)
 {
+#if IS_ENABLED(CONFIG_QTI_HW_FENCE)
 	struct dma_fence *fence;
 	struct sde_plane *psde;
 	struct sde_plane_state *pstate;
@@ -3891,6 +3902,10 @@ static struct dma_fence *_sde_plane_get_input_hw_fence(struct drm_plane *plane)
 
 exit:
 	return input_hw_fence;
+#else
+	/* No HW fence provider in this profile; caller uses software fences. */
+	return NULL;
+#endif
 }
 
 /**
@@ -8179,6 +8194,8 @@ void sde_crtc_static_img_control(struct drm_crtc *crtc,
 /*
  * __sde_crtc_static_cache_read_work - transition to cache read
  */
+void __sde_crtc_static_cache_read_work(struct kthread_work *work);
+
 void __sde_crtc_static_cache_read_work(struct kthread_work *work)
 {
 	struct sde_crtc *sde_crtc = container_of(work, struct sde_crtc,

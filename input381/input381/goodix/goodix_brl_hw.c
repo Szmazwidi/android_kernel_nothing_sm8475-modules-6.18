@@ -258,6 +258,7 @@ power_off:
 	return ret;
 }
 
+int brl_suspend(struct goodix_ts_core *cd);
 int brl_suspend(struct goodix_ts_core *cd)
 {
 	u32 cmd_reg = cd->ic_info.misc.cmd_addr;
@@ -266,6 +267,7 @@ int brl_suspend(struct goodix_ts_core *cd)
 	return cd->hw_ops->write(cd, cmd_reg, sleep_cmd, sizeof(sleep_cmd));
 }
 
+int brl_resume(struct goodix_ts_core *cd);
 int brl_resume(struct goodix_ts_core *cd)
 {
 	return cd->hw_ops->reset(cd, GOODIX_NORMAL_RESET_DELAY_MS);
@@ -273,6 +275,7 @@ int brl_resume(struct goodix_ts_core *cd)
 
 #define GOODIX_GESTURE_CMD_BA	0x12
 #define GOODIX_GESTURE_CMD		0xA6
+int brl_gesture(struct goodix_ts_core *cd, int gesture_type);
 int brl_gesture(struct goodix_ts_core *cd, int gesture_type)
 {
 	struct goodix_ts_cmd cmd;
@@ -358,6 +361,8 @@ static int brl_write(struct goodix_ts_core *cd, unsigned int addr,
 
 #define GOODIX_CMD_RETRY 6
 static DEFINE_MUTEX(cmd_mutex);
+int brl_send_cmd(struct goodix_ts_core *cd,
+	struct goodix_ts_cmd *cmd);
 int brl_send_cmd(struct goodix_ts_core *cd,
 	struct goodix_ts_cmd *cmd)
 {

@@ -369,6 +369,8 @@ static void sde_hw_setup_vsync_source_v1(struct sde_hw_mdp *mdp,
 	_update_vsync_source(mdp, cfg);
 }
 
+void sde_hw_reset_ubwc(struct sde_hw_mdp *mdp, struct sde_mdss_cfg *m);
+
 void sde_hw_reset_ubwc(struct sde_hw_mdp *mdp, struct sde_mdss_cfg *m)
 {
 	struct sde_hw_blk_reg_map c;
@@ -450,6 +452,8 @@ static void sde_hw_mdp_events(struct sde_hw_mdp *mdp, bool enable)
 	SDE_REG_WRITE(c, HW_EVENTS_CTL, enable);
 }
 
+void sde_hw_set_vm_sid_v2(struct sde_hw_sid *sid, u32 vm, struct sde_mdss_cfg *m);
+
 void sde_hw_set_vm_sid_v2(struct sde_hw_sid *sid, u32 vm, struct sde_mdss_cfg *m)
 {
 	u32 offset = 0;
@@ -482,6 +486,8 @@ void sde_hw_set_vm_sid_v2(struct sde_hw_sid *sid, u32 vm, struct sde_mdss_cfg *m
 	SDE_REG_WRITE(&sid->hw, MDP_SID_V2_DSI0, vm << 2);
 	SDE_REG_WRITE(&sid->hw, MDP_SID_V2_DSI1, vm << 2);
 }
+
+void sde_hw_set_vm_sid(struct sde_hw_sid *sid, u32 vm, struct sde_mdss_cfg *m);
 
 void sde_hw_set_vm_sid(struct sde_hw_sid *sid, u32 vm, struct sde_mdss_cfg *m)
 {
@@ -789,6 +795,8 @@ static void sde_hw_setup_hw_fences_config(struct sde_hw_mdp *mdp, u32 protocol_i
 	val = MDP_CTL_FENCE_ISR_OP_CODE(0xf, 0x0, 0x0, 0x0);
 	SDE_REG_WRITE(&c, offset, val);
 }
+
+void sde_hw_top_set_ppb_fifo_size(struct sde_hw_mdp *mdp, u32 pp, u32 sz);
 
 void sde_hw_top_set_ppb_fifo_size(struct sde_hw_mdp *mdp, u32 pp, u32 sz)
 {

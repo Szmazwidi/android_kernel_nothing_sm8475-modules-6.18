@@ -1967,16 +1967,16 @@ static int dsi_ctrl_buffer_deinit(struct dsi_ctrl *dsi_ctrl)
 
 		msm_gem_put_iova(dsi_ctrl->tx_cmd_buf, aspace);
 
-		mutex_lock(&dsi_ctrl->drm_dev->struct_mutex);
+		mutex_lock(msm76_gem_mutex(dsi_ctrl->drm_dev));
 		msm_gem_free_object(dsi_ctrl->tx_cmd_buf);
-		mutex_unlock(&dsi_ctrl->drm_dev->struct_mutex);
+		mutex_unlock(msm76_gem_mutex(dsi_ctrl->drm_dev));
 		dsi_ctrl->tx_cmd_buf = NULL;
 	}
 
 	return 0;
 }
 
-int dsi_ctrl_buffer_init(struct dsi_ctrl *dsi_ctrl)
+static __maybe_unused int dsi_ctrl_buffer_init(struct dsi_ctrl *dsi_ctrl)
 {
 	int rc = 0;
 	u64 iova = 0;
@@ -2220,10 +2220,15 @@ static int dsi_ctrl_dev_remove(struct platform_device *pdev)
 	platform_set_drvdata(pdev, NULL);
 	return 0;
 }
+static void dsi_ctrl_dev_remove76_cb(struct platform_device *pdev)
+{
+	(void)dsi_ctrl_dev_remove(pdev);
+}
+
 
 static struct platform_driver dsi_ctrl_driver = {
 	.probe = dsi_ctrl_dev_probe,
-	.remove = dsi_ctrl_dev_remove,
+	.remove = dsi_ctrl_dev_remove76_cb,
 	.driver = {
 		.name = "drm_dsi_ctrl",
 		.of_match_table = msm_dsi_of_match,

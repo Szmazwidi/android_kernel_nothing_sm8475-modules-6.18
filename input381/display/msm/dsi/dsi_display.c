@@ -62,6 +62,8 @@ static const struct of_device_id dsi_display_dt_match[] = {
 	{}
 };
 
+bool is_skip_op_required(struct dsi_display *display);
+
 bool is_skip_op_required(struct dsi_display *display)
 {
 	if (!display)
@@ -582,9 +584,9 @@ free_aspace_cb:
 	msm_gem_address_space_unregister_cb(display->aspace,
 			dsi_display_aspace_cb_locked, display);
 free_gem:
-	mutex_lock(&display->drm_dev->struct_mutex);
+	mutex_lock(msm76_gem_mutex(display->drm_dev));
 	msm_gem_free_object(display->tx_cmd_buf);
-	mutex_unlock(&display->drm_dev->struct_mutex);
+	mutex_unlock(msm76_gem_mutex(display->drm_dev));
 error:
 	return rc;
 }
@@ -944,6 +946,8 @@ static int dsi_display_status_check_te(struct dsi_display *display,
 
 	return rc;
 }
+
+void dsi_display_toggle_error_interrupt_status(struct dsi_display * display, bool enable);
 
 void dsi_display_toggle_error_interrupt_status(struct dsi_display * display, bool enable)
 {
@@ -1988,7 +1992,7 @@ static int dsi_display_debugfs_init(struct dsi_display *display)
 	char secondary_panel_str[] = "_secondary";
 	int i;
 
-	strlcpy(panel_name, display->name, SEC_PANEL_NAME_MAX_LEN);
+	strscpy(panel_name, display->name, SEC_PANEL_NAME_MAX_LEN);
 	if (strcmp(display->display_type, "secondary") == 0)
 		strlcat(panel_name, secondary_panel_str, SEC_PANEL_NAME_MAX_LEN);
 
@@ -2650,7 +2654,7 @@ static int dsi_display_parse_boot_display_selection(void)
 	int i, j;
 
 	for (i = 0; i < MAX_DSI_ACTIVE_DISPLAY; i++) {
-		strlcpy(disp_buf, boot_displays[i].boot_param,
+		strscpy(disp_buf, boot_displays[i].boot_param,
 			MAX_CMDLINE_PARAM_LEN);
 
 		pos = strnstr(disp_buf, ":", strlen(disp_buf));
@@ -2824,6 +2828,8 @@ static int dsi_display_phy_pll_disable(struct dsi_display *display)
 	return dsi_phy_pll_toggle(m_ctrl->phy, false);
 }
 
+int dsi_display_phy_pll_toggle(void *priv, bool prepare);
+
 int dsi_display_phy_pll_toggle(void *priv, bool prepare)
 {
 	struct dsi_display *display = priv;
@@ -2841,6 +2847,8 @@ int dsi_display_phy_pll_toggle(void *priv, bool prepare)
 	else
 		return dsi_display_phy_pll_disable(display);
 }
+
+int dsi_display_phy_configure(void *priv, bool commit);
 
 int dsi_display_phy_configure(void *priv, bool commit)
 {
@@ -4465,6 +4473,8 @@ static bool dsi_display_is_seamless_dfps_possible(
 	return true;
 }
 
+void dsi_display_update_byte_intf_div(struct dsi_display *display);
+
 void dsi_display_update_byte_intf_div(struct dsi_display *display)
 {
 	struct dsi_host_common_cfg *config;
@@ -5868,6 +5878,9 @@ static void dsi_display_unbind(struct device *dev,
 		return;
 	}
 
+	/* Master destroys encoders before component unbind; release bind owner. */
+	dsi_display_drm_bridge_deinit(display);
+
 	mutex_lock(&display->display_lock);
 
 	rc = dsi_display_mipi_host_deinit(display);
@@ -5902,9 +5915,22 @@ static const struct component_ops dsi_display_comp_ops = {
 	.unbind = dsi_display_unbind,
 };
 
+static void dsi_display_remove76_cb(struct platform_device *pdev)
+{
+ (void)dsi_display_dev_remove(pdev);
+}
+
+/* Use the real6.18 multi-context helper and propagate its accumulatederror. */
+static int dsi_set_tear_off76(struct mipi_dsi_device *dsi)
+{
+ struct mipi_dsi_multi_context ctx = { .dsi = dsi };
+ mipi_dsi_dcs_set_tear_off_multi(&ctx);
+ return ctx.accum_err;
+}
+
 static struct platform_driver dsi_display_driver = {
 	.probe = dsi_display_dev_probe,
-	.remove = dsi_display_dev_remove,
+	.remove = dsi_display_remove76_cb,
 	.driver = {
 		.name = "msm-dsi-display",
 		.of_match_table = dsi_display_dt_match,
@@ -5999,13 +6025,15 @@ static const struct proc_ops panel_id_fops = {
 	.proc_release = single_release,
 };
 
+static void dsi_panel_id_remove87(void *data) { proc_remove(data); }
+
 int dsi_display_dev_probe(struct platform_device *pdev)
 {
 	struct dsi_display *display = NULL;
 	struct device_node *node = NULL, *panel_node = NULL, *mdp_node = NULL;
 	int rc = 0, index = DSI_PRIMARY;
 	bool firm_req = false;
-	struct dsi_display_boot_param *boot_disp;
+	struct dsi_display_boot_param *boot_disp = NULL;
 	struct proc_dir_entry *panel_id_dir;
 
 	if (!pdev || !pdev->dev.of_node) {
@@ -6075,12 +6103,6 @@ int dsi_display_dev_probe(struct platform_device *pdev)
 
 	dsi_display_parse_cmdline_topology(display, index);
 
-	if (!strcmp(display->display_type, "primary")) {
-		panel_id_dir = proc_create("panel_id", 0444, NULL, &panel_id_fops);
-		if (!panel_id_dir) {
-			DSI_ERR("panel_id proc_create failed\n");
-		}
-	}
 
 	platform_set_drvdata(pdev, display);
 
@@ -6113,10 +6135,23 @@ int dsi_display_dev_probe(struct platform_device *pdev)
 			goto end;
 	}
 
+	if (!strcmp(display->display_type, "primary")) {
+		panel_id_dir = proc_create("panel_id", 0444, NULL, &panel_id_fops);
+		if (!panel_id_dir) {
+			DSI_ERR("panel_id proc_create failed\n");
+		} else if (devm_add_action_or_reset(&pdev->dev, dsi_panel_id_remove87, panel_id_dir)) {
+			DSI_ERR("panel_id managed cleanup registration failed\n");
+		}
+	}
+
 	return 0;
 end:
-	if (display)
+	if (boot_disp && boot_disp->disp == display) boot_disp->disp = NULL;
+	platform_set_drvdata(pdev, NULL);
+	if (display) {
+		if (display->post_cmd_tx_workq) destroy_workqueue(display->post_cmd_tx_workq);
 		devm_kfree(&pdev->dev, display);
+	}
 
 	return rc;
 }
@@ -6229,6 +6264,12 @@ int dsi_display_drm_bridge_init(struct dsi_display *display,
 
 	if (display->bridge) {
 		DSI_ERR("display is already initialize\n");
+		rc = -EBUSY;
+		goto error;
+	}
+
+	if (priv->num_bridges >= ARRAY_SIZE(priv->bridges)) {
+		rc = -ENOSPC;
 		goto error;
 	}
 
@@ -6244,8 +6285,12 @@ int dsi_display_drm_bridge_init(struct dsi_display *display,
 
 	if (display->tx_cmd_buf == NULL) {
 		rc = dsi_host_alloc_cmd_tx_buffer(display);
-		if (rc)
+		if (rc) {
 			DSI_ERR("failed to allocate cmd tx buffer memory\n");
+			priv->bridges[--priv->num_bridges] = NULL;
+			display->bridge = NULL;
+			dsi_drm_bridge_cleanup(bridge);
+		}
 	}
 
 error:
@@ -6264,8 +6309,24 @@ int dsi_display_drm_bridge_deinit(struct dsi_display *display)
 
 	mutex_lock(&display->display_lock);
 
-	dsi_drm_bridge_cleanup(display->bridge);
-	display->bridge = NULL;
+	if (display->bridge) {
+  struct dsi_bridge *bridge = display->bridge;
+  struct msm_drm_private *priv = display->drm_dev ?
+       display->drm_dev->dev_private : NULL;
+  int i;
+  if (priv) {
+   for (i = 0; i < priv->num_bridges; i++) {
+    if (priv->bridges[i] != &bridge->base)
+     continue;
+    memmove(&priv->bridges[i], &priv->bridges[i + 1],
+       (priv->num_bridges - i - 1) * sizeof(priv->bridges[0]));
+    priv->bridges[--priv->num_bridges] = NULL;
+    break;
+   }
+  }
+  display->bridge = NULL;
+  dsi_drm_bridge_cleanup(bridge);
+ }
 
 	mutex_unlock(&display->display_lock);
 	return rc;
@@ -6862,6 +6923,10 @@ int dsi_display_get_mode_count(struct dsi_display *display,
 
 void dsi_display_adjust_mode_timing(struct dsi_display *display,
 			struct dsi_display_mode *dsi_mode,
+			int lanes, int bpp);
+
+void dsi_display_adjust_mode_timing(struct dsi_display *display,
+			struct dsi_display_mode *dsi_mode,
 			int lanes, int bpp)
 {
 	u64 new_htotal, new_vtotal, htotal, vtotal, old_htotal, div;
@@ -7105,6 +7170,11 @@ void dsi_display_put_mode(struct dsi_display *display,
 {
 	dsi_panel_put_mode(mode);
 }
+
+int dsi_display_get_modes_helper(struct dsi_display *display,
+	struct dsi_display_ctrl *ctrl, u32 timing_mode_count,
+	struct dsi_dfps_capabilities dfps_caps, struct dsi_qsync_capabilities *qsync_caps,
+	struct dsi_dyn_clk_caps *dyn_clk_caps, struct dsi_avr_capabilities *avr_caps);
 
 int dsi_display_get_modes_helper(struct dsi_display *display,
 	struct dsi_display_ctrl *ctrl, u32 timing_mode_count,
@@ -8884,7 +8954,7 @@ static void dsi_display_handle_poms_te(struct work_struct *work)
 	}
 
 	dsi = &panel->mipi_device;
-	rc = mipi_dsi_dcs_set_tear_off(dsi);
+	rc = dsi_set_tear_off76(dsi);
 
 error:
 	mutex_unlock(&panel->panel_lock);

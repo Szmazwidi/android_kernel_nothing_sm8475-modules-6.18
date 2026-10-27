@@ -503,6 +503,8 @@ static int sde_rsc_state_update_v3(struct sde_rsc_priv *rsc,
 	return rc;
 }
 
+int rsc_hw_init_v3(struct sde_rsc_priv *rsc);
+
 int rsc_hw_init_v3(struct sde_rsc_priv *rsc)
 {
 	int rc = 0;
@@ -546,6 +548,8 @@ int rsc_hw_init_v3(struct sde_rsc_priv *rsc)
 end:
 	return rc;
 }
+
+int rsc_hw_bwi_status_v3(struct sde_rsc_priv *rsc);
 
 int rsc_hw_bwi_status_v3(struct sde_rsc_priv *rsc)
 {

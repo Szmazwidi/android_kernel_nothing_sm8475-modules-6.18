@@ -16,12 +16,16 @@
  */
 #ifndef _GOODIX_TS_CORE_H_
 #define _GOODIX_TS_CORE_H_
+/* Original Qualcomm Android input ABI from redducc6.6: fingerprint key. */
+#ifndef KEY_FINGER
+#define KEY_FINGER 249
+#endif
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/firmware.h>
 #include <linux/slab.h>
-#include <asm/unaligned.h>
+#include <linux/unaligned.h>
 #include <linux/vmalloc.h>
 #include <linux/kthread.h>
 #include <linux/delay.h>

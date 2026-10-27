@@ -381,6 +381,9 @@ static void sde_hw_dsc_bind_pingpong_blk(
 }
 
 void sde_dsc1_2_setup_ops(struct sde_hw_dsc_ops *ops,
+		const unsigned long features);
+
+void sde_dsc1_2_setup_ops(struct sde_hw_dsc_ops *ops,
 		const unsigned long features)
 {
 	ops->dsc_disable = sde_hw_dsc_disable;

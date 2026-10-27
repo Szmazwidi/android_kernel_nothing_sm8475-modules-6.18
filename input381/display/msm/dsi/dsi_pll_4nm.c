@@ -1430,6 +1430,8 @@ static int dsi_pll_4nm_disable(struct dsi_pll_resource *rsc)
 	return rc;
 }
 
+void dsi_pll_assert_pll_reset(struct dsi_pll_resource *rsc);
+
 void dsi_pll_assert_pll_reset(struct dsi_pll_resource *rsc)
 {
 	u32 data = 0;
@@ -1444,6 +1446,8 @@ void dsi_pll_assert_pll_reset(struct dsi_pll_resource *rsc)
 	/* Ensure deassert is through */
 	wmb();
 }
+
+void dsi_pll_4nm_trigger_resets_pre_enable(struct dsi_pll_resource *rsc);
 
 void dsi_pll_4nm_trigger_resets_pre_enable(struct dsi_pll_resource *rsc)
 {
@@ -1464,6 +1468,8 @@ void dsi_pll_4nm_trigger_resets_pre_enable(struct dsi_pll_resource *rsc)
 	if (rsc->slave)
 		dsi_pll_assert_pll_reset(rsc->slave);
 }
+
+int dsi_pll_4nm_configure(void *pll, bool commit);
 
 int dsi_pll_4nm_configure(void *pll, bool commit)
 {
@@ -1497,6 +1503,8 @@ int dsi_pll_4nm_configure(void *pll, bool commit)
 
 	return 0;
 }
+
+int dsi_pll_4nm_toggle(void *pll, bool prepare);
 
 int dsi_pll_4nm_toggle(void *pll, bool prepare)
 {

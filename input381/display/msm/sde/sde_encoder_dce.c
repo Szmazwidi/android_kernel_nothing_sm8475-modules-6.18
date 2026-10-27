@@ -826,6 +826,8 @@ static void _dce_vdc_disable(struct sde_encoder_virt *sde_enc)
 	 */
 }
 
+bool _dce_dsc_is_dirty(struct sde_encoder_virt *sde_enc);
+
 bool _dce_dsc_is_dirty(struct sde_encoder_virt *sde_enc)
 {
 	int i;
@@ -841,6 +843,8 @@ bool _dce_dsc_is_dirty(struct sde_encoder_virt *sde_enc)
 
 	return false;
 }
+
+bool _dce_vdc_is_dirty(struct sde_encoder_virt *sde_enc);
 
 bool _dce_vdc_is_dirty(struct sde_encoder_virt *sde_enc)
 {
@@ -877,6 +881,8 @@ static void _dce_helper_flush_dsc(struct sde_encoder_virt *sde_enc)
 	}
 }
 
+void _dce_helper_flush_vdc(struct sde_encoder_virt *sde_enc);
+
 void _dce_helper_flush_vdc(struct sde_encoder_virt *sde_enc)
 {
 	int i;
@@ -895,6 +901,9 @@ void _dce_helper_flush_vdc(struct sde_encoder_virt *sde_enc)
 		sde_enc->dirty_vdc_ids[i] = VDC_NONE;
 	}
 }
+
+void sde_encoder_dce_set_bpp(struct msm_mode_info mode_info,
+		struct drm_crtc *crtc);
 
 void sde_encoder_dce_set_bpp(struct msm_mode_info mode_info,
 		struct drm_crtc *crtc)
@@ -936,6 +945,8 @@ void sde_encoder_dce_set_bpp(struct msm_mode_info mode_info,
 			sde_crtc->src_bpp, sde_crtc->target_bpp);
 }
 
+bool sde_encoder_has_dsc_hw_rev_2(struct sde_encoder_virt *sde_enc);
+
 bool sde_encoder_has_dsc_hw_rev_2(struct sde_encoder_virt *sde_enc)
 {
 	enum msm_display_compression_type comp_type;
@@ -956,6 +967,8 @@ bool sde_encoder_has_dsc_hw_rev_2(struct sde_encoder_virt *sde_enc)
 	return false;
 }
 
+void sde_encoder_dce_disable(struct sde_encoder_virt *sde_enc);
+
 void sde_encoder_dce_disable(struct sde_encoder_virt *sde_enc)
 {
 	enum msm_display_compression_type comp_type;
@@ -972,6 +985,8 @@ void sde_encoder_dce_disable(struct sde_encoder_virt *sde_enc)
 		_dce_vdc_disable(sde_enc);
 }
 
+int sde_encoder_dce_flush(struct sde_encoder_virt *sde_enc);
+
 int sde_encoder_dce_flush(struct sde_encoder_virt *sde_enc)
 {
 	int rc = 0;
@@ -986,6 +1001,9 @@ int sde_encoder_dce_flush(struct sde_encoder_virt *sde_enc)
 
 	return rc;
 }
+
+int sde_encoder_dce_setup(struct sde_encoder_virt *sde_enc,
+		struct sde_encoder_kickoff_params *params);
 
 int sde_encoder_dce_setup(struct sde_encoder_virt *sde_enc,
 		struct sde_encoder_kickoff_params *params)

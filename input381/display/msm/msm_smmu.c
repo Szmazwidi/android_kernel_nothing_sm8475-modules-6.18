@@ -1,3 +1,4 @@
+#include "pong-smmu-fault.h"
 /*
  * Copyright (c) 2021-2024 Qualcomm Innovation Center, Inc. All rights reserved.
  * Copyright (c) 2015-2021, The Linux Foundation. All rights reserved.
@@ -254,6 +255,8 @@ static void msm_smmu_destroy(struct msm_mmu *mmu)
 	kfree(smmu);
 }
 
+struct device *msm_smmu_get_dev(struct msm_mmu *mmu);
+
 struct device *msm_smmu_get_dev(struct msm_mmu *mmu)
 {
 	struct msm_smmu *smmu = to_msm_smmu(mmu);
@@ -464,7 +467,7 @@ static int msm_smmu_fault_handler(struct iommu_domain *domain,
 		int flags, void *token)
 {
 	struct msm_smmu_client *client;
-	int rc = -EINVAL;
+	int rc = -ENOSYS;
 
 	if (!token) {
 		DRM_ERROR("Error: token is NULL\n");
@@ -563,8 +566,10 @@ static int msm_smmu_probe(struct platform_device *pdev)
 	dma_set_max_seg_size(client->dev, (unsigned int)DMA_BIT_MASK(32));
 	dma_set_seg_boundary(client->dev, (unsigned long)DMA_BIT_MASK(64));
 
-	iommu_set_fault_handler(client->domain,
-			msm_smmu_fault_handler, (void *)client);
+	ret = pong87_smmu_set_fault_handler(client->domain, client->dev,
+		msm_smmu_fault_handler, client);
+	if (ret) return ret;
+	DRM_INFO("SMMU87 domain callback registered, DMA cookie preserved\n");
 
 	DRM_INFO("Created domain %s, secure=%d\n",
 			domain->label, domain->secure);
@@ -576,8 +581,14 @@ static int msm_smmu_probe(struct platform_device *pdev)
 	mutex_unlock(&smmu_list_lock);
 
 	ret = component_add(&pdev->dev, &msm_smmu_comp_ops);
-	if (ret)
+	if (ret) {
+		mutex_lock(&smmu_list_lock);
+		list_del(&client->smmu_list);
+		mutex_unlock(&smmu_list_lock);
+		pong87_smmu_set_fault_handler(client->domain, client->dev, NULL, client);
+		platform_set_drvdata(pdev, NULL);
 		pr_err("component add failed\n");
+	}
 
 	return ret;
 }
@@ -588,6 +599,8 @@ static int msm_smmu_remove(struct platform_device *pdev)
 	struct msm_smmu_client *curr, *next;
 
 	client = platform_get_drvdata(pdev);
+	component_del(&pdev->dev, &msm_smmu_comp_ops);
+	pong87_smmu_set_fault_handler(client->domain, client->dev, NULL, client);
 	client->domain_attached = false;
 
 	mutex_lock(&smmu_list_lock);
@@ -601,10 +614,15 @@ static int msm_smmu_remove(struct platform_device *pdev)
 
 	return 0;
 }
+static void msm_smmu_remove76_cb(struct platform_device *pdev)
+{
+	(void)msm_smmu_remove(pdev);
+}
+
 
 static struct platform_driver msm_smmu_driver = {
 	.probe = msm_smmu_probe,
-	.remove = msm_smmu_remove,
+	.remove = msm_smmu_remove76_cb,
 	.driver = {
 		.name = "msmdrm_smmu",
 		.of_match_table = msm_smmu_dt_match,
@@ -631,5 +649,5 @@ void __exit msm_smmu_driver_cleanup(void)
 MODULE_LICENSE("GPL v2");
 MODULE_DESCRIPTION("MSM SMMU driver");
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0))
-MODULE_IMPORT_NS(DMA_BUF);
+MODULE_IMPORT_NS("DMA_BUF");
 #endif

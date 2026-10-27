@@ -378,6 +378,9 @@ msm_crtc_set_mode(struct drm_device *dev, struct drm_atomic_state *old_state)
  * PM since planes updates then only happen when the CRTC is actually enabled.
  */
 void msm_atomic_helper_commit_modeset_disables(struct drm_device *dev,
+		struct drm_atomic_state *old_state);
+
+void msm_atomic_helper_commit_modeset_disables(struct drm_device *dev,
 		struct drm_atomic_state *old_state)
 {
 	msm_disable_outputs(dev, old_state);
@@ -554,6 +557,9 @@ static void msm_atomic_helper_commit_modeset_enables(struct drm_device *dev,
 }
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0))
+struct dma_fence *msm_dma_resv_get_excl(struct drm_plane_state *new_plane_state,
+		struct msm_gem_object *msm_obj);
+
 struct dma_fence *msm_dma_resv_get_excl(struct drm_plane_state *new_plane_state,
 		struct msm_gem_object *msm_obj)
 {

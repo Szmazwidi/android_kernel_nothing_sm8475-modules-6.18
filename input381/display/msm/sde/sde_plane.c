@@ -19,6 +19,7 @@
 
 #define pr_fmt(fmt)	"[drm:%s:%d] " fmt, __func__, __LINE__
 
+#include <linux/vmalloc.h>
 #include <linux/debugfs.h>
 #include <linux/dma-buf.h>
 #include <drm/sde_drm.h>
@@ -396,6 +397,10 @@ void sde_plane_set_revalidate(struct drm_plane *plane, bool enable)
 	psde = to_sde_plane(plane);
 	psde->revalidate = enable;
 }
+
+int sde_plane_danger_signal_ctrl(struct drm_plane *plane, bool enable);
+
+int sde_plane_danger_signal_ctrl(struct drm_plane *plane, bool enable);
 
 int sde_plane_danger_signal_ctrl(struct drm_plane *plane, bool enable)
 {

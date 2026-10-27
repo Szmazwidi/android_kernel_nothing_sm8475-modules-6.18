@@ -214,7 +214,7 @@ struct drm_gem_object *msm_gem_prime_import(struct drm_device *dev,
 	 */
 	if (vmid_flags.is_cp_pixel) {
 		attach_dev = kms->funcs->get_address_space_device(kms, MSM_SMMU_DOMAIN_SECURE);
-	} else if (!iommu_present(&platform_bus_type) || vmid_flags.is_tvm
+	} else if (!msm76_iommu_present() || vmid_flags.is_tvm
 		   || vmid_flags.is_cam_preview || vmid_flags.is_sec_display) {
 		attach_dev = dev->dev;
 		lazy_unmap = false;
@@ -303,5 +303,5 @@ fail_put:
 }
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 19, 0))
-MODULE_IMPORT_NS(DMA_BUF);
+MODULE_IMPORT_NS("DMA_BUF");
 #endif

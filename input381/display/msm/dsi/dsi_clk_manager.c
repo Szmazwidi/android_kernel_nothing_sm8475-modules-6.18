@@ -234,7 +234,7 @@ void dsi_clk_disable_unprepare(struct dsi_clk_link_set *clk)
 	clk_disable_unprepare(clk->byte_clk);
 }
 
-int dsi_core_clk_start(struct dsi_core_clks *c_clks)
+static int dsi_core_clk_start(struct dsi_core_clks *c_clks)
 {
 	int rc = 0;
 
@@ -297,7 +297,7 @@ error:
 	return rc;
 }
 
-int dsi_core_clk_stop(struct dsi_core_clks *c_clks)
+static int dsi_core_clk_stop(struct dsi_core_clks *c_clks)
 {
 	int rc = 0;
 
@@ -1134,7 +1134,7 @@ error:
 	return rc;
 }
 
-int dsi_clk_req_state(void *client, enum dsi_clk_type clk,
+static int dsi_clk_req_state(void *client, enum dsi_clk_type clk,
 	enum dsi_clk_state state)
 {
 	int rc = 0;
@@ -1332,7 +1332,7 @@ void *dsi_register_clk_handle(void *clk_mngr, char *client)
 		goto error;
 	}
 
-	strlcpy(c->name, client, MAX_STRING_LEN);
+	strscpy(c->name, client, MAX_STRING_LEN);
 	c->mngr = mngr;
 
 	list_add(&c->list, &mngr->client_list);

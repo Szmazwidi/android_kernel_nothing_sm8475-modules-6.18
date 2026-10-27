@@ -1,0 +1,4 @@
+config TOUCHSCREEN_GOODIX_BRL
+	tristate "Pong Goodix BRL LAB"
+config TOUCHSCREEN_GOODIX_BRL_SPI
+	bool "Pong Goodix SPI transport"

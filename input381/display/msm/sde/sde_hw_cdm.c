@@ -213,6 +213,9 @@ static int sde_hw_cdm_setup_cdwn(struct sde_hw_cdm *ctx,
 }
 
 int sde_hw_cdm_enable(struct sde_hw_cdm *ctx,
+		struct sde_hw_cdm_cfg *cdm);
+
+int sde_hw_cdm_enable(struct sde_hw_cdm *ctx,
 		struct sde_hw_cdm_cfg *cdm)
 {
 	struct sde_hw_blk_reg_map *c = &ctx->hw;
@@ -254,6 +257,8 @@ int sde_hw_cdm_enable(struct sde_hw_cdm *ctx,
 	SDE_REG_WRITE(c, CDM_HDMI_PACK_OP_MODE, opmode);
 	return 0;
 }
+
+void sde_hw_cdm_disable(struct sde_hw_cdm *ctx);
 
 void sde_hw_cdm_disable(struct sde_hw_cdm *ctx)
 {

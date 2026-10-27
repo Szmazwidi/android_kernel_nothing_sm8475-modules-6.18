@@ -530,10 +530,15 @@ static int dsi_phy_driver_remove(struct platform_device *pdev)
 
 	return 0;
 }
+static void dsi_phy_driver_remove76_cb(struct platform_device *pdev)
+{
+	(void)dsi_phy_driver_remove(pdev);
+}
+
 
 static struct platform_driver dsi_phy_platform_driver = {
 	.probe      = dsi_phy_driver_probe,
-	.remove     = dsi_phy_driver_remove,
+	.remove     = dsi_phy_driver_remove76_cb,
 	.driver     = {
 		.name   = "dsi_phy",
 		.of_match_table = msm_dsi_phy_of_match,

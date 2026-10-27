@@ -5,6 +5,7 @@
  */
 
 #define pr_fmt(fmt)	"[drm:%s:%d] " fmt, __func__, __LINE__
+#include <linux/vmalloc.h>
 #include "msm_drv.h"
 #include "sde_dbg.h"
 
@@ -865,6 +866,8 @@ static int _sde_connector_update_bl_scale(struct sde_connector *c_conn)
 
 	return rc;
 }
+
+void sde_connector_set_colorspace(struct sde_connector *c_conn);
 
 void sde_connector_set_colorspace(struct sde_connector *c_conn)
 {
@@ -3333,7 +3336,7 @@ static int sde_connector_get_modes(struct drm_connector *connector)
 }
 
 static enum drm_mode_status
-sde_connector_mode_valid(struct drm_connector *connector,
+sde_connector_mode_valid76_legacy(struct drm_connector *connector,
 		struct drm_display_mode *mode)
 {
 	struct sde_connector *c_conn;
@@ -3357,6 +3360,19 @@ sde_connector_mode_valid(struct drm_connector *connector,
 	/* assume all modes okay by default */
 	return MODE_OK;
 }
+
+static enum drm_mode_status
+sde_connector_mode_valid(struct drm_connector *connector,
+		const struct drm_display_mode *mode)
+{
+	struct drm_display_mode local_mode = { 0 };
+
+	if (!mode)
+		return MODE_ERROR;
+	drm_mode_copy(&local_mode, mode);
+	return sde_connector_mode_valid76_legacy(connector, &local_mode);
+}
+
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 0))
 static struct drm_encoder *

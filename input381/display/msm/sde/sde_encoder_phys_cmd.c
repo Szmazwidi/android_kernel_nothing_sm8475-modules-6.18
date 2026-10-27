@@ -1200,6 +1200,8 @@ end:
 	return ret;
 }
 
+void sde_encoder_phys_cmd_dynamic_irq_control(struct sde_encoder_phys *phys_enc, bool enable);
+
 void sde_encoder_phys_cmd_dynamic_irq_control(struct sde_encoder_phys *phys_enc, bool enable)
 {
 	struct sde_encoder_virt *sde_enc;
@@ -1242,6 +1244,9 @@ void sde_encoder_phys_cmd_dynamic_irq_control(struct sde_encoder_phys *phys_enc,
 			sde_encoder_helper_unregister_irq(phys_enc, INTR_IDX_TE_DEASSERT);
 	}
 }
+
+void sde_encoder_phys_cmd_irq_control(struct sde_encoder_phys *phys_enc,
+		bool enable);
 
 void sde_encoder_phys_cmd_irq_control(struct sde_encoder_phys *phys_enc,
 		bool enable)
@@ -2484,6 +2489,8 @@ static void sde_encoder_phys_cmd_setup_vsync_source(struct sde_encoder_phys *phy
 		phys_enc->hw_intf->ops.vsync_sel(phys_enc->hw_intf,
 				vsync_source);
 }
+
+void sde_encoder_phys_cmd_add_enc_to_minidump(struct sde_encoder_phys *phys_enc);
 
 void sde_encoder_phys_cmd_add_enc_to_minidump(struct sde_encoder_phys *phys_enc)
 {

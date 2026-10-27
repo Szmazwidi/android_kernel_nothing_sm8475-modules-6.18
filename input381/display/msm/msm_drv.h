@@ -989,6 +989,7 @@ struct msm_drm_thread {
 };
 
 struct msm_drm_private {
+	struct mutex legacy_gem_mutex;
 
 	struct drm_device *dev;
 
@@ -1115,6 +1116,12 @@ struct msm_drm_private {
 	struct mutex vm_client_lock;
 	struct list_head vm_client_list;
 };
+/* Legacy per-device GEM serialization survives the6.18DRMcore transition. */
+static inline struct mutex *msm76_gem_mutex(struct drm_device *dev)
+{
+ return &((struct msm_drm_private *)dev->dev_private)->legacy_gem_mutex;
+}
+
 
 /* get struct msm_kms * from drm_device * */
 #define ddev_to_msm_kms(D) ((D) && (D)->dev_private ? \
@@ -1286,6 +1293,8 @@ int msm_gem_delayed_import(struct drm_gem_object *obj);
 #define MSM_FB_CACHE_WRITE_EN	0x1
 #define MSM_FB_CACHE_READ_EN	0x2
 
+bool msm76_iommu_present(void);
+
 int msm_framebuffer_prepare(struct drm_framebuffer *fb,
 		struct msm_gem_address_space *aspace);
 void msm_framebuffer_cleanup(struct drm_framebuffer *fb,
@@ -1299,7 +1308,8 @@ struct drm_framebuffer *msm_framebuffer_init(struct drm_device *dev,
 		const struct drm_mode_fb_cmd2 *mode_cmd,
 		struct drm_gem_object **bos);
 struct drm_framebuffer *msm_framebuffer_create(struct drm_device *dev,
-		struct drm_file *file, const struct drm_mode_fb_cmd2 *mode_cmd);
+		struct drm_file *file, const struct drm_format_info *info,
+		const struct drm_mode_fb_cmd2 *mode_cmd);
 int msm_framebuffer_set_cache_hint(struct drm_framebuffer *fb,
 		u32 flags, u32 rd_type, u32 wr_type);
 int msm_framebuffer_get_cache_hint(struct drm_framebuffer *fb,

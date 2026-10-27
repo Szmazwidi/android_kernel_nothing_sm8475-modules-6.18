@@ -1214,6 +1214,8 @@ int sde_kms_vm_primary_prepare_commit(struct sde_kms *sde_kms,
 	return rc;
 }
 
+void sde_kms_vm_set_sid(struct sde_kms *sde_kms, u32 vm);
+
 void sde_kms_vm_set_sid(struct sde_kms *sde_kms, u32 vm)
 {
 	struct drm_plane *plane;
@@ -1442,6 +1444,9 @@ static void sde_kms_cancel_delayed_work(struct drm_crtc *crtc)
 		sde_encoder_cancel_delayed_work(encoder);
 	}
 }
+
+int sde_kms_vm_pre_release(struct sde_kms *sde_kms,
+	struct drm_atomic_state *state, bool is_primary);
 
 int sde_kms_vm_pre_release(struct sde_kms *sde_kms,
 	struct drm_atomic_state *state, bool is_primary)
@@ -2053,10 +2058,7 @@ static int _sde_kms_setup_displays(struct drm_device *dev,
 					&dsi_ops,
 					DRM_CONNECTOR_POLL_HPD,
 					DRM_MODE_CONNECTOR_DSI);
-		if (connector) {
-			priv->encoders[priv->num_encoders++] = encoder;
-			priv->connectors[priv->num_connectors++] = connector;
-		} else {
+		if (!connector) {
 			SDE_ERROR("dsi %d connector init failed\n", i);
 			dsi_display_drm_bridge_deinit(display);
 			sde_encoder_destroy(encoder);
@@ -2070,7 +2072,11 @@ static int _sde_kms_setup_displays(struct drm_device *dev,
 			dsi_display_drm_bridge_deinit(display);
 			sde_connector_destroy(connector);
 			sde_encoder_destroy(encoder);
+			continue;
 		}
+
+		priv->encoders[priv->num_encoders++] = encoder;
+		priv->connectors[priv->num_connectors++] = connector;
 
 		dsc_count += info.dsc_count;
 		mixer_count += info.lm_count;
@@ -3999,6 +4005,9 @@ end:
 
 
 void sde_kms_display_early_wakeup(struct drm_device *dev,
+				const int32_t connector_id);
+
+void sde_kms_display_early_wakeup(struct drm_device *dev,
 				const int32_t connector_id)
 {
 	struct drm_connector_list_iter conn_iter;
@@ -4111,6 +4120,8 @@ static void _sde_kms_pm_suspend_idle_helper(struct sde_kms *sde_kms,
 
 	msm_atomic_flush_display_threads(priv);
 }
+
+struct msm_display_mode *sde_kms_get_msm_mode(struct drm_connector_state *conn_state);
 
 struct msm_display_mode *sde_kms_get_msm_mode(struct drm_connector_state *conn_state)
 {
@@ -5124,6 +5135,8 @@ perf_err:
 power_error:
 	return rc;
 }
+
+int _sde_kms_get_tvm_inclusion_mem(struct sde_mdss_cfg *catalog, struct list_head *mem_list);
 
 int _sde_kms_get_tvm_inclusion_mem(struct sde_mdss_cfg *catalog, struct list_head *mem_list)
 {

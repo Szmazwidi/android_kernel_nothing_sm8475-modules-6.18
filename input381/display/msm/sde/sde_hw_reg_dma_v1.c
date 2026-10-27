@@ -1289,9 +1289,9 @@ free_aspace_cb:
 	msm_gem_address_space_unregister_cb(aspace,
 			sde_reg_dma_aspace_cb_locked, dma_buf);
 free_gem:
-	mutex_lock(&reg_dma->drm_dev->struct_mutex);
+	mutex_lock(msm76_gem_mutex(reg_dma->drm_dev));
 	msm_gem_free_object(dma_buf->buf);
-	mutex_unlock(&reg_dma->drm_dev->struct_mutex);
+	mutex_unlock(msm76_gem_mutex(reg_dma->drm_dev));
 fail:
 	kfree(dma_buf);
 	return ERR_PTR(rc);
@@ -1308,9 +1308,9 @@ static int dealloc_reg_dma_v1(struct sde_reg_dma_buffer *dma_buf)
 		msm_gem_put_iova(dma_buf->buf, 0);
 		msm_gem_address_space_unregister_cb(dma_buf->aspace,
 				sde_reg_dma_aspace_cb_locked, dma_buf);
-		mutex_lock(&reg_dma->drm_dev->struct_mutex);
+		mutex_lock(msm76_gem_mutex(reg_dma->drm_dev));
 		msm_gem_free_object(dma_buf->buf);
-		mutex_unlock(&reg_dma->drm_dev->struct_mutex);
+		mutex_unlock(msm76_gem_mutex(reg_dma->drm_dev));
 	}
 
 	kfree(dma_buf);

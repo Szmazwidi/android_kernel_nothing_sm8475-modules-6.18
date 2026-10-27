@@ -457,6 +457,29 @@ static void sde_hw_sspp_setup_format(struct sde_hw_pipe *ctx,
 	SDE_REG_WRITE(c, unpack_pat_off + idx, unpack);
 	SDE_REG_WRITE(c, op_mode_off + idx, opmode);
 
+	/* LAB: first readback for each pipe / bpp / linear-or-compressed mode.
+	 * No register value or programming order is changed by this telemetry.
+	 */
+	{
+		static unsigned long observed_formats[64];
+		u32 key = ((fmt->fetch_mode & 3) << 3) | (fmt->bpp & 7);
+
+		if ((u32)ctx->idx < ARRAY_SIZE(observed_formats) &&
+			!test_and_set_bit(key, &observed_formats[ctx->idx]))
+			pr_info("PONG384_PIPE pipe=%d bpp=%u fetch=%u bits=%u,%u,%u,%u elem=%u,%u,%u,%u expected=%08x,%08x,%08x actual=%08x,%08x,%08x ubwc=%08x\n",
+				ctx->idx, fmt->bpp, fmt->fetch_mode,
+				fmt->bits[0], fmt->bits[1], fmt->bits[2], fmt->bits[3],
+				fmt->element[0], fmt->element[1], fmt->element[2], fmt->element[3],
+				src_format, unpack, opmode,
+				SDE_REG_READ(c, format_off + idx),
+				SDE_REG_READ(c, unpack_pat_off + idx),
+				SDE_REG_READ(c, op_mode_off + idx),
+				fmt->fetch_mode == SDE_FETCH_LINEAR ? 0 :
+				SDE_REG_READ(c, (rect_mode == SDE_SSPP_RECT_SOLO ||
+					rect_mode == SDE_SSPP_RECT_0 ? SSPP_UBWC_STATIC_CTRL :
+					SSPP_UBWC_STATIC_CTRL_REC1) + idx));
+	}
+
 	/* clear previous UBWC error */
 	SDE_REG_WRITE(c, SSPP_UBWC_ERROR_STATUS + idx, BIT(31));
 }
@@ -952,6 +975,8 @@ static void sde_hw_sspp_setup_sourceaddress(struct sde_hw_pipe *ctx,
 				cfg->layout.plane_addr[2]);
 	}
 }
+
+u32 sde_hw_sspp_get_source_addr(struct sde_hw_pipe *ctx, bool is_virtual);
 
 u32 sde_hw_sspp_get_source_addr(struct sde_hw_pipe *ctx, bool is_virtual)
 {

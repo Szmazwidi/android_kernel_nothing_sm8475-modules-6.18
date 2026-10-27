@@ -163,6 +163,7 @@ static void dsi_convert_to_msm_mode(const struct dsi_display_mode *dsi_mode,
 }
 
 static int dsi_bridge_attach(struct drm_bridge *bridge,
+		struct drm_encoder *encoder,
 			enum drm_bridge_attach_flags flags)
 {
 	struct dsi_bridge *c_bridge = to_dsi_bridge(bridge);
@@ -570,6 +571,8 @@ static bool dsi_bridge_mode_fixup(struct drm_bridge *bridge,
 	dsi_convert_to_msm_mode(&dsi_mode, &conn_state->msm_mode);
 	return true;
 }
+
+u32 dsi_drm_get_dfps_maxfps(void *display);
 
 u32 dsi_drm_get_dfps_maxfps(void *display)
 {
@@ -1383,40 +1386,55 @@ int dsi_conn_post_kickoff(struct drm_connector *connector,
 	return 0;
 }
 
+/* Internal bridge: no global DT discovery/list registration is required.
+ * A bind-scoped devres group owns the allocator reference; the encoder owns
+ * its independent attach reference and drm_encoder_cleanup() detaches it.
+ */
 struct dsi_bridge *dsi_drm_bridge_init(struct dsi_display *display,
-				       struct drm_device *dev,
-				       struct drm_encoder *encoder)
+                                       struct drm_device *dev,
+                                       struct drm_encoder *encoder)
 {
-	int rc = 0;
-	struct dsi_bridge *bridge;
+ struct dsi_bridge *bridge;
+ void *group;
+ int rc;
 
-	bridge = kzalloc(sizeof(*bridge), GFP_KERNEL);
-	if (!bridge) {
-		rc = -ENOMEM;
-		goto error;
-	}
-
-	bridge->display = display;
-	bridge->base.funcs = &dsi_bridge_ops;
-	bridge->base.encoder = encoder;
-
-	rc = drm_bridge_attach(encoder, &bridge->base, NULL,
-				DRM_BRIDGE_ATTACH_NO_CONNECTOR);
-	if (rc) {
-		DSI_ERR("failed to attach bridge, rc=%d\n", rc);
-		goto error_free_bridge;
-	}
-
-	return bridge;
-error_free_bridge:
-	kfree(bridge);
-error:
-	return ERR_PTR(rc);
+ group = devres_open_group(dev->dev, NULL, GFP_KERNEL);
+ if (!group)
+  return ERR_PTR(-ENOMEM);
+ bridge = devm_drm_bridge_alloc(dev->dev, struct dsi_bridge, base,
+                               &dsi_bridge_ops);
+ if (IS_ERR(bridge)) {
+  rc = PTR_ERR(bridge);
+  goto release_group;
+ }
+ bridge->display = display;
+ bridge->devres_owner = dev->dev;
+ bridge->devres_group = group;
+ rc = drm_bridge_attach(encoder, &bridge->base, NULL,
+                        DRM_BRIDGE_ATTACH_NO_CONNECTOR);
+ if (rc) {
+  DSI_ERR("failed to attach bridge, rc=%d\n", rc);
+  goto release_group;
+ }
+ devres_close_group(dev->dev, group);
+ return bridge;
+release_group:
+ devres_release_group(dev->dev, group);
+ return ERR_PTR(rc);
 }
 
 void dsi_drm_bridge_cleanup(struct dsi_bridge *bridge)
 {
-	kfree(bridge);
+ struct device *owner;
+ void *group;
+ if (!bridge)
+  return;
+ /* May drop the last reference. Never access bridge after releasing group.
+  * If the encoder is still attached it keeps the bridge alive until cleanup.
+  */
+ owner = bridge->devres_owner;
+ group = bridge->devres_group;
+ devres_release_group(owner, group);
 }
 
 static bool is_valid_poms_switch(struct dsi_display_mode *mode_a,

@@ -6,6 +6,7 @@
 
 #define pr_fmt(fmt)	"[drm:%s:%d] " fmt, __func__, __LINE__
 
+#include <linux/vmalloc.h>
 #include <linux/delay.h>
 #include <linux/spinlock.h>
 #include <linux/ktime.h>
@@ -670,7 +671,7 @@ void sde_mini_dump_add_va_region(const char *name, u32 size, void *virt_addr)
 	struct va_md_entry md_entry;
 	int ret;
 
-	strlcpy(md_entry.owner, name, sizeof(md_entry.owner));
+	strscpy(md_entry.owner, name, sizeof(md_entry.owner));
 	md_entry.vaddr = (uintptr_t)virt_addr;
 	md_entry.size = size;
 
@@ -1186,6 +1187,10 @@ static void _sde_dbg_dump_dsi_dbg_bus(struct sde_dbg_sde_debug_bus *bus, u32 ena
 	}
 	mutex_unlock(&sde_dbg_dsi_mutex);
 }
+
+void sde_evtlog_dump_all(struct sde_dbg_evtlog *evtlog);
+
+void sde_evtlog_dump_all(struct sde_dbg_evtlog *evtlog);
 
 void sde_evtlog_dump_all(struct sde_dbg_evtlog *evtlog)
 {
@@ -2773,7 +2778,7 @@ int sde_dbg_reg_register_base(const char *name, void __iomem *base, size_t max_o
 	if (!reg_base)
 		return -ENOMEM;
 
-	strlcpy(reg_base->name, name, sizeof(reg_base->name));
+	strscpy(reg_base->name, name, sizeof(reg_base->name));
 	reg_base->base = base;
 	reg_base->phys_addr = phys_addr;
 	reg_base->max_offset = max_offset;
@@ -2807,7 +2812,7 @@ int sde_dbg_reg_register_cb(const char *name, void (*cb)(void *), void *ptr)
 	if (!reg_base)
 		return -ENOMEM;
 
-	strlcpy(reg_base->name, name, sizeof(reg_base->name));
+	strscpy(reg_base->name, name, sizeof(reg_base->name));
 	reg_base->base = NULL;
 	reg_base->max_offset = 0;
 	reg_base->off = 0;
@@ -2879,7 +2884,7 @@ void sde_dbg_reg_register_dump_range(const char *base_name,
 	if (!range)
 		return;
 
-	strlcpy(range->range_name, range_name, sizeof(range->range_name));
+	strscpy(range->range_name, range_name, sizeof(range->range_name));
 	range->offset.start = offset_start;
 	range->offset.end = offset_end;
 	range->xin_id = xin_id;

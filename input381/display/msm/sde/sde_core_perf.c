@@ -402,12 +402,16 @@ static int _sde_core_perf_activate_llcc(struct sde_kms *kms,
 			kms->perf.llcc_active[type], scid);
 
 	if (activate) {
-		llcc_slice_activate(slice);
-		kms->perf.llcc_active[type] = true;
+		rc = llcc_slice_activate(slice);
+		if (!rc)
+			kms->perf.llcc_active[type] = true;
 	} else {
-		llcc_slice_deactivate(slice);
-		kms->perf.llcc_active[type] = false;
+		rc = llcc_slice_deactivate(slice);
+		if (!rc)
+			kms->perf.llcc_active[type] = false;
 	}
+
+	llcc_slice_putd(slice);
 
 exit:
 	if (rc)

@@ -2363,7 +2363,8 @@ static int _sde_encoder_phys_wb_init_internal_fb(struct sde_encoder_phys_wb *wb_
 	}
 
 	/* allocate gem tracking object */
-	info = drm_get_format_info(dev, &mode_cmd);
+	info = drm_get_format_info(dev, mode_cmd.pixel_format, mode_cmd.modifier[0]);
+	if (!info) return -EINVAL;
 	nplanes = info->num_planes;
 	if (nplanes >= SDE_MAX_PLANES) {
 		SDE_ERROR("[enc:%d wb:%d] requested format has too many planes:%d\n",
@@ -2643,7 +2644,7 @@ static void sde_encoder_phys_wb_destroy(struct sde_encoder_phys *phys_enc)
 	kfree(wb_enc);
 }
 
-void sde_encoder_phys_wb_add_enc_to_minidump(struct sde_encoder_phys *phys_enc)
+static void sde_encoder_phys_wb_add_enc_to_minidump(struct sde_encoder_phys *phys_enc)
 {
 	struct sde_encoder_phys_wb *wb_enc = to_sde_encoder_phys_wb(phys_enc);
 

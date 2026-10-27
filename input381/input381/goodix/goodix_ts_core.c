@@ -1255,6 +1255,7 @@ static BLOCKING_NOTIFIER_HEAD(ts_notifier_list);
  * @nb: notifier block to callback on events
  *  see enum ts_notify_event in goodix_ts_core.h
  */
+int goodix_ts_register_notifier(struct notifier_block *nb);
 int goodix_ts_register_notifier(struct notifier_block *nb)
 {
 	return blocking_notifier_chain_register(&ts_notifier_list, nb);
@@ -1265,6 +1266,7 @@ int goodix_ts_register_notifier(struct notifier_block *nb)
  * @nb: notifier block to callback on events
  *	see enum ts_notify_event in goodix_ts_core.h
  */
+int goodix_ts_unregister_notifier(struct notifier_block *nb);
 int goodix_ts_unregister_notifier(struct notifier_block *nb)
 {
 	return blocking_notifier_chain_unregister(&ts_notifier_list, nb);
@@ -1734,6 +1736,7 @@ static int goodix_ts_power_init(struct goodix_ts_core *core_data)
  * @core_data: pointer to touch core data
  * return: 0 ok, <0 failed
  */
+int goodix_ts_power_on(struct goodix_ts_core *cd);
 int goodix_ts_power_on(struct goodix_ts_core *cd)
 {
 	int ret = 0;
@@ -1755,6 +1758,7 @@ int goodix_ts_power_on(struct goodix_ts_core *cd)
  * @core_data: pointer to touch core data
  * return: 0 ok, <0 failed
  */
+int goodix_ts_power_off(struct goodix_ts_core *cd);
 int goodix_ts_power_off(struct goodix_ts_core *cd)
 {
 	int ret;
@@ -1943,6 +1947,7 @@ static int goodix_ts_pen_dev_config(struct goodix_ts_core *core_data)
 	return 0;
 }
 
+void goodix_ts_input_dev_remove(struct goodix_ts_core *core_data);
 void goodix_ts_input_dev_remove(struct goodix_ts_core *core_data)
 {
 	if (!core_data->input_dev)
@@ -1952,6 +1957,7 @@ void goodix_ts_input_dev_remove(struct goodix_ts_core *core_data)
 	core_data->input_dev = NULL;
 }
 
+void goodix_ts_pen_dev_remove(struct goodix_ts_core *core_data);
 void goodix_ts_pen_dev_remove(struct goodix_ts_core *core_data)
 {
 	if (!core_data->pen_dev)
@@ -2074,6 +2080,7 @@ static int goodix_esd_notifier_callback(struct notifier_block *nb,
 /**
  * goodix_ts_esd_init - initialize esd protection
  */
+int goodix_ts_esd_init(struct goodix_ts_core *cd);
 int goodix_ts_esd_init(struct goodix_ts_core *cd)
 {
 	struct goodix_ic_info_misc *misc = &cd->ic_info.misc;
@@ -2425,6 +2432,7 @@ static int goodix_generic_noti_callback(struct notifier_block *self,
 	return 0;
 }
 
+int goodix_ts_stage2_init(struct goodix_ts_core *cd);
 int goodix_ts_stage2_init(struct goodix_ts_core *cd)
 {
 	int ret;
@@ -2550,8 +2558,7 @@ static int goodix_later_init_thread(void *data)
 	}
 
 	ts_info("update flag: 0x%X", update_flag);
-	ret = goodix_do_fw_update(cd->ic_configs[CONFIG_TYPE_NORMAL],
-			update_flag);
+	ret = 0; /* LAB: preserve existing controller firmware. */
 	if (ret)
 		ts_err("failed do fw update");
 
@@ -2574,7 +2581,7 @@ static int goodix_later_init_thread(void *data)
 	/* the recomend way to update ic config is throuth ISP,
 	 * if not we will send config with interactive mode
 	 */
-	goodix_send_ic_config(cd, CONFIG_TYPE_NORMAL);
+	ts_info("PONG381 existing IC configuration preserved");
 
 	/* init other resources */
 	ret = goodix_ts_stage2_init(cd);
@@ -2836,7 +2843,7 @@ static int goodix_ts_probe(struct platform_device *pdev)
 	INIT_DELAYED_WORK(&core_data->drm_work, drm_notifier_work_func);
 
 	/* debug node init */
-	goodix_tools_init();
+	ts_info("PONG381 raw controller tools disabled");
 
 	/* goodix fb test */
 	// fb_firefly_register(test_suspend, test_resume);
@@ -2865,7 +2872,7 @@ static void goodix_charger_proc_exit(struct goodix_ts_core *core_data)
 	remove_proc_entry("TP_charger_flags", NULL);
 }
 
-static int goodix_ts_remove(struct platform_device *pdev)
+static void goodix_ts_remove(struct platform_device *pdev)
 {
 	struct goodix_ts_core *core_data = platform_get_drvdata(pdev);
 	struct goodix_ts_hw_ops *hw_ops = core_data->hw_ops;
@@ -2903,7 +2910,7 @@ static int goodix_ts_remove(struct platform_device *pdev)
 
 	goodix_charger_proc_exit(core_data);
 
-	return 0;
+	return;
 }
 
 #if 0

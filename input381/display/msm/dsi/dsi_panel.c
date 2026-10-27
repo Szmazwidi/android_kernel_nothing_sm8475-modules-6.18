@@ -3794,6 +3794,8 @@ static void dsi_panel_setup_vm_ops(struct dsi_panel *panel, bool trusted_vm_env)
 	}
 }
 
+int nt_is_panel_detected(void);
+
 int nt_is_panel_detected(void)
 {
 	int rc = 0;
@@ -3833,6 +3835,9 @@ static ssize_t sysfs_force_fod_ui_read(struct device *dev,
 }
 
 ssize_t sysfs_force_fod_ui_write(struct device *dev,
+	struct device_attribute *attr, const char *buf, size_t count);
+
+ssize_t sysfs_force_fod_ui_write(struct device *dev,
 	struct device_attribute *attr, const char *buf, size_t count)
 {
 	struct dsi_display *display = dev_get_drvdata(dev);
@@ -3863,6 +3868,9 @@ static ssize_t sysfs_fod_dim_alpha_read(struct device *dev,
 
 	return snprintf(buf, PAGE_SIZE, "%u\n", panel->fod_dim_alpha);
 }
+
+ssize_t sysfs_fod_dim_alpha_write(struct device *dev,
+	struct device_attribute *attr, const char *buf, size_t count);
 
 ssize_t sysfs_fod_dim_alpha_write(struct device *dev,
 	struct device_attribute *attr, const char *buf, size_t count)

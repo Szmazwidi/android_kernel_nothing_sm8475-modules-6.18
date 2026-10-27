@@ -18,6 +18,8 @@
 
 struct dsi_bridge {
 	struct drm_bridge base;
+	struct device *devres_owner;
+	void *devres_group;
 	u32 id;
 
 	struct dsi_display *display;

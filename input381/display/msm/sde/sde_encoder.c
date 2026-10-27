@@ -3662,6 +3662,9 @@ static enum sde_wb sde_encoder_get_wb(struct sde_mdss_cfg *catalog,
 }
 
 void sde_encoder_hw_fence_status(struct sde_kms *sde_kms,
+	struct drm_crtc *crtc, struct sde_hw_ctl *hw_ctl);
+
+void sde_encoder_hw_fence_status(struct sde_kms *sde_kms,
 	struct drm_crtc *crtc, struct sde_hw_ctl *hw_ctl)
 {
 	u64 start_timestamp, end_timestamp;
@@ -3689,6 +3692,9 @@ void sde_encoder_hw_fence_status(struct sde_kms *sde_kms,
 			start_timestamp, end_timestamp);
 	}
 }
+
+void sde_encoder_perf_uidle_status(struct sde_kms *sde_kms,
+	struct drm_crtc *crtc);
 
 void sde_encoder_perf_uidle_status(struct sde_kms *sde_kms,
 	struct drm_crtc *crtc)
@@ -4770,6 +4776,8 @@ static int _sde_encoder_prepare_for_kickoff_processing(struct drm_encoder *drm_e
 
 	return ret;
 }
+
+void _sde_encoder_delay_kickoff_processing(struct sde_encoder_virt *sde_enc);
 
 void _sde_encoder_delay_kickoff_processing(struct sde_encoder_virt *sde_enc)
 {

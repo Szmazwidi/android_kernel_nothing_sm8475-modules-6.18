@@ -183,6 +183,7 @@ struct sde_power_handle {
 	struct sde_rsc_client *rsc_client;
 	bool rsc_client_init;
 	bool mmrm_enable;
+	bool resources_initialized;
 	u64 ib_quota[SDE_POWER_HANDLE_DBUS_ID_MAX];
 
 	struct sde_power_mmrm_reserve mmrm_reserve;

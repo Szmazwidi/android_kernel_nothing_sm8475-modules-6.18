@@ -209,6 +209,8 @@ static int _get_rc_table_index(struct drm_dsc_config *dsc, int scr_ver)
 	return -EINVAL;
 }
 
+u8 _get_dsc_v1_2_bpg_offset(struct drm_dsc_config *dsc);
+
 u8 _get_dsc_v1_2_bpg_offset(struct drm_dsc_config *dsc)
 {
 	u8 bpg_offset = 0;

@@ -139,7 +139,7 @@ static int sde_power_parse_dt_supply(struct platform_device *pdev,
 			goto error;
 		}
 
-		strlcpy(mp->vreg_config[i].vreg_name, st,
+		strscpy(mp->vreg_config[i].vreg_name, st,
 					sizeof(mp->vreg_config[i].vreg_name));
 
 		rc = of_property_read_u32(supply_node,
@@ -268,7 +268,7 @@ static int sde_power_parse_dt_clock(struct platform_device *pdev,
 	for (i = 0; i < num_clk; i++) {
 		of_property_read_string_index(pdev->dev.of_node, "clock-names",
 							i, &clock_name);
-		strlcpy(mp->clk_config[i].clk_name, clock_name,
+		strscpy(mp->clk_config[i].clk_name, clock_name,
 				sizeof(mp->clk_config[i].clk_name));
 
 		of_property_read_u32_index(pdev->dev.of_node, "clock-rate",
@@ -284,8 +284,15 @@ static int sde_power_parse_dt_clock(struct platform_device *pdev,
 		of_property_read_u32_index(pdev->dev.of_node, "clock-mmrm",
 							i, &clock_mmrm);
 		if (clock_mmrm) {
-			mp->clk_config[i].type = DSS_CLK_MMRM;
+			/* MMRM is optional. Without it, use the real CCF rate
+			 * backend rather than manufacturing a manager client.
+			 * Keep the ID to distinguish an idle zero-rate vote.
+			 */
+			mp->clk_config[i].type = IS_ENABLED(CONFIG_MSM_MMRM) ?
+				DSS_CLK_MMRM : DSS_CLK_PCLK;
 			mp->clk_config[i].mmrm.clk_id = clock_mmrm;
+			if (!IS_ENABLED(CONFIG_MSM_MMRM))
+				dev_info(&pdev->dev, "SDE89 direct CCF backend for %s (MMRM not built)\n", clock_name);
 		}
 		pr_debug("clk[%d] mmrm:%d rate:%d name:%s dev:%s\n",
 			i, clock_mmrm, clock_rate, clock_name,
@@ -623,6 +630,9 @@ exit:
 }
 
 int sde_power_mmrm_callback(
+	struct mmrm_client_notifier_data *notifier_data);
+
+int sde_power_mmrm_callback(
 	struct mmrm_client_notifier_data *notifier_data)
 {
 	struct dss_clk_mmrm_cb *mmrm_cb_data =
@@ -734,6 +744,7 @@ int sde_power_resource_init(struct platform_device *pdev,
 	phandle->rsc_client_init = false;
 
 	mutex_init(&phandle->phandle_lock);
+	phandle->resources_initialized = true;
 
 	return rc;
 
@@ -748,10 +759,12 @@ clkget_err:
 vreg_err:
 	if (mp->vreg_config)
 		devm_kfree(&pdev->dev, mp->vreg_config);
+	mp->vreg_config = NULL;
 	mp->num_vreg = 0;
 parse_vreg_err:
 	if (mp->clk_config)
 		devm_kfree(&pdev->dev, mp->clk_config);
+	mp->clk_config = NULL;
 	mp->num_clk = 0;
 end:
 	return rc;
@@ -767,6 +780,8 @@ void sde_power_resource_deinit(struct platform_device *pdev,
 		pr_err("invalid input param\n");
 		return;
 	}
+	if (!phandle->resources_initialized) return;
+	phandle->resources_initialized = false;
 	mp = &phandle->mp;
 
 	mutex_lock(&phandle->phandle_lock);
@@ -796,6 +811,8 @@ void sde_power_resource_deinit(struct platform_device *pdev,
 
 	mp->num_vreg = 0;
 	mp->num_clk = 0;
+	mp->clk_config = NULL;
+	mp->vreg_config = NULL;
 
 	if (phandle->rsc_client)
 		sde_rsc_client_destroy(phandle->rsc_client);
@@ -976,7 +993,7 @@ int sde_power_clk_reserve_rate(struct sde_power_handle *phandle, char *clock_nam
 
 	mutex_lock(&phandle->phandle_lock);
 	phandle->mmrm_reserve.clk_rate = rate;
-	strlcpy(phandle->mmrm_reserve.clk_name, clock_name,
+	strscpy(phandle->mmrm_reserve.clk_name, clock_name,
 			sizeof(phandle->mmrm_reserve.clk_name));
 	mutex_unlock(&phandle->phandle_lock);
 
@@ -1127,7 +1144,7 @@ struct sde_power_event *sde_power_handle_register_event(
 	event->event_type = event_type;
 	event->cb_fnc = cb_fnc;
 	event->usr = usr;
-	strlcpy(event->client_name, client_name, MAX_CLIENT_NAME_LEN);
+	strscpy(event->client_name, client_name, MAX_CLIENT_NAME_LEN);
 	event->active = true;
 
 	mutex_lock(&phandle->phandle_lock);

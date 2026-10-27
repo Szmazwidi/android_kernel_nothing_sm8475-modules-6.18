@@ -703,12 +703,23 @@ void sde_sync_put(void *fence)
 		dma_fence_put(fence);
 }
 
+static struct dma_fence_ops sde_fence_ops;
+static void sde_fence_timeline_value_str(struct dma_fence *fence, char *str,
+		int size);
+
+static void sde76_fence_timeline_str(struct dma_fence *fence, char *str, int size)
+{
+	if (fence->ops == &sde_fence_ops)
+		sde_fence_timeline_value_str(fence, str, size);
+	else
+		strscpy(str, "unavailable", size);
+}
+
 void sde_fence_dump(struct dma_fence *fence)
 {
 	char timeline_str[TIMELINE_VAL_LENGTH];
 
-	if (fence->ops->timeline_value_str)
-		fence->ops->timeline_value_str(fence, timeline_str, TIMELINE_VAL_LENGTH);
+	sde76_fence_timeline_str(fence, timeline_str, TIMELINE_VAL_LENGTH);
 
 	SDE_ERROR(
 		"fence drv name:%s timeline name:%s seqno:0x%llx timeline:%s signaled:0x%x status:%d flags:0x%lx\n",
@@ -856,7 +867,7 @@ static void sde_fence_release(struct dma_fence *fence)
 	}
 }
 
-static void sde_fence_value_str(struct dma_fence *fence, char *str, int size)
+static void __maybe_unused sde_fence_value_str(struct dma_fence *fence, char *str, int size)
 {
 	if (!fence || !str)
 		return;
@@ -882,8 +893,6 @@ static struct dma_fence_ops sde_fence_ops = {
 	.signaled = sde_fence_signaled,
 	.wait = dma_fence_default_wait,
 	.release = sde_fence_release,
-	.fence_value_str = sde_fence_value_str,
-	.timeline_value_str = sde_fence_timeline_value_str,
 };
 
 /**
@@ -966,7 +975,7 @@ struct sde_fence_context *sde_fence_init(const char *name, uint32_t drm_id)
 		return ERR_PTR(-ENOMEM);
 	}
 
-	strlcpy(ctx->name, name, ARRAY_SIZE(ctx->name));
+	strscpy(ctx->name, name, ARRAY_SIZE(ctx->name));
 	ctx->drm_id = drm_id;
 	kref_init(&ctx->kref);
 	ctx->context = dma_fence_context_alloc(1);
@@ -1150,9 +1159,7 @@ void sde_fence_list_dump(struct dma_fence *fence, struct seq_file **s)
 {
 	char timeline_str[TIMELINE_VAL_LENGTH];
 
-	if (fence->ops->timeline_value_str)
-		fence->ops->timeline_value_str(fence,
-		timeline_str, TIMELINE_VAL_LENGTH);
+	sde76_fence_timeline_str(fence, timeline_str, TIMELINE_VAL_LENGTH);
 
 	seq_printf(*s, "fence name:%s timeline name:%s seqno:0x%llx timeline:%s signaled:0x%x\n",
 		fence->ops->get_driver_name(fence),
