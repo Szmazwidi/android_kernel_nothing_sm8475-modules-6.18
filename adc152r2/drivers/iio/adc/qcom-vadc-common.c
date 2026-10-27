@@ -299,6 +299,13 @@ static const struct u32_fract adc5_prescale_ratios[] = {
 	{ .numerator = 10, .denominator = 81 },
 	{ .numerator =  1, .denominator = 10 },
 	{ .numerator =  1, .denominator = 16 },
+
+    { .numerator = 32, .denominator = 100 }, /* Stage141 verified ADC7 DT */
+    { .numerator = 1280, .denominator = 4100 }, /* Stage141 verified ADC7 DT */
+    { .numerator = 640, .denominator = 4100 }, /* Stage141 verified ADC7 DT */
+    { .numerator = 1000, .denominator = 305185 }, /* Stage141 verified ADC7 DT */
+    { .numerator = 1000, .denominator = 610370 }, /* Stage141 verified ADC7 DT */
+    { .numerator = 1000, .denominator = 762963 }, /* Stage141 verified ADC7 DT */
 };
 
 static int qcom_vadc_scale_hw_calib_volt(
@@ -330,6 +337,16 @@ static int qcom_vadc7_scale_hw_calib_die_temp(
 				const struct adc5_data *data,
 				u16 adc_code, int *result_mdec);
 
+
+/* Stage141: pinned 6.6 ADC7 current scaler prototypes */
+static int qcom_vadc_scale_hw_calib_current_raw(
+				const struct u32_fract *prescale,
+				const struct adc5_data *data,
+				u16 adc_code, int *result_ua);
+static int qcom_vadc_scale_hw_calib_current(
+				const struct u32_fract *prescale,
+				const struct adc5_data *data,
+				u16 adc_code, int *result_ua);
 static const struct qcom_adc5_scale_type scale_adc5_fn[] = {
 	[SCALE_HW_CALIB_DEFAULT] = {qcom_vadc_scale_hw_calib_volt},
 	[SCALE_HW_CALIB_THERM_100K_PULLUP] = {qcom_vadc_scale_hw_calib_therm},
@@ -341,6 +358,9 @@ static const struct qcom_adc5_scale_type scale_adc5_fn[] = {
 					qcom_vadc7_scale_hw_calib_die_temp},
 	[SCALE_HW_CALIB_PM5_CHG_TEMP] = {qcom_vadc_scale_hw_chg5_temp},
 	[SCALE_HW_CALIB_PM5_SMB_TEMP] = {qcom_vadc_scale_hw_smb_temp},
+
+    [SCALE_HW_CALIB_CUR] = {qcom_vadc_scale_hw_calib_current},
+    [SCALE_HW_CALIB_CUR_RAW] = {qcom_vadc_scale_hw_calib_current_raw}, /* Stage141 */
 };
 
 static int qcom_vadc_map_voltage_temp(const struct vadc_map_pt *pts,
@@ -696,7 +716,9 @@ int qcom_adc5_hw_scale(enum vadc_scale_fn_type scaletype,
 	const struct u32_fract *prescale = &adc5_prescale_ratios[prescale_ratio];
 
 	if (!(scaletype >= SCALE_HW_CALIB_DEFAULT &&
-		scaletype < SCALE_HW_CALIB_INVALID)) {
+		(scaletype < SCALE_HW_CALIB_INVALID ||
+		 scaletype == SCALE_HW_CALIB_CUR ||
+		 scaletype == SCALE_HW_CALIB_CUR_RAW))) {
 		pr_err("Invalid scale type %d\n", scaletype);
 		return -EINVAL;
 	}
@@ -770,3 +792,43 @@ EXPORT_SYMBOL(qcom_vadc_decimation_from_dt);
 
 MODULE_LICENSE("GPL v2");
 MODULE_DESCRIPTION("Qualcomm ADC common functionality");
+
+/* Stage141: exact Qualcomm 6.6 ADC7 current scaling bodies. */
+static int qcom_vadc_scale_hw_calib_current_raw(
+				const struct u32_fract *prescale,
+				const struct adc5_data *data,
+				u16 adc_code, int *result_ua)
+{
+	s64 temp;
+
+	if (!prescale->numerator)
+		return -EINVAL;
+
+	temp = div_s64((s64)(s16)adc_code * prescale->denominator,
+			prescale->numerator);
+	*result_ua = (int) temp;
+	pr_debug("raw adc_code: %#x result_ua: %d\n", adc_code, *result_ua);
+
+	return 0;
+}
+
+static int qcom_vadc_scale_hw_calib_current(
+				const struct u32_fract *prescale,
+				const struct adc5_data *data,
+				u16 adc_code, int *result_ua)
+{
+	u32 adc_vdd_ref_mv = 1875;
+	s64 voltage;
+
+	if (!prescale->numerator)
+		return -EINVAL;
+
+	/* (ADC code * vref_vadc (1.875V)) / full_scale_code */
+	voltage = (s64)(s16) adc_code * adc_vdd_ref_mv * 1000;
+	voltage = div_s64(voltage, data->full_scale_code_volt);
+	voltage = div_s64(voltage * prescale->denominator, prescale->numerator);
+	*result_ua = (int) voltage;
+	pr_debug("adc_code: %#x result_ua: %d\n", adc_code, *result_ua);
+
+	return 0;
+}

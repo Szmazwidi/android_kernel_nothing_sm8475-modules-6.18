@@ -507,6 +507,11 @@ struct adc5_channels {
 		.scale_fn_type = _scale,				\
 	},								\
 
+#define ADC5_CHAN_CUR(_dname, _pre, _scale)				\
+	ADC5_CHAN(_dname, IIO_CURRENT,					\
+		  BIT(IIO_CHAN_INFO_PROCESSED),				\
+		  _pre, _scale)						\
+
 #define ADC5_CHAN_TEMP(_dname, _pre, _scale)				\
 	ADC5_CHAN(_dname, IIO_TEMP,					\
 		BIT(IIO_CHAN_INFO_PROCESSED),				\
@@ -594,6 +599,15 @@ static const struct adc5_channels adc7_chans_pmic[ADC5_MAX_CHANNEL] = {
 					SCALE_HW_CALIB_THERM_100K_PU_PM7)
 	[ADC7_GPIO4_100K_PU]	= ADC5_CHAN_TEMP("gpio4_pu2", 0,
 					SCALE_HW_CALIB_THERM_100K_PU_PM7)
+
+    [ADC7_IIN_FB] = ADC5_CHAN_CUR("iin_fb", 9,
+        SCALE_HW_CALIB_CUR) /* Stage152: ADC5_CHAN owns the comma. */
+    [ADC7_IIN_SMB] = ADC5_CHAN_CUR("iin_smb", 10,
+        SCALE_HW_CALIB_CUR) /* Stage152: ADC5_CHAN owns the comma. */
+    [ADC7_ICHG_SMB] = ADC5_CHAN_CUR("ichg_smb", 11,
+        SCALE_HW_CALIB_CUR) /* Stage152: ADC5_CHAN owns the comma. */
+    [ADC7_ICHG_FB] = ADC5_CHAN_CUR("ichg_fb", 12,
+        SCALE_HW_CALIB_CUR_RAW) /* Stage152: ADC5_CHAN owns the comma. */
 };
 
 static const struct adc5_channels adc5_chans_rev2[ADC5_MAX_CHANNEL] = {
