@@ -1,0 +1,5 @@
+# Reduced from the original package BUILD.bazel: only targets whose modules run on the phone are kept.
+load("//build/kernel/kleaf:kernel.bzl", "ddk_module")
+package(default_visibility = ["//visibility:public"])
+
+ddk_module(name='cfg80211', kernel_build='//common:kernel_aarch64', out='cfg80211.ko', srcs=['wireless/core.c', 'wireless/sysfs.c', 'wireless/radiotap.c', 'wireless/util.c', 'wireless/reg.c', 'wireless/scan.c', 'wireless/nl80211.c', 'wireless/mlme.c', 'wireless/ibss.c', 'wireless/sme.c', 'wireless/chan.c', 'wireless/ethtool.c', 'wireless/mesh.c', 'wireless/ap.c', 'wireless/trace.c', 'wireless/ocb.c', 'wireless/pmsr.c', 'wireless/of.c', 'wireless/shipped-certs.c'] + glob(['wireless/**/*.h'], allow_empty = True), includes=['wireless'], defconfig='defconfig', deps=[], copts=['-ferror-limit=0'])
