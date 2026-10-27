@@ -1,0 +1,7 @@
+# Reduced from the original package BUILD.bazel: only targets whose modules run on the phone are kept.
+load("//build/kernel/kleaf:kernel.bzl", "ddk_config", "ddk_module")
+package(default_visibility = ["//visibility:public"])
+
+ddk_config(name="foundation_config", kernel_build="//common:kernel_aarch64", kconfigs=["Kconfig"], defconfig="defconfig")
+ddk_module(name='smem', visibility = ["//visibility:public"], kernel_build="//common:kernel_aarch64", config=":foundation_config", out='smem.ko', srcs=['smem.c'], includes=["."], deps=[])
+ddk_module(name='hwspinlock', kernel_build="//common:kernel_aarch64", config=":foundation_config", out='qcom_hwspinlock.ko', srcs=['qcom_hwspinlock.c', 'hwspinlock_internal.h'], includes=["."], deps=[])

@@ -1,0 +1,9 @@
+# SPDX-License-Identifier: GPL-2.0-only
+config PONG618_FOUNDATION
+    tristate "Pong 6.18 native foundation build control"
+    select QCOM_SCM
+    select QCOM_TZMEM
+    select QCOM_COMMAND_DB
+    select QCOM_RPMH
+    select QCOM_SMEM
+    select HWSPINLOCK_QCOM
