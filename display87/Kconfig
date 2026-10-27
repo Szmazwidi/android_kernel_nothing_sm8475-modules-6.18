@@ -1,0 +1,57 @@
+# SPDX-License-Identifier: GPL-2.0-only
+config DRM_MSM
+	tristate
+config DRM_MSM_DSI
+	bool
+	default y
+config DRM_MSM_REGISTER_LOGGING
+	bool
+	default y
+config DRM_MSM_SDE
+	bool
+	default y
+config DRM_SDE_RSC
+	bool
+	default y
+config QCOM_MDSS_PLL
+	bool
+	default y
+config DSI_PARSER
+	bool
+	default y
+
+config QCOM_IOMMU_UTIL
+	tristate
+	default m
+
+config QCOM_SECURE_BUFFER
+	tristate
+	default m
+
+config QCOM_LAZY_MAPPING
+	tristate
+	default m
+
+config QTI_IOMMU_SUPPORT
+	bool
+	default y
+
+config IOMMU_IO_PGTABLE_FAST
+	bool
+	default y
+
+config ARM_SMMU_CONTEXT_FAULT_RETRY
+	bool
+	default y
+
+config QCOM_LLCC
+	tristate
+	default m
+
+config QCOM_PANEL_EVENT_NOTIFIER
+	tristate
+	default m
+
+config QTEE_SHM_BRIDGE
+	bool
+	default y

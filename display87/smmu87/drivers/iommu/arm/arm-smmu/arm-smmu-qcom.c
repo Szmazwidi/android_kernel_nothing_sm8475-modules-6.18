@@ -505,8 +505,6 @@ static int qcom_adreno_smmu_init_context(struct arm_smmu_domain *smmu_domain,
 {
 	struct adreno_smmu_priv *priv;
 	const struct device_node *np = smmu_domain->smmu->dev->of_node;
-	struct qcom_io_pgtable_info *input_info =
-		container_of(pgtbl_cfg, struct qcom_io_pgtable_info, cfg);
 
 	smmu_domain->cfg.flush_walk_prefer_tlbiasid = true;
 
@@ -533,7 +531,7 @@ static int qcom_adreno_smmu_init_context(struct arm_smmu_domain *smmu_domain,
 	priv->get_ttbr1_cfg = qcom_adreno_smmu_get_ttbr1_cfg;
 	priv->set_ttbr0_cfg = qcom_adreno_smmu_set_ttbr0_cfg;
 	priv->get_fault_info = qcom_adreno_smmu_get_fault_info;
-	priv->pgtbl_info = *input_info;
+	/* Native 6.18 GPU interface uses get_ttbr1_cfg; no vendor struct tail. */
 
 	/*
 	 * These functions are only compatible with the data structures used by the
@@ -1151,7 +1149,7 @@ static int __arm_tbu_micro_idle_cfg(struct arm_smmu_device *smmu,
 	return ret;
 }
 
-int arm_tbu_micro_idle_wake(struct arm_smmu_power_resources *pwr)
+static int arm_tbu_micro_idle_wake(struct arm_smmu_power_resources *pwr)
 {
 	struct qsmmuv500_tbu_device *tbu = dev_get_drvdata(pwr->dev);
 	struct arm_tbu_device *arm_tbu = to_arm_tbu(tbu);
@@ -1165,7 +1163,7 @@ int arm_tbu_micro_idle_wake(struct arm_smmu_power_resources *pwr)
 	return __arm_tbu_micro_idle_cfg(tbu->smmu, val, val);
 }
 
-void arm_tbu_micro_idle_allow(struct arm_smmu_power_resources *pwr)
+static void arm_tbu_micro_idle_allow(struct arm_smmu_power_resources *pwr)
 {
 	struct qsmmuv500_tbu_device *tbu = dev_get_drvdata(pwr->dev);
 	struct arm_tbu_device *arm_tbu = to_arm_tbu(tbu);
@@ -2873,7 +2871,7 @@ static const struct arm_smmu_impl qsmmuv500_virt_impl = {
 	.def_domain_type = qcom_def_domain_type,
 };
 
-struct arm_smmu_device *qsmmuv500_create(struct arm_smmu_device *smmu,
+static struct arm_smmu_device *qsmmuv500_create(struct arm_smmu_device *smmu,
 		const struct arm_smmu_impl *impl)
 {
 	struct device *dev = smmu->dev;

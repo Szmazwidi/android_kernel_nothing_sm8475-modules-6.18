@@ -12,6 +12,8 @@
 #include <linux/platform_device.h>
 #include <linux/regmap.h>
 #include <linux/pm_runtime.h>
+#include <linux/clk.h>
+#include <linux/regulator/consumer.h>
 
 #include <dt-bindings/clock/qcom,sm8450-dispcc.h>
 
@@ -1655,24 +1657,6 @@ static struct clk_branch disp_cc_sleep_clk = {
 	},
 };
 
-static struct gdsc mdss_gdsc = {
-	.gdscr = 0x9000,
-	.pd = {
-		.name = "mdss_gdsc",
-	},
-	.pwrsts = PWRSTS_OFF_ON,
-	.flags = HW_CTRL | RETAIN_FF_ENABLE,
-};
-
-static struct gdsc mdss_int2_gdsc = {
-	.gdscr = 0xb000,
-	.pd = {
-		.name = "mdss_int2_gdsc",
-	},
-	.pwrsts = PWRSTS_OFF_ON,
-	.flags = HW_CTRL | RETAIN_FF_ENABLE,
-};
-
 static struct clk_regmap *disp_cc_sm8450_clocks[] = {
 	[DISP_CC_MDSS_AHB1_CLK] = &disp_cc_mdss_ahb1_clk.clkr,
 	[DISP_CC_MDSS_AHB_CLK] = &disp_cc_mdss_ahb_clk.clkr,
@@ -1766,11 +1750,6 @@ static const struct qcom_reset_map disp_cc_sm8450_resets[] = {
 	[DISP_CC_MDSS_RSCC_BCR] = { 0xc000 },
 };
 
-static struct gdsc *disp_cc_sm8450_gdscs[] = {
-	[MDSS_GDSC] = &mdss_gdsc,
-	[MDSS_INT2_GDSC] = &mdss_int2_gdsc,
-};
-
 static const struct regmap_config disp_cc_sm8450_regmap_config = {
 	.reg_bits = 32,
 	.reg_stride = 4,
@@ -1785,8 +1764,6 @@ static const struct qcom_cc_desc disp_cc_sm8450_desc = {
 	.num_clks = ARRAY_SIZE(disp_cc_sm8450_clocks),
 	.resets = disp_cc_sm8450_resets,
 	.num_resets = ARRAY_SIZE(disp_cc_sm8450_resets),
-	.gdscs = disp_cc_sm8450_gdscs,
-	.num_gdscs = ARRAY_SIZE(disp_cc_sm8450_gdscs),
 };
 
 static const struct of_device_id disp_cc_sm8450_match_table[] = {
@@ -1796,10 +1773,72 @@ static const struct of_device_id disp_cc_sm8450_match_table[] = {
 };
 MODULE_DEVICE_TABLE(of, disp_cc_sm8450_match_table);
 
+/* Diagnostic nominal votes use the pinned Cape voltage/rate contract.
+ * Vendor gdsc-regulator retains MDSS ownership; this provider owns no GDSC.
+ * No active bootloader PLL may be disabled during provider registration.
+ */
+struct pong87_dispcc_power { struct regulator *rails[2]; bool voted[2], enabled[2]; };
+static void pong87_dispcc_unpower(void *data)
+{
+ struct pong87_dispcc_power *p = data;
+ int i;
+ for (i = 1; i >= 0; i--) {
+  if (p->enabled[i] && regulator_disable(p->rails[i])) pr_warn("DISPCC87 rail disable failed\n");
+  if (p->voted[i] && regulator_set_voltage(p->rails[i], 0, INT_MAX)) pr_warn("DISPCC87 vote release failed\n");
+ }
+}
+static int pong87_dispcc_power(struct device *dev)
+{
+ static const char * const names[] = { "vdd_mm", "vdd_mxa" };
+ struct pong87_dispcc_power *p;
+ struct clk *clk;
+ int i, ret;
+ p = devm_kzalloc(dev, sizeof(*p), GFP_KERNEL);
+ if (!p) return -ENOMEM;
+ for (i = 0; i < 2; i++) {
+  p->rails[i] = devm_regulator_get(dev, names[i]);
+  if (IS_ERR(p->rails[i])) return dev_err_probe(dev, PTR_ERR(p->rails[i]), "DISPCC87 supply\n");
+ }
+ ret = devm_add_action_or_reset(dev, pong87_dispcc_unpower, p);
+ if (ret) return ret;
+ for (i = 0; i < 2; i++) {
+  ret = regulator_set_voltage(p->rails[i], 256, INT_MAX);
+  if (ret) return ret;
+  p->voted[i] = true;
+  ret = regulator_enable(p->rails[i]);
+  if (ret) return ret;
+  p->enabled[i] = true;
+ }
+ clk = devm_clk_get_enabled(dev, "bi_tcxo");
+ if (IS_ERR(clk)) return dev_err_probe(dev, PTR_ERR(clk), "DISPCC87 XO\n");
+ clk = devm_clk_get_enabled(dev, "iface");
+ if (IS_ERR(clk)) return dev_err_probe(dev, PTR_ERR(clk), "DISPCC87 AHB\n");
+ return 0;
+}
+static int pong87_ole_configure(struct device *dev, struct clk_alpha_pll *pll,
+ struct regmap *map, const struct alpha_pll_config *config)
+{
+ u32 mode, opmode;
+ int ret;
+ ret = regmap_read(map, pll->offset, &mode);
+ if (ret) return ret;
+ ret = regmap_read(map, pll->offset + pll->regs[PLL_OFF_OPMODE], &opmode);
+ if (ret) return ret;
+ if ((mode & BIT(0)) && (opmode & BIT(0))) {
+  dev_info(dev, "DISPCC87 preserve enabled PLL at %#x\n", pll->offset);
+  return 0;
+ }
+ clk_lucid_ole_pll_configure(pll, map, config);
+ return 0;
+}
+
 static int disp_cc_sm8450_probe(struct platform_device *pdev)
 {
 	struct regmap *regmap;
 	int ret;
+
+	ret = pong87_dispcc_power(&pdev->dev);
+	if (ret) return ret;
 
 	ret = devm_pm_runtime_enable(&pdev->dev);
 	if (ret)
@@ -1824,8 +1863,10 @@ static int disp_cc_sm8450_probe(struct platform_device *pdev)
 		disp_cc_pll1.regs = clk_alpha_pll_regs[CLK_ALPHA_PLL_TYPE_LUCID_OLE];
 		disp_cc_pll1.clkr.hw.init = &sm8475_disp_cc_pll1_init;
 
-		clk_lucid_ole_pll_configure(&disp_cc_pll0, regmap, &sm8475_disp_cc_pll0_config);
-		clk_lucid_ole_pll_configure(&disp_cc_pll1, regmap, &sm8475_disp_cc_pll1_config);
+		ret = pong87_ole_configure(&pdev->dev, &disp_cc_pll0, regmap, &sm8475_disp_cc_pll0_config);
+		if (ret) goto err_put_rpm;
+		ret = pong87_ole_configure(&pdev->dev, &disp_cc_pll1, regmap, &sm8475_disp_cc_pll1_config);
+		if (ret) goto err_put_rpm;
 	} else {
 		clk_lucid_evo_pll_configure(&disp_cc_pll0, regmap, &disp_cc_pll0_config);
 		clk_lucid_evo_pll_configure(&disp_cc_pll1, regmap, &disp_cc_pll1_config);
@@ -1841,6 +1882,7 @@ static int disp_cc_sm8450_probe(struct platform_device *pdev)
 	if (ret)
 		goto err_put_rpm;
 
+	dev_info(&pdev->dev, "DISPCC87 full provider registered; vendor GDSCs retained\n");
 	pm_runtime_put(&pdev->dev);
 
 	return 0;
