@@ -46,7 +46,7 @@ static inline int fsa4480_unreg_notifier(struct notifier_block *nb,
 
 static inline bool is_dio4480(void)
 {
-	reture false;
+	return false;
 }
 
 static inline bool is_was4780(void)

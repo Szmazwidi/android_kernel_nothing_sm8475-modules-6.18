@@ -1,0 +1,4 @@
+# Provider headers only; prebuilt .ko files were removed (see //devices/pong618/build).
+load("//build/kernel/kleaf:kernel.bzl","ddk_headers")
+package(default_visibility=["//visibility:public"])
+ddk_headers(name="vendor_headers",hdrs=glob(["include/**/*.h","vendor/**/*.h"], allow_empty = True),linux_includes=["include","vendor"])
