@@ -102,6 +102,9 @@ struct qcom_iommu_ops {
 	struct iommu_ops iommu_ops;
 	struct iommu_domain_ops domain_ops;
 };
+int register_qcom_iommu_ops(const struct qcom_iommu_ops *ops);
+void unregister_qcom_iommu_ops(const struct qcom_iommu_ops *ops);
+
 #define to_qcom_iommu_ops(x) (container_of(x, struct qcom_iommu_ops, domain_ops))
 
 struct device_node *qcom_iommu_group_parse_phandle(struct device *dev);

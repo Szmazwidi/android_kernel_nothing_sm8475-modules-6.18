@@ -1,0 +1,7 @@
+# Reduced from the original package BUILD.bazel: only targets whose modules run on the phone are kept.
+load("//build/kernel/kleaf:kernel.bzl", "ddk_config", "ddk_headers", "ddk_module")
+package(default_visibility = ["//visibility:public"])
+
+ddk_headers(name="headers",hdrs=glob(["include/**/*.h","vendor/**/*.h"], allow_empty = True),linux_includes=["include","vendor"])
+ddk_config(name="config590",kernel_build="//common:kernel_aarch64",kconfigs=["Kconfig"],defconfig="defconfig")
+ddk_module(name="scm590",kernel_build="//common:kernel_aarch64",config=":config590",out="qcom-scm.ko",srcs=['qcom_scm-legacy.c', 'qcom_scm-smc.c', 'qcom_scm.c', 'qcom_scm.h', 'qcom_tzmem.c', 'qcom_tzmem.h', 'qtee_shmbridge.c', 'qtee_shmbridge_internal.h', 'ipa_scm558.h', 'camera_scm590.h'],includes=["."],hdrs=[":headers"],copts=["-ferror-limit=0"])

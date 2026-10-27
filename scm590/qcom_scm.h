@@ -120,6 +120,7 @@ int qcom_scm_shm_bridge_enable(struct device *scm_dev);
 #define QCOM_SCM_MP_IOMMU_SET_CP_POOL_SIZE	0x05
 #define QCOM_SCM_MP_VIDEO_VAR			0x08
 #define QCOM_SCM_MP_ASSIGN			0x16
+#define QCOM_SCM_MP_CMD_SD_CTRL 0x18
 #define QCOM_SCM_MP_CP_SMMU_APERTURE_ID		0x1b
 #define QCOM_SCM_MP_SHM_BRIDGE_ENABLE		0x1c
 #define QCOM_SCM_MP_SHM_BRIDGE_DELETE		0x1d
@@ -132,6 +133,8 @@ int qcom_scm_shm_bridge_enable(struct device *scm_dev);
 #define QCOM_SCM_SVC_ES			0x10	/* Enterprise Security */
 #define QCOM_SCM_ES_INVALIDATE_ICE_KEY	0x03
 #define QCOM_SCM_ES_CONFIG_SET_ICE_KEY	0x04
+#define QCOM_SCM_ES_CONFIG_SET_ICE_KEY_V2	0x05
+#define QCOM_SCM_ES_CLEAR_ICE_KEY	0x06
 #define QCOM_SCM_ES_DERIVE_SW_SECRET	0x07
 #define QCOM_SCM_ES_GENERATE_ICE_KEY	0x08
 #define QCOM_SCM_ES_PREPARE_ICE_KEY	0x09
@@ -191,4 +194,21 @@ static inline int qcom_scm_remap_error(int err)
 	return -EINVAL;
 }
 
+int scm_smc_call_noretry(struct device *dev, const struct qcom_scm_desc *desc,
+                         struct qcom_scm_res *res);
+int qcom_scm_shm_bridge_create_dev(struct device *dev, u64 pfn, u64 ipfn,
+                                 u64 size_flags, u64 vmids, u64 *handle);
+int qcom_scm_shm_bridge_delete_dev(struct device *dev, u64 handle);
 #endif
+
+/* Matching pinned vendor GPU command identifiers. */
+#define QCOM_SCM_DCVS_INIT 0x09
+#define QCOM_SCM_DCVS_INIT_CA_V2 0x0c
+#define QCOM_SCM_DCVS_INIT_V2 0x0b
+#define QCOM_SCM_DCVS_RESET 0x07
+#define QCOM_SCM_DCVS_TUNING 0x0e
+#define QCOM_SCM_DCVS_UPDATE 0x08
+#define QCOM_SCM_DCVS_UPDATE_CA_V2 0x0d
+#define QCOM_SCM_DCVS_UPDATE_V2 0x0a
+#define QCOM_SCM_IO_RESET 0x03
+#define QCOM_SCM_SVC_DCVS 0x0D

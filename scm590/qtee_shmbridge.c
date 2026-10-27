@@ -3,77 +3,45 @@
  * QTI TEE shared memory bridge driver
  *
  * Copyright (c) 2021, The Linux Foundation. All rights reserved.
- * Copyright (c) 2022-2023 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  */
 
-#include <linux/module.h>
-#include <linux/device.h>
-#include <linux/slab.h>
-#include <linux/genalloc.h>
-#include <linux/platform_device.h>
-#include <linux/mod_devicetable.h>
-#include <linux/of_platform.h>
-#include <linux/of_reserved_mem.h>
-#include <linux/firmware/qcom/qcom_scm.h>
-#include <linux/dma-mapping.h>
-#include <soc/qcom/qseecomi.h>
-#include <linux/qtee_shmbridge.h>
-#include <linux/of_platform.h>
+#define pr_fmt(fmt) "shmbridge: [%d]: " fmt, __LINE__
 
-#include <linux/gunyah/gh_rm_drv.h>
+#include <linux/firmware/qcom/qcom_scm.h>
+#include <linux/firmware/qcom/qcom_tzmem.h>
+#include <linux/qtee_shmbridge.h>
+#include <linux/bitops.h>
+#include <linux/err.h>
+#include <linux/kernel.h>
+#include <linux/list.h>
+#include <linux/mm.h>
+#include <linux/mutex.h>
+#include <linux/sizes.h>
+#include <linux/slab.h>
+#include <linux/string.h>
 
 #include "qtee_shmbridge_internal.h"
+#include "qcom_tzmem.h"
 
-#define DEFAULT_BRIDGE_SIZE	SZ_4M	/*4M*/
-#define MIN_BRIDGE_SIZE		SZ_4K   /*4K*/
+struct qcom_tzmem_pool *shmbridge_pool;
 
-#define MAXSHMVMS 4
-#define PERM_BITS 3
-#define VM_BITS 16
-#define SELF_OWNER_BIT 1
-#define SHM_NUM_VM_SHIFT 9
-#define SHM_VM_MASK 0xFFFF
-#define SHM_PERM_MASK 0x7
+static uint32_t cookie = 1;
 
-#define VM_PERM_R PERM_READ
-#define VM_PERM_W PERM_WRITE
+static inline uint32_t handle_to_index(uint64_t handle)
+{
+	return lower_32_bits(handle);
+}
 
-#define SHMBRIDGE_E_NOT_SUPPORTED 4	/* SHMbridge is not implemented */
+static inline uint32_t handle_to_cookie(uint64_t handle)
+{
+	return upper_32_bits(handle);
+}
 
-#define AC_ERR_SHARED_MEMORY_SINGLE_SOURCE 15
-
-/* ns_vmids */
-#define UPDATE_NS_VMIDS(ns_vmids, id)	\
-				(((uint64_t)(ns_vmids) << VM_BITS) \
-				| ((uint64_t)(id) & SHM_VM_MASK))
-
-/* ns_perms */
-#define UPDATE_NS_PERMS(ns_perms, perm)	\
-				(((uint64_t)(ns_perms) << PERM_BITS) \
-				| ((uint64_t)(perm) & SHM_PERM_MASK))
-
-/* pfn_and_ns_perm_flags = paddr | ns_perms */
-#define UPDATE_PFN_AND_NS_PERM_FLAGS(paddr, ns_perms)	\
-				((uint64_t)(paddr) | (ns_perms))
-
-
-/* ipfn_and_s_perm_flags = ipaddr | tz_perm */
-#define UPDATE_IPFN_AND_S_PERM_FLAGS(ipaddr, tz_perm)	\
-				((uint64_t)(ipaddr) | (uint64_t)(tz_perm))
-
-/* size_and_flags when dest_vm is not HYP */
-#define UPDATE_SIZE_AND_FLAGS(size, destnum)	\
-				((size) | (destnum) << SHM_NUM_VM_SHIFT)
-
-struct bridge_info {
-	phys_addr_t paddr;
-	void *vaddr;
-	size_t size;
-	uint64_t handle;
-	int min_alloc_order;
-	struct gen_pool *genpool;
-	struct device *dev;
-};
+static inline uint64_t index_to_handle(uint32_t index)
+{
+	return ((uint64_t)cookie << 32) | (uint64_t)index;
+}
 
 struct bridge_list {
 	struct list_head head;
@@ -83,81 +51,52 @@ struct bridge_list {
 struct bridge_list_entry {
 	struct list_head list;
 	phys_addr_t paddr;
-	uint64_t handle;
+	uint64_t qtee_handle;
+	uint32_t index;
 	int32_t ref_count;
 };
 
-struct cma_heap_bridge_info {
-	uint32_t heapid;
-	uint64_t handle;
-};
-
-enum CMA_HEAP_TYPE {
-	QSEECOM_HEAP = 0,
-	QSEECOM_TA_HEAP,
-	USER_CONTI_HEAP,
-	HEAP_TYPE_MAX
-};
-
-static struct bridge_info default_bridge;
 static struct bridge_list bridge_list_head;
-static bool qtee_shmbridge_enabled;
-static bool support_hyp;
 
-/* enable shared memory bridge mechanism in HYP */
-static int32_t qtee_shmbridge_enable(bool enable)
+static void qtee_shmbridge_entry_add_locked(struct bridge_list_entry *entry)
 {
-	int32_t ret = 0;
+	struct bridge_list_entry *curr_entry;
+	uint32_t index = 0;
 
-	qtee_shmbridge_enabled = false;
-	if (!enable) {
-		pr_warn("shmbridge isn't enabled\n");
-		return ret;
+	list_for_each_entry(curr_entry, &bridge_list_head.head, list) {
+		if (curr_entry->index != index) {
+			entry->index = index;
+			list_add_tail(&entry->list, &curr_entry->list);
+			return;
+		}
+		index++;
 	}
 
-	ret = qcom_scm_enable_shm_bridge();
-
-	if (ret) {
-		pr_err("Failed to enable shmbridge, ret = %d\n", ret);
-
-		if (ret == -EIO || ret == SHMBRIDGE_E_NOT_SUPPORTED)
-			pr_warn("shmbridge is not supported by this target\n");
-		return ret;
-	}
-	qtee_shmbridge_enabled = true;
-	pr_warn("shmbridge is enabled\n");
-	return ret;
+	entry->index = index;
+	list_add_tail(&entry->list, &bridge_list_head.head);
 }
 
-/* Check whether shmbridge mechanism is enabled in HYP or not */
-bool qtee_shmbridge_is_enabled(void)
-{
-	return qtee_shmbridge_enabled;
-}
-EXPORT_SYMBOL(qtee_shmbridge_is_enabled);
-
-static int32_t qtee_shmbridge_list_add_locked(phys_addr_t paddr,
-						uint64_t handle)
+static int qtee_shmbridge_list_add_locked(phys_addr_t paddr, uint64_t qtee_handle)
 {
 	struct bridge_list_entry *entry;
 
 	entry = kzalloc(sizeof(*entry), GFP_KERNEL);
 	if (!entry)
 		return -ENOMEM;
-	entry->handle = handle;
+	entry->qtee_handle = qtee_handle;
 	entry->paddr = paddr;
 	entry->ref_count = 0;
 
-	list_add_tail(&entry->list, &bridge_list_head.head);
+	qtee_shmbridge_entry_add_locked(entry);
 	return 0;
 }
 
-static void qtee_shmbridge_list_del_locked(uint64_t handle)
+static void qtee_shmbridge_list_del_locked(uint32_t index)
 {
 	struct bridge_list_entry *entry;
 
 	list_for_each_entry(entry, &bridge_list_head.head, list) {
-		if (entry->handle == handle) {
+		if (entry->index == index) {
 			list_del(&entry->list);
 			kfree(entry);
 			break;
@@ -165,203 +104,116 @@ static void qtee_shmbridge_list_del_locked(uint64_t handle)
 	}
 }
 
-/********************************************************************
- *Function: Decrement the reference count of registered shmbridge
- *and if refcount reached to zero delete the shmbridge (i.e send a
- *scm call to tz and remove that from out local list too.
- *Conditions: API suppose to be called in a locked enviorment
- *Return: return 0 in case of success
- *        return error code in case of failure
- ********************************************************************/
 static int32_t qtee_shmbridge_list_dec_refcount_locked(uint64_t handle)
 {
 	struct bridge_list_entry *entry;
 	int32_t ret = -EINVAL;
+	uint32_t index = handle_to_index(handle);
 
-	list_for_each_entry(entry, &bridge_list_head.head, list)
-		if (entry->handle == handle) {
+	if (handle_to_cookie(handle) != cookie)
+		return ret;
 
+	list_for_each_entry(entry, &bridge_list_head.head, list) {
+		if (entry->index == index) {
 			if (entry->ref_count > 0) {
-				//decrement reference count
+				/* decrement reference count. */
 				entry->ref_count--;
-				pr_debug("%s: bridge on %lld exists decrease refcount :%d\n",
-					__func__, handle, entry->ref_count);
+				pr_debug("bridge on handle: %llx exists decrease refcount :%d\n",
+					 handle, entry->ref_count);
 
 				if (entry->ref_count == 0) {
-					ret = qcom_scm_delete_shm_bridge(handle);
-					if (ret) {
-						pr_err(" %s: Failed to del bridge %lld, ret = %d\n"
-							, __func__, handle, ret);
-						//restore reference count in case of failure
-						entry->ref_count++;
-						goto exit;
-					}
-					qtee_shmbridge_list_del_locked(handle);
+					qcom_tzmem_shm_bridge_delete(entry->qtee_handle);
+					qtee_shmbridge_list_del_locked(index);
 				}
 				ret = 0;
 			} else {
-				pr_err("%s: weird, ref_count should not be negative handle %lld , refcount: %d\n",
-					 __func__, handle, entry->ref_count);
+				pr_err("ref_count should not be negative, handle %llx , refcount: %d\n",
+					handle, entry->ref_count);
 			}
 			break;
 		}
-exit:
+	}
+
 	if (ret == -EINVAL)
-		pr_err("Not able to find bridge handle %lld in map\n", handle);
+		pr_err("Not able to find bridge handle %llx in map\n", handle);
 
 	return ret;
 }
 
-/********************************************************************
- *Function: Increment the ref count in case if we try to register a
- *pre-registered phyaddr with shmbridge and provide a valid handle
- *to the caller API which was passed by caller as a pointer.
- *Conditions: API suppose to be called in a locked enviorment.
- *Return: return 0 in case of success.
- *        return error code in case of failure.
- ********************************************************************/
 static int32_t qtee_shmbridge_list_inc_refcount_locked(phys_addr_t paddr, uint64_t *handle)
 {
 	struct bridge_list_entry *entry;
 	int32_t ret = -EINVAL;
 
-	list_for_each_entry(entry, &bridge_list_head.head, list)
+	list_for_each_entry(entry, &bridge_list_head.head, list) {
 		if (entry->paddr == paddr) {
 
 			entry->ref_count++;
-			pr_debug("%s: bridge on %llx exists increase refcount :%d\n",
-				__func__, (uint64_t)paddr, entry->ref_count);
+			/* update handle in case we found paddr already exist */
+			*handle = index_to_handle(entry->index);
+			pr_debug("bridge on paddr %llx exists increase refcount :%d, handle: %llx\n",
+				 (uint64_t)paddr, entry->ref_count, *handle);
 
-			//update handle in case we found paddr already exist
-			*handle = entry->handle;
 			ret = 0;
 			break;
 		}
+	}
 	if (ret)
-		pr_err("%s: Not able to find bridge paddr %llx in map\n",
-			__func__, (uint64_t)paddr);
+		pr_err("Not able to find bridge paddr %llx in map\n", (uint64_t)paddr);
 	return ret;
 }
 
-static int32_t qtee_shmbridge_query_locked(phys_addr_t paddr)
+static void qtee_shmbridge_delete_list_locked(void)
 {
-	struct bridge_list_entry *entry;
+	struct bridge_list_entry *entry, *next;
 
-	list_for_each_entry(entry, &bridge_list_head.head, list)
-		if (entry->paddr == paddr) {
-			pr_debug("A bridge on %llx exists\n", (uint64_t)paddr);
-			return -EEXIST;
-		}
-	return 0;
+	list_for_each_entry_safe(entry, next, &bridge_list_head.head, list) {
+		list_del(&entry->list);
+		kfree(entry);
+	}
 }
+
+bool qtee_shmbridge_is_enabled(void)
+{
+	return qcom_tzmem_get_status();
+}
+EXPORT_SYMBOL(qtee_shmbridge_is_enabled);
 
 /* Check whether a bridge starting from paddr exists */
 int32_t qtee_shmbridge_query(phys_addr_t paddr)
 {
-	int32_t ret = 0;
-
-	mutex_lock(&bridge_list_head.lock);
-	ret = qtee_shmbridge_query_locked(paddr);
-	mutex_unlock(&bridge_list_head.lock);
-	return ret;
+	return qcom_tzmem_query(paddr);
 }
 EXPORT_SYMBOL(qtee_shmbridge_query);
 
 /* Register paddr & size as a bridge, return bridge handle */
-int32_t qtee_shmbridge_register(
-		phys_addr_t paddr,
-		size_t size,
-		uint32_t *ns_vmid_list,
-		uint32_t *ns_vm_perm_list,
-		uint32_t ns_vmid_num,
-		uint32_t tz_perm,
-		uint64_t *handle)
-
+int32_t qtee_shmbridge_register(phys_addr_t paddr, size_t size, uint32_t *ns_vmid_list,
+	uint32_t *ns_vm_perm_list, uint32_t ns_vmid_num, uint32_t tz_perm, uint64_t *handle)
 {
-	int32_t ret = 0;
-	uint64_t pfn_and_ns_perm_flags = 0;
-	uint64_t ipfn_and_s_perm_flags = 0;
-	uint64_t size_and_flags = 0;
-	uint64_t ns_perms = 0;
-	uint64_t ns_vmids = 0;
-	int i = 0;
+	int ret;
+	uint64_t qtee_handle;
 
-	gh_vmid_t temp_vmid;
-
-	if (!qtee_shmbridge_enabled)
-		return 0;
-
-	if (!handle || !ns_vmid_list || !ns_vm_perm_list ||
-				ns_vmid_num > MAXSHMVMS) {
+	if (!handle || !ns_vmid_list || !ns_vm_perm_list) {
 		pr_err("invalid input parameters\n");
 		return -EINVAL;
 	}
 
 	mutex_lock(&bridge_list_head.lock);
-	ret = qtee_shmbridge_query_locked(paddr);
-	if (ret) {
-		pr_debug("%s: found 0%llu already exist with shmbridge\n",
-			__func__, paddr);
+	ret = qcom_tzmem_query(paddr);
+	if (ret)
 		goto bridge_exist;
-	}
 
-	if (support_hyp) {
+	ret = qcom_tzmem_shm_bridge_create_with_vmid(paddr, size, ns_vmid_list,
+			ns_vm_perm_list, ns_vmid_num, tz_perm, OTHERS, &qtee_handle);
+	if (ret)
+		goto exit;
 
-		/* Calls to create SHMBridge from HLOS-VM is handled by QHEEBSP AC Layer while from
-		 * secondary CPU-VMs, such as OEM-VM and QTVM, it is handled by Hypervisor RM.
-		 * RM always expects the destination VM fields to be 0 and only expects the self
-		 * owner bit to be set.
-		 */
-
-		if (ns_vmid_num == 1) {
-			if (!gh_rm_get_this_vmid(&temp_vmid) &&
-				(temp_vmid == ns_vmid_list[0])) {
-
-				ns_vmid_num = 0;
-			}
-		}
-	}
-
-	for (i = 0; i < ns_vmid_num; i++) {
-		ns_perms = UPDATE_NS_PERMS(ns_perms, ns_vm_perm_list[i]);
-		ns_vmids = UPDATE_NS_VMIDS(ns_vmids, ns_vmid_list[i]);
-	}
-
-	pfn_and_ns_perm_flags = UPDATE_PFN_AND_NS_PERM_FLAGS(paddr, ns_perms);
-	ipfn_and_s_perm_flags = UPDATE_IPFN_AND_S_PERM_FLAGS(paddr, tz_perm);
-	size_and_flags = UPDATE_SIZE_AND_FLAGS(size, ns_vmid_num);
-
-	if (support_hyp) {
-		size_and_flags |= SELF_OWNER_BIT << 1;
-		size_and_flags |= (VM_PERM_R | VM_PERM_W) << 2;
-	}
-
-	pr_debug("%s: desc.args[0] %llx, args[1] %llx, args[2] %llx, args[3] %llx\n",
-		__func__, pfn_and_ns_perm_flags, ipfn_and_s_perm_flags,
-		size_and_flags, ns_vmids);
-
-	ret = qcom_scm_create_shm_bridge(pfn_and_ns_perm_flags,
-			ipfn_and_s_perm_flags, size_and_flags, ns_vmids,
-			handle);
-
+	ret = qtee_shmbridge_list_add_locked(paddr, qtee_handle);
 	if (ret) {
-		pr_err("%s: create shmbridge failed, ret = %d\n", __func__, ret);
-
-		/* if bridge is already existing and we are not real owner also paddr not
-		 * exist in our map we will add an entry in our map and go for deregister
-		 * for this since QTEE also maintain ref_count. So for this we should
-		 * deregister to decrease ref_count in QTEE.
-		 */
-		if (ret == AC_ERR_SHARED_MEMORY_SINGLE_SOURCE) {
-			pr_err("%s: bridge %llx exist but not registered in our map\n",
-				__func__, (uint64_t)paddr);
-		} else {
-			ret = -EINVAL;
-			goto exit;
-		}
+		qcom_tzmem_shm_bridge_delete(qtee_handle);
+		goto exit;
 	}
 
-	ret = qtee_shmbridge_list_add_locked(paddr, *handle);
 bridge_exist:
 	ret = qtee_shmbridge_list_inc_refcount_locked(paddr, handle);
 exit:
@@ -373,16 +225,10 @@ EXPORT_SYMBOL(qtee_shmbridge_register);
 /* Deregister bridge */
 int32_t qtee_shmbridge_deregister(uint64_t handle)
 {
-	int32_t ret = 0;
-
-	if (!qtee_shmbridge_enabled)
-		return 0;
-
 	mutex_lock(&bridge_list_head.lock);
-	ret = qtee_shmbridge_list_dec_refcount_locked(handle);
+	qtee_shmbridge_list_dec_refcount_locked(handle);
 	mutex_unlock(&bridge_list_head.lock);
-
-	return ret;
+	return 0;
 }
 EXPORT_SYMBOL(qtee_shmbridge_deregister);
 
@@ -390,41 +236,22 @@ EXPORT_SYMBOL(qtee_shmbridge_deregister);
 /* Sub-allocate from default kernel bridge created by shmb driver */
 int32_t qtee_shmbridge_allocate_shm(size_t size, struct qtee_shm *shm)
 {
-	int32_t ret = 0;
-	unsigned long va;
-
-	if (IS_ERR_OR_NULL(shm)) {
-		pr_err("qtee_shm is NULL\n");
-		ret = -EINVAL;
-		goto exit;
+	if (!shm || !size || size > SIZE_MAX - (PAGE_SIZE - 1))
+		return -EINVAL;
+	if (IS_ERR_OR_NULL(shmbridge_pool))
+		return -EPROBE_DEFER;
+	shm->size = PAGE_ALIGN(size);
+	shm->vaddr = qcom_tzmem_alloc(shmbridge_pool, shm->size, GFP_KERNEL);
+	if (!shm->vaddr) {
+		pr_err("Failed to alloc memory from shmbridge pool, size: %#zx\n", shm->size);
+		return -ENOMEM;
 	}
 
-	if (size > default_bridge.size) {
-		pr_err("requestd size %zu is larger than bridge size %zu\n",
-			size, default_bridge.size);
-		ret = -EINVAL;
-		goto exit;
-	}
+	shm->paddr = qcom_tzmem_to_phys(shm->vaddr);
 
-	size = roundup(size, 1 << default_bridge.min_alloc_order);
+	pr_debug("shm->paddr: 0x%llx, size: %zu\n", (uint64_t)shm->paddr, shm->size);
 
-	va = gen_pool_alloc(default_bridge.genpool, size);
-	if (!va) {
-		pr_err("failed to sub-allocate %zu bytes from bridge\n", size);
-		ret = -ENOMEM;
-		goto exit;
-	}
-
-	memset((void *)va, 0, size);
-	shm->vaddr = (void *)va;
-	shm->paddr = gen_pool_virt_to_phys(default_bridge.genpool, va);
-	shm->size = size;
-
-	pr_debug("%s: shm->paddr %llx, size %zu\n",
-			__func__, (uint64_t)shm->paddr, shm->size);
-
-exit:
-	return ret;
+	return 0;
 }
 EXPORT_SYMBOL(qtee_shmbridge_allocate_shm);
 
@@ -434,191 +261,79 @@ void qtee_shmbridge_free_shm(struct qtee_shm *shm)
 {
 	if (IS_ERR_OR_NULL(shm) || !shm->vaddr)
 		return;
-	gen_pool_free(default_bridge.genpool, (unsigned long)shm->vaddr,
-		      shm->size);
+	memzero_explicit(shm->vaddr, shm->size);
+	qcom_tzmem_flush_shm_buf(shm->paddr, shm->size);
+	qcom_tzmem_free(shm->vaddr);
+	memset(shm, 0, sizeof(*shm));
 }
 EXPORT_SYMBOL(qtee_shmbridge_free_shm);
 
 /* cache clean operation for buffer sub-allocated from default bridge */
 void qtee_shmbridge_flush_shm_buf(struct qtee_shm *shm)
 {
-	if (shm)
-		return dma_sync_single_for_device(default_bridge.dev,
-				shm->paddr, shm->size, DMA_TO_DEVICE);
+	qcom_tzmem_flush_shm_buf(shm->paddr, shm->size);
 }
 EXPORT_SYMBOL(qtee_shmbridge_flush_shm_buf);
 
 /* cache invalidation operation for buffer sub-allocated from default bridge */
 void qtee_shmbridge_inv_shm_buf(struct qtee_shm *shm)
 {
-	if (shm)
-		return dma_sync_single_for_cpu(default_bridge.dev,
-				shm->paddr, shm->size, DMA_FROM_DEVICE);
+	qcom_tzmem_inv_shm_buf(shm->paddr, shm->size);
 }
 EXPORT_SYMBOL(qtee_shmbridge_inv_shm_buf);
 
-/*
- * shared memory bridge initialization
- *
- */
-static int qtee_shmbridge_init(struct platform_device *pdev)
+int qtee_shmbridge_driver_init(void)
 {
-	int ret = 0;
-	uint32_t custom_bridge_size;
-	uint32_t *ns_vm_ids;
-	uint32_t ns_vm_ids_hlos[] = {VMID_HLOS};
-	uint32_t ns_vm_ids_hyp[] = {};
-	uint32_t ns_vm_perms[] = {VM_PERM_R|VM_PERM_W};
-	int mem_protection_enabled = 0;
+	struct qcom_tzmem_pool_config pool_config;
 
-	support_hyp = of_property_read_bool((&pdev->dev)->of_node,
-			"qcom,support-hypervisor");
-	if (support_hyp)
-		ns_vm_ids = ns_vm_ids_hyp;
+	memset(&pool_config, 0, sizeof(pool_config));
+	if (IS_ENABLED(CONFIG_QCOM_TZMEM_LOW_MEMORY))
+		pool_config.initial_size = SZ_256K - SZ_32K; /* 224K */
 	else
-		ns_vm_ids = ns_vm_ids_hlos;
+		pool_config.initial_size = SZ_512K;
+	pool_config.policy = QCOM_TZMEM_POLICY_STATIC;
+	pool_config.max_size = pool_config.initial_size;
+	pool_config.is_cached = true;
 
-	if (default_bridge.vaddr) {
-		pr_err("qtee shmbridge is already initialized\n");
-		return 0;
-	}
-
-	ret = of_property_read_u32((&pdev->dev)->of_node,
-		"qcom,custom-bridge-size", &custom_bridge_size);
-	if (ret)
-		default_bridge.size = DEFAULT_BRIDGE_SIZE;
-	else
-		default_bridge.size = custom_bridge_size * MIN_BRIDGE_SIZE;
-
-	pr_err("qtee shmbridge registered default bridge with size %zu bytes\n",
-		default_bridge.size);
-
-	default_bridge.vaddr = (void *)__get_free_pages(GFP_KERNEL|__GFP_COMP,
-				get_order(default_bridge.size));
-	if (!default_bridge.vaddr)
-		return -ENOMEM;
-
-	default_bridge.paddr = dma_map_single(&pdev->dev,
-				default_bridge.vaddr, default_bridge.size,
-				DMA_TO_DEVICE);
-	if (dma_mapping_error(&pdev->dev, default_bridge.paddr)) {
-		pr_err("dma_map_single() failed\n");
-		ret = -ENOMEM;
-		goto exit_freebuf;
-	}
-	default_bridge.dev = &pdev->dev;
-
-	/* create a general mem pool */
-	default_bridge.min_alloc_order = PAGE_SHIFT; /* 4K page size aligned */
-	default_bridge.genpool = gen_pool_create(
-					default_bridge.min_alloc_order, -1);
-	if (!default_bridge.genpool) {
-		pr_err("gen_pool_add_virt() failed\n");
-		ret = -ENOMEM;
-		goto exit_unmap;
-	}
-
-	gen_pool_set_algo(default_bridge.genpool, gen_pool_best_fit, NULL);
-	ret = gen_pool_add_virt(default_bridge.genpool,
-			(uintptr_t)default_bridge.vaddr,
-				default_bridge.paddr, default_bridge.size, -1);
-	if (ret) {
-		pr_err("gen_pool_add_virt() failed, ret = %d\n", ret);
-		goto exit_destroy_pool;
+	shmbridge_pool = qcom_tzmem_pool_new(&pool_config);
+	if (IS_ERR(shmbridge_pool)) {
+		pr_err("Failed to create qcom_tzmem_pool %ld\n", PTR_ERR(shmbridge_pool));
+		return PTR_ERR(shmbridge_pool);
 	}
 
 	mutex_init(&bridge_list_head.lock);
 	INIT_LIST_HEAD(&bridge_list_head.head);
 
-	/* temporarily disable shm bridge mechanism */
-	ret = qtee_shmbridge_enable(true);
-	if (ret) {
-		/* keep the mem pool and return if failed to enable bridge */
-		ret = 0;
-		goto exit;
-	}
-
-	/*register default bridge*/
-	if (support_hyp)
-		ret = qtee_shmbridge_register(default_bridge.paddr,
-			default_bridge.size, ns_vm_ids,
-			ns_vm_perms, 0, VM_PERM_R|VM_PERM_W,
-			&default_bridge.handle);
-	else
-		ret = qtee_shmbridge_register(default_bridge.paddr,
-			default_bridge.size, ns_vm_ids,
-			ns_vm_perms, 1, VM_PERM_R|VM_PERM_W,
-			&default_bridge.handle);
-
-	if (ret) {
-		pr_err("Failed to register default bridge, size %zu\n",
-			default_bridge.size);
-		goto exit_deregister_default_bridge;
-	}
-
-	pr_debug("qtee shmbridge registered default bridge with size %zu bytes\n",
-			default_bridge.size);
-
-	mem_protection_enabled = scm_mem_protection_init_do();
-	pr_err("MEM protection %s, %d\n",
-			(!mem_protection_enabled ? "Enabled" : "Not enabled"),
-			mem_protection_enabled);
+	pr_info("shmbridge pool of size: %#zx is created successfully\n",
+		pool_config.initial_size);
 	return 0;
-
-exit_deregister_default_bridge:
-	qtee_shmbridge_deregister(default_bridge.handle);
-	qtee_shmbridge_enable(false);
-exit_destroy_pool:
-	gen_pool_destroy(default_bridge.genpool);
-exit_unmap:
-	dma_unmap_single(&pdev->dev, default_bridge.paddr, default_bridge.size,
-			DMA_TO_DEVICE);
-exit_freebuf:
-	free_pages((long)default_bridge.vaddr, get_order(default_bridge.size));
-	default_bridge.vaddr = NULL;
-exit:
-	return ret;
-}
-
-static int qtee_shmbridge_probe(struct platform_device *pdev)
-{
-#ifdef CONFIG_ARM64
-	dma_set_mask(&pdev->dev, DMA_BIT_MASK(64));
-#endif
-	return qtee_shmbridge_init(pdev);
-}
-
-static int qtee_shmbridge_remove(struct platform_device *pdev)
-{
-	qtee_shmbridge_deregister(default_bridge.handle);
-	gen_pool_destroy(default_bridge.genpool);
-	dma_unmap_single(&pdev->dev, default_bridge.paddr, default_bridge.size,
-			DMA_TO_DEVICE);
-	free_pages((long)default_bridge.vaddr, get_order(default_bridge.size));
-	return 0;
-}
-
-static const struct of_device_id qtee_shmbridge_of_match[] = {
-	{ .compatible = "qcom,tee-shared-memory-bridge"},
-	{}
-};
-MODULE_DEVICE_TABLE(of, qtee_shmbridge_of_match);
-
-static struct platform_driver qtee_shmbridge_driver = {
-	.probe = qtee_shmbridge_probe,
-	.remove = qtee_shmbridge_remove,
-	.driver = {
-		.name = "shared_memory_bridge",
-		.of_match_table = qtee_shmbridge_of_match,
-	},
-};
-
-int qtee_shmbridge_driver_init(void)
-{
-	return platform_driver_register(&qtee_shmbridge_driver);
 }
 
 void qtee_shmbridge_driver_exit(void)
 {
-	platform_driver_unregister(&qtee_shmbridge_driver);
+	mutex_lock(&bridge_list_head.lock);
+	qtee_shmbridge_delete_list_locked();
+	mutex_unlock(&bridge_list_head.lock);
+	qcom_tzmem_pool_free(shmbridge_pool);
+	shmbridge_pool = NULL;
+}
+
+int qtee_shmbridge_pm_freeze(void)
+{
+	return 0;
+}
+
+int qtee_shmbridge_pm_restore(void)
+{
+	mutex_lock(&bridge_list_head.lock);
+	if (++cookie == 0)
+		cookie++;
+	qtee_shmbridge_delete_list_locked();
+	mutex_unlock(&bridge_list_head.lock);
+	return 0;
+}
+
+int qtee_shmbridge_pm_thaw(void)
+{
+	return 0;
 }

@@ -118,7 +118,7 @@ static int __scm_smc_do_quirk_handle_waitq(struct device *dev, struct arm_smccc_
 }
 
 static int __scm_smc_do(struct device *dev, struct arm_smccc_args *smc,
-			struct arm_smccc_res *res, bool atomic)
+			struct arm_smccc_res *res, bool atomic, bool retry_busy)
 {
 	int ret, retry_count = 0;
 
@@ -138,7 +138,7 @@ static int __scm_smc_do(struct device *dev, struct arm_smccc_args *smc,
 			return ret;
 
 		if (res->a0 == QCOM_SCM_V2_EBUSY) {
-			if (retry_count++ > QCOM_SCM_EBUSY_MAX_RETRY)
+			if (!retry_busy || retry_count++ > QCOM_SCM_EBUSY_MAX_RETRY)
 				break;
 			msleep(QCOM_SCM_EBUSY_WAIT_MS);
 		}
@@ -148,9 +148,9 @@ static int __scm_smc_do(struct device *dev, struct arm_smccc_args *smc,
 }
 
 
-int __scm_smc_call(struct device *dev, const struct qcom_scm_desc *desc,
+static int __scm_smc_call_common(struct device *dev, const struct qcom_scm_desc *desc,
 		   enum qcom_scm_convention qcom_convention,
-		   struct qcom_scm_res *res, bool atomic)
+		   struct qcom_scm_res *res, bool atomic, bool retry_busy)
 {
 	int arglen = desc->arginfo & 0xf;
 	int i, ret;
@@ -200,7 +200,7 @@ int __scm_smc_call(struct device *dev, const struct qcom_scm_desc *desc,
 		smc.args[SCM_SMC_LAST_REG_IDX] = qcom_tzmem_to_phys(args_virt);
 	}
 
-	ret = __scm_smc_do(dev, &smc, &smc_res, atomic);
+	ret = __scm_smc_do(dev, &smc, &smc_res, atomic, retry_busy);
 	if (ret)
 		return ret;
 
@@ -212,4 +212,17 @@ int __scm_smc_call(struct device *dev, const struct qcom_scm_desc *desc,
 
 	return (long)smc_res.a0 ? qcom_scm_remap_error(smc_res.a0) : 0;
 
+}
+
+int __scm_smc_call(struct device *dev, const struct qcom_scm_desc *desc,
+                  enum qcom_scm_convention convention,
+                  struct qcom_scm_res *res, bool atomic)
+{
+	return __scm_smc_call_common(dev, desc, convention, res, atomic, true);
+}
+
+int scm_smc_call_noretry(struct device *dev, const struct qcom_scm_desc *desc,
+                         struct qcom_scm_res *res)
+{
+	return __scm_smc_call_common(dev, desc, qcom_scm_convention, res, false, false);
 }
