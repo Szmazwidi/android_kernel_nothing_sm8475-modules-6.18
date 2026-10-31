@@ -235,8 +235,14 @@ static enum tfa_error tfa98xx_tfa_start(struct tfa98xx *tfa98xx, int next_profil
 	ktime_t start_time = {0}, stop_time = {0};
 	u64 delta_time;
 
+	/* Existing calibration is mandatory; do not run calibration profiles. */
+	if (!tfa_cont_profile_name(tfa98xx, next_profile) ||
+	    strstr(tfa_cont_profile_name(tfa98xx, next_profile), ".cal") ||
+	    tfa98xx->set_mtp_cal)
+		return tfa_error_bad_param;
 	start_time = ktime_get_boottime();
 	err = tfa_dev_start(tfa98xx->tfa, next_profile, vstep);
+	dev_info(tfa98xx->dev,"PONG743_TFA_START addr=%#x profile=%d err=%d MTP_READONLY=1\n",tfa98xx->i2c->addr,next_profile,err);
 
 	if (trace_level & 8) {
 		stop_time = ktime_get_boottime();
@@ -2497,21 +2503,25 @@ static void tfa98xx_interrupt_enable(struct tfa98xx *tfa98xx, bool enable)
 
 /* Firmware management */
 
-/* Read existing factory calibration only. The no_start gate remains active:
- * no amplifier start, calibration run, MTP programming or gain replacement.
+
+/* Only the two factory-calibrated Pong TFA9873 devices may start in LAB.
+ * Persistent MTP programming is separately compiled out below the callers.
  */
-static void pong729_tfa_factory_read(struct tfa98xx *tfa98xx)
+static bool pong743_tfa_factory_ready(struct tfa98xx *tfa98xx)
 {
  struct tfa_device *tfa=tfa98xx->tfa;
  int mtpex,otc,re25;
- if (!tfa || !tfa->in_use) {
-  dev_info(tfa98xx->dev,"PONG729_TFA_FACTORY addr=%#x status=unopened read_only=1 no_start=1\n",tfa98xx->i2c->addr);
-  return;
+ bool ready;
+ if (!tfa || !tfa->in_use || (tfa->rev & 0xff)!=0x73) {
+  dev_info(tfa98xx->dev,"PONG743_TFA_FACTORY addr=%#x ready=0 unavailable_or_wrong_chip no_start=%d\n",tfa98xx->i2c->addr,no_start);
+  return false;
  }
  mtpex=tfa_dev_mtp_get(tfa,TFA_MTP_EX);
  otc=tfa_dev_mtp_get(tfa,TFA_MTP_OTC);
  re25=tfa_dev_mtp_get(tfa,TFA_MTP_RE25_PRIM);
- dev_info(tfa98xx->dev,"PONG729_TFA_FACTORY addr=%#x rev=%#x mtpex=%d otc=%d re25_raw=%d read_only=1 no_start=1\n",tfa98xx->i2c->addr,tfa->rev,mtpex,otc,re25);
+ ready=mtpex==1 && otc==1 && re25>0 && re25<65535;
+ dev_info(tfa98xx->dev,"PONG743_TFA_FACTORY addr=%#x rev=%#x mtpex=%d otc=%d re25_raw=%d ready=%u no_start=%d MTP_READONLY=1\n",tfa98xx->i2c->addr,tfa->rev,mtpex,otc,re25,ready,no_start);
+ return ready;
 }
 
 static void tfa98xx_container_loaded(const struct firmware *cont, void *context)
@@ -2621,13 +2631,14 @@ static void tfa98xx_container_loaded(const struct firmware *cont, void *context)
 				dflt_prof_name);
 	}
 
-	tfa98xx->dsp_fw_state = TFA98XX_DSP_FW_OK;
-	pr_debug("Firmware init complete\n");
-
-	if (no_start != 0) {
-		pong729_tfa_factory_read(tfa98xx);
+	if (!pong743_tfa_factory_ready(tfa98xx)) {
+		tfa98xx->dsp_fw_state = TFA98XX_DSP_FW_FAIL;
 		return;
 	}
+	tfa98xx->dsp_fw_state = TFA98XX_DSP_FW_OK;
+	pr_debug("Firmware init complete\n");
+	if (no_start != 0)
+		return;
 
 #ifndef DISABLE_TFA98XX_ALSA_SUPPORT
 	/* Only controls for master device */

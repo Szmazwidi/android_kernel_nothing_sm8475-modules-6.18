@@ -1,3 +1,4 @@
+#include "config.h"
 /* 
  * Copyright (C) 2014-2020 NXP Semiconductors, All Rights Reserved.
  * Copyright 2020 GOODIX 
@@ -862,6 +863,11 @@ void tfa2_manual_mtp_cpy(struct tfa_device *tfa, uint16_t reg_row_to_keep, uint1
 
 void tfa2_manual_mtp_cpy(struct tfa_device *tfa, uint16_t reg_row_to_keep, uint16_t reg_row_to_set, uint8_t row)///MCH_TO_TEST
 {
+#if PONG743_MTP_READONLY
+ pr_warn("PONG743_MTP_PROGRAMMING_BLOCKED tfa2_manual_mtp_cpy\n");
+ return;
+#else
+
 	uint16_t value;
 	int loop = 0;
 	enum Tfa98xx_Error error;
@@ -898,12 +904,19 @@ void tfa2_manual_mtp_cpy(struct tfa_device *tfa, uint16_t reg_row_to_keep, uint1
 			pr_debug("FAIM disabled (err:%d).\n", error);
 		}
 	}
+
+#endif
 }
 
 enum Tfa98xx_Error tfa98xx_set_mtp(struct tfa_device *tfa, uint16_t value, uint16_t mask);
 
 enum Tfa98xx_Error tfa98xx_set_mtp(struct tfa_device *tfa, uint16_t value, uint16_t mask)
 {
+#if PONG743_MTP_READONLY
+ pr_warn("PONG743_MTP_PROGRAMMING_BLOCKED tfa98xx_set_mtp\n");
+ return Tfa98xx_Error_Not_Supported;
+#else
+
 	unsigned short mtp_old, mtp_new;
 	int loop, status;
 	enum Tfa98xx_Error error;
@@ -978,6 +991,8 @@ enum Tfa98xx_Error tfa98xx_set_mtp(struct tfa_device *tfa, uint16_t value, uint1
 		return error;
 	}
 	return error;
+
+#endif
 }
 /*
  * clear mtpex
@@ -4312,6 +4327,11 @@ enum tfa_error tfa_dev_mtp_set(struct tfa_device *tfa, enum tfa_mtp item, int va
 
 enum tfa_error tfa_dev_mtp_set(struct tfa_device *tfa, enum tfa_mtp item, int value)
 {
+#if PONG743_MTP_READONLY
+ pr_warn("PONG743_MTP_PROGRAMMING_BLOCKED tfa_dev_mtp_set\n");
+ return tfa_error_bad_param;
+#else
+
 	int err = tfa_error_ok;
 	if(tfa->in_use == 0) {
 		pr_info("%s: tfa is not opened!", __func__);
@@ -4354,6 +4374,8 @@ enum tfa_error tfa_dev_mtp_set(struct tfa_device *tfa, enum tfa_mtp item, int va
 	}
 
 	return err;
+
+#endif
 }
 
 int tfa_get_pga_gain(struct tfa_device *tfa);

@@ -18,6 +18,9 @@
 #ifndef __CONFIG_LINUX_KERNEL_INC__
 #define __CONFIG_LINUX_KERNEL_INC__
 
+/* Immutable Pong LAB fuse/calibration protection. */
+#define PONG743_MTP_READONLY 1
+
 #include <linux/ctype.h>
 #include <linux/delay.h>
 #include <linux/slab.h>
