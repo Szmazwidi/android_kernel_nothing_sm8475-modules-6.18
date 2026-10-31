@@ -1,0 +1,4 @@
+# Build-rule adaptation: original sources retained; binary symbol inputs resolved from source.
+package(default_visibility=['//visibility:public'])
+load('//build/kernel/kleaf:kernel.bzl', 'ddk_module')
+ddk_module(name='glyphCLS19', kernel_build='//common:kernel_aarch64', out='leds-aw20036.ko', srcs=['leds-aw20036.c', 'leds-aw20036.h', 'leds-aw20036-reg.h'], copts=['-ferror-limit=0'])
