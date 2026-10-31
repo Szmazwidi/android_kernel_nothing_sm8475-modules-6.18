@@ -1,0 +1,5 @@
+# Build-rule adaptation: original sources retained; binary symbol inputs resolved from source.
+package(default_visibility=['//visibility:public'])
+load('//build/kernel/kleaf:kernel.bzl', 'ddk_module')
+load('//devices/pong618/av580/providers:providers.bzl', 'PROVIDERS')
+ddk_module(name='nfcCLS16', kernel_build='//common:kernel_aarch64', out='nfc-qti-i2c.ko', srcs=['nfc_i2c_drv.c', 'nfc_common.c', 'ese_cold_reset.c', 'nfc_i2c_drv.h', 'nfc_common.h', 'ese_cold_reset.h', 'include/linux/nfcinfo.h', 'include/uapi/linux/nfc/nfcinfo.h'], includes=['include'], deps=['//devices/pong618/av580/providers:vendor_headers'], local_defines=['CONFIG_NFC_QTI_I2C_MODULE=1'], copts=['-ferror-limit=0', '-Wno-error=missing-prototypes', '-Wno-error=format', '-Wno-error=implicit-fallthrough'])
