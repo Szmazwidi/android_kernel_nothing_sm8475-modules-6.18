@@ -163,17 +163,31 @@ static const struct mhi_device_id qcom_mhi_qrtr_id_table[] = {
 };
 MODULE_DEVICE_TABLE(mhi, qcom_mhi_qrtr_id_table);
 
+/*
+ * PONG CLS37: the QCA6490 MHI controller (cnss2) suspends MHI to M3 (or
+ * M3_FAST with DRV) and takes the PCIe link down in its own .suspend
+ * callback, i.e. before this .suspend_late runs; it brings the link back
+ * only in .resume, after .resume_early.  mhi_get_mhi_state() reads
+ * MHISTATUS over PCIe, and on Qualcomm SoCs an MMIO read with the link
+ * down stalls the bus: the first system suspend hard-hung the phone.
+ * Decide from the host's cached device state instead, which the MHI
+ * core updates when the M3 / M3_FAST transition completes.
+ */
+static bool qcom_mhi_qrtr_mhi_suspended(struct mhi_controller *mhi_cntrl)
+{
+	return mhi_cntrl->dev_state == MHI_STATE_M3 ||
+	       mhi_cntrl->dev_state == MHI_STATE_M3_FAST;
+}
+
 static int __maybe_unused qcom_mhi_qrtr_pm_suspend_late(struct device *dev)
 {
 	struct mhi_device *mhi_dev = container_of(dev, struct mhi_device, dev);
-	enum mhi_state state;
 
-	state = mhi_get_mhi_state(mhi_dev->mhi_cntrl);
 	/*
 	 * If the device is in suspend state, then no need for the
 	 * client driver to unprepare the channels.
 	 */
-	if (state == MHI_STATE_M3)
+	if (qcom_mhi_qrtr_mhi_suspended(mhi_dev->mhi_cntrl))
 		return 0;
 
 	mhi_unprepare_from_transfer(mhi_dev);
@@ -184,16 +198,14 @@ static int __maybe_unused qcom_mhi_qrtr_pm_suspend_late(struct device *dev)
 static int __maybe_unused qcom_mhi_qrtr_pm_resume_early(struct device *dev)
 {
 	struct mhi_device *mhi_dev = container_of(dev, struct mhi_device, dev);
-	enum mhi_state state;
 	int rc;
 
-	state = mhi_get_mhi_state(mhi_dev->mhi_cntrl);
 	/*
 	 * If the device is in suspend state, we won't unprepare channels
 	 * in suspend callback, therefore no need to prepare channels when
 	 * resume.
 	 */
-	if (state == MHI_STATE_M3)
+	if (qcom_mhi_qrtr_mhi_suspended(mhi_dev->mhi_cntrl))
 		return 0;
 
 	rc = mhi_prepare_for_transfer(mhi_dev);
