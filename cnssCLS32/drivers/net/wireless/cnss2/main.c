@@ -7253,9 +7253,26 @@ static bool pong_disable_cbc = true;
 module_param(pong_disable_cbc, bool, 0444);
 MODULE_PARM_DESC(pong_disable_cbc, "Pong: skip WLAN cold boot calibration");
 
+/*
+ * PONG CLS38: with DRV the PCIe link to the QCA6490 is left in L1ss under
+ * RSC control across system suspend.  On this 6.18 port the link does not
+ * survive s2idle (RC0 "link down" on every resume -> MHI RESUME -5 -> FW
+ * recovery, Wi-Fi never associates).  Use the non-DRV path instead: cnss2
+ * takes MHI to M3 and the link down itself and retrains it on resume.
+ * Must be set before Wi-Fi is first turned on, hence at init.
+ * pong_disable_drv=0 restores DRV.
+ */
+static bool pong_disable_drv = true;
+module_param(pong_disable_drv, bool, 0444);
+MODULE_PARM_DESC(pong_disable_drv, "Pong: do not use DRV (keep-link) system suspend");
+
 static void cnss_init_control_params(struct cnss_plat_data *plat_priv)
 {
 	plat_priv->ctrl_params.quirks = CNSS_QUIRKS_DEFAULT;
+	if (pong_disable_drv) {
+		set_bit(DISABLE_DRV, &plat_priv->ctrl_params.quirks);
+		cnss_pr_info("PONG DRV disabled (pong_disable_drv)\n");
+	}
 
 	plat_priv->cbc_enabled = !IS_ENABLED(CONFIG_CNSS_EMULATION) &&
 		of_property_read_bool(plat_priv->plat_dev->dev.of_node,
