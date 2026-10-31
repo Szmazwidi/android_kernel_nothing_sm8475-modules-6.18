@@ -1,0 +1,6 @@
+# Build-rule adaptation: original sources retained; binary symbol inputs resolved from source.
+load(':define_modules.bzl', 'define_modules')
+load('//build/kernel/kleaf:kernel.bzl', 'ddk_headers')
+package(default_visibility=['//visibility:public'])
+ddk_headers(name='rmnet_core_headers', hdrs=glob(['core/*.h'], allow_empty=True), includes=['core'])
+define_modules('waipio', 'perf')

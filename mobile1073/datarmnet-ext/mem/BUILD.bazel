@@ -1,0 +1,6 @@
+# Build-rule adaptation: original sources retained; binary symbol inputs resolved from source.
+load(':define_mem.bzl', 'define_mem')
+load('//build/kernel/kleaf:kernel.bzl', 'ddk_headers')
+package(default_visibility=['//visibility:public'])
+ddk_headers(name='rmnet_mem_headers', hdrs=glob(['*.h'], allow_empty=True), includes=['.'])
+define_mem('waipio', 'perf')

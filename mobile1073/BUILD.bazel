@@ -1,0 +1,6 @@
+# Build-rule adaptation: original sources retained; binary symbol inputs resolved from source.
+package(default_visibility=['//visibility:public'])
+load('@rules_pkg//pkg:install.bzl', 'pkg_install')
+load('@rules_pkg//pkg:mappings.bzl', 'pkg_files', 'strip_prefix')
+pkg_files(name='files509', srcs=['//devices/pong618/mobile1073/dataipa:waipio_perf_gsim', '//devices/pong618/mobile1073/dataipa:waipio_perf_ipam', '//devices/pong618/mobile1073/dataipa:waipio_perf_ipanetm', '//devices/pong618/mobile1073/datarmnet:waipio_perf_rmnet_core', '//devices/pong618/mobile1073/datarmnet:waipio_perf_rmnet_ctl', '//devices/pong618/mobile1073/datarmnet-ext/mem:waipio_perf_rmnet_mem'], strip_prefix=strip_prefix.files_only())
+pkg_install(name='dist509', srcs=[':files509'])
