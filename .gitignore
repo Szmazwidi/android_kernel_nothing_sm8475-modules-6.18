@@ -1,0 +1,10 @@
+out/
+*.ko
+*.o
+*.a
+*.symvers
+*.pem
+*.key
+*.x509
+__pycache__/
+build-*.log
