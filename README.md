@@ -49,8 +49,9 @@ avoid gratuitous source-path/BTF changes.
 
 Compilation is distinct from runtime qualification. The fresh-build report
 records what was actually tested on the host; it does not assert that these
-new local-key artifacts were flashed. The laboratory runtime reference is CLS36 (BT_EN kept asserted while WLAN is
-powered, WLAN cold boot calibration off). Current source snapshots can include
+new local-key artifacts were flashed. The laboratory runtime reference is CLS38 (BT_EN kept asserted while WLAN is
+powered, WLAN cold boot calibration off, qrtr-mhi without MHISTATUS reads in
+suspend_late, cnss2 non-DRV system suspend). Current source snapshots can include
 ongoing driver work; inspect the source manifest and commit history.
 
 A fresh key and a changed BTF layout mean the old laboratory payload allowlist
@@ -71,7 +72,7 @@ against the changed final vmlinux BTF. Native signatures remain required.
 workflow. The image tools support signing with the builder's final key.
 
 `tools/images/` remains the **historical image-734 packaging recipe**. Its lists
-and userspace startup profile are not the current CLS36 profile. Do not present
+and userspace startup profile are not the current CLS38 profile. Do not present
 that old recipe as a tested 262-module Android image. Building a complete ROM
 also needs a matching userspace/firmware, device tree, startup ordering and
 compatibility policy; proprietary userspace blobs are not supplied here.
