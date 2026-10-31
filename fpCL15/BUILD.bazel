@@ -1,0 +1,5 @@
+# Build-rule adaptation: original sources retained; binary symbol inputs resolved from source.
+package(default_visibility=['//visibility:public'])
+load('//build/kernel/kleaf:kernel.bzl', 'ddk_module')
+load('//devices/pong618/av580/providers:providers.bzl', 'PROVIDERS')
+ddk_module(name='fingerprintCL15', kernel_build='//common:kernel_aarch64', out='goodix_fp.ko', srcs=glob(['fp/*.c', 'fp/*.h'], allow_empty=True), deps=['//devices/pong618/av580/providers:vendor_headers', '//devices/pong618/build:symbol_panel_event_notifier'], local_defines=['CONFIG_QCOM_PANEL_EVENT_NOTIFIER=1'], copts=['-ferror-limit=0'])

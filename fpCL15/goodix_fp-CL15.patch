@@ -1,0 +1,125 @@
+diff --color -ru ../missing798/fp/gf_spi.c fp/gf_spi.c
+--- ../missing798/fp/gf_spi.c	2026-10-28 07:37:46.366475367 +0100
++++ fp/gf_spi.c	2026-10-29 16:41:48.587098280 +0100
+@@ -332,6 +332,9 @@
+ 	return IRQ_HANDLED;
+ }
+ 
++/* PONG CL15: the HAL may die without GF_IOC_REMOVE; keep irq teardown idempotent. */
++static bool gf_irq_requested;
++
+ static int irq_setup(struct gf_dev *gf_dev)
+ {
+ 	int status;
+@@ -347,14 +350,19 @@
+ 	}
+ 	enable_irq_wake(gf_dev->irq);
+ 	gf_dev->irq_enabled = 1;
++	gf_irq_requested = true;
+ 
+ 	return status;
+ }
+ 
+ static void irq_cleanup(struct gf_dev *gf_dev)
+ {
++	if (!gf_irq_requested)
++		return;
++	gf_irq_requested = false;
++	if (gf_dev->irq_enabled)
++		disable_irq(gf_dev->irq);
+ 	gf_dev->irq_enabled = 0;
+-	disable_irq(gf_dev->irq);
+ 	disable_irq_wake(gf_dev->irq);
+ 	free_irq(gf_dev->irq, gf_dev);
+ }
+@@ -584,9 +592,14 @@
+ 
+ 	return status;
+ err_irq:
+-	gf_cleanup(gf_dev);
+ err_parse_dt:
+-        mutex_unlock(&device_list_lock);
++	gf_cleanup(gf_dev);
++	if (!IS_ERR_OR_NULL(gf_dev->vdd))
++		regulator_put(gf_dev->vdd);
++	gf_dev->vdd = NULL;
++	gf_dev->users--;
++	filp->private_data = NULL;
++	mutex_unlock(&device_list_lock);
+ 	return status;
+ }
+ 
+@@ -620,8 +633,12 @@
+ 		/*power off the sensor*/
+ 		gf_dev->device_available = 0;
+ 		gf_power_off(gf_dev);
+-		if (!IS_ERR(gf_dev->vdd))
+-                        regulator_put(gf_dev->vdd);
++		/* Release everything a crashed HAL could not hand back via GF_IOC_REMOVE. */
++		irq_cleanup(gf_dev);
++		gf_cleanup(gf_dev);
++		if (!IS_ERR_OR_NULL(gf_dev->vdd))
++			regulator_put(gf_dev->vdd);
++		gf_dev->vdd = NULL;
+ 	}
+ 	mutex_unlock(&device_list_lock);
+ 	return status;
+diff --color -ru ../missing798/fp/platform.c fp/platform.c
+--- ../missing798/fp/platform.c	2026-10-28 08:17:41.129679337 +0100
++++ fp/platform.c	2026-10-29 16:42:11.152805548 +0100
+@@ -88,6 +88,7 @@
+ 	rc = gf_managed_gpio_request(dev, gf_dev->reset_gpio, "goodix_reset");
+ 	if (rc) {
+ 		pr_err("failed to request reset gpio, rc = %d\n", rc);
++		gf_dev->reset_gpio = -EINVAL;	/* not ours: never free it */
+ 		goto err_reset;
+ 	}
+ 	gpio_direction_output(gf_dev->reset_gpio, 0);
+@@ -101,6 +102,7 @@
+ 	rc = gf_managed_gpio_request(dev, gf_dev->irq_gpio, "goodix_irq");
+ 	if (rc) {
+ 		pr_err("failed to request irq gpio, rc = %d\n", rc);
++		gf_dev->irq_gpio = -EINVAL;	/* not ours: never free it */
+ 		goto err_irq;
+ 	}
+ 	gpio_direction_input(gf_dev->irq_gpio);
+@@ -109,6 +111,7 @@
+ 	if (IS_ERR(gf_dev->vdd)) {
+ 		rc = PTR_ERR(gf_dev->vdd);
+ 		pr_err("Regulator get failed vdd rc = %d\n", rc);
++		gf_dev->vdd = NULL;
+ 		goto err_pwr;
+ 	}
+ 
+@@ -134,6 +137,7 @@
+ 
+ err_reg:
+ 	regulator_put(gf_dev->vdd);
++	gf_dev->vdd = NULL;
+ err_pwr:
+ err_irq:
+ err_reset:
+@@ -161,6 +165,11 @@
+ int gf_power_on(struct gf_dev *gf_dev)
+ {
+ 	int rc = 0;
++
++	if (IS_ERR_OR_NULL(gf_dev->vdd)) {
++		pr_err("%s: no vdd regulator\n", __func__);
++		return -ENODEV;
++	}
+ 	if(gf_dev->power_on_tag == 0){
+ 		if(!regulator_is_enabled(gf_dev->vdd)){
+ 			rc = regulator_enable(gf_dev->vdd);
+@@ -179,6 +188,11 @@
+ int gf_power_off(struct gf_dev *gf_dev)
+ {
+ 	int rc = 0;
++
++	if (IS_ERR_OR_NULL(gf_dev->vdd)) {
++		gf_dev->power_on_tag = 0;
++		return 0;
++	}
+ 	if(gf_dev->power_on_tag == 1){
+ 		rc = regulator_disable(gf_dev->vdd);
+ 		if(rc){
