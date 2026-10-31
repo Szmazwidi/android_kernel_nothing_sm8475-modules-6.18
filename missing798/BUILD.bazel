@@ -1,0 +1,7 @@
+# Build-rule adaptation: original sources retained; binary symbol inputs resolved from source.
+package(default_visibility=['//visibility:public'])
+load('//build/kernel/kleaf:kernel.bzl', 'ddk_module')
+load('//devices/pong618/av580/providers:providers.bzl', 'PROVIDERS')
+ddk_module(name='fingerprint798', kernel_build='//common:kernel_aarch64', out='goodix_fp.ko', srcs=glob(['fp/*.c', 'fp/*.h'], allow_empty=True), deps=['//devices/pong618/av580/providers:vendor_headers', '//devices/pong618/build:symbol_panel_event_notifier'], local_defines=['CONFIG_QCOM_PANEL_EVENT_NOTIFIER=1'], copts=['-ferror-limit=0'])
+ddk_module(name='rmnet798', kernel_build='//common:kernel_aarch64', out='rmnet.ko', srcs=['rmnet/rmnet_config.c', 'rmnet/rmnet_vnd.c', 'rmnet/rmnet_handlers.c', 'rmnet/rmnet_map_data.c', 'rmnet/rmnet_map_command.c'] + glob(['rmnet/*.h'], allow_empty=True), copts=['-ferror-limit=0'])
+ddk_module(name='fastrpc798', kernel_build='//common:kernel_aarch64', out='frpc-adsprpc.ko', srcs=['dsp/dsp/fastrpc.c', 'dsp/dsp/fastrpc_rpmsg.c', 'dsp/dsp/fastrpc_shared.h', 'dsp/dsp/fastrpc_trace.h'] + glob(['dsp/include/**/*.h'], allow_empty=True), includes=['dsp/include/linux', 'dsp/include/uapi', 'dsp/dsp'], local_defines=['CONFIG_DSP_WAIPIO=1', 'DSP_TRACE_INCLUDE_PATH=.'], deps=['//devices/pong618/av580/providers:vendor_headers', '//devices/pong618/build:symbol_mem_buf_dev', '//devices/pong618/build:symbol_pdr_interface', '//devices/pong618/build:symbol_qcom_scm'], copts=['-ferror-limit=0'])
