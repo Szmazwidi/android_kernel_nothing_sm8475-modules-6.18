@@ -1,0 +1,101 @@
+config QCOM_Q6V5_COMMON
+	tristate "Pong407 QCOM_Q6V5_COMMON"
+config QCOM_Q6V5_PAS
+	tristate "Pong407 QCOM_Q6V5_PAS"
+config QCOM_RPROC_COMMON
+	tristate "Pong407 QCOM_RPROC_COMMON"
+config QCOM_SYSMON
+	tristate "Pong407 QCOM_SYSMON"
+config QCOM_PIL_INFO
+	tristate "Pong407 QCOM_PIL_INFO"
+config QCOM_RAMDUMP
+	tristate "Pong407 QCOM_RAMDUMP"
+config RPMSG_QCOM_GLINK
+	tristate "Pong407 RPMSG_QCOM_GLINK"
+config RPMSG_QCOM_GLINK_SMEM
+	tristate "Pong407 RPMSG_QCOM_GLINK_SMEM"
+config QCOM_PDR_HELPERS
+	tristate "Pong407 QCOM_PDR_HELPERS"
+config QCOM_QMI_HELPERS
+	tristate "Pong407 QCOM_QMI_HELPERS"
+config QTI_PMIC_GLINK
+	tristate "Pong407 QTI_PMIC_GLINK"
+config QTI_BATTERY_CHARGER
+	tristate "Pong407 QTI_BATTERY_CHARGER"
+config BT_POWER
+	tristate "Pong407 BT_POWER"
+config CNSS2
+	tristate "Pong407 CNSS2"
+config CNSS2_QMI
+	bool "Pong407 CNSS2_QMI"
+config CNSS_OUT_OF_TREE
+	bool "Pong407 CNSS_OUT_OF_TREE"
+config CNSS_UTILS
+	tristate "Pong407 CNSS_UTILS"
+config RPMSG_QCOM_SMD
+	bool "Pong407 RPMSG_QCOM_SMD"
+
+config PCI_MSM
+	tristate "Pong407 vendor PCIe"
+config MHI_BUF_LEN
+	int "MHI buffer size from original66 CNSS2 Kconfig"
+	default 16384
+config CNSS_QMI_SVC
+	tristate "WLAN firmware QMI"
+config CNSS_PLAT_IPC_QMI_SVC
+	tristate "WLAN platform IPC QMI"
+
+# SPDX-License-Identifier: GPL-2.0-only
+config QTEE_SHM_BRIDGE
+    bool
+config QCOM_TZMEM_LOW_MEMORY
+    bool
+config QCOM_TZMEM_FFA
+    bool
+config SCSI_UFS_CRYPTO_QTI
+    bool
+config MSM_QMP
+    tristate
+config MSM_TMECOM_QMP
+    tristate
+config PONG618_VENDOR_FOUNDATION
+    tristate "Pong vendor foundation source port"
+    select QCOM_SCM
+    select QCOM_TZMEM
+    select QCOM_COMMAND_DB
+    select QCOM_AOSS_QMP
+    select QCOM_SMEM
+    select QCOM_INLINE_CRYPTO_ENGINE
+    select QTEE_SHM_BRIDGE
+    select SCSI_UFS_CRYPTO_QTI
+    select MSM_QMP
+    select MSM_TMECOM_QMP
+
+config QCOM_MDT_LOADER
+	tristate "MDT firmware loader"
+config RPROC_SSR_NOTIF_TIMEOUT
+	int "RPROC_SSR_NOTIF_TIMEOUT"
+	default 20000
+config RPROC_SYSMON_NOTIF_TIMEOUT
+	int "RPROC_SYSMON_NOTIF_TIMEOUT"
+	default 20000
+config RPROC_SYSMON_SHUTDOWN_NOTIF_TIMEOUT
+	int "RPROC_SYSMON_SHUTDOWN_NOTIF_TIMEOUT"
+	default 10000
+
+config PDR_INDICATION_NOTIF_TIMEOUT
+	int "PDR timeout from waipio66 config"
+	default 9000
+
+config MHI_BUS
+	tristate "Vendor66 MHI bus"
+config MHI_BUS_MISC
+	bool "Vendor MHI misc"
+config MHI_BUS_DEBUG
+	bool "Vendor MHI debugging"
+config QRTR_SMD
+	tristate "QRTR over RPMsg"
+
+config PONG407_PCIE_CLOCK_REGISTER_DUMP
+	bool "Requires separately verified Qualcomm clock register dumper"
+	default n
