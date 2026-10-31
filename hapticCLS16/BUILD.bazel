@@ -1,0 +1,4 @@
+# Build-rule adaptation: original sources retained; binary symbol inputs resolved from source.
+package(default_visibility=['//visibility:public'])
+load('//build/kernel/kleaf:kernel.bzl', 'ddk_module')
+ddk_module(name='hapticCLS16', kernel_build='//common:kernel_aarch64', out='haptic.ko', srcs=['aw869x.c', 'aw869xx.c', 'aw8671x.c', 'aw8692x.c', 'haptic_hv.c', 'haptic_hv.h', 'haptic_hv_reg.h'], copts=['-ferror-limit=0'])
