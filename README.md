@@ -1,154 +1,110 @@
-# Nothing Phone (2) — vendor kernel modules for android17-6.18
+# Nothing Phone (2): android17-6.18.59 vendor modules
 
-Kleaf DDK external modules for the Nothing Phone (2) (codename **Pong**, SM8475 "cape", waipio
-family) on the Android Common Kernel **android17-6.18** (6.18.32). Nothing's own kernel sources
-stop at 5.10.
+Source release branch: `pong-a17-6.18.59`. The older `pong-a17-6.18.32` branch
+is preserved as the historical image-734 checkpoint. This branch extends it
+with the current port source snapshots: **178 vendor module outputs** plus
+**84 reference GKI modules** built with the companion kernel.
 
-This branch contains exactly the 159 non-GKI modules that run on the development phone (image
-734), the sources they are built from, the device tree of that image and the tools to pack
-everything into flashable images. The other 84 modules on the phone are GKI modules built with
-the kernel. The kernel is
-[android_kernel_nothing_sm8475-6.18](https://github.com/Szmazwidi/android_kernel_nothing_sm8475-6.18),
-branch `pong-a17-6.18.32`.
+Kernel: [android_kernel_nothing_sm8475-6.18](https://github.com/Szmazwidi/android_kernel_nothing_sm8475-6.18/tree/pong-a17-6.18.59).
+The kernel retains Linux/ACK/stable history, the U59 integration and its KMI
+reverts. Its 6.18.59 release string does not imply an unmodified mainline tree.
 
-## Status
+## Build a pinned source set
 
-Tested on one device (slot B, DerpFest 17 userspace, SELinux enforcing):
-
-| Area | State |
-|---|---|
-| Boot to Android, ADB | works |
-| Display, touch (Goodix) | works; needs `vendor.gralloc.disable_ubwc=1` |
-| Wi-Fi (QCA6490) | works |
-| Bluetooth, BT audio over SLIMbus (btfm) | works; sound card registers |
-| Battery / charger driver | works with the stock HAL |
-| Audio | playback path runs (HAL counters advance), TFA98xx amplifiers are kept with `no_start=1`, so audible output is not confirmed |
-| Camera | **not working**: Titan top GDSC times out |
-| Telephony, mobile data | not verified |
-| CPU frequency scaling, thermal mitigation | not ported yet |
-
-This is a development tree, not a daily driver.
-
-## Layout
-
-The repository is checked out at `devices/pong618` inside a Kleaf workspace, because the BUILD
-files use absolute labels (`//devices/pong618/...`).
-
-* Each top-level directory is a Kleaf package. The number in a name (`scm590`, `ufs-reboot39`,
-  ...) is the development stage that finalized that package. The names are kept as they are
-  because source paths end up inside the modules, so renaming a package changes the binaries.
-* `build/` defines the symbol providers: when a module links against another module, it gets that
-  module's `Module.symvers` from the target that builds it in this tree (no prebuilt `.ko`
-  anywhere).
-* `BUILD.bazel` at the top defines `pong_dist`, which builds and collects the 159 modules.
-* `tools/images/` packs kernel and modules into `boot`, `vendor_boot`, `vendor_dlkm` and `dtbo`
-  images; `tools/images/pong618/` holds the device data (module lists, init scripts, DT).
-* `tools/gen-module-policy.py` regenerates the module allowlist of the kernel's lab guard.
-* [docs/MODULES.md](docs/MODULES.md) lists every target and its modules;
-  [docs/provenance.json](docs/provenance.json) records where every file comes from (see below);
-  [docs/manifest/](docs/manifest/) has the pinned repo manifest.
-
-## Building
-
-Both repositories are private for now: `curl` and `repo sync` need GitHub credentials with
-access to them (for example `gh auth setup-git`, or `curl -H "Authorization: token ..."`).
+The repositories are private at present. Configure your normal GitHub Git
+credentials first; do not put access tokens into commands, manifests or commits.
+The final XML pins the verified source commits. A subsequent documentation-only
+commit stores that lock without changing the compiled source inputs.
 
 ```sh
-mkdir pong618 && cd pong618
+git clone --branch pong-a17-6.18.59 --single-branch \
+  https://github.com/Szmazwidi/android_kernel_nothing_sm8475-modules-6.18.git pong-source
+mkdir pong-workspace && cd pong-workspace
 repo init -u https://android.googlesource.com/kernel/manifest -b common-android17-6.18
-# pinned manifest: every AOSP project at the exact commit used for image 734,
-# common = the pong-a17-6.18.32 kernel branch, this repository at devices/pong618
-curl -L -o .repo/manifests/pong618.xml \
-  https://raw.githubusercontent.com/Szmazwidi/android_kernel_nothing_sm8475-modules-6.18/pong-a17-6.18.32/docs/manifest/pong618-6.18.32.xml
+cp ../pong-source/docs/manifest/pong618-6.18.59.xml .repo/manifests/pong618.xml
 repo init -m pong618.xml
-repo sync -c -j8
-
-tools/bazel run //common:kernel_aarch64_dist -- --destdir=out/kernel
-tools/bazel run //devices/pong618:pong_dist -- --destdir=out/modules
+repo sync -c -j4
+bash devices/pong618/tools/build-pong.sh
 ```
 
-`out/kernel` gets `Image`, the GKI modules, `modules.builtin*` and `Module.symvers`; `out/modules`
-gets the 159 vendor modules. The manifest clones the kernel with `clone-depth="1"`; drop that
-attribute if you want its history.
+Run the build script from the workspace root. It builds the kernel and the whole
+vendor output set, then checks output coverage, ELF identity and imported-symbol
+CRCs. Set `PONG_BUILD_JOBS` and `PONG_BUILD_MEMORY_MIB` to control resources;
+`PONG_OUT` selects the output directory. No old `.ko`, `Module.symvers`, private
+key, phone access or `/mnt/storage` work folder is needed as an input.
 
-Then build the images from the images of the installed ROM (`tools/images/README.md`):
+The script is an ordinary wrapper around:
 
 ```sh
-devices/pong618/tools/images/build_images.py \
-    --config devices/pong618/tools/images/pong618/config.json \
-    --stock stock --kernel out/kernel/Image --modules out/kernel out/modules \
-    --sign bazel-bin/common/kernel_aarch64 \
-    --tools prebuilts/kernel-build-tools/linux_musl-x86/bin --out out/images
+tools/bazel run //common:kernel_aarch64_dist -- --destdir=out/pong/kernel
+tools/bazel run //devices/pong618:pong_dist -- --destdir=out/pong/modules
 ```
 
-Kleaf leaves the vendor modules unsigned; `--sign` signs every module with the key of the kernel
-that was just built (GKI signature protection only lets signed modules use protected symbols).
+See `docs/build-reference-6.18.59.json` for every selected vendor target and GKI
+filename. `build/providers.bzl` obtains symbol providers from source builds.
+The original stage-based package paths are retained for traceability and to
+avoid gratuitous source-path/BTF changes.
 
-### Reproducibility
+## Before packaging for hardware
 
-Built from this branch and the pinned manifest, the 159 vendor modules are byte-identical to
-the modules running on the development phone (compared without the appended signature). The
-kernel `Image` differs from the running one only in the embedded module-signing certificate,
-because Kleaf generates a new signing key in every fresh output directory, and the 84 GKI
-modules differ only in `.BTF`.
+Compilation is distinct from runtime qualification. The fresh-build report
+records what was actually tested on the host; it does not assert that these
+new local-key artifacts were flashed. The laboratory runtime reference is CLS33.
+Current source snapshots can include ongoing driver work, notably Bluetooth/
+WLAN power sequencing; inspect the source manifest and commit history.
 
-### About the kernel branch
-
-The kernel branch is ACK `android17-6.18` at `926a323dc266` plus five commits marked
-`pong: LAB:` and a README. The LAB commits are safety guards of the development phone (writes
-allowed only to the userdata/metadata ranges of *that* UFS, no SCSI/BSG passthrough, read-only
-protected partitions, kexec disabled, and **only module payloads whose SHA-256 is listed in
-`kernel/module/pong251-module-policy.h` may load**). The list holds the modules of image 734.
-
-On any other phone, revert the LAB commits (`README.pong.md` in the kernel branch has the
-command) and build as above.
-
-To keep the guards with your own module build, hash the modules, rebuild only the kernel, and
-re-sign the modules with the new kernel's key (the signature is not part of the hashed payload):
+A fresh key and a changed BTF layout mean the old laboratory payload allowlist
+will not admit newly built modules. Generate a list from the complete first-pass
+module set, keep that module set, rebuild only the kernel, then sign with its key:
 
 ```sh
-tools/bazel run //common:kernel_aarch64_dist -- --destdir=out/kernel
-tools/bazel run //devices/pong618:pong_dist -- --destdir=out/modules
-devices/pong618/tools/gen-module-policy.py out/kernel out/modules \
-    > common/kernel/module/pong251-module-policy.h
-tools/bazel run //common:kernel_aarch64_dist -- --destdir=out/kernel-final
-devices/pong618/tools/images/build_images.py ... \
-    --kernel out/kernel-final/Image --modules out/kernel out/modules \
-    --sign bazel-bin/common/kernel_aarch64
+python3 devices/pong618/tools/gen-module-policy.py out/pong/kernel out/pong/modules \
+  > out/pong/pong251-module-policy.h
+# Review and retain the existing device write/identity guards.
+cp out/pong/pong251-module-policy.h common/kernel/module/pong251-module-policy.h
+tools/bazel run //common:kernel_aarch64_dist -- --destdir=out/pong/kernel-final
 ```
 
-Use the modules from the first build: Bazel rebuilds the modules after the kernel changes and
-their `.BTF` changes with `vmlinux` (`CONFIG_MODULE_ALLOW_BTF_MISMATCH` lets the kernel load the
-first ones). This is how the development image was made.
+Use the first-pass module files when signing/packaging, not a new DDK rebuild
+against the changed final vmlinux BTF. Native signatures remain required.
+`CONFIG_MODULE_ALLOW_BTF_MISMATCH` is an existing requirement of this two-pass
+workflow. The image tools support signing with the builder's final key.
 
-## Authorship and provenance
+`tools/images/` remains the **historical image-734 packaging recipe**. Its lists
+and userspace startup profile are not the current CLS33 profile. Do not present
+that old recipe as a tested 262-module Android image. Building a complete ROM
+also needs a matching userspace/firmware, device tree, startup ordering and
+compatibility policy; proprietary userspace blobs are not supplied here.
+There is no automatic flashing step. Physical write guards and RAM hot-add are
+specific to the tested hardware/partition geometry; do not assume an 8 GB SKU
+has the 12 GB hot-add memory ranges.
 
-No code here is presented as written by someone who did not write it:
+## Runtime reference and outstanding work
 
-* This branch starts from the full history of
-  [redducc/kernel_nothing_pong-modules](https://github.com/redducc/kernel_nothing_pong-modules)
-  (6.6), which itself carries the CodeLinaro/Qualcomm, Nothing, LineageOS and community history.
-  Those files are first moved, unchanged, into the package layout.
-* Files taken from [redducc/kernel_nothing_pong](https://github.com/redducc/kernel_nothing_pong)
-  (6.6 kernel), from the Android Common Kernel and from the Nothing Phone (2) 5.10 kernel are
-  merged together with their own history (cut out of those repositories with
-  `git fast-export`), so `git log --follow` and `git blame` show their original authors.
-* The 6.18 port is in separate per-package commits by Szmazwidi. Most of that code was written
-  with OpenAI Codex and part of it with Claude; the commit trailers say so.
-* `docs/provenance.json` lists, for every file, its source repository, commit and path, and
-  whether it is verbatim, modified for 6.18, or new.
-* The device tree blobs in `tools/images/pong618/dt/` are binaries from the development image;
-  their README says what is known about their origin.
+On the development phone, the port has booted native Android with display/touch,
+audio, camera preview/JPEG, sensors, mobile data, CPU frequency scaling and the
+12 GB resource group. These are stage-specific observations, not a guarantee
+that every fresh build or ROM configuration has all features enabled.
 
-`git log --follow` across the layout move needs `git config diff.renameLimit 20000`.
+Known remaining areas include intermittent WLAN/BT startup, CDSP listener retries,
+an OEM telephony-class dependency in the ROM, IOMMU fault-handler API adaptation,
+UBWC compression and low-power qualification. NFC controller ON is verified;
+payment/card interoperability and other long-duration tests remain separate.
+Audio startup, module autoload switches and the companion exact-image verifier
+must be kept consistent with the deployed init RC; a new RC hash without its
+matching verifier previously disabled the RAM/NFC/Glyph/haptic group.
 
-## Licenses
+## Authorship, history and licenses
 
-Kernel modules are GPL-2.0 (individual files keep their SPDX headers and copyright notices).
-Firmware and userspace blobs are not part of this repository.
+The existing redducc 6.6, CodeLinaro/Qualcomm, Nothing, LineageOS and upstream
+history remains intact. New source imports retain their original notices and
+are separated from build/integration changes. `docs/provenance.json` records
+verbatim, modified and project-local sources with exact donor revisions. Files
+whose donor is not confidently mapped are explicitly labelled; they are not
+claimed as newly authored upstream code. Source/build adaptation was prepared
+by Szmazwidi with OpenAI Codex and Anthropic Claude assistance.
 
-## Credits
-
-Qualcomm / CodeLinaro, Nothing Technology, the Android Common Kernel and upstream Linux authors,
-redducc (6.6 port for the Nothing Phone (2)), AOSPA, LineageOS and everyone in the history of
-the files.
+Per-file SPDX and copyright notices take precedence. `LICENSES/` and `COPYING`
+are copied verbatim from the kernel license inventory; this is not a blanket
+claim that every build tool is GPL-2.0. No private signing keys, personal phone
+backups, runtime private logs or proprietary DSP/userspace firmware are included.

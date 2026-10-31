@@ -1,0 +1,4293 @@
+[
+  {
+    "commit": "f1a0b9b61a04b82b5f76b45b934cb00d386f69b8",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "PONG U59: integrate Codex C7 module allowlist; reuse stage731 module key",
+    "kind": "integration"
+  },
+  {
+    "commit": "4df1c74914ba52672766ff26a688aa3de0dfe516",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"io_uring: add wrapper type for io_req_tw_func_t arg\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "85ab909e92bc4c8dc8320987b9415966027468e4",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"netfs: Fix potential deadlock in write-through mode\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "d1c083e562c826033a546aa6d8ce740a88bedace",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"io_uring/waitid: honor task_work cancellation\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "813bd8a8d6010ed8c31f0265b6c678e38b93b090",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"io_uring/waitid: avoid siginfo copy during ring teardown\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "3e9fd4e5e6d74302311c4090d72347148bf937d5",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "PONG U59: keep ring_buffer.c at its pre-pick (r5) state",
+    "kind": "integration"
+  },
+  {
+    "commit": "714d19b1ec2a390b565e235ccef119b5f22e0470",
+    "author": "Carlos López",
+    "email": "clopez@suse.de",
+    "subject": "KVM: arm64: vgic: Fix race between LPI release and re-registration",
+    "kind": "upstream"
+  },
+  {
+    "commit": "2dfe488039578f903f2fae272285ad39721a0a97",
+    "author": "Mark Brown",
+    "email": "broonie@kernel.org",
+    "subject": "KVM: arm64: Correctly cap ZCR_EL2 provided by a guest hypervisor",
+    "kind": "upstream"
+  },
+  {
+    "commit": "9ffe31471d219d3d24eea6627b8ba955d0b5f3e6",
+    "author": "Mostafa Saleh",
+    "email": "smostafa@google.com",
+    "subject": "KVM: arm64: Use stage-1 leaf size for VM_PFNMAP",
+    "kind": "upstream"
+  },
+  {
+    "commit": "ca320f36c1b79e193196838bf942ab3be9906078",
+    "author": "Fuad Tabba",
+    "email": "fuad.tabba@linux.dev",
+    "subject": "KVM: arm64: Apply the fine-grained UNDEFs without FEAT_FGT",
+    "kind": "upstream"
+  },
+  {
+    "commit": "c25b5a9d656cbd121338022b934458966e05fd3d",
+    "author": "Marc Zyngier",
+    "email": "maz@kernel.org",
+    "subject": "KVM: arm64: Always populate FGT masks at boot time",
+    "kind": "upstream"
+  },
+  {
+    "commit": "8d817d74815bd06acd61089365f2b000f3bb5ac6",
+    "author": "Marc Zyngier",
+    "email": "maz@kernel.org",
+    "subject": "KVM: arm64: vgic-its: Fix MOVALL handling of source redistributor",
+    "kind": "upstream"
+  },
+  {
+    "commit": "8655d6efa8bfa885c98594bb1def8f309df45501",
+    "author": "Fuad Tabba",
+    "email": "fuad.tabba@linux.dev",
+    "subject": "KVM: arm64: Clear HCR_EL2.RW for 32-bit non-protected vCPUs",
+    "kind": "upstream"
+  },
+  {
+    "commit": "8e49c534ba62635b6df565f808b5c170709c372f",
+    "author": "Lorenzo Stoakes (ARM)",
+    "email": "ljs@kernel.org",
+    "subject": "KVM: arm64: nv: Fix null ptr deref on nested wp/unmap, teardown race",
+    "kind": "upstream"
+  },
+  {
+    "commit": "3935a43a861d3a2b191ee78a68f161e784d3869e",
+    "author": "Lorenzo Stoakes (ARM)",
+    "email": "ljs@kernel.org",
+    "subject": "KVM: arm64: Fix spurious warning for benign stage 2 teardown race",
+    "kind": "upstream"
+  },
+  {
+    "commit": "98babd809dc883d4d4c5f9d285f30d3df58dbb10",
+    "author": "Karl Mehltretter",
+    "email": "kmehltretter@gmail.com",
+    "subject": "KVM: arm64: Fix AArch32 DBGBXVR<n> handling",
+    "kind": "upstream"
+  },
+  {
+    "commit": "cc820d32719714d2250e1e52d61c38ab16ec37fb",
+    "author": "Mark Brown",
+    "email": "broonie@kernel.org",
+    "subject": "KVM: arm64: Fix FGT mapping for HFGITR_EL2.nGCSEPP",
+    "kind": "upstream"
+  },
+  {
+    "commit": "863bc32690bef280116fd5494f5dd39a74d093e8",
+    "author": "Karl Mehltretter",
+    "email": "kmehltretter@gmail.com",
+    "subject": "KVM: arm64: Return -EINVAL for an empty SMCCC filter range at base 0",
+    "kind": "upstream"
+  },
+  {
+    "commit": "3fbaf7bc3ff0d94b2fd8389aa8289224fc188515",
+    "author": "Fuad Tabba",
+    "email": "fuad.tabba@linux.dev",
+    "subject": "KVM: arm64: vgic-its: Skip unreachable devices instead of failing the save",
+    "kind": "upstream"
+  },
+  {
+    "commit": "170d5370ccf6e71d83959a0f7840927c0992b67b",
+    "author": "Fuad Tabba",
+    "email": "fuad.tabba@linux.dev",
+    "subject": "KVM: arm64: vgic-its: Free the caches when GITS_BASER changes",
+    "kind": "upstream"
+  },
+  {
+    "commit": "555e586d8170782daf24bbcbb14f73c2c53c5b8c",
+    "author": "Marc Zyngier",
+    "email": "maz@kernel.org",
+    "subject": "KVM: arm64: Remove VM-wide VNCR mapping counter",
+    "kind": "upstream"
+  },
+  {
+    "commit": "980ad20834842a8ee5ddb784d099276753e6ce64",
+    "author": "Marc Zyngier",
+    "email": "maz@kernel.org",
+    "subject": "KVM: arm64: Handle VNCR TLB invalidation race with vcpu_put() VNCR unmapping",
+    "kind": "upstream"
+  },
+  {
+    "commit": "9f89c1b839621419b3f5afa588b23d399c9db2ab",
+    "author": "Oliver Upton",
+    "email": "oupton@kernel.org",
+    "subject": "KVM: arm64: nv: Fully update VNCR fixmap state in kvm_translate_vncr()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "03cf9f76c81898ceb497ac16fbe0f03a4a92e4f1",
+    "author": "Fuad Tabba",
+    "email": "fuad.tabba@linux.dev",
+    "subject": "KVM: arm64: vgic-its: Don't dereference a NULL collection on ITT save",
+    "kind": "upstream"
+  },
+  {
+    "commit": "61445cdbbc59276badb2fffec6c9565d9443da14",
+    "author": "Fuad Tabba",
+    "email": "fuad.tabba@linux.dev",
+    "subject": "KVM: arm64: vgic: Reset in_kernel on private IRQ allocation failure",
+    "kind": "upstream"
+  },
+  {
+    "commit": "cf9bbe1ebd803c1d895e19963b3f4e802cd38eff",
+    "author": "Kajetan Puchalski",
+    "email": "kajetan.puchalski@arm.com",
+    "subject": "KVM: arm64: vgic: Fix detection of MI on no pending LR",
+    "kind": "upstream"
+  },
+  {
+    "commit": "033d38f76518d7da57d54efa4af7aa56c9730128",
+    "author": "Qihang",
+    "email": "q.h.hack.winter@gmail.com",
+    "subject": "KVM: arm64: vgic-v3: take an LPI reference in vgic_v3_save_pending_tables",
+    "kind": "upstream"
+  },
+  {
+    "commit": "562590b7a5e347c4c83387ff6ef48b893370389a",
+    "author": "Marc Zyngier",
+    "email": "maz@kernel.org",
+    "subject": "KVM: arm64: Sign-extend VA for range-based TLBI invalidation",
+    "kind": "upstream"
+  },
+  {
+    "commit": "56c801bbc369a057ed48e49cecd04df09fcdb1cd",
+    "author": "Marc Zyngier",
+    "email": "maz@kernel.org",
+    "subject": "KVM: arm64: Make VNCR invalidation participate in MMU invalidation retry",
+    "kind": "upstream"
+  },
+  {
+    "commit": "57ab59d69e9e9b7770655107834df529c67f4861",
+    "author": "Marc Zyngier",
+    "email": "maz@kernel.org",
+    "subject": "KVM: arm64: Correctly handle end of VA space TLBI invalidation",
+    "kind": "upstream"
+  },
+  {
+    "commit": "2a5a0ef79aba7e56d7fe57189b6a29d32b9bbdb4",
+    "author": "Marc Zyngier",
+    "email": "maz@kernel.org",
+    "subject": "KVM: arm64: Handle negative S1 walk levels in VNCR TLB size evaluation",
+    "kind": "upstream"
+  },
+  {
+    "commit": "7e7ba18c9275c6013e193a7240ded73b296578cc",
+    "author": "Marc Zyngier",
+    "email": "maz@kernel.org",
+    "subject": "KVM: arm64: Consider SCTLR_EL2.M when mapping the L1 VNCR page",
+    "kind": "upstream"
+  },
+  {
+    "commit": "e48ec68b18697d714e76a8feb37444dae56f12b5",
+    "author": "Alexandru Elisei",
+    "email": "alexandru.elisei@arm.com",
+    "subject": "KVM: arm64: Reject guest_memfd memslots when the VM has MTE",
+    "kind": "upstream"
+  },
+  {
+    "commit": "1dbd1780b5ddc98451ae3d1a38ed6d27e65daac5",
+    "author": "Oliver Upton",
+    "email": "oupton@kernel.org",
+    "subject": "KVM: arm64: nv: Re-translate VNCR before injecting abort",
+    "kind": "upstream"
+  },
+  {
+    "commit": "b4dcc685127c707470260cca07d0a3c091117543",
+    "author": "Marc Zyngier",
+    "email": "maz@kernel.org",
+    "subject": "KVM: arm64: Deduplicate ASID retrieval code",
+    "kind": "upstream"
+  },
+  {
+    "commit": "e6b9430ff5eeeb069f75ad9749eaa654c43153ef",
+    "author": "Marc Zyngier",
+    "email": "maz@kernel.org",
+    "subject": "KVM: arm64: Fix propagation of TLBI level in kvm_pgtable_stage2_relax_perms()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "bc6d7796a888ab97856b03f7a7dee1b021d9f9dd",
+    "author": "Oliver Upton",
+    "email": "oupton@kernel.org",
+    "subject": "KVM: arm64: Ensure level is always initialized when relaxing perms",
+    "kind": "upstream"
+  },
+  {
+    "commit": "9a2f52918d8ec3ec56ffec1583a0a2a2075cd15d",
+    "author": "Oliver Upton",
+    "email": "oupton@kernel.org",
+    "subject": "KVM: arm64: nv: Inject SEA if guest VNCR isn't normal memory",
+    "kind": "upstream"
+  },
+  {
+    "commit": "a267f73927eee911fca38e4e7726c843fd947a16",
+    "author": "Oliver Upton",
+    "email": "oupton@kernel.org",
+    "subject": "KVM: arm64: nv: Inject SEA if kvm_translate_vncr() can't resolve PFN",
+    "kind": "upstream"
+  },
+  {
+    "commit": "964297fb423cb10969d3c1c7361844b403b6092f",
+    "author": "Oliver Upton",
+    "email": "oupton@kernel.org",
+    "subject": "KVM: arm64: nv: Respect read-only PFN when mapping L1 VNCR",
+    "kind": "upstream"
+  },
+  {
+    "commit": "1d929c1eada7cac0d71084b64d95b0fe136a9552",
+    "author": "Weiming Shi",
+    "email": "bestswngs@gmail.com",
+    "subject": "KVM: arm64: nv: Fix SPSR_EL2 restore in kvm_hyp_handle_mops()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "ffea4505a98e9c64ca176d80f01b793d2cb2a518",
+    "author": "Fuad Tabba",
+    "email": "tabba@google.com",
+    "subject": "KVM: arm64: nv: Write ESR_EL2 for injected nested SError exceptions",
+    "kind": "upstream"
+  },
+  {
+    "commit": "f821cf8a52dae6bf695149d641c7b5f2ef63538c",
+    "author": "Oliver Upton",
+    "email": "oupton@kernel.org",
+    "subject": "KVM: arm64: nv: Drop bogus WARN for write to ZCR_EL2",
+    "kind": "upstream"
+  },
+  {
+    "commit": "1ca4d5688d52775427ad1c941f8709b05e7cd035",
+    "author": "Marc Zyngier",
+    "email": "maz@kernel.org",
+    "subject": "KVM: Move kvm_io_bus_get_dev() locking responsibilities to callers",
+    "kind": "upstream"
+  },
+  {
+    "commit": "83a4e93480b7fbede78ff028ee0da2c5091a0a72",
+    "author": "Marc Zyngier",
+    "email": "maz@kernel.org",
+    "subject": "KVM: arm64: vgic: Handle race between interrupt affinity change and LPI disabling",
+    "kind": "upstream"
+  },
+  {
+    "commit": "ab9c4ae7c20ce6de20872deee675247ff6238253",
+    "author": "Hyunwoo Kim",
+    "email": "imv4bel@gmail.com",
+    "subject": "KVM: arm64: vgic: Check the interrupt is still ours before migrating it",
+    "kind": "upstream"
+  },
+  {
+    "commit": "df18f522805e5e9451431f4215325f406aa0c976",
+    "author": "Oliver Upton",
+    "email": "oupton@kernel.org",
+    "subject": "KVM: arm64: Don't leak PFN when kvm_translate_vncr() races MMU notifier",
+    "kind": "upstream"
+  },
+  {
+    "commit": "e18fc2ae366fc65690e9ba3a8b997dce722e45a2",
+    "author": "Marc Zyngier",
+    "email": "maz@kernel.org",
+    "subject": "KVM: arm64: nv: Avoid dereferencing NULL VNCR pseudo-TLB",
+    "kind": "upstream"
+  },
+  {
+    "commit": "021818eb1ad6801e374b8f4ae1ac578ff99853d2",
+    "author": "Ard Biesheuvel",
+    "email": "ardb@kernel.org",
+    "subject": "KVM: arm64: Omit tag sync on stage-2 mappings of the zero page",
+    "kind": "upstream"
+  },
+  {
+    "commit": "94f9d894237a03e3c5ee5ecef6e8cecc775eac0c",
+    "author": "Joey Gouly",
+    "email": "joey.gouly@arm.com",
+    "subject": "KVM: arm64: Restore POR_EL0 access to host EL0",
+    "kind": "upstream"
+  },
+  {
+    "commit": "01f3709dcdfdf6fca9849e22328a775a58cb6761",
+    "author": "Hyunwoo Kim",
+    "email": "imv4bel@gmail.com",
+    "subject": "KVM: arm64: Take the SRCU lock for page table walks in fault injection and AT emulation",
+    "kind": "upstream"
+  },
+  {
+    "commit": "3415876addea96214873bdc372a9a77d8c684592",
+    "author": "Hyunwoo Kim",
+    "email": "imv4bel@gmail.com",
+    "subject": "KVM: arm64: Reassign nested_mmus array behind mmu_lock",
+    "kind": "upstream"
+  },
+  {
+    "commit": "370ee7f25cf655ed21e796a5a070f3055a0ad64c",
+    "author": "Qiang Ma",
+    "email": "maqianga@uniontech.com",
+    "subject": "KVM: arm64: PMU: Preserve AArch32 counter low bits",
+    "kind": "upstream"
+  },
+  {
+    "commit": "3173a344bc8837e8f8a203ad1740f6feec15e33b",
+    "author": "Michael Bommarito",
+    "email": "michael.bommarito@gmail.com",
+    "subject": "KVM: arm64: vgic: Free private_irqs when init fails after allocation",
+    "kind": "upstream"
+  },
+  {
+    "commit": "f5bfbf7138ec5c4ad2c33646fad4e8d92d0480f4",
+    "author": "Michael Bommarito",
+    "email": "michael.bommarito@gmail.com",
+    "subject": "KVM: arm64: vgic-its: Reject restored DTE with out-of-range num_eventid_bits",
+    "kind": "upstream"
+  },
+  {
+    "commit": "20d901119d841c3a77ff566dee4b574997259c8d",
+    "author": "Cen Zhang (Microsoft Security FORGE Labs)",
+    "email": "cenzhang@linux.microsoft.com",
+    "subject": "io_uring/cancel: don't spin on local work the task can't run",
+    "kind": "upstream"
+  },
+  {
+    "commit": "f58ae92bf6d1986718714bd9b100535e43ef7e66",
+    "author": "Jens Axboe",
+    "email": "axboe@kernel.dk",
+    "subject": "io_uring/cancel: move cancelation code from io_uring.c to cancel.c",
+    "kind": "upstream"
+  },
+  {
+    "commit": "19645e8b92ef354210a28fd71f59e1beeb8fb5da",
+    "author": "Jens Axboe",
+    "email": "axboe@kernel.dk",
+    "subject": "io_uring/cancel: move __io_uring_cancel() into cancel.c",
+    "kind": "upstream"
+  },
+  {
+    "commit": "01793b21f6a8850d92d8b5bac2be9236a4447574",
+    "author": "Jens Axboe",
+    "email": "axboe@kernel.dk",
+    "subject": "io_uring/cancel: move request/task cancelation logic into cancel.c",
+    "kind": "upstream"
+  },
+  {
+    "commit": "01b1e23829ffa9c23ba85db5ff5be99d6497f1e3",
+    "author": "Jens Axboe",
+    "email": "axboe@kernel.dk",
+    "subject": "io_uring/kbuf: don't charge provided buffer rings to RLIMIT_MEMLOCK",
+    "kind": "upstream"
+  },
+  {
+    "commit": "e8c6ff65fc1c74b5f77ab6cfd7e6451fd2cfb44c",
+    "author": "Hengyu Liang",
+    "email": "hengyul@cs.unc.edu",
+    "subject": "io_uring: do not charge the SQ/CQ rings to RLIMIT_MEMLOCK",
+    "kind": "upstream"
+  },
+  {
+    "commit": "b93c46bae559b3a7603a5158d59aecb78766a4db",
+    "author": "Jens Axboe",
+    "email": "axboe@kernel.dk",
+    "subject": "io_uring: fix task_work add use-after-free with SQPOLL",
+    "kind": "upstream"
+  },
+  {
+    "commit": "2defdd22014a2db5b208dbe9f1fcdfa0a02485bf",
+    "author": "Junyuan Feng",
+    "email": "a@lollipopkit.com",
+    "subject": "io_uring/zcrx: requeue multishot receives stopped by a local resource",
+    "kind": "upstream"
+  },
+  {
+    "commit": "2ac36e1cc6ec606fd921d083b22676ea0b7dcfce",
+    "author": "lollipopkit",
+    "email": "a@lolli.tech",
+    "subject": "io_uring/cmd_net: end TX_TIMESTAMP multishot when the CQ is full",
+    "kind": "upstream"
+  },
+  {
+    "commit": "dcbea9df862da712f5279122d09eafc0d6d9385e",
+    "author": "Jens Axboe",
+    "email": "axboe@kernel.dk",
+    "subject": "io_uring/rw: end write accounting from ->ki_complete",
+    "kind": "upstream"
+  },
+  {
+    "commit": "909276798657676adfb7bd43a18b2efb4cbfa552",
+    "author": "Gabriel Krisman Bertazi",
+    "email": "krisman@suse.de",
+    "subject": "io_uring/net: don't overconsume buffers when using MSG_TRUNC",
+    "kind": "upstream"
+  },
+  {
+    "commit": "09c05bb71490c239df818ffeb1dd3dbedf1cf4e7",
+    "author": "Gabriel Krisman Bertazi",
+    "email": "krisman@suse.de",
+    "subject": "io_uring/net: let io_recv_buf_select return the length of the buffer region",
+    "kind": "upstream"
+  },
+  {
+    "commit": "20fae6f54c4894dc1275f409ef2aca8e70b912b2",
+    "author": "Jens Axboe",
+    "email": "axboe@kernel.dk",
+    "subject": "io_uring/waitid: fix KCSAN warning on io_waitid->head",
+    "kind": "upstream"
+  },
+  {
+    "commit": "6ed24ea38e0e9714f6a69e65e802d10e44c48583",
+    "author": "Jens Axboe",
+    "email": "axboe@kernel.dk",
+    "subject": "io_uring/waitid: use io_waitid_remove_wq() consistently",
+    "kind": "upstream"
+  },
+  {
+    "commit": "0b4d2a87f5c73699f3055fac5f0877bf0d0c7ac5",
+    "author": "Hui Su",
+    "email": "sh_def@163.com",
+    "subject": "io_uring/waitid: avoid siginfo copy during ring teardown",
+    "kind": "upstream"
+  },
+  {
+    "commit": "6319e02440ad9e6cb89a3555853e1ec4a4bb6334",
+    "author": "Hui Su",
+    "email": "sh_def@163.com",
+    "subject": "io_uring/waitid: honor task_work cancellation",
+    "kind": "upstream"
+  },
+  {
+    "commit": "d08b3d70cb11b4b491902bcfb81e79cb8b252770",
+    "author": "Caleb Sander Mateos",
+    "email": "csander@purestorage.com",
+    "subject": "io_uring: add wrapper type for io_req_tw_func_t arg",
+    "kind": "upstream"
+  },
+  {
+    "commit": "4350182aa8d7a0efe55c9f911c9aa482df3eb7f6",
+    "author": "Jens Axboe",
+    "email": "axboe@kernel.dk",
+    "subject": "io_uring/waitid: have io_waitid_complete() remove wait queue entry",
+    "kind": "upstream"
+  },
+  {
+    "commit": "65c553abf36e448ab81b8eb4d6afc8015f0419f8",
+    "author": "Laxman Acharya Padhya",
+    "email": "acharyalaxman8848@gmail.com",
+    "subject": "io_uring/query: cap user size passed to copy_struct_to_user",
+    "kind": "upstream"
+  },
+  {
+    "commit": "c4afcb89de2001e36cce3571488f2232adbcbffd",
+    "author": "Jens Axboe",
+    "email": "axboe@kernel.dk",
+    "subject": "io_uring: defer eventfd signaling when queued from a wakeup handler",
+    "kind": "upstream"
+  },
+  {
+    "commit": "2c377e18b5bfcb6ffcdb6f361aeb90e5d8a30278",
+    "author": "Pavel Begunkov",
+    "email": "asml.silence@gmail.com",
+    "subject": "io_uring/rsrc: improve regbuf iov validation",
+    "kind": "upstream"
+  },
+  {
+    "commit": "8608e22f939614c5e3268b15465e1052a15cf737",
+    "author": "Caleb Sander Mateos",
+    "email": "csander@purestorage.com",
+    "subject": "io_uring: simplify IORING_SETUP_DEFER_TASKRUN && !SQPOLL check",
+    "kind": "upstream"
+  },
+  {
+    "commit": "a56de69de4801a6b598e9671761fa90961136132",
+    "author": "Jens Axboe",
+    "email": "axboe@kernel.dk",
+    "subject": "io_uring/futex: only mark private futex waits as inflight",
+    "kind": "upstream"
+  },
+  {
+    "commit": "ba705366f3eb750ca7a060500e8569d60e19f7d8",
+    "author": "Jens Axboe",
+    "email": "axboe@kernel.dk",
+    "subject": "io_uring/uring_cmd: don't skip completion for a synchronous multishot cmd",
+    "kind": "upstream"
+  },
+  {
+    "commit": "63bcb1bde7a77a5bbb53b1940a104691d72ae5ed",
+    "author": "Ali Ahmet Memis",
+    "email": "ali@iusegentoo.com",
+    "subject": "io_uring/rsrc: fix folio size overflow in io_vec_fill_bvec()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "125aa61e8b79a704e19604171ec4ae85e33555ae",
+    "author": "Vishnu Razdan",
+    "email": "vrazdan@openai.com",
+    "subject": "io_uring/io-wq: fix worker accounting when canceling creation callbacks",
+    "kind": "upstream"
+  },
+  {
+    "commit": "e3b2c48f12b7034b85f4d719d81035e599b42b67",
+    "author": "Woraphat Khiaodaeng",
+    "email": "worapat.kd2@gmail.com",
+    "subject": "io_uring/cmd: fix iovec leak when the async cmd is not recycled",
+    "kind": "upstream"
+  },
+  {
+    "commit": "bb74e8ca2534db5db0f11f695f0cf15ee7d02f67",
+    "author": "Jens Axboe",
+    "email": "axboe@kernel.dk",
+    "subject": "io_uring/futex: don't mark futex wake requests as inflight",
+    "kind": "upstream"
+  },
+  {
+    "commit": "db38884bba0a913ff981710e9e71919fe077934e",
+    "author": "Jens Axboe",
+    "email": "axboe@kernel.dk",
+    "subject": "io_uring/net: initialize mshot_len for send",
+    "kind": "upstream"
+  },
+  {
+    "commit": "6a757b4018dd390347f66f29b3fe99d4aabd93a7",
+    "author": "Yitang Yang",
+    "email": "yi1tang.yang@gmail.com",
+    "subject": "io_uring/rw: fix missing ERESTARTSYS conversion in read paths",
+    "kind": "upstream"
+  },
+  {
+    "commit": "094b7e26542d58a8f3773c3b7541609fb9ee9bed",
+    "author": "Michael Wigham",
+    "email": "michael@wigham.net",
+    "subject": "io_uring/rw: preserve partial result for iopoll",
+    "kind": "upstream"
+  },
+  {
+    "commit": "bd1095732d0427f07b5a4a276f60d7e0169ef154",
+    "author": "Runyu Xiao",
+    "email": "runyu.xiao@seu.edu.cn",
+    "subject": "io_uring/io-wq: re-check IO_WQ_BIT_EXIT for each linked work item",
+    "kind": "upstream"
+  },
+  {
+    "commit": "b474b838a522b029f3d2ab17555e998b1bf2f8e3",
+    "author": "Vasileios Almpanis",
+    "email": "vasilisalmpanis@gmail.com",
+    "subject": "io_uring/nop: fix file reference leak with IOSQE_FIXED_FILE",
+    "kind": "upstream"
+  },
+  {
+    "commit": "96d189a8be45c1c8a97be4a96306e820b581aa58",
+    "author": "Gabriel Krisman Bertazi",
+    "email": "krisman@suse.de",
+    "subject": "io_uring/net: Avoid msghdr on op_connect/op_bind async data",
+    "kind": "upstream"
+  },
+  {
+    "commit": "9e384214786c689d9b280172945676e5988afb1e",
+    "author": "Christian A. Ehrhardt",
+    "email": "lk@c--e.de",
+    "subject": "io_uring/wait: fix min_timeout behavior",
+    "kind": "upstream"
+  },
+  {
+    "commit": "0a93610c250e2bb4d3681f6aa64367837a5c9f0a",
+    "author": "Jens Axboe",
+    "email": "axboe@kernel.dk",
+    "subject": "io_uring/kbuf: don't truncate end buffer for bundles",
+    "kind": "upstream"
+  },
+  {
+    "commit": "aff088d93d3081dfb7ba21911f3f27bef0f93702",
+    "author": "Clément Léger",
+    "email": "cleger@meta.com",
+    "subject": "io_uring/net: inherit IORING_CQE_F_BUF_MORE across bundle recv retries",
+    "kind": "upstream"
+  },
+  {
+    "commit": "fb505efbb8d832238381958cdbc17c89517a7f18",
+    "author": "Alexander A. Klimov",
+    "email": "grandmaster@al2klimov.de",
+    "subject": "io_uring/nop: pass all errors to userspace",
+    "kind": "upstream"
+  },
+  {
+    "commit": "8ef86717bc36e22a6eb1c2170dbf6d8b01814918",
+    "author": "Jens Axboe",
+    "email": "axboe@kernel.dk",
+    "subject": "io_uring/net: punt IORING_OP_BIND async if it needs file create",
+    "kind": "upstream"
+  },
+  {
+    "commit": "e1d856d83fcda972053b9ec6436eb74ce4d2d63d",
+    "author": "Heechan Kang",
+    "email": "gganji11@naver.com",
+    "subject": "io_uring/waitid: clear waitid info before copying it to userspace",
+    "kind": "upstream"
+  },
+  {
+    "commit": "2db2de3431ca0aace4d7cdcd0f4f6de45f0df2cd",
+    "author": "Nicholas Carlini",
+    "email": "nicholas@carlini.com",
+    "subject": "io-wq: check that the predecessor is hashed in io_wq_remove_pending()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "c6172da6ebfb63a01fad0ed111946d39b242b3c8",
+    "author": "Jens Axboe",
+    "email": "axboe@kernel.dk",
+    "subject": "io_uring/napi: cap busy_poll_to 10 msec",
+    "kind": "upstream"
+  },
+  {
+    "commit": "2dab4047cba7f728d7d496a41b710a4a8f9efde5",
+    "author": "Hao Ge",
+    "email": "hao.ge@linux.dev",
+    "subject": "netfs: Fix missing alloc tagging of direct mempool allocations",
+    "kind": "upstream"
+  },
+  {
+    "commit": "365f2b4eacb68876e90db83825ccedd4e86a2c1c",
+    "author": "David Howells",
+    "email": "dhowells@redhat.com",
+    "subject": "netfs, afs: Fix symlink reading",
+    "kind": "upstream"
+  },
+  {
+    "commit": "d658a3a70a913a801c8d1616cc54eb952b59dd15",
+    "author": "David Howells",
+    "email": "dhowells@redhat.com",
+    "subject": "netfs: Fix folio_queue ENOMEM in writeback by adding a mempool",
+    "kind": "upstream"
+  },
+  {
+    "commit": "fa52d06c4b0d943486edf217021b304ce4164f18",
+    "author": "David Howells",
+    "email": "dhowells@redhat.com",
+    "subject": "netfs: Fix zeropoint update where i_size > remote_i_size",
+    "kind": "upstream"
+  },
+  {
+    "commit": "1e16e704b3fdad7a8db5fca0461013e1062b7b0f",
+    "author": "Paulo Alcantara",
+    "email": "pc@manguebit.org",
+    "subject": "netfs: zero the tail of a short DIO/unbuffered read",
+    "kind": "upstream"
+  },
+  {
+    "commit": "bbd0a9fe80acd556f0123244c5e9da0fe29695f8",
+    "author": "Paulo Alcantara",
+    "email": "pc@manguebit.org",
+    "subject": "netfs: clear post-EOF pagecache when extending a file via write",
+    "kind": "upstream"
+  },
+  {
+    "commit": "773bb3627a89b316ee88f9f4dbf2a31d8f679724",
+    "author": "Paulo Alcantara",
+    "email": "pc@manguebit.org",
+    "subject": "netfs: zero gaps in read-gaps folio to avoid writing back stale data",
+    "kind": "upstream"
+  },
+  {
+    "commit": "1ef246441bd7afbb7d4c12d4ac3f8f76c1705c3c",
+    "author": "Karl Mehltretter",
+    "email": "kmehltretter@gmail.com",
+    "subject": "netfs: Fix uninitialized return value in netfs_unbuffered_write()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "9d3abe8d4da68d524337f3c9e8d35523a08a0dc8",
+    "author": "Edward Adam Davis",
+    "email": "eadavis@qq.com",
+    "subject": "netfs: break unbuffered write when netfs_alloc_subrequest() fails",
+    "kind": "upstream"
+  },
+  {
+    "commit": "2a3a4591c00c149561359b3ae7d03f3fedabcfbf",
+    "author": "David Howells",
+    "email": "dhowells@redhat.com",
+    "subject": "netfs: Fix subreq ref leak",
+    "kind": "upstream"
+  },
+  {
+    "commit": "8ef7cbf6d073c9a4d935a3a61b8beb92eb69c297",
+    "author": "David Howells",
+    "email": "dhowells@redhat.com",
+    "subject": "netfs: Fix i_size update for partial transfer",
+    "kind": "upstream"
+  },
+  {
+    "commit": "7b58bfd91124842d44397111cb2109195d7bfde7",
+    "author": "David Howells",
+    "email": "dhowells@redhat.com",
+    "subject": "netfs: Fix error vs transferred passed to ->ki_complete()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "a997c80dbf11ca22e17874696c05b000eeb9b1e8",
+    "author": "David Howells",
+    "email": "dhowells@redhat.com",
+    "subject": "netfs: Fix unbuffered/DIO write partial transfer error return",
+    "kind": "upstream"
+  },
+  {
+    "commit": "cd0d1e0f60fc20162a13c17b59a424e76b64bc1b",
+    "author": "David Howells",
+    "email": "dhowells@redhat.com",
+    "subject": "netfs: Fix barriering when walking subrequest list",
+    "kind": "upstream"
+  },
+  {
+    "commit": "2585587a2b57421eea3b31287e2dc563a8a64b2c",
+    "author": "David Howells",
+    "email": "dhowells@redhat.com",
+    "subject": "netfs: Fix decision whether to disallow write-streaming due to fscache use",
+    "kind": "upstream"
+  },
+  {
+    "commit": "5a1f486aeba09061535e32be2d33d2a28798e4e0",
+    "author": "David Howells",
+    "email": "dhowells@redhat.com",
+    "subject": "netfs: Fix missing locking around retry adding new subreqs",
+    "kind": "upstream"
+  },
+  {
+    "commit": "393bf030abcc77db91c537f09429884d6ac76b2a",
+    "author": "Yichong Chen",
+    "email": "chenyichong@uniontech.com",
+    "subject": "netfs: release readahead folios on iterator preparation failure",
+    "kind": "upstream"
+  },
+  {
+    "commit": "ced8ef11c0de669d25a91fa39efaf64e94fcd8ba",
+    "author": "Yichong Chen",
+    "email": "chenyichong@uniontech.com",
+    "subject": "netfs: handle single writeback rolling buffer allocation failure",
+    "kind": "upstream"
+  },
+  {
+    "commit": "fe432c05ef5619efeadd29d655573c98ec95ac75",
+    "author": "Yichong Chen",
+    "email": "chenyichong@uniontech.com",
+    "subject": "netfs: clear PG_private_2 on copy-to-cache append failure",
+    "kind": "upstream"
+  },
+  {
+    "commit": "2c908241ff8464f421629ae83eb270d5353927dd",
+    "author": "David Howells",
+    "email": "dhowells@redhat.com",
+    "subject": "netfs: Fix folio state after ENOMEM whilst under writeback iteration",
+    "kind": "upstream"
+  },
+  {
+    "commit": "9ffce3639cb1e6c9c11fa6927c1348c3242f74db",
+    "author": "David Howells",
+    "email": "dhowells@redhat.com",
+    "subject": "netfs: Fix writeback error handling",
+    "kind": "upstream"
+  },
+  {
+    "commit": "b6377fa1005006c94640d356983f5f1ab068f06b",
+    "author": "David Howells",
+    "email": "dhowells@redhat.com",
+    "subject": "netfs: Fix writethrough to use collection offload",
+    "kind": "upstream"
+  },
+  {
+    "commit": "e8111be75823027ba5ebc47e72ef53dfc4003d30",
+    "author": "David Howells",
+    "email": "dhowells@redhat.com",
+    "subject": "netfs: Fix netfs_create_write_req() to handle async cache object creation",
+    "kind": "upstream"
+  },
+  {
+    "commit": "a8668ff11bd6bf0d9eec65a4ac59d2498bc00812",
+    "author": "David Howells",
+    "email": "dhowells@redhat.com",
+    "subject": "netfs, afs: Fix write skipping in dir/link writepages",
+    "kind": "upstream"
+  },
+  {
+    "commit": "456e2b7140cef4f3ed2d55f4b9193b7da6693d9a",
+    "author": "David Howells",
+    "email": "dhowells@redhat.com",
+    "subject": "netfs: Fix netfs_read_folio() to wait on writeback",
+    "kind": "upstream"
+  },
+  {
+    "commit": "55db450c4182e8cdd892badfc0e689443d388ad1",
+    "author": "David Howells",
+    "email": "dhowells@redhat.com",
+    "subject": "netfs: Fix folio->private handling in netfs_perform_write()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "dca41b6f399b3c45860b6b3bc708cd3bc4f70be8",
+    "author": "David Howells",
+    "email": "dhowells@redhat.com",
+    "subject": "netfs: Fix partial invalidation of streaming-write folio",
+    "kind": "upstream"
+  },
+  {
+    "commit": "379930d6bb1fbf4b3679c4a7056af3f4adb8edd2",
+    "author": "David Howells",
+    "email": "dhowells@redhat.com",
+    "subject": "netfs: Fix potential UAF in netfs_unlock_abandoned_read_pages()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "d3edbb06901f9372a50793c176985dd5ed5ad0c2",
+    "author": "David Howells",
+    "email": "dhowells@redhat.com",
+    "subject": "netfs: Fix leak of request in netfs_write_begin() error handling",
+    "kind": "upstream"
+  },
+  {
+    "commit": "fe501a795837dd2de95e3ef44b5ca3141057354f",
+    "author": "David Howells",
+    "email": "dhowells@redhat.com",
+    "subject": "netfs: Fix early put of sink folio in netfs_read_gaps()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "d8dee208d051370cff78062d3c8bd8f923aa7998",
+    "author": "David Howells",
+    "email": "dhowells@redhat.com",
+    "subject": "netfs: Fix write streaming disablement if fd open O_RDWR",
+    "kind": "upstream"
+  },
+  {
+    "commit": "08a650317d912af4660236ea5b5b658905da1def",
+    "author": "David Howells",
+    "email": "dhowells@redhat.com",
+    "subject": "netfs: Fix read-gaps to remove netfs_folio from filled folio",
+    "kind": "upstream"
+  },
+  {
+    "commit": "42edc5d116c289eccd24ad9725b537813d96cebf",
+    "author": "David Howells",
+    "email": "dhowells@redhat.com",
+    "subject": "netfs: Fix potential deadlock in write-through mode",
+    "kind": "upstream"
+  },
+  {
+    "commit": "8e51c92ad70dea38d6922c4cb0eab5cd08d033c2",
+    "author": "David Howells",
+    "email": "dhowells@redhat.com",
+    "subject": "netfs: Fix streaming write being overwritten",
+    "kind": "upstream"
+  },
+  {
+    "commit": "f84815bca0cd9a21abb130574db517042aa73e7a",
+    "author": "David Howells",
+    "email": "dhowells@redhat.com",
+    "subject": "netfs: Defer the emission of trace_netfs_folio()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "1035c72786f296771d47cba6bc98204fa6f98772",
+    "author": "David Howells",
+    "email": "dhowells@redhat.com",
+    "subject": "netfs: Fix netfs_invalidate_folio() to clear dirty bit if all changes gone",
+    "kind": "upstream"
+  },
+  {
+    "commit": "2d2a5f89e72739131b404ea86def5ccbc1cde5c1",
+    "author": "David Howells",
+    "email": "dhowells@redhat.com",
+    "subject": "netfs: Fix overrun check in netfs_extract_user_iter()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "6475fb2c7bb2c681f98e4919fe887489c0625155",
+    "author": "Viacheslav Dubeyko",
+    "email": "Slava.Dubeyko@ibm.com",
+    "subject": "netfs: fix VM_BUG_ON_FOLIO() issue in netfs_write_begin() call",
+    "kind": "upstream"
+  },
+  {
+    "commit": "05139d01e6f2888eee971b410359bf7fb127e640",
+    "author": "David Howells",
+    "email": "dhowells@redhat.com",
+    "subject": "netfs: Fix netfs_read_to_pagecache() to pause on subreq failure",
+    "kind": "upstream"
+  },
+  {
+    "commit": "b29f17c1edeaf09e5e5e7f32d356d721e0844f4d",
+    "author": "David Howells",
+    "email": "dhowells@redhat.com",
+    "subject": "netfs: Fix potential uninitialised var in netfs_extract_user_iter()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "a552810ad55c82b0d57f3bdab95d129e6eb18b1d",
+    "author": "Paulo Alcantara",
+    "email": "pc@manguebit.org",
+    "subject": "netfs: fix error handling in netfs_extract_user_iter()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "86821e178398ccd300d4a8e6a4293353974d19cf",
+    "author": "Krystian Kaniewski",
+    "email": "krystianmkaniewski@gmail.com",
+    "subject": "ring-buffer: Fix false warning in ring_buffer_map_get_reader()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "8f9241e5026c3f9a73c9e3f518af9451faa410b1",
+    "author": "Donggeun Yoo",
+    "email": "donggeunyoo.kernel@gmail.com",
+    "subject": "ring-buffer: Fix the sub-buffer array base in rb_meta_subbuf_idx()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "563391ff28fd39c49153d8bf687345596fe29f85",
+    "author": "David Carlier",
+    "email": "devnexen@gmail.com",
+    "subject": "ring-buffer: Do not show buffer_meta for CPUs without a buffer",
+    "kind": "upstream"
+  },
+  {
+    "commit": "f31ee40fa609aa3ff735d9c8f9a051a3c2c3f02c",
+    "author": "Steven Rostedt",
+    "email": "rostedt@goodmis.org",
+    "subject": "ring-buffer: Add checking nr_subbufs to persistent ring buffer validation",
+    "kind": "upstream"
+  },
+  {
+    "commit": "f518eaeb67bed962e173b88f1a17ca978b3d5c47",
+    "author": "Masami Hiramatsu (Google)",
+    "email": "mhiramat@kernel.org",
+    "subject": "ring-buffer: Skip invalid sub-buffers when validating persistent ring buffer",
+    "kind": "upstream"
+  },
+  {
+    "commit": "4afcaddb418f5d54d06096b8c7977d3ab21f3b1d",
+    "author": "David Carlier",
+    "email": "devnexen@gmail.com",
+    "subject": "ring-buffer: Check resize_disabled before publishing the new subbuf order",
+    "kind": "upstream"
+  },
+  {
+    "commit": "b2f716b096884030f424f2c22ec7fac8e3bba7b8",
+    "author": "Sebastian Andrzej Siewior",
+    "email": "bigeasy@linutronix.de",
+    "subject": "ring-buffer: Acquire the lock with irqsave in rb_wake_up_waiters()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "06b3700ede88ec2991c2bcdccdd8f8939a726d81",
+    "author": "Vincent Donnefort",
+    "email": "vdonnefort@google.com",
+    "subject": "ring-buffer: Remove trace_buffer::cpus",
+    "kind": "upstream"
+  },
+  {
+    "commit": "479b2a99476f85b5d0250202b486c917c212e45a",
+    "author": "Vincent Donnefort",
+    "email": "vdonnefort@google.com",
+    "subject": "ring-buffer: Allow splice reads on static buffers",
+    "kind": "upstream"
+  },
+  {
+    "commit": "fa129c27b01e8a2d411af56c34fc0f830a8c2b1b",
+    "author": "Steven Rostedt",
+    "email": "rostedt@goodmis.org",
+    "subject": "ring-buffer: Show persistent buffer dropped events in trace_pipe file",
+    "kind": "upstream"
+  },
+  {
+    "commit": "d57e42746c106020e66caf7712554800cab3e5f6",
+    "author": "Vincent Donnefort",
+    "email": "vdonnefort@google.com",
+    "subject": "ring-buffer: Make cpu_buffer::free_page a buffer_data_read_page",
+    "kind": "upstream"
+  },
+  {
+    "commit": "20aefd5814d5021a0864117a6c2d3345fd79c1e3",
+    "author": "Vincent Donnefort",
+    "email": "vdonnefort@google.com",
+    "subject": "ring-buffer: Hold cpu_buffer::lock when resizing a subbuf",
+    "kind": "upstream"
+  },
+  {
+    "commit": "e5ecc75756664d534a23b6fc56ec315f19e957c7",
+    "author": "Vincent Donnefort",
+    "email": "vdonnefort@google.com",
+    "subject": "ring-buffer: Free cpu_buffer::free_page with subbuf_order",
+    "kind": "upstream"
+  },
+  {
+    "commit": "01cd22eaa1b38fa7026c9cc319d31e60ed2228a0",
+    "author": "Vincent Donnefort",
+    "email": "vdonnefort@google.com",
+    "subject": "ring-buffer: Fix subbuf resize race with ring_buffer_alloc_read_page()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "e58a9beff904dbfab3880b91e27fab7bdd6f44a9",
+    "author": "Vincent Donnefort",
+    "email": "vdonnefort@google.com",
+    "subject": "ring-buffer: Prevent resizing of persistent ring buffer",
+    "kind": "upstream"
+  },
+  {
+    "commit": "d96deb819a1af23454a184c0ba670b8f55800486",
+    "author": "Vincent Donnefort",
+    "email": "vdonnefort@google.com",
+    "subject": "ring-buffer: Store bpage pointers into subbuf_ids",
+    "kind": "upstream"
+  },
+  {
+    "commit": "d7e0ce6f656db4fb68a491fe531db2668c2213b6",
+    "author": "Tengda Wu",
+    "email": "wutengda@huaweicloud.com",
+    "subject": "ring-buffer: Use current_context for safe per-CPU buffer swap",
+    "kind": "upstream"
+  },
+  {
+    "commit": "6a2979faab3fb94e6d268278331ed52104a427bc",
+    "author": "Vincent Donnefort",
+    "email": "vdonnefort@google.com",
+    "subject": "ring-buffer: Initialise reader page order in rb_allocate_cpu_buffer()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "58a55e6fa4eeca72b20c0df6a8a078a9eced2267",
+    "author": "Vincent Donnefort",
+    "email": "vdonnefort@google.com",
+    "subject": "ring-buffer: Prevent subbuf order change when resizing is disabled",
+    "kind": "upstream"
+  },
+  {
+    "commit": "927b50883ba6e65e505ec02f43e5473afea614bd",
+    "author": "Hui Su",
+    "email": "sh_def@163.com",
+    "subject": "ring-buffer: Fix crash passing ERR_PTR to kthread_stop()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "21a91440b88ec022914ed98c99b0129759404296",
+    "author": "Masami Hiramatsu (Google)",
+    "email": "mhiramat@kernel.org",
+    "subject": "fprobe: Fix module reference count leak on error in register_fprobe()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "e80a61d43b85e349bdd6c6aca02f7c8ef7ff055a",
+    "author": "Hui Wang",
+    "email": "hui.wang@canonical.com",
+    "subject": "ring-buffer: Fix event length with forced 8-byte alignment",
+    "kind": "upstream"
+  },
+  {
+    "commit": "a123589d61bef4038aeda6718adbed57b1ad28d8",
+    "author": "Sechang Lim",
+    "email": "rhkrqnwk98@gmail.com",
+    "subject": "tracing/fprobe: Fix NULL pointer dereference in fprobe_fgraph_entry()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "327894aaeb0db5c0580f74043c0faa5f72ac86c7",
+    "author": "Masami Hiramatsu (Google)",
+    "email": "mhiramat@kernel.org",
+    "subject": "fprobe: Fix unregister_fprobe() to wait for RCU grace period",
+    "kind": "upstream"
+  },
+  {
+    "commit": "6ac3db8a2aa28cd5be05f0a3ef56f3526ba11ef0",
+    "author": "Masami Hiramatsu (Google)",
+    "email": "mhiramat@kernel.org",
+    "subject": "ring-buffer: Flush and stop persistent ring buffer on panic",
+    "kind": "upstream"
+  },
+  {
+    "commit": "e7bc25efaaa1ec85a7e82a1d3cbcd80ca355d69b",
+    "author": "Steven Rostedt",
+    "email": "rostedt@goodmis.org",
+    "subject": "ring-buffer: Fix reporting of missed events in iterator",
+    "kind": "upstream"
+  },
+  {
+    "commit": "a41d2378167ea53a5ed06386f55ea8379f22ac0a",
+    "author": "Adrian Hunter",
+    "email": "adrian.hunter@intel.com",
+    "subject": "i3c: mipi-i3c-hci: Fix race in i3c_hci_addr_to_dev()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "caf62a4c057d23ed020270b414aeec98bda46ce3",
+    "author": "Adrian Hunter",
+    "email": "adrian.hunter@intel.com",
+    "subject": "i3c: mipi-i3c-hci: Tolerate i3c_master_add_i3c_dev_locked() failures in DAA",
+    "kind": "upstream"
+  },
+  {
+    "commit": "2f856d06da774dd4aa15ee38e4424c37216648f5",
+    "author": "Stanley Chu",
+    "email": "yschu@nuvoton.com",
+    "subject": "i3c: master: svc: Prevent IRQ storm from false SLVSTART on NPCM845",
+    "kind": "upstream"
+  },
+  {
+    "commit": "0428b2603c6d6e4f08c7576722355901748ba8fd",
+    "author": "Tommaso Merciai",
+    "email": "tommaso.merciai.xr@bp.renesas.com",
+    "subject": "i3c: renesas: Don't register devices when ENTDAA times out",
+    "kind": "upstream"
+  },
+  {
+    "commit": "3f39be6ba663db760ce0d8651e900b7971c3de87",
+    "author": "Claudiu Beznea",
+    "email": "claudiu.beznea.uj@bp.renesas.com",
+    "subject": "i3c: renesas: Follow a unified pattern for transfer and command initialization",
+    "kind": "upstream"
+  },
+  {
+    "commit": "bd95b1aca933ac0f5bcd06abd7fc48607e8f9629",
+    "author": "Claudiu Beznea",
+    "email": "claudiu.beznea.uj@bp.renesas.com",
+    "subject": "i3c: renesas: Return immediately if there is no transfer",
+    "kind": "upstream"
+  },
+  {
+    "commit": "ed9b720e59b28c7bddd7c7d09ddefdf8f5ac0aae",
+    "author": "Can Peng",
+    "email": "pengcan@kylinos.cn",
+    "subject": "i3c: master: adi: add OF module alias for autoloading",
+    "kind": "upstream"
+  },
+  {
+    "commit": "fce59fd4c85748927447f7f0ae73a5524b725783",
+    "author": "Jakub Kicinski",
+    "email": "kuba@kernel.org",
+    "subject": "i3c: dw: avoid shift-out-of-bounds when DAA assigns no devices",
+    "kind": "upstream"
+  },
+  {
+    "commit": "6580891396898c7fc08a99000b5819c698581e36",
+    "author": "Adrian Hunter",
+    "email": "adrian.hunter@intel.com",
+    "subject": "i3c: master: Fix use-after-free of master->this",
+    "kind": "upstream"
+  },
+  {
+    "commit": "7f4d9085a930ab495f37b6447eb3b1be396b9b97",
+    "author": "Adrian Hunter",
+    "email": "adrian.hunter@intel.com",
+    "subject": "i3c: master: Do not treat master device as a duplicate target",
+    "kind": "upstream"
+  },
+  {
+    "commit": "e7aa6aaf76a0d0aafe937c1aceb2b1bd56fcc6ac",
+    "author": "Adrian Hunter",
+    "email": "adrian.hunter@intel.com",
+    "subject": "i3c: master: Fix device_register() error path",
+    "kind": "upstream"
+  },
+  {
+    "commit": "7255619e972af04bba0ab9981ac2655b1d0f5028",
+    "author": "Claudiu Beznea",
+    "email": "claudiu.beznea.uj@bp.renesas.com",
+    "subject": "i3c: renesas: Reconfigure the DATBAS register on re-attach",
+    "kind": "upstream"
+  },
+  {
+    "commit": "4d8c95baef972b557efe00d1526f67cd47b8090d",
+    "author": "Claudiu Beznea",
+    "email": "claudiu.beznea.uj@bp.renesas.com",
+    "subject": "i3c: renesas: Clean DATBAS register on detach",
+    "kind": "upstream"
+  },
+  {
+    "commit": "5717e1a3d202e9475d0a93056df9528b34c3b933",
+    "author": "Claudiu Beznea",
+    "email": "claudiu.beznea.uj@bp.renesas.com",
+    "subject": "i3c: renesas: Check that the transfer is valid before accessing it",
+    "kind": "upstream"
+  },
+  {
+    "commit": "a4c9d9aa60d39980bcdd99596063198bb028f551",
+    "author": "Maoyi Xie",
+    "email": "maoyixie.tju@gmail.com",
+    "subject": "i3c: master: svc: bound IBI payload to the requested max_payload_len",
+    "kind": "upstream"
+  },
+  {
+    "commit": "94d3cdf2a0acd58963ddbd289f7131302cf4b53c",
+    "author": "Adrian Hunter",
+    "email": "adrian.hunter@intel.com",
+    "subject": "i3c: master: Fix info leak and UAF in device unregister path",
+    "kind": "upstream"
+  },
+  {
+    "commit": "45e0512a5ce15f3477122a42a1c6d665f2d26631",
+    "author": "Runyu Xiao",
+    "email": "runyu.xiao@seu.edu.cn",
+    "subject": "i3c: master: adi: initialize the lock before enabling interrupts",
+    "kind": "upstream"
+  },
+  {
+    "commit": "38679378b8af7edeced24184c35f148afd7ccb14",
+    "author": "Adrian Hunter",
+    "email": "adrian.hunter@intel.com",
+    "subject": "i3c: mipi-i3c-hci: Fix handling of shared IRQs during early initialization",
+    "kind": "upstream"
+  },
+  {
+    "commit": "22da9cec047918e4a8fc107473fa7e6661e4d027",
+    "author": "Adrian Hunter",
+    "email": "adrian.hunter@intel.com",
+    "subject": "i3c: mipi-i3c-hci: Fix Hot-Join NACK",
+    "kind": "upstream"
+  },
+  {
+    "commit": "94f2527434f6036aa22be5f01a9fd149cc317a55",
+    "author": "Adrian Hunter",
+    "email": "adrian.hunter@intel.com",
+    "subject": "i3c: master: Prevent reuse of dynamic address on device add failure",
+    "kind": "upstream"
+  },
+  {
+    "commit": "1e321ab28c984b85281660b1804358ff17f35498",
+    "author": "Adrian Hunter",
+    "email": "adrian.hunter@intel.com",
+    "subject": "i3c: master: Replace WARN_ON() with dev_err() in i3c_dev_free_ibi_locked()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "8c6626480efbab9b03bd3ba3cfd421cebfb22898",
+    "author": "Adrian Hunter",
+    "email": "adrian.hunter@intel.com",
+    "subject": "i3c: master: Make hot-join workqueue freezable to block hot-join during suspend",
+    "kind": "upstream"
+  },
+  {
+    "commit": "4f4b01e16b043d1cafff61a6873dc24b27060d9b",
+    "author": "Marco Crivellari",
+    "email": "marco.crivellari@suse.com",
+    "subject": "i3c: master: add WQ_PERCPU to alloc_workqueue users",
+    "kind": "upstream"
+  },
+  {
+    "commit": "198b1180927f8a6575219063b7f09d3600c78dcf",
+    "author": "Adrian Hunter",
+    "email": "adrian.hunter@intel.com",
+    "subject": "i3c: mipi-i3c-hci: Preserve RUN bit when aborting DMA ring",
+    "kind": "upstream"
+  },
+  {
+    "commit": "d598eb13c219ea145d7541d7133848d65d10c350",
+    "author": "Adrian Hunter",
+    "email": "adrian.hunter@intel.com",
+    "subject": "i3c: mipi-i3c-hci: Switch PIO data allocation to devm_kzalloc()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "3741b887082caa33d633a7079fbb6cacec94ea5e",
+    "author": "Adrian Hunter",
+    "email": "adrian.hunter@intel.com",
+    "subject": "i3c: mipi-i3c-hci: Allow for Multi-Bus Instances",
+    "kind": "upstream"
+  },
+  {
+    "commit": "d4b6b5b3466388b445a9fef63cbab1ff8434787b",
+    "author": "Adrian Hunter",
+    "email": "adrian.hunter@intel.com",
+    "subject": "i3c: mipi-i3c-hci: Quieten initialization messages",
+    "kind": "upstream"
+  },
+  {
+    "commit": "ed9c701730d2a4e8a4a044a43e897fe3ea74b741",
+    "author": "Stanley Chu",
+    "email": "yschu@nuvoton.com",
+    "subject": "i3c: master: svc: Fix missed IBI after false SLVSTART on NPCM845",
+    "kind": "upstream"
+  },
+  {
+    "commit": "bd9a4066c6198489e6eb98dd0e8a3bcb6091ff03",
+    "author": "Billy Tsai",
+    "email": "billy_tsai@aspeedtech.com",
+    "subject": "i3c: mipi-i3c-hci: fix IBI payload length calculation for final status",
+    "kind": "upstream"
+  },
+  {
+    "commit": "534282d91e7f989358759566c13aa7ac72fe4500",
+    "author": "Jorge Marques",
+    "email": "jorge.marques@analog.com",
+    "subject": "i3c: master: adi: Fix error propagation for CCCs",
+    "kind": "upstream"
+  },
+  {
+    "commit": "c036ba276db96bb3b3cc6458c4eee00fac07a1c8",
+    "author": "Felix Gu",
+    "email": "ustc.gu@gmail.com",
+    "subject": "i3c: dw: Fix memory leak in dw_i3c_master_i3c_xfers()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "5c7ca3f5f8e96e7c83147be019f9b322ec3aeeb3",
+    "author": "Felix Gu",
+    "email": "ustc.gu@gmail.com",
+    "subject": "i3c: master: renesas: Fix memory leak in renesas_i3c_i3c_xfers()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "7e8cff6973b3b73ef1d2406e8e9bd019f0a8fc28",
+    "author": "Felix Gu",
+    "email": "ustc.gu@gmail.com",
+    "subject": "i3c: master: dw-i3c: Fix missing reset assertion in remove() callback",
+    "kind": "upstream"
+  },
+  {
+    "commit": "780b6574e3f38d58422979008d802805103160be",
+    "author": "Mathias Nyman",
+    "email": "mathias.nyman@linux.intel.com",
+    "subject": "xhci: Prevent queuing new commands if xhci is inaccessible",
+    "kind": "upstream"
+  },
+  {
+    "commit": "f11a4d3e22ce9491849717ed95cae80b881405ef",
+    "author": "Niklas Neronin",
+    "email": "niklas.neronin@linux.intel.com",
+    "subject": "usb: xhci: remove legacy 'num_trbs_free' tracking",
+    "kind": "upstream"
+  },
+  {
+    "commit": "3a21f4d336c946146d5c17ae440f521f00886e97",
+    "author": "Michal Pecio",
+    "email": "michal.pecio@gmail.com",
+    "subject": "usb: xhci: Improve Soft Retries after short transfers",
+    "kind": "upstream"
+  },
+  {
+    "commit": "2c56045ab132909054e9ffb3b27dfd9a2ca62286",
+    "author": "Niklas Neronin",
+    "email": "niklas.neronin@linux.intel.com",
+    "subject": "usb: xhci: use cached HCSPARAMS1 value",
+    "kind": "upstream"
+  },
+  {
+    "commit": "1949efc3e2d9dd03456cfd9ac652cff048f5d9c8",
+    "author": "Niklas Neronin",
+    "email": "niklas.neronin@linux.intel.com",
+    "subject": "usb: xhci: add helper to read PORTSC register",
+    "kind": "upstream"
+  },
+  {
+    "commit": "1cf170ed06c9dd2569707b1892702247d9e00708",
+    "author": "Niklas Neronin",
+    "email": "niklas.neronin@linux.intel.com",
+    "subject": "usb: xhci: add tracing for PORTSC register writes",
+    "kind": "upstream"
+  },
+  {
+    "commit": "08fe044778c2f4316e3bd9b013a58f62bb15630e",
+    "author": "Arthur Gautier",
+    "email": "baloo@superbaloo.net",
+    "subject": "xhci: fix lost bounce buffers on TDs spanning several ring segments",
+    "kind": "upstream"
+  },
+  {
+    "commit": "10885264e19dca71cbb4f1603b7a413bdf9a92cf",
+    "author": "Lucas De Marchi",
+    "email": "ldemarchi@nvidia.com",
+    "subject": "xhci: dbgtty: Fix unregister on tty_alloc_driver() failure",
+    "kind": "upstream"
+  },
+  {
+    "commit": "74c428ca36d0da6558db1cca49ff66e480acba62",
+    "author": "Lucas De Marchi",
+    "email": "ldemarchi@nvidia.com",
+    "subject": "xhci: dbgtty: Fix unregister on tty_register_driver() failure",
+    "kind": "upstream"
+  },
+  {
+    "commit": "a5abfe37335543eec01cf49c1ba68f69f5f6fb9f",
+    "author": "Semih Baskan",
+    "email": "strst.gs@gmail.com",
+    "subject": "usb: xhci: Handle USB3 port events when there is one roothub",
+    "kind": "upstream"
+  },
+  {
+    "commit": "7ded9c47742dbbe065af4e5c6a084cb73dedb83f",
+    "author": "Michal Pecio",
+    "email": "michal.pecio@gmail.com",
+    "subject": "usb: xhci: Handle bogus TRB pointers in Missed Service Error events",
+    "kind": "upstream"
+  },
+  {
+    "commit": "7c1fe2c6cd5b806f28ffad6ad28fe6ab52635c72",
+    "author": "Xu Rao",
+    "email": "raoxu@uniontech.com",
+    "subject": "xhci: sideband: fix ring sg table pages leak",
+    "kind": "upstream"
+  },
+  {
+    "commit": "af03fa09bb9bc0d0293cdb95d41b730bde82d2d6",
+    "author": "胡连勤",
+    "email": "hulianqin@vivo.com",
+    "subject": "usb: xhci: Fix sleep in atomic context in xhci_free_streams()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "4d8287cb1ee6955dc3ed4e4319f713ad457ad226",
+    "author": "Wei-Cheng Chen",
+    "email": "weichengc@nvidia.com",
+    "subject": "xhci: tegra: Fix ghost USB device on dual-role port unplug",
+    "kind": "upstream"
+  },
+  {
+    "commit": "60ca41541e63d8d4f46687612dc0e0ed330802c4",
+    "author": "Felix Fietkau",
+    "email": "nbd@nbd.name",
+    "subject": "wifi: mac80211: add ieee80211_txq_aql_pending()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "fb0cc6e5517b8df46f0a54523a4c28992a6c152d",
+    "author": "Felix Fietkau",
+    "email": "nbd@nbd.name",
+    "subject": "wifi: mac80211: add AQL support for multicast packets",
+    "kind": "upstream"
+  },
+  {
+    "commit": "bbad9b3e526e74f89625823d255fc03966a4186d",
+    "author": "Zhao Li",
+    "email": "enderaoelyther@gmail.com",
+    "subject": "wifi: nl80211: clean up color-change beacon data on errors",
+    "kind": "upstream"
+  },
+  {
+    "commit": "ca13cc9ab6d2bfbdfa8dcb50afa4e551a6029fa4",
+    "author": "Zhao Li",
+    "email": "enderaoelyther@gmail.com",
+    "subject": "wifi: mac80211: capture fast-RX rate before mesh reuses skb->cb",
+    "kind": "upstream"
+  },
+  {
+    "commit": "a0a7ef68250aa64e3fb94a40b459082f98e4873a",
+    "author": "Sarika Sharma",
+    "email": "sarika.sharma@oss.qualcomm.com",
+    "subject": "wifi: mac80211: fix missing RX bitrate update for mesh forwarding path",
+    "kind": "upstream"
+  },
+  {
+    "commit": "ec93ee1f5e801786e415c90477df339560e5bd8a",
+    "author": "Johannes Berg",
+    "email": "johannes.berg@intel.com",
+    "subject": "wifi: cfg80211: enforce HE/EHT cap/oper consistency",
+    "kind": "upstream"
+  },
+  {
+    "commit": "f0ef368925dadf9fe5fe30a3dc2eaa1f4a2697ff",
+    "author": "Felix Fietkau",
+    "email": "nbd@nbd.name",
+    "subject": "wifi: mac80211: set info->band for 802.3 encap offload frames",
+    "kind": "upstream"
+  },
+  {
+    "commit": "22e90532c754c46f58124e7476860c5d1e09a8fa",
+    "author": "Tamizh Chelvam Raja",
+    "email": "tamizh.raja@oss.qualcomm.com",
+    "subject": "wifi: mac80211: Add sta pointer sanity check in ieee80211_8023_xmit()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "54e47d2ecb30d9d0706fa63fbaddd26ade31fb4c",
+    "author": "Yuqi Xu",
+    "email": "xuyuqiabc@gmail.com",
+    "subject": "wifi: mac80211: handle empty FILS association request payload",
+    "kind": "upstream"
+  },
+  {
+    "commit": "e70c123de3162ad55f7509330798099397ffd45e",
+    "author": "Zihan Xi",
+    "email": "zihanx@nebusec.ai",
+    "subject": "wifi: mac80211: fix mesh fast xmit path deletion UAF",
+    "kind": "upstream"
+  },
+  {
+    "commit": "860e34912fc4f1f9d683c4cb6a8b47b1ff572e8d",
+    "author": "Zhao Li",
+    "email": "enderaoelyther@gmail.com",
+    "subject": "wifi: mac80211: release mesh path quota on failed additions",
+    "kind": "upstream"
+  },
+  {
+    "commit": "4bb23270fa61d42a1a72cfdc43d4fa3ac9672af5",
+    "author": "Ruide Cao",
+    "email": "caoruide123@gmail.com",
+    "subject": "wifi: mac80211: reject invalid 320 MHz CSA bandwidth",
+    "kind": "upstream"
+  },
+  {
+    "commit": "41f27372dbeaf2a724b665d517e5c919811c71f5",
+    "author": "Yuqi Xu",
+    "email": "xuyuqiabc@gmail.com",
+    "subject": "wifi: mac80211: minstrel_ht: validate fixed rate index",
+    "kind": "upstream"
+  },
+  {
+    "commit": "ab2b948f0f3a52458aaee937c01b33d720423edc",
+    "author": "Zhao Li",
+    "email": "enderaoelyther@gmail.com",
+    "subject": "wifi: mac80211: keep fallback association elements alive",
+    "kind": "upstream"
+  },
+  {
+    "commit": "26f29b69cf1f120e55ca9f7ab3b20fe4a692b8fa",
+    "author": "Zhao Li",
+    "email": "enderaoelyther@gmail.com",
+    "subject": "wifi: mac80211: account proxy paths against the mesh path limit",
+    "kind": "upstream"
+  },
+  {
+    "commit": "580bc6a2853990fa07b10cad427f9ea7fcded05f",
+    "author": "Zhao Li",
+    "email": "enderaoelyther@gmail.com",
+    "subject": "wifi: mac80211: drain PS delivery work during station teardown",
+    "kind": "upstream"
+  },
+  {
+    "commit": "f74170c90660415d88f8eac6321ed2fb734186c6",
+    "author": "Zhao Li",
+    "email": "enderaoelyther@gmail.com",
+    "subject": "wifi: mac80211: shut down RX BA session timer on teardown",
+    "kind": "upstream"
+  },
+  {
+    "commit": "eddebe52addb549a213e0260258b155b4675cc0f",
+    "author": "Zhiling Zou",
+    "email": "zhilinz@nebusec.ai",
+    "subject": "wifi: mac80211: keep paired old chanctx alive",
+    "kind": "upstream"
+  },
+  {
+    "commit": "f944f3c75222f3f7f566dbb249e39a55a234b11a",
+    "author": "Stanislaw Gruszka",
+    "email": "stf_xl@wp.pl",
+    "subject": "wifi: cfg80211: fix RTS threshold setting for single-radio PHY",
+    "kind": "upstream"
+  },
+  {
+    "commit": "6ec7bbaa0e1aa19f7310cef19ee46af189e4b4e7",
+    "author": "Felix Fietkau",
+    "email": "nbd@nbd.name",
+    "subject": "wifi: mac80211: prevent AP VLAN tx from other interfaces",
+    "kind": "upstream"
+  },
+  {
+    "commit": "a712e1fd62e899b976a2db02f2fe6817df8e781c",
+    "author": "Tamizh Chelvam Raja",
+    "email": "tamizh.raja@oss.qualcomm.com",
+    "subject": "wifi: mac80211: Add 802.3 multicast encapsulation offload support",
+    "kind": "upstream"
+  },
+  {
+    "commit": "0b403784cf56de40cd6574f3830e86a5355f568f",
+    "author": "Tamizh Chelvam Raja",
+    "email": "tamizh.raja@oss.qualcomm.com",
+    "subject": "wifi: mac80211: Add multicast to unicast support for 802.3 path",
+    "kind": "upstream"
+  },
+  {
+    "commit": "58d43d36eb7b62414096a56fcd7719b3acc324ee",
+    "author": "Zhao Li",
+    "email": "enderaoelyther@gmail.com",
+    "subject": "wifi: cfg80211: preserve hidden-group beacon IE ownership",
+    "kind": "upstream"
+  },
+  {
+    "commit": "c176b625fd7fe9535eae2420705cc4f9bddcd8b3",
+    "author": "Yuchao Zhang",
+    "email": "ndaugoing@gmail.com",
+    "subject": "wifi: mac80211: drop oversized fragments to avoid extra_len overflow",
+    "kind": "upstream"
+  },
+  {
+    "commit": "688c2d4cdad9dcdbcd94ba423b0f3048c2d0c498",
+    "author": "Johannes Berg",
+    "email": "johannes.berg@intel.com",
+    "subject": "wifi: mac80211: remove RX_DROP",
+    "kind": "upstream"
+  },
+  {
+    "commit": "05b4a337e447fda89b243f8ecc000d85c3450ac7",
+    "author": "Dmitry Antipov",
+    "email": "dmantipov@yandex.ru",
+    "subject": "wifi: mac80211: fix list iteration in ieee80211_add_virtual_monitor()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "8a1caddb97915d1a870ab580cec4e683ce4d08a8",
+    "author": "Eric Biggers",
+    "email": "ebiggers@kernel.org",
+    "subject": "wifi: mac80211, cfg80211: Export michael_mic() and move it to cfg80211",
+    "kind": "upstream"
+  },
+  {
+    "commit": "976c3cf423ba621efbea48affb9b92deab4b9b2b",
+    "author": "Devin Wittmayer",
+    "email": "lucid_duck@justthetip.ca",
+    "subject": "wifi: mac80211: refuse to make a monitor active when it has no queue",
+    "kind": "upstream"
+  },
+  {
+    "commit": "92572ae14065ea50deb9bd95ab4f23089e65bcca",
+    "author": "Benjamin Berg",
+    "email": "benjamin.berg@intel.com",
+    "subject": "wifi: mac80211: track MU-MIMO configuration on disabled interfaces",
+    "kind": "upstream"
+  },
+  {
+    "commit": "3f79b7618fa9ac51ef23a50bfaf2489759bc262e",
+    "author": "Rik van Riel",
+    "email": "riel@surriel.com",
+    "subject": "wifi: mac80211: avoid WARN in set_bitrate_mask when sdata not in driver",
+    "kind": "upstream"
+  },
+  {
+    "commit": "e7174e9ce77253bae9ead573ec2c791c03a1d097",
+    "author": "Johannes Berg",
+    "email": "johannes.berg@intel.com",
+    "subject": "wifi: mac80211: set up the TX info early to fix failure paths",
+    "kind": "upstream"
+  },
+  {
+    "commit": "6c19c8a4d81ed60074028f6290667dc37b62bd03",
+    "author": "Johannes Berg",
+    "email": "johannes.berg@intel.com",
+    "subject": "wifi: mac80211: mesh: release the channel if start fails",
+    "kind": "upstream"
+  },
+  {
+    "commit": "57dc9165a6b902b4fd67a86626ec547651b9a377",
+    "author": "Johannes Berg",
+    "email": "johannes.berg@intel.com",
+    "subject": "wifi: mac80211: mesh: reset the CSA state when leaving",
+    "kind": "upstream"
+  },
+  {
+    "commit": "194d7e2cb0856ca10480c0bc5b9a35b9523bc421",
+    "author": "Johannes Berg",
+    "email": "johannes.berg@intel.com",
+    "subject": "wifi: mac80211: add HE 6 GHz capability in the scan elems len",
+    "kind": "upstream"
+  },
+  {
+    "commit": "5b09c3e229ec423fb6703d1e96ac27a9440b6098",
+    "author": "Johannes Berg",
+    "email": "johannes.berg@intel.com",
+    "subject": "wifi: mac80211: don't access the TSF of a down interface",
+    "kind": "upstream"
+  },
+  {
+    "commit": "cfd275279f93f4155c792bf9912adacfca352202",
+    "author": "Johannes Berg",
+    "email": "johannes.berg@intel.com",
+    "subject": "wifi: mac80211: don't RCU-dereference the mesh CSA settings we just set",
+    "kind": "upstream"
+  },
+  {
+    "commit": "17312180d695ff1e8de221ad34f45e9390a2781f",
+    "author": "Johannes Berg",
+    "email": "johannes.berg@intel.com",
+    "subject": "wifi: mac80211: don't allow link changes when iface is down",
+    "kind": "upstream"
+  },
+  {
+    "commit": "8eedc47d3baec0b3b6a53aa736066f2047a1b06e",
+    "author": "Johannes Berg",
+    "email": "johannes.berg@intel.com",
+    "subject": "wifi: mac80211: require a peer station for TDLS setup confirm",
+    "kind": "upstream"
+  },
+  {
+    "commit": "3e98586c4e846c4ad73a366bada285ffb51e1483",
+    "author": "Johannes Berg",
+    "email": "johannes.berg@intel.com",
+    "subject": "wifi: mac80211: reset the AP_VLAN tailroom counter on ifdown",
+    "kind": "upstream"
+  },
+  {
+    "commit": "1436898dc1903ad83c4b21e5195e23ba80ff2218",
+    "author": "Johannes Berg",
+    "email": "johannes.berg@intel.com",
+    "subject": "wifi: mac80211: don't allow injecting frames wider than the chanctx",
+    "kind": "upstream"
+  },
+  {
+    "commit": "08b5cebd76872b63d1577588530b8df0b9307b27",
+    "author": "Johannes Berg",
+    "email": "johannes.berg@intel.com",
+    "subject": "wifi: cfg80211: get the wiphy out of a dying network namespace",
+    "kind": "upstream"
+  },
+  {
+    "commit": "1c5d61fdb2975ce3a9c60b4c4315d1164ecc682a",
+    "author": "Johannes Berg",
+    "email": "johannes.berg@intel.com",
+    "subject": "wifi: mac80211: unlist vifs when their netdev is unregistered",
+    "kind": "upstream"
+  },
+  {
+    "commit": "df1a52da79b042da8250f1859c32d997e2b8ebf0",
+    "author": "Johannes Berg",
+    "email": "johannes.berg@intel.com",
+    "subject": "wifi: cfg80211: undo netns switch if renaming the wiphy fails",
+    "kind": "upstream"
+  },
+  {
+    "commit": "c1725bcd103870e25cd0c3cf60ae092b44dbee90",
+    "author": "Johannes Berg",
+    "email": "johannes.berg@intel.com",
+    "subject": "wifi: cfg80211: restore netns_immutable on failures",
+    "kind": "upstream"
+  },
+  {
+    "commit": "216479a24bd9ec14732351e7ee2da2280794d9b7",
+    "author": "Johannes Berg",
+    "email": "johannes.berg@intel.com",
+    "subject": "wifi: mac80211: reset state when starting AP fails",
+    "kind": "upstream"
+  },
+  {
+    "commit": "cb21f826f4d9cb84dcd0d662ab5ae262c8d665c2",
+    "author": "Johannes Berg",
+    "email": "johannes.berg@intel.com",
+    "subject": "wifi: mac80211: abort chanswitch when leaving a mesh",
+    "kind": "upstream"
+  },
+  {
+    "commit": "47e86ffb814417b94f65431ad19c7257feb61deb",
+    "author": "Johannes Berg",
+    "email": "johannes.berg@intel.com",
+    "subject": "wifi: mac80211: suppress chanctx warning for debugfs reset",
+    "kind": "upstream"
+  },
+  {
+    "commit": "9714cf52d014452dd1f077fcfac485010a4a752d",
+    "author": "Johannes Berg",
+    "email": "johannes.berg@intel.com",
+    "subject": "wifi: mac80211: don't offload TC setup on AP_VLAN interfaces",
+    "kind": "upstream"
+  },
+  {
+    "commit": "74c8c310134c574bd69095f1d9fd53d7eaff24e1",
+    "author": "Johannes Berg",
+    "email": "johannes.berg@intel.com",
+    "subject": "wifi: mac80211: don't warn when an IBSS has no channel to scan",
+    "kind": "upstream"
+  },
+  {
+    "commit": "09432410d7eb9a3eb40ef596fdd863a949fab951",
+    "author": "Johannes Berg",
+    "email": "johannes.berg@intel.com",
+    "subject": "wifi: mac80211: don't start a ROC while scanning",
+    "kind": "upstream"
+  },
+  {
+    "commit": "3cf3d908375a8d2d5b2ea1e5e2a3bb60e865a6e4",
+    "author": "Johannes Berg",
+    "email": "johannes.berg@intel.com",
+    "subject": "wifi: cfg80211: don't filter by BSS type when removing stale entries",
+    "kind": "upstream"
+  },
+  {
+    "commit": "4d679e75b3a4895e47dc220e5c1325e972230b87",
+    "author": "Johannes Berg",
+    "email": "johannes.berg@intel.com",
+    "subject": "wifi: cfg80211: only group hidden BSSes with beacon entries",
+    "kind": "upstream"
+  },
+  {
+    "commit": "50b33b1cff9a3267049f01e5aa43a961ed989a36",
+    "author": "Johannes Berg",
+    "email": "johannes.berg@intel.com",
+    "subject": "wifi: cfg80211: don't free driver-owned scan requests",
+    "kind": "upstream"
+  },
+  {
+    "commit": "cfe8b198f6359e07c6d49da0231ec16ff075c1f1",
+    "author": "Johannes Berg",
+    "email": "johannes.berg@intel.com",
+    "subject": "wifi: cfg80211: check IP header size in cfg80211_classify8021d()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "44bfeb990c352a6656c40f95671ca731bc49652d",
+    "author": "Johannes Berg",
+    "email": "johannes.berg@intel.com",
+    "subject": "wifi: cfg80211: don't get the radio mask for netdev-less wdevs",
+    "kind": "upstream"
+  },
+  {
+    "commit": "3100817d8fea4b5d1173807e42b876842237892e",
+    "author": "Lachlan Hodges",
+    "email": "lachlan.hodges@morsemicro.com",
+    "subject": "wifi: mac80211: include TIM bitmap control for buffered S1G mcast traffic",
+    "kind": "upstream"
+  },
+  {
+    "commit": "7956d3061e4f358a1bd6256bf19437e411e269b2",
+    "author": "Deepanshu Kartikey",
+    "email": "kartikey406@gmail.com",
+    "subject": "wifi: cfg80211: validate IEs in cfg80211_wext_siwgenie()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "8e094c60684eb58d9d54ecb0d1926e564b20b71f",
+    "author": "Pagadala Yesu Anjaneyulu",
+    "email": "pagadala.yesu.anjaneyulu@intel.com",
+    "subject": "wifi: mac80211: ibss: wait for in-flight TX on disconnect",
+    "kind": "upstream"
+  },
+  {
+    "commit": "21dc130cd4233d34be6ab9fb4c898f710c483f89",
+    "author": "Zhao Li",
+    "email": "enderaoelyther@gmail.com",
+    "subject": "wifi: cfg80211: validate rx/tx MLME callback frame lengths before access",
+    "kind": "upstream"
+  },
+  {
+    "commit": "21d155f69e99a119cadc6f220be72b5aebdbd0d2",
+    "author": "Zhao Li",
+    "email": "enderaoelyther@gmail.com",
+    "subject": "wifi: cfg80211: validate assoc response length before status and IE access",
+    "kind": "upstream"
+  },
+  {
+    "commit": "8eed4814d1f05bc2e5bf0101b44e47938e447442",
+    "author": "Zhao Li",
+    "email": "enderaoelyther@gmail.com",
+    "subject": "wifi: mac80211: validate deauth frame length before reason access",
+    "kind": "upstream"
+  },
+  {
+    "commit": "4bd34addb9530e5fc49e8f77257c60c83b33ec08",
+    "author": "Thiyagarajan Pandiyan",
+    "email": "thiyagarajan@aerlync.com",
+    "subject": "wifi: nl80211: Increase ie_len size to prevent truncated IEs in new peer notifications",
+    "kind": "upstream"
+  },
+  {
+    "commit": "801ea4c9417c57a6a9324f08fc90e2e5c681ed4a",
+    "author": "Johannes Berg",
+    "email": "johannes.berg@intel.com",
+    "subject": "wifi: cfg80211: harden cfg80211_defragment_element()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "d7260f205f553b7add756f02239346438a9b2e7a",
+    "author": "Johannes Berg",
+    "email": "johannes.berg@intel.com",
+    "subject": "wifi: mac80211: unify link STA removal in vif link removal",
+    "kind": "upstream"
+  },
+  {
+    "commit": "efaa781795b9b4ddb6c47ed1326ebe56fdb49da8",
+    "author": "Johannes Berg",
+    "email": "johannes.berg@intel.com",
+    "subject": "wifi: mac80211: clarify beacon parsing with MBSSID/EMA",
+    "kind": "upstream"
+  },
+  {
+    "commit": "835ed37392f22a4503421d0bfeeb0a2f6e222f48",
+    "author": "Miri Korenblit",
+    "email": "miriam.rachel.korenblit@intel.com",
+    "subject": "wifi: mac80211: don't call ieee80211_handle_reconfig_failure when not needed",
+    "kind": "upstream"
+  },
+  {
+    "commit": "8f83e145081ca23a820205970d637a29bf60a2b8",
+    "author": "Johannes Berg",
+    "email": "johannes.berg@intel.com",
+    "subject": "wifi: mac80211: explicitly disable FTM responder on AP stop",
+    "kind": "upstream"
+  },
+  {
+    "commit": "0bf32ccb5771e2bfeeab111b69dd915122290509",
+    "author": "Miri Korenblit",
+    "email": "miriam.rachel.korenblit@intel.com",
+    "subject": "wifi: mac80211: avoid out-of-bounds access in monitor",
+    "kind": "upstream"
+  },
+  {
+    "commit": "a8229cf973502999b2459f8a200d2ceb4efea311",
+    "author": "Johannes Berg",
+    "email": "johannes.berg@intel.com",
+    "subject": "wifi: mac80211: use chandef in ieee80211_get_sta_bw()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "3e8863f9b95229d2d62c71e0f16a0a9f7c9756ff",
+    "author": "Johannes Berg",
+    "email": "johannes.berg@intel.com",
+    "subject": "wifi: nl80211: check link is beaconing for color change",
+    "kind": "upstream"
+  },
+  {
+    "commit": "e3b8dfc896648bdecba3439f09e1d2ef1412fe0a",
+    "author": "Johannes Berg",
+    "email": "johannes.berg@intel.com",
+    "subject": "wifi: nl80211: reject beacons with bad HE operation",
+    "kind": "upstream"
+  },
+  {
+    "commit": "3b1183548e49bf2593f71abfc801740010936d77",
+    "author": "Yuqi Xu",
+    "email": "xuyuqiabc@gmail.com",
+    "subject": "wifi: cfg80211: reject duplicate wiphy cipher suite entries",
+    "kind": "upstream"
+  },
+  {
+    "commit": "d17dee1330c545f5a38c5d0342022ad7acef75b6",
+    "author": "Felix Fietkau",
+    "email": "nbd@nbd.name",
+    "subject": "wifi: mac80211: skip default WMM setup for AP_VLAN links",
+    "kind": "upstream"
+  },
+  {
+    "commit": "035904ca91fa74b8421e3ac74cca34a8f4e17e7c",
+    "author": "Zhao Li",
+    "email": "enderaoelyther@gmail.com",
+    "subject": "wifi: cfg80211: stop PMSR before P2P and NAN teardown",
+    "kind": "upstream"
+  },
+  {
+    "commit": "6cdf49f33cf81b4ad6b489789a4baea5866315be",
+    "author": "Johannes Berg",
+    "email": "johannes.berg@intel.com",
+    "subject": "wifi: mac80211: disconnect on CSA to channel 0",
+    "kind": "upstream"
+  },
+  {
+    "commit": "b66d341a79d50e112326ce088f250e3825899150",
+    "author": "Zhao Li",
+    "email": "enderaoelyther@gmail.com",
+    "subject": "wifi: mac80211: skip unused probe response countdown offsets",
+    "kind": "upstream"
+  },
+  {
+    "commit": "9dbc8a6aa87819feb8062a314a458f7fd41c676a",
+    "author": "Zhao Li",
+    "email": "enderaoelyther@gmail.com",
+    "subject": "wifi: mac80211: send TWT teardown to peer after setup TX failure",
+    "kind": "upstream"
+  },
+  {
+    "commit": "5dc2ab17486146979729660bb6bd7c4ded8b2e61",
+    "author": "Zhao Li",
+    "email": "enderaoelyther@gmail.com",
+    "subject": "wifi: mac80211: fix per-STA profile length in cross-link CSA parsing",
+    "kind": "upstream"
+  },
+  {
+    "commit": "1b102e94a8d31d407de364460d8162caec7da9aa",
+    "author": "Zhao Li",
+    "email": "enderaoelyther@gmail.com",
+    "subject": "wifi: mac80211: validate individual TWT params before driver setup",
+    "kind": "upstream"
+  },
+  {
+    "commit": "4854bc3d233c604a3938398d711654a181ef6285",
+    "author": "Andrew Pope",
+    "email": "andrew.pope@morsemicro.com",
+    "subject": "wifi: mac80211: recalculate TIM when a station enters power save",
+    "kind": "upstream"
+  },
+  {
+    "commit": "2b2eabbfb3608df754659d249f0339bc303e6b8c",
+    "author": "Xiang Mei",
+    "email": "xmei5@asu.edu",
+    "subject": "wifi: mac80211: tear down new links on vif update error path",
+    "kind": "upstream"
+  },
+  {
+    "commit": "7c0ac5789f2251961eb0ea8595f30fc827dfb09c",
+    "author": "HE WEI (ギカク)",
+    "email": "skyexpoc@gmail.com",
+    "subject": "wifi: cfg80211: bound element ID read when checking non-inheritance",
+    "kind": "upstream"
+  },
+  {
+    "commit": "e2114b42a6042a5d32bb268358b9adc2f610a4fa",
+    "author": "Cen Zhang",
+    "email": "zzzccc427@gmail.com",
+    "subject": "wifi: mac80211: free AP_VLAN bc_buf SKBs outside IRQ lock",
+    "kind": "upstream"
+  },
+  {
+    "commit": "8f28110e9ecab866588585c8df73e1e422fa893b",
+    "author": "Zhao Li",
+    "email": "enderaoelyther@gmail.com",
+    "subject": "wifi: mac80211: avoid non-S1G AID fallback for S1G assoc",
+    "kind": "upstream"
+  },
+  {
+    "commit": "dea190da2d9ac871d21deacd89ecd05b973a99e9",
+    "author": "Zhao Li",
+    "email": "enderaoelyther@gmail.com",
+    "subject": "wifi: cfg80211: reject unsupported PMSR FTM location requests",
+    "kind": "upstream"
+  },
+  {
+    "commit": "77c72fd0a39a551b0be182240f5b5cee1332a285",
+    "author": "Zhao Li",
+    "email": "enderaoelyther@gmail.com",
+    "subject": "wifi: cfg80211: validate PMSR FTM preamble range",
+    "kind": "upstream"
+  },
+  {
+    "commit": "a4ea905fd3414414aebb3c9986f59a4a353dbd57",
+    "author": "Zhao Li",
+    "email": "enderaoelyther@gmail.com",
+    "subject": "wifi: cfg80211: validate PMSR measurement type data",
+    "kind": "upstream"
+  },
+  {
+    "commit": "f2f27c11deac32997fad5119423efd7b3468260e",
+    "author": "Zhao Li",
+    "email": "enderaoelyther@gmail.com",
+    "subject": "wifi: nl80211: constrain MBSSID TX link ID range",
+    "kind": "upstream"
+  },
+  {
+    "commit": "d7bb938613154c97a5194ec98dfc4abe1956d187",
+    "author": "Zhao Li",
+    "email": "enderaoelyther@gmail.com",
+    "subject": "wifi: nl80211: validate nested MBSSID IE blobs",
+    "kind": "upstream"
+  },
+  {
+    "commit": "4b33291fa1516429da7e789d35d33986e35347fb",
+    "author": "Zhao Li",
+    "email": "enderaoelyther@gmail.com",
+    "subject": "wifi: cfg80211: derive S1G beacon TSF from S1G fields",
+    "kind": "upstream"
+  },
+  {
+    "commit": "938de0c93c451b55c49f8cc255a8b21c5c9f3bbc",
+    "author": "Zhao Li",
+    "email": "enderaoelyther@gmail.com",
+    "subject": "wifi: nl80211: free RNR data on MBSSID mismatch",
+    "kind": "upstream"
+  },
+  {
+    "commit": "6622053a81a55085324435f6bdb11e7aacbbfdaf",
+    "author": "Maoyi Xie",
+    "email": "maoyixie.tju@gmail.com",
+    "subject": "wifi: mac80211: defer link RX stats percpu free to RCU",
+    "kind": "upstream"
+  },
+  {
+    "commit": "ab111d3093594fb8f230c1763e944f9ab6581158",
+    "author": "Xiang Mei",
+    "email": "xmei5@asu.edu",
+    "subject": "wifi: mac80211: fix fils_discovery double free on alloc failure",
+    "kind": "upstream"
+  },
+  {
+    "commit": "29e1acba230ff1d7fa55e70cf4390d00a2158d93",
+    "author": "Xiang Mei",
+    "email": "xmei5@asu.edu",
+    "subject": "wifi: mac80211: fix unsol_bcast_probe_resp double free on alloc failure",
+    "kind": "upstream"
+  },
+  {
+    "commit": "4c1581683a3ccae2bad728716496a3bcb32c5103",
+    "author": "Christophe JAILLET",
+    "email": "christophe.jaillet@wanadoo.fr",
+    "subject": "wifi: cfg80211: Fix an error handling path in cfg80211_wext_siwscan()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "bec42ab637f7b72d422d31ec13a984ed9246d636",
+    "author": "Cen Zhang",
+    "email": "zzzccc427@gmail.com",
+    "subject": "wifi: cfg80211: cancel sched scan results work on unregister",
+    "kind": "upstream"
+  },
+  {
+    "commit": "64c680d0465fec0bc9246bfa727ae48d501da2d9",
+    "author": "Zhiling Zou",
+    "email": "roxy520tt@gmail.com",
+    "subject": "wifi: mac80211: free ack status frame on TX header build failure",
+    "kind": "upstream"
+  },
+  {
+    "commit": "ae21ee463f4ce4af629ef4432d9276aacdfb6dc7",
+    "author": "Haofeng Li",
+    "email": "lihaofeng@kylinos.cn",
+    "subject": "wifi: cfg80211: validate EHT MLE before MLD ID read",
+    "kind": "upstream"
+  },
+  {
+    "commit": "aa447269c4fe8ae83306b481746781c8179948dc",
+    "author": "Dawei Feng",
+    "email": "dawei.feng@seu.edu.cn",
+    "subject": "wifi: mac80211: fix memory leak in ieee80211_register_hw()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "0899ba2d6516aeaa81d991b0f6ad047348b937f6",
+    "author": "Louis Kotze",
+    "email": "loukot@gmail.com",
+    "subject": "wifi: cfg80211: fix grammar in MLO group key error message",
+    "kind": "upstream"
+  },
+  {
+    "commit": "ac224da9f3db9e6488bc7d76ccff4b3eb2f115bf",
+    "author": "Johannes Berg",
+    "email": "johannes.berg@intel.com",
+    "subject": "wifi: mac80211: tests: mark HT check strict",
+    "kind": "upstream"
+  },
+  {
+    "commit": "b76792504a63963f40718db5ebc174baf4e36328",
+    "author": "Rio Liu",
+    "email": "rio@r26.me",
+    "subject": "wifi: mac80211: skip ieee80211_verify_sta_ht_mcs_support check in non-strict mode",
+    "kind": "upstream"
+  },
+  {
+    "commit": "79106c75dc7cfe1b2145cdfb2bee12eedbb744cc",
+    "author": "Yuqi Xu",
+    "email": "xuyuqiabc@gmail.com",
+    "subject": "wifi: nl80211: reject oversized EMA RNR lists",
+    "kind": "upstream"
+  },
+  {
+    "commit": "154e17a1c1961474d7046047f180e69fd633fcdf",
+    "author": "Fedor Pchelkin",
+    "email": "pchelkin@ispras.ru",
+    "subject": "wifi: fix leak if split 6 GHz scanning fails",
+    "kind": "upstream"
+  },
+  {
+    "commit": "5874e256e330e5dfd20660d8ee95addb049a99ec",
+    "author": "Deepanshu Kartikey",
+    "email": "kartikey406@gmail.com",
+    "subject": "wifi: mac80211: limit injected antenna index in ieee80211_parse_tx_radiotap",
+    "kind": "upstream"
+  },
+  {
+    "commit": "05c05ead9e6fa57daa0a7e74e8c416558c8d6a1b",
+    "author": "Johannes Berg",
+    "email": "johannes.berg@intel.com",
+    "subject": "wifi: mac80211: fix MLE defragmentation",
+    "kind": "upstream"
+  },
+  {
+    "commit": "5fe80c17a6c8fa596787d4bcba5c54124790dc23",
+    "author": "Alexandru Hossu",
+    "email": "hossu.alexandru@gmail.com",
+    "subject": "wifi: mac80211: bounds-check link_id in ieee80211_ml_epcs",
+    "kind": "upstream"
+  },
+  {
+    "commit": "6d6d95af6d7d8d7f590473930e7d5b43738a0206",
+    "author": "Michael Bommarito",
+    "email": "michael.bommarito@gmail.com",
+    "subject": "wifi: mac80211: consume only present negotiated TTLM maps",
+    "kind": "upstream"
+  },
+  {
+    "commit": "a8c6ca5e2ddb193dc1149cacd263b05f633ad2ca",
+    "author": "John Walker",
+    "email": "johnwalker0@gmail.com",
+    "subject": "wifi: cfg80211: advance loop vars in cfg80211_merge_profile()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "b9c209cc962baea4217a88f057489261ffe479cc",
+    "author": "Tejun Heo",
+    "email": "tj@kernel.org",
+    "subject": "sched_ext: Fix stall when a task enqueued with SCX_ENQ_LAST lands back on its CPU's local DSQ",
+    "kind": "upstream"
+  },
+  {
+    "commit": "1ebe1e02862ca74eea26d8037aaa3a82079e7f3e",
+    "author": "Hui Su",
+    "email": "sh_def@163.com",
+    "subject": "sched_ext: idle: Respect task affinity in restricted CPU selection",
+    "kind": "upstream"
+  },
+  {
+    "commit": "c4a10a7c65a88d662b824cf92d6dc35d953de1b4",
+    "author": "Tejun Heo",
+    "email": "tj@kernel.org",
+    "subject": "sched_ext: Derive SCX_RQ_IN_WAKEUP from the core enqueue flags",
+    "kind": "upstream"
+  },
+  {
+    "commit": "2b03941d7b1d941b959de5a6564d2bc6f4b03e63",
+    "author": "Zhan Xusheng",
+    "email": "zhanxusheng1024@gmail.com",
+    "subject": "sched/core: Account PSI IRQ time to the execution context, not the scheduling context",
+    "kind": "upstream"
+  },
+  {
+    "commit": "dd262879d5b28f2ee0868365029695350f9e558e",
+    "author": "Hui Su",
+    "email": "sh_def@163.com",
+    "subject": "sched/core: Call wq_worker_tick() for the execution context",
+    "kind": "upstream"
+  },
+  {
+    "commit": "16e9df8925802fa58ace5a3056ffadfcc0aea7c7",
+    "author": "Hui Su",
+    "email": "sh_def@163.com",
+    "subject": "sched: Account cgroup CPU time to the execution context",
+    "kind": "upstream"
+  },
+  {
+    "commit": "ccd670e8ec16b25ba217d86ece08aeb4144ab697",
+    "author": "Vincent Guittot",
+    "email": "vincent.guittot@linaro.org",
+    "subject": "sched/eevdf: Fix rb augmented with multi fields",
+    "kind": "upstream"
+  },
+  {
+    "commit": "570725796a2112c6f02c158030a03f188781d858",
+    "author": "Vincent Guittot",
+    "email": "vincent.guittot@linaro.org",
+    "subject": "sched/eevdf: Fix augmented max_slice",
+    "kind": "upstream"
+  },
+  {
+    "commit": "01575c82698ca4723dce4115da7ffa2a89bf1935",
+    "author": "Andrea Righi",
+    "email": "arighi@nvidia.com",
+    "subject": "sched/fair: Reject misfit pulls onto busy SMT siblings on asym-capacity",
+    "kind": "upstream"
+  },
+  {
+    "commit": "e14560c984b423a58721a033f739cbcb9f5dea8c",
+    "author": "Ricardo Neri",
+    "email": "ricardo.neri-calderon@linux.intel.com",
+    "subject": "sched/fair: Check CPU capacity before comparing group types during load balance",
+    "kind": "upstream"
+  },
+  {
+    "commit": "16334afbd6563d6877f8f0b32cc64c742f962c96",
+    "author": "Ricardo Neri",
+    "email": "ricardo.neri-calderon@linux.intel.com",
+    "subject": "sched/fair: Also gate overloaded status update for SD_ASYM_CPUCAPACITY",
+    "kind": "upstream"
+  },
+  {
+    "commit": "2adb4e83c88dc27063022513e27cd071670f6f28",
+    "author": "Zhongqiu Han",
+    "email": "zhongqiu.han@oss.qualcomm.com",
+    "subject": "cpufreq: schedutil: Fix self-contradictory comment in sugov_iowait_apply()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "6f0c7aa9f781fd93b8231e5f2108046773808c96",
+    "author": "Chen, Yu C",
+    "email": "yu.c.chen@intel.com",
+    "subject": "sched/fair: Fix overflow in update_tg_cfs_runnable()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "3fc559a785ed8cbcaa2ecb3e041fcdeaabae73d5",
+    "author": "Tejun Heo",
+    "email": "tj@kernel.org",
+    "subject": "sched/core: Make core-sched flips wait for in-flight selections",
+    "kind": "upstream"
+  },
+  {
+    "commit": "7444145c315a40ac5619cd70f50a0201b9dd6e66",
+    "author": "Tejun Heo",
+    "email": "tj@kernel.org",
+    "subject": "sched_ext: Fix inverted ops.core_sched_before() invocation",
+    "kind": "upstream"
+  },
+  {
+    "commit": "dfcfca10449a241e415e3d4b218669c78e49e564",
+    "author": "fangqiurong",
+    "email": "fangqiurong@kylinos.cn",
+    "subject": "sched_ext: Fix exit_task leak on fork failure during enable",
+    "kind": "upstream"
+  },
+  {
+    "commit": "cf659630ba174cf9d193b4c08868097757ef59d8",
+    "author": "Hui Su",
+    "email": "sh_def@163.com",
+    "subject": "cpufreq: schedutil: Fix rate limit overflow",
+    "kind": "upstream"
+  },
+  {
+    "commit": "669e2d732230ad84d781c13ff22f2c480d87ca18",
+    "author": "Tejun Heo",
+    "email": "tj@kernel.org",
+    "subject": "sched_ext: Take cgroup_lock() first in scx_cgroup_lock()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "419934696927872a4612da6e444c6ffba796bb7c",
+    "author": "Tejun Heo",
+    "email": "tj@kernel.org",
+    "subject": "sched_ext: Update p->scx.disallow warning in scx_init_task()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "2070ae3364450adf037daf8241247d1f5b9e7437",
+    "author": "Tejun Heo",
+    "email": "tj@kernel.org",
+    "subject": "sched/psi: Shut down rtpoll_timer in psi_cgroup_free()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "2a389c2caaf3c23078596d7b322c7417f4287089",
+    "author": "Zhongqiu Han",
+    "email": "zhongqiu.han@oss.qualcomm.com",
+    "subject": "cpufreq: schedutil: Publish util hooks only after all sg_cpu are initialized",
+    "kind": "upstream"
+  },
+  {
+    "commit": "a0bb58e71bbc39eb37bf5698e562a72e55e20b9f",
+    "author": "Gabriele Monaco",
+    "email": "gmonaco@redhat.com",
+    "subject": "sched/deadline: Use revised wakeup rule only for running dl_server",
+    "kind": "upstream"
+  },
+  {
+    "commit": "1f416156a19c48c59935f7e8ea0fb17c9e6ab562",
+    "author": "Tejun Heo",
+    "email": "tj@kernel.org",
+    "subject": "sched_ext: Don't warn on core-sched forced idle in put_prev_task_scx()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "332415a45fd413848420a5f3268777015553cd50",
+    "author": "Hongyan Xia",
+    "email": "hongyan.xia@transsion.com",
+    "subject": "sched/fair: Fix cpu_util runnable_avg arithmetic",
+    "kind": "upstream"
+  },
+  {
+    "commit": "bc7478e895ce2770c464e1730d30410279063693",
+    "author": "Andrea Righi",
+    "email": "arighi@nvidia.com",
+    "subject": "sched/deadline: Reject debugfs dl_server writes for offline CPUs",
+    "kind": "upstream"
+  },
+  {
+    "commit": "22ef444b6464d48e2900f193dd8faf118d336568",
+    "author": "Adam Li",
+    "email": "adamli@os.amperecomputing.com",
+    "subject": "sched/fair: Only update stats for allowed CPUs when looking for dst group",
+    "kind": "upstream"
+  },
+  {
+    "commit": "28e72d022a3d2b73c9b5b77a8c6b454b0f954f08",
+    "author": "Steven Rostedt",
+    "email": "rostedt@goodmis.org",
+    "subject": "sched/rt: Have RT_PUSH_IPI be default off for non PREEMPT_RT",
+    "kind": "upstream"
+  },
+  {
+    "commit": "3052b1379d36ea7ee52f20f84893fac7d05dc6be",
+    "author": "Tejun Heo",
+    "email": "tj@kernel.org",
+    "subject": "sched_ext: Don't warn on NULL cgrp_moving_from in scx_cgroup_move_task()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "c8e1723cf1439f57300350483a1e2db2fd95292f",
+    "author": "Tejun Heo",
+    "email": "tj@kernel.org",
+    "subject": "sched_ext: Avoid UAF in scx_root_enable_workfn() init failure path",
+    "kind": "upstream"
+  },
+  {
+    "commit": "69d6fc95ed6497fd92a491a522259c6c9b6ba88c",
+    "author": "Samuele Mariotti",
+    "email": "smariotti@disroot.org",
+    "subject": "sched_ext: Fix missing warning in scx_set_task_state() default case",
+    "kind": "upstream"
+  },
+  {
+    "commit": "78b726bf70fd1873bdc1163430d7f32248d401e1",
+    "author": "Tejun Heo",
+    "email": "tj@kernel.org",
+    "subject": "sched_ext: Pass held rq to SCX_CALL_OP() for core_sched_before",
+    "kind": "upstream"
+  },
+  {
+    "commit": "4ccf06e3a20951e3682dcc80a9b9a173346d3550",
+    "author": "Tejun Heo",
+    "email": "tj@kernel.org",
+    "subject": "sched_ext: Guard scx_dsq_move() against NULL kit->dsq after failed iter_new",
+    "kind": "upstream"
+  },
+  {
+    "commit": "d82965d731466f2884149daa205dd6dc715bce3d",
+    "author": "Zicheng Qu",
+    "email": "quzicheng@huawei.com",
+    "subject": "sched/fair: Clear rel_deadline when initializing forked entities",
+    "kind": "upstream"
+  },
+  {
+    "commit": "30f5652bf6f6ade3e7cd25fa62a732ee808b926c",
+    "author": "Bernd Schubert",
+    "email": "bernd@bsbernd.com",
+    "subject": "fuse: Fix the condition to enable over-io-uring",
+    "kind": "upstream"
+  },
+  {
+    "commit": "3863546d656e4be61fa6581c24646673dbf527db",
+    "author": "Zhang Tianci",
+    "email": "zhangtianci.1997@bytedance.com",
+    "subject": "fuse: set ff->flock only on success",
+    "kind": "upstream"
+  },
+  {
+    "commit": "424f7acb1448ed2e4cce143ad79e5b9b8539db06",
+    "author": "Yung-Tse Cheng",
+    "email": "mes900903@gmail.com",
+    "subject": "virtio-fs: avoid double-free on failed queue setup",
+    "kind": "upstream"
+  },
+  {
+    "commit": "48fcd4520644afca6dd0aafc4b108cf21104b254",
+    "author": "Baokun Li",
+    "email": "libaokun@linux.alibaba.com",
+    "subject": "fuse: check for NULL root inode in fuse_fill_super_submount",
+    "kind": "upstream"
+  },
+  {
+    "commit": "54c41287dbdcbd3585b1ea0623fbfceebc944130",
+    "author": "Baokun Li",
+    "email": "libaokun@linux.alibaba.com",
+    "subject": "cuse: wait for pending RCU callbacks on module exit",
+    "kind": "upstream"
+  },
+  {
+    "commit": "fe19b30a6b00249ae413cfff5cec03594934b748",
+    "author": "Xiang Mei",
+    "email": "xmei5@asu.edu",
+    "subject": "fuse: copy request headers via a stack buffer for io-uring",
+    "kind": "upstream"
+  },
+  {
+    "commit": "5af9c222937d6a2287836e2fae1c830e25cb30ce",
+    "author": "Joanne Koong",
+    "email": "joannelkoong@gmail.com",
+    "subject": "fuse-uring: use named constants for io-uring iovec indices",
+    "kind": "upstream"
+  },
+  {
+    "commit": "d9868bd9774543c72420b34e9f5062eadf0c7499",
+    "author": "Joanne Koong",
+    "email": "joannelkoong@gmail.com",
+    "subject": "fuse-uring: refactor setting up copy state for payload copying",
+    "kind": "upstream"
+  },
+  {
+    "commit": "d10d64a36641b1f1bb405b40456f8ebc8a32b0a9",
+    "author": "Joanne Koong",
+    "email": "joannelkoong@gmail.com",
+    "subject": "fuse-uring: use enum types for header copying",
+    "kind": "upstream"
+  },
+  {
+    "commit": "00b3eab637277745ef70e3377251a580607bf2c9",
+    "author": "Joanne Koong",
+    "email": "joannelkoong@gmail.com",
+    "subject": "fuse-uring: refactor io-uring header copying from ring",
+    "kind": "upstream"
+  },
+  {
+    "commit": "041c667ac26cedf3303dfeee9495cdb2d86e70ae",
+    "author": "Joanne Koong",
+    "email": "joannelkoong@gmail.com",
+    "subject": "fuse-uring: refactor io-uring header copying to ring",
+    "kind": "upstream"
+  },
+  {
+    "commit": "541b18aaa2c02a28019ba89002d85fa38533cb50",
+    "author": "Joanne Koong",
+    "email": "joannelkoong@gmail.com",
+    "subject": "fuse: fix missing barrier when checking io-uring readiness",
+    "kind": "upstream"
+  },
+  {
+    "commit": "4eba1273f05cd90f4726f009bfe2bd0998c1aa59",
+    "author": "Miklos Szeredi",
+    "email": "mszeredi@redhat.com",
+    "subject": "fuse: fix race between interrupt and resend",
+    "kind": "upstream"
+  },
+  {
+    "commit": "32710d249aaf24c893eeec68fb2448596bac9d6b",
+    "author": "Joanne Koong",
+    "email": "joannelkoong@gmail.com",
+    "subject": "fuse: publish io-uring queues with release semantics",
+    "kind": "upstream"
+  },
+  {
+    "commit": "9d55e66154fad1d189bc9bfdd556b09c7a3015af",
+    "author": "Baokun Li",
+    "email": "libaokun@linux.alibaba.com",
+    "subject": "fuse: fix invalidate lock leak on open O_TRUNC DAX failure",
+    "kind": "upstream"
+  },
+  {
+    "commit": "329e4840356ff857efb91ca0febf7c4783010dd1",
+    "author": "Baokun Li",
+    "email": "libaokun@linux.alibaba.com",
+    "subject": "fuse: fix invalidate lock leak on setattr writeback failure",
+    "kind": "upstream"
+  },
+  {
+    "commit": "04381838f471bfab8d53cc5bd49d37f4b213015b",
+    "author": "Joanne Koong",
+    "email": "joannelkoong@gmail.com",
+    "subject": "fuse-uring: fix race between registration and connection abortion",
+    "kind": "upstream"
+  },
+  {
+    "commit": "31f82f23cc45e06668028732f9209a58df09eb21",
+    "author": "Junxi Qian",
+    "email": "qjx1298677004@gmail.com",
+    "subject": "fuse: fix writeback array overflow when max_pages is one",
+    "kind": "upstream"
+  },
+  {
+    "commit": "5bc274705c47c88678df23416ca01ad605e2dca7",
+    "author": "Al Viro",
+    "email": "viro@zeniv.linux.org.uk",
+    "subject": "new helper: simple_remove_by_name()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "be0aa840ee800449c595199ffc2b43b60722f21d",
+    "author": "Joanne Koong",
+    "email": "joannelkoong@gmail.com",
+    "subject": "fuse-uring: remove request-less entries from ent_w_req_queue to fix NULL deref",
+    "kind": "upstream"
+  },
+  {
+    "commit": "1705fe8f8103ad74f0ace8e0ec3085d3e285e47a",
+    "author": "Bernd Schubert",
+    "email": "bernd@bsbernd.com",
+    "subject": "fuse-uring: make a fuse_req on SQE commit only findable after memcpy",
+    "kind": "upstream"
+  },
+  {
+    "commit": "ddb4049f79f111aaa275feb270de9e4b704e3ffd",
+    "author": "Bernd Schubert",
+    "email": "bernd@bsbernd.com",
+    "subject": "fuse-uring: Avoid queue->stopped races and set/read that value under lock",
+    "kind": "upstream"
+  },
+  {
+    "commit": "101716842c2b7d7f6c23010563495319add1f2da",
+    "author": "Bernd Schubert",
+    "email": "bernd@bsbernd.com",
+    "subject": "fuse-uring: Avoid use-after-free in fuse_uring_async_stop_queues",
+    "kind": "upstream"
+  },
+  {
+    "commit": "6c993a234706f63b50ad1ddd1348c3d7dc54e478",
+    "author": "Chris Mason",
+    "email": "clm@meta.com",
+    "subject": "fuse-uring: end fuse_req on io-uring cancel task work",
+    "kind": "upstream"
+  },
+  {
+    "commit": "daff26c8fbc9acedc07f67df835d6eb9cd8b359f",
+    "author": "Joanne Koong",
+    "email": "joannelkoong@gmail.com",
+    "subject": "fuse-uring: fix moving cancelled entry to ent_in_userspace list",
+    "kind": "upstream"
+  },
+  {
+    "commit": "9c5e22b01b6e9076ae1cbc76732603c879c3682f",
+    "author": "Chris Mason",
+    "email": "clm@meta.com",
+    "subject": "fuse-uring: fix data races on ring->ready",
+    "kind": "upstream"
+  },
+  {
+    "commit": "10353376676ef680b6427258b4cdd30c3f6910f7",
+    "author": "Chris Mason",
+    "email": "clm@meta.com",
+    "subject": "fuse-uring: fix EFAULT clobber in fuse_uring_commit",
+    "kind": "upstream"
+  },
+  {
+    "commit": "d54c8e81bb4afe866157b01630cf7def6a23caa6",
+    "author": "Ji'an Zhou",
+    "email": "eilaimemedsnaimel@gmail.com",
+    "subject": "fuse: clear intr_entry in fuse_resend and fuse_remove_pending_req",
+    "kind": "upstream"
+  },
+  {
+    "commit": "073ae5cdb3ccc348e1821f139fc14d8bd2e9f02f",
+    "author": "Joanne Koong",
+    "email": "joannelkoong@gmail.com",
+    "subject": "fuse: fix io-uring background queue dispatch on request completion",
+    "kind": "upstream"
+  },
+  {
+    "commit": "c46795410b70cc84390947be3ad2db69df4f2846",
+    "author": "Joanne Koong",
+    "email": "joannelkoong@gmail.com",
+    "subject": "fuse: re-lock request before returning from fuse_ref_folio()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "381087bda8dfc035a40c1d2daddc16694b0de360",
+    "author": "Alberto Ruiz",
+    "email": "aruiz@redhat.com",
+    "subject": "fuse: fix device node leak in cuse_process_init_reply()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "0a04b288605b38032a2cbaf6727dbef2b506090d",
+    "author": "Samuel Moelius",
+    "email": "sam.moelius@trailofbits.com",
+    "subject": "fuse: avoid 32-bit prune notification count wrap",
+    "kind": "upstream"
+  },
+  {
+    "commit": "86161ab76b5950eb998de38dd6e90716cf762aa8",
+    "author": "Matthew R. Ochs",
+    "email": "mochs@nvidia.com",
+    "subject": "fuse: back uncached readdir buffers with pages",
+    "kind": "upstream"
+  },
+  {
+    "commit": "47a95e57145a0d959cf3927ba25cc0d66a4d1d41",
+    "author": "Joanne Koong",
+    "email": "joannelkoong@gmail.com",
+    "subject": "fuse: re-lock request before replacing page cache folio",
+    "kind": "upstream"
+  },
+  {
+    "commit": "29ce5b976753c3e77f5648217e5c60259f6d55ee",
+    "author": "Jann Horn",
+    "email": "jannh@google.com",
+    "subject": "fuse: limit FUSE_NOTIFY_RETRIEVE to uptodate folios",
+    "kind": "upstream"
+  },
+  {
+    "commit": "b12c0e404d63126a76550812cc50fc52bd5ef0ee",
+    "author": "Jann Horn",
+    "email": "jannh@google.com",
+    "subject": "fuse: reject fuse_notify() pagecache ops on directories",
+    "kind": "upstream"
+  },
+  {
+    "commit": "cfe6b6e35e3a37419f63dda66f5a9ca4a251735c",
+    "author": "Vlad Poenaru",
+    "email": "vlad.wing@gmail.com",
+    "subject": "fuse: avoid 0x10 fault in fuse_readahead when max_pages == 0",
+    "kind": "upstream"
+  },
+  {
+    "commit": "ed78a26c6d409da2f71427e501d243ac830d6de2",
+    "author": "Pannarat Wiriyaarritham",
+    "email": "pannarat.wiriyaarritham@danielcorp.dev",
+    "subject": "usb: typec: ucsi: acpi: Assume UCSI 1.2 on Acer Nitro ANV15-41",
+    "kind": "upstream"
+  },
+  {
+    "commit": "32b7355b8abf4daa2bd0afe16d71f96838344dad",
+    "author": "Jameson Thies",
+    "email": "jthies@google.com",
+    "subject": "usb: typec: ucsi: displayport: Current CAM OOB index fixup",
+    "kind": "upstream"
+  },
+  {
+    "commit": "76474223a95ed273580b4cba740bea70b767d0d7",
+    "author": "Prashanth K",
+    "email": "prashanth.k@oss.qualcomm.com",
+    "subject": "usb: typec: ucsi: Get the connector fwnode based on reg value",
+    "kind": "upstream"
+  },
+  {
+    "commit": "4136dcd45fd9e4e9e5d3fdb538f4bd7a3a859aae",
+    "author": "Fan Wu",
+    "email": "fanwu01@zju.edu.cn",
+    "subject": "usb: typec: ucsi: glink: fix use-after-free of ucsi on remove",
+    "kind": "upstream"
+  },
+  {
+    "commit": "bcc7a29872fbb0c0285f81b7a8222d3b329ee70a",
+    "author": "Arnd Bergmann",
+    "email": "arnd@arndb.de",
+    "subject": "usb: ucsi: huawei_gaokun: move typec_altmode off stack",
+    "kind": "upstream"
+  },
+  {
+    "commit": "46138d19cb6746f25120e10ffb3492bfd0e46d09",
+    "author": "Pengpeng Hou",
+    "email": "pengpeng@iscas.ac.cn",
+    "subject": "usb: typec: ucsi: gaokun: unwind notifier on UCSI register failure",
+    "kind": "upstream"
+  },
+  {
+    "commit": "7d9582ef62cbd0376b5d6444269527c10c2a7d30",
+    "author": "Pengyu Luo",
+    "email": "mitltlatltl@gmail.com",
+    "subject": "usb: ucsi: huawei_gaokun: support mode switching",
+    "kind": "upstream"
+  },
+  {
+    "commit": "111156bc189221c5f255ca874299d201019f98bb",
+    "author": "Bjorn Andersson",
+    "email": "bjorn.andersson@oss.qualcomm.com",
+    "subject": "usb: typec: ucsi: unregister debugfs entries on teardown",
+    "kind": "upstream"
+  },
+  {
+    "commit": "202c94fcafa68458c53bce7eee3a7db3700e7ebc",
+    "author": "Jameson Thies",
+    "email": "jthies@google.com",
+    "subject": "usb: typec: ucsi: displayport: Fix OOB altmode array index",
+    "kind": "upstream"
+  },
+  {
+    "commit": "b3e7832c2983054626603ae17c0876eabcaae613",
+    "author": "Huang Wei",
+    "email": "huangwei@kylinos.cn",
+    "subject": "usb: typec: ucsi: use UCSI_TIMEOUT_MS for sync command completion",
+    "kind": "upstream"
+  },
+  {
+    "commit": "0ae854dd95f920b4699246d9752e220cba172fb0",
+    "author": "Chia-Lin Kao (AceLan)",
+    "email": "acelan.kao@canonical.com",
+    "subject": "usb: typec: ucsi: Add duplicate detection to nvidia registration path",
+    "kind": "upstream"
+  },
+  {
+    "commit": "0a57e988b6c89f02f0c668758531aeab11fe9a81",
+    "author": "Chia-Lin Kao (AceLan)",
+    "email": "acelan.kao@canonical.com",
+    "subject": "usb: typec: ucsi: Detect and skip duplicate altmodes from buggy firmware",
+    "kind": "upstream"
+  },
+  {
+    "commit": "3e6395c46abdab2ff6f9baa78e4080a43512994b",
+    "author": "Paul Menzel",
+    "email": "pmenzel@molgen.mpg.de",
+    "subject": "usb: typec: ucsi: cancel pending work on system suspend",
+    "kind": "upstream"
+  },
+  {
+    "commit": "5c00ef1053f21ff43ce7d6db7133bcc02b597804",
+    "author": "Fan Wu",
+    "email": "fanwu01@zju.edu.cn",
+    "subject": "usb: typec: ucsi: ccg: Fix use-after-free of ucsi on remove",
+    "kind": "upstream"
+  },
+  {
+    "commit": "b5e63ee3e453cf29f430ce9b6eb2abfba2ae0f55",
+    "author": "Andrei Kuchynski",
+    "email": "akuchynski@chromium.org",
+    "subject": "usb: typec: ucsi: Invert DisplayPort role assignment",
+    "kind": "upstream"
+  },
+  {
+    "commit": "1a2c2a551dc40d2a80adb7a8709c334ba1f265ec",
+    "author": "Myrrh Periwinkle",
+    "email": "myrrhperiwinkle@qtmlabs.xyz",
+    "subject": "usb: typec: ucsi: Don't update power_supply on power role change if not connected",
+    "kind": "upstream"
+  },
+  {
+    "commit": "2b7caa8e90b2343f944f109209a6adcea5235ca4",
+    "author": "Myrrh Periwinkle",
+    "email": "myrrhperiwinkle@qtmlabs.xyz",
+    "subject": "usb: typec: ucsi: Check if power role change actually happened before handling",
+    "kind": "upstream"
+  },
+  {
+    "commit": "36ea878c9e5ed1adab3484b44b41498d6506e778",
+    "author": "Greg Kroah-Hartman",
+    "email": "gregkh@linuxfoundation.org",
+    "subject": "usb: typec: ucsi: displayport: NAK DP_CMD_CONFIGURE without a payload VDO",
+    "kind": "upstream"
+  },
+  {
+    "commit": "5183d6062fa93178eccfc57d99cdafd259e64384",
+    "author": "Greg Kroah-Hartman",
+    "email": "gregkh@linuxfoundation.org",
+    "subject": "usb: typec: ucsi: ccg: reject firmware images without a ':' record header",
+    "kind": "upstream"
+  },
+  {
+    "commit": "1f352fef6c10bde2ea22505e812d028ac9625242",
+    "author": "Yao Kai",
+    "email": "yaokai34@huawei.com",
+    "subject": "futex: Prevent rcuwait use-after-free during requeue PI",
+    "kind": "upstream"
+  },
+  {
+    "commit": "dc17451c41620b6fc0b96c923d69646edd6e35a5",
+    "author": "Felix Hoffmann",
+    "email": "f3lix.dev@gmx.de",
+    "subject": "futex: Avoid private hash use-after-free on final put",
+    "kind": "upstream"
+  },
+  {
+    "commit": "446a80899e4cf2f1a372fa49490ac6db0633b830",
+    "author": "Peter Zijlstra",
+    "email": "peterz@infradead.org",
+    "subject": "futex: Fix might_sleep() warning in futex_pivot_pending()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "60c547f7af3d05e821be121829a1f0dbbb01d7a4",
+    "author": "Hyunwoo Kim",
+    "email": "imv4bel@gmail.com",
+    "subject": "futex: Fix race on the initial mm->futex.phash.ref allocation",
+    "kind": "upstream"
+  },
+  {
+    "commit": "4685cb97b25dbb3f0a1c8d266f63eb44b9ceb316",
+    "author": "Yao Kai",
+    "email": "yaokai34@huawei.com",
+    "subject": "futex: Fix race in futex_pivot_pending() during private hash resize",
+    "kind": "upstream"
+  },
+  {
+    "commit": "4525c7dc8ad74c98bcfe45e1605d873852732eb4",
+    "author": "Keno Fischer",
+    "email": "keno@juliacomputing.com",
+    "subject": "futex: Prevent robust futex exit race some more",
+    "kind": "upstream"
+  },
+  {
+    "commit": "1f3e5ed5368c7c5be0782821d60b64ecef2b1ed9",
+    "author": "Sebastian Andrzej Siewior",
+    "email": "bigeasy@linutronix.de",
+    "subject": "futex/requeue: Revert \"Prevent NULL pointer dereference in remove_waiter() on self-deadlock\"\"",
+    "kind": "upstream"
+  },
+  {
+    "commit": "b9908ed25d60255b5b70a695d43f6cee1fd107d9",
+    "author": "Ji'an Zhou",
+    "email": "eilaimemedsnaimel@gmail.com",
+    "subject": "futex/requeue: Prevent NULL pointer dereference in remove_waiter() on self-deadlock",
+    "kind": "upstream"
+  },
+  {
+    "commit": "cfc80c8e6b21e441a6a97b17f36de9e462abdcbd",
+    "author": "Radhey Shyam Pandey",
+    "email": "radhey.shyam.pandey@amd.com",
+    "subject": "usb: dwc3: am62: Fix runtime PM usage count leak on probe error path",
+    "kind": "upstream"
+  },
+  {
+    "commit": "2b8cb0ab73b1e7d18791745914e3f89fab8d71b0",
+    "author": "Elson Serrao",
+    "email": "elson.serrao@oss.qualcomm.com",
+    "subject": "usb: dwc3: clear forceRM when issuing EndTransfer",
+    "kind": "upstream"
+  },
+  {
+    "commit": "bc5ab02888a52e7be0e7f051606cc43aa7210f4a",
+    "author": "Pei Xiao",
+    "email": "xiaopei01@kylinos.cn",
+    "subject": "usb: dwc3: gadget: Fix use-after-free in dwc3_gadget_free_endpoints due to race condition",
+    "kind": "upstream"
+  },
+  {
+    "commit": "5aedd8535e37dce0fdcf204b4088ddf1478139f2",
+    "author": "WenTao Liang",
+    "email": "vulab@iscas.ac.cn",
+    "subject": "usb: dwc3: meson-g12a: fix refcount leak in dwc3_meson_g12a_resume()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "8cf710b11246aed170adfb6bf6acc3e395690e38",
+    "author": "Runyu Xiao",
+    "email": "runyu.xiao@seu.edu.cn",
+    "subject": "usb: dwc3: run gadget disconnect from sleepable suspend context",
+    "kind": "upstream"
+  },
+  {
+    "commit": "0171420c7f7cf606f65ef52e82cd3516dc5b1986",
+    "author": "Radhey Shyam Pandey",
+    "email": "radhey.shyam.pandey@amd.com",
+    "subject": "usb: dwc3: xilinx: fix error handling in zynqmp init error paths",
+    "kind": "upstream"
+  },
+  {
+    "commit": "91fcc1cb9573b39f0abc0e41fd672b7e16fed80d",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"scsi: core: pair EH runtime PM get and put\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "2c60a062a5d1e27658fe2215cf46d67d495774d1",
+    "author": "Stanley Jhu",
+    "email": "stanleyjhu@google.com",
+    "subject": "scsi: ufs: core: Avoid unsafe MMIO reads in ufshcd_mcq_compl_all_cqes_lock()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "1d01dce30acc7aaa8f7da3d6b6bfbff9f34bac98",
+    "author": "Bart Van Assche",
+    "email": "bvanassche@acm.org",
+    "subject": "scsi: ufs: core: Add a comment block above ufshcd_mcq_compl_all_cqes_lock()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "60322d3de071025a51538546cb5b6cc95b899a2e",
+    "author": "Peter Wang",
+    "email": "peter.wang@mediatek.com",
+    "subject": "scsi: ufs: core: Add debug log for MCQ command timeout",
+    "kind": "upstream"
+  },
+  {
+    "commit": "3a83ef775c57a995ce9854cb1d2b5a9d7adfd1e5",
+    "author": "Bart Van Assche",
+    "email": "bvanassche@acm.org",
+    "subject": "scsi: ufs: core: Move an assignment in ufshcd_mcq_process_cqe()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "d91906ff20c06ae5c7a4963d2a446ba3dd78c9f4",
+    "author": "Li Qiang",
+    "email": "liqiang01@kylinos.cn",
+    "subject": "scsi: ufs: core: Validate string descriptors",
+    "kind": "upstream"
+  },
+  {
+    "commit": "eaf855101ae898301d97f079387274e9ad7e29a3",
+    "author": "Bean Huo",
+    "email": "beanhuo@micron.com",
+    "subject": "scsi: ufs: core: Convert string descriptor format macros to enum",
+    "kind": "upstream"
+  },
+  {
+    "commit": "80d60063220a3e5d2a31884a0bcf7b0c18c5f4bc",
+    "author": "Hongjie Fang",
+    "email": "hongjiefang@asrmicro.com",
+    "subject": "scsi: core: pair EH runtime PM get and put",
+    "kind": "upstream"
+  },
+  {
+    "commit": "c94ecc73eb0d1bb507c6bee317a37ac6ac872154",
+    "author": "Bart Van Assche",
+    "email": "bvanassche@acm.org",
+    "subject": "scsi: ufs: core: Set task state before io_schedule_timeout()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "788bd1df328a15a700d379e75307cc373e152d02",
+    "author": "Li Qiang",
+    "email": "liqiang01@kylinos.cn",
+    "subject": "scsi: ufs: debugfs: Reserve space for a string terminator",
+    "kind": "upstream"
+  },
+  {
+    "commit": "3dee54ab6a2ed5b959b13c3f5ea8b616d8304f14",
+    "author": "Guangshuo Li",
+    "email": "lgs201920130244@gmail.com",
+    "subject": "scsi: ufs: core: Cancel RTC work in active-active suspend",
+    "kind": "upstream"
+  },
+  {
+    "commit": "45d2f0bcd4f75f8ea307968551f6f7fbf37053c4",
+    "author": "Steven Rostedt",
+    "email": "rostedt@goodmis.org",
+    "subject": "ufs: core: tracing: Do not dereference pointers in TP_printk()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "8385dd115558b6b1c5006442213fe49767705551",
+    "author": "Chanwoo Lee",
+    "email": "cw9316.lee@samsung.com",
+    "subject": "scsi: ufs: Fix wrong value printed in unexpected UPIU response case",
+    "kind": "upstream"
+  },
+  {
+    "commit": "4d00d0b60873bf2cdd18e489db592dc0cffc1e13",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "zram: fix out-of-bounds access in writeback_store()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "fcbe84ac259c646d517464ce86a7679c341345d9",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"rust_binder: reschedule node refcount update on thread exit\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "609856e0f01f50d08a9dc6b3db877dccdd1f3c16",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "PONG U59: f2fs: adapt Android critical_task_priority sysfs to embedded gc_thread",
+    "kind": "integration"
+  },
+  {
+    "commit": "a774f66fed17b645c09ab373c42683c591abdfe0",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"zram: fixup read_block_state()\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "e05ac25b70f5d352973cc1744107e0554e6719eb",
+    "author": "Sergey Senozhatsky",
+    "email": "senozhatsky@chromium.org",
+    "subject": "zram: set default primary compressor in zram_destroy_comps()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "4fddf55ee004a792db7c23ad7d7612a13ecd5471",
+    "author": "Longlong Xia",
+    "email": "xialonglong@kylinos.cn",
+    "subject": "zram: fix out-of-bounds access in read_block_state()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "f4461dde165a72cb9689ebc78c71f6e8b714a68d",
+    "author": "Sergey Senozhatsky",
+    "email": "senozhatsky@chromium.org",
+    "subject": "zram: fixup read_block_state()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "74368b0c2284320c8522e6c6a249955afd8ebf22",
+    "author": "Sergey Senozhatsky",
+    "email": "senozhatsky@chromium.org",
+    "subject": "zram: validate deflate params",
+    "kind": "upstream"
+  },
+  {
+    "commit": "25322dc2c8ac3a2a3a9200ea30eabb3532aed7e8",
+    "author": "Cunlong Li",
+    "email": "shenxiaogll@gmail.com",
+    "subject": "zram: fix use-after-free in zram_bvec_write_partial()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "e8e08f2585f2453feb18e86783bfd989ebcc067e",
+    "author": "Wenjie Qi",
+    "email": "qwjhust@gmail.com",
+    "subject": "f2fs: validate MOVE_RANGE destination size",
+    "kind": "upstream"
+  },
+  {
+    "commit": "2c2a7822285739626a0656260cc349f905f05fef",
+    "author": "Chao Yu",
+    "email": "chao@kernel.org",
+    "subject": "f2fs: fix to zero post-EOF data when extending file size",
+    "kind": "upstream"
+  },
+  {
+    "commit": "30d121b95893eacb3c8eb090a6ce59c9be993619",
+    "author": "Daeho Jeong",
+    "email": "daehojeong@google.com",
+    "subject": "f2fs: accurately adjust free_sections during free_segment_range",
+    "kind": "upstream"
+  },
+  {
+    "commit": "b1aa237584f14e1955faeae8fb9f9cb93a4a21e3",
+    "author": "Chao Yu",
+    "email": "chao@kernel.org",
+    "subject": "f2fs: embed f2fs_gc_kthread in f2fs_sb_info",
+    "kind": "upstream"
+  },
+  {
+    "commit": "b3fb848e25c6f8e8e694d29248749c23cef63c1f",
+    "author": "Wenjie Qi",
+    "email": "qwjhust@gmail.com",
+    "subject": "f2fs: limit recovery filename logging to stored length",
+    "kind": "upstream"
+  },
+  {
+    "commit": "177d2530c8cab6c878e8747341f71119c940d6bd",
+    "author": "Chao Yu",
+    "email": "chao@kernel.org",
+    "subject": "f2fs: fix to avoid pinfile fragment on fragment:{block, segment} mode",
+    "kind": "upstream"
+  },
+  {
+    "commit": "3e6399f1f7efed45f3fca1e22e2369e435701af6",
+    "author": "Chao Yu",
+    "email": "chao@kernel.org",
+    "subject": "f2fs: cleanup w/ f2fs_need_rand_{blk, seg, seg_blk}",
+    "kind": "upstream"
+  },
+  {
+    "commit": "f9cc99543393c43d94e5032ea82ed2dba12383b0",
+    "author": "Chao Yu",
+    "email": "chao@kernel.org",
+    "subject": "f2fs: fix to pass folio->index to f2fs_sanity_check_node_footer()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "595abd1067336ab97cc1693dc23f785292cecd1b",
+    "author": "Chen Changcheng",
+    "email": "chenchangcheng@kylinos.cn",
+    "subject": "f2fs: fix valid block count leak on data block allocation failure",
+    "kind": "upstream"
+  },
+  {
+    "commit": "08a0f35bed5c14ca462cf21f94472c416e4ffa39",
+    "author": "Chao Yu",
+    "email": "chao@kernel.org",
+    "subject": "f2fs: fix to clear dirty flag on folio in error path",
+    "kind": "upstream"
+  },
+  {
+    "commit": "fc1d3c614ad47a871980ca29aff983f3e21868a9",
+    "author": "Chao Yu",
+    "email": "chao@kernel.org",
+    "subject": "f2fs: fix to off-by-one issue in f2fs_zero_post_eof_page()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "344f7472d1d798e0cb0a28de600bbcd1f174f9b8",
+    "author": "Zhan Xusheng",
+    "email": "zhanxusheng1024@gmail.com",
+    "subject": "f2fs: fix i_size when pinned fallocate partially fails",
+    "kind": "upstream"
+  },
+  {
+    "commit": "06c864a0faf61833e593a35228b5644cee9ca16f",
+    "author": "Chao Yu",
+    "email": "chao@kernel.org",
+    "subject": "f2fs: fix to avoid potential deadloop in f2fs_fsync_node_pages()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "383eeae5acb809ad600a23491192697d706ff712",
+    "author": "Daeho Jeong",
+    "email": "daehojeong@google.com",
+    "subject": "f2fs: fix to migrate all curseg types during free_segment_range",
+    "kind": "upstream"
+  },
+  {
+    "commit": "a194b7379cf76720adccd9362748991a2cfeeec1",
+    "author": "Wenjie Qi",
+    "email": "qwjhust@gmail.com",
+    "subject": "f2fs: avoid NULL checkpoint thread access in sysfs",
+    "kind": "upstream"
+  },
+  {
+    "commit": "251b1e9a6c8d3bfda7057eebc546207d8a863f96",
+    "author": "Guanghui Yang",
+    "email": "3497809730@qq.com",
+    "subject": "f2fs: fix dentry folio leak in find_in_level",
+    "kind": "upstream"
+  },
+  {
+    "commit": "f99f987a96c02f03c585e4204d4eb2fed605d65f",
+    "author": "Chao Yu",
+    "email": "chao@kernel.org",
+    "subject": "f2fs: fix to avoid potential section-unaligned pinfile",
+    "kind": "upstream"
+  },
+  {
+    "commit": "63cb947be53189911a22171cf7671fc3c21f3d71",
+    "author": "Wenjie Qi",
+    "email": "qwjhust@gmail.com",
+    "subject": "f2fs: return writeback error from collapse range",
+    "kind": "upstream"
+  },
+  {
+    "commit": "eeb49f720fcc0d1ecab9dbea62af04de163f693b",
+    "author": "Zhan Xusheng",
+    "email": "zhanxusheng1024@gmail.com",
+    "subject": "f2fs: use the mount idmap for the owner check in f2fs_xattr_advise_set()",
+    "kind": "upstream"
+  },
+  {
+    "commit": "ce0a8e44699e953f897d66117ea2fe494135eff8",
+    "author": "Joanne Chang",
+    "email": "joannechien@google.com",
+    "subject": "f2fs: dirty directory inodes on mtime/ctime update",
+    "kind": "upstream"
+  },
+  {
+    "commit": "344af9970a952a7d67618162e6e4df59a6ccb0fb",
+    "author": "Chao Yu",
+    "email": "chao@kernel.org",
+    "subject": "f2fs: fix to avoid move_range and defragment on device_alias file",
+    "kind": "upstream"
+  },
+  {
+    "commit": "ed4bab98e7ccbfbb17f2f8553955abbc7c27ff33",
+    "author": "Wenjie Qi",
+    "email": "qwjhust@gmail.com",
+    "subject": "f2fs: only redirty pinned folios in redirty_blocks",
+    "kind": "upstream"
+  },
+  {
+    "commit": "5a04be8b512086612e05425ac021aeb89081fb0a",
+    "author": "Hao-Qun Huang",
+    "email": "alvinhuang0603@gmail.com",
+    "subject": "f2fs: reject overlapping move range after len expansion",
+    "kind": "upstream"
+  },
+  {
+    "commit": "0a5c36765ad160fc67850f94190056ee4493a411",
+    "author": "Wenjie Qi",
+    "email": "qwjhust@gmail.com",
+    "subject": "f2fs: return symlink writeback errors",
+    "kind": "upstream"
+  },
+  {
+    "commit": "7c534b40c83debafaa59ed545289cfc043ffe8c3",
+    "author": "Chris Mason",
+    "email": "clm@meta.com",
+    "subject": "binder: cache secctx size before release zeroes it",
+    "kind": "upstream"
+  },
+  {
+    "commit": "69a54ca58b689a821b3fd20cf18f3063f503b5ce",
+    "author": "Alice Ryhl",
+    "email": "aliceryhl@google.com",
+    "subject": "rust_binder: reschedule node refcount update on thread exit",
+    "kind": "upstream"
+  },
+  {
+    "commit": "5d5d3505d171535c60d550a6ec13ca0d9b972aad",
+    "author": "Tomer Pomeranc",
+    "email": "tomerpo@gmail.com",
+    "subject": "binder: fix leaked fd fixups on TF_UPDATE_TXN supersede",
+    "kind": "upstream"
+  },
+  {
+    "commit": "e82a0f0fcca3d0eb85e6c40444f50cf3c0de98a0",
+    "author": "Tomer Pomeranc",
+    "email": "tomerpo@gmail.com",
+    "subject": "binder: fix is_failure flag for superseded transaction cleanup",
+    "kind": "upstream"
+  },
+  {
+    "commit": "e11227138b42d78fa3d235a2642e19bfb219bb29",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"net: validate skb->napi_id in RX tracepoints\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "783b23aa7b186390cb16b2489d397b45fd873474",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"bpf: Print breakdown of insns processed by subprogs\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "4820425cc376691395047ab41e7f083c03054248",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"ip6mr: plug drop_reason to ip6mr_cache_report()\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "1c17c1cb549ba3043930a2ef647c259b5d38564d",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"net: change sock_queue_rcv_skb_reason() to return a drop_reason\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "601fdb699f1bf020dba5d0a6aa10959a5aef3702",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"drm/client: Remove pitch from struct drm_client_buffer\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "c51cfd8777c32dfff921ef784e360a21b18298ae",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"drm/client: Move dumb-buffer handling to drm_client_framebuffer_create()\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "152e0bdc3010c777d0bbb3fe96f7633fd72d6b5d",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"drm/client: Inline drm_client_buffer_addfb() and _rmfb()\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "4e0f33634b4c8c12ebb2964c92518cf966c4ef6a",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"drm/client: Deprecate struct drm_client_buffer.gem\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "ce347459e30ea4b07252bb64a35889d4dca400d6",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"drm/client: Remove holds_console_lock parameter from suspend/resume\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "b304b48b542357d97f4a43f904d586614967cb89",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"drm/client: Pass force parameter to client restore\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "1a777b86c5ba68fcc9f8ef7da7caa1d054f19b7d",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"drm/client: fix restore of partially initialized client\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "a0804c269051a5ca0dc15cef739d2a0dd417bd30",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"bpf: Report maximum combined stack depth\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "e56daecfbb45e425c61506703e78721748e73255",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"bpf: Track verifier instruction stats for each subprogram\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "ac6a420dee9422e33904b1703c979fa841344f78",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"tcp: move tp->chrono_type next tp->chrono_stat[]\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "cfcc3864c6cf44c90f91eab9a5b2043b24cd65ad",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"tcp: inline tcp_chrono_start()\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "622dc4f64ef0f46dadcb2cac7e68fa729b29b3bb",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"tcp: annotate data-races in tcp_get_info_chrono_stats()\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "3a36532f15e87911db2a621281fb69d1c8e4f14e",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"nvdimm/btt: Handle preemption in BTT lane acquisition\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "03c2062cb32ca857da6b2f64fe4d2c52a1f66c83",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"drm/displayid: fix Tiled Display Topology ID size\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "59d9faaa1fe6a11d9bf7a63a5e6d0cec6d444d72",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"audit: widen ino fields to u64\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "fe93ea45c6a8746170f8ae054071e9eab4ce3a84",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"audit: use 'unsigned int' instead of 'unsigned'\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "4ad9946e37d616d9873ec46b71391888acff1498",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"audit: fix recursive locking deadlock in audit_dupe_exe()\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "1db7956ceb31f7d88265af6f5dfcca966a08dc2c",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "PONG U59: keep drivers/usb/typec/ucsi at android17-6.18-2026-09_r5",
+    "kind": "integration"
+  },
+  {
+    "commit": "adde78846fcddc6d9030a12b5a760eacb559b6de",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"mmc: sdhci: make tuning_err a signed int\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "717ed20a0991d93f30968169d0c15b2527a97c05",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"ip_tunnel: adapt iptunnel_xmit_stats() to NETDEV_PCPU_STAT_DSTATS\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "9bb8d3dc037a79bcb314cfd266643792aa0f68e4",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"ALSA: usb-audio: Optimize the copy of packet sizes for implicit fb handling\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "9f5689ac57432fb96e6c45d8f25d97ee183b0703",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"net: Convert proto_ops bind() callbacks to use sockaddr_unsized\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "6c94edb53ee469d3a37404bd910ec4c4558ca468",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"scsi: core: pair EH runtime PM get and put\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "c9f0da597aed43b6d0d83ae10019a8aa6a943045",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"futex/pi: Plug private futex exec() race\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "92f8824be1be54e009865ce748d9b61675eed672",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"usb: gadget: udc: Fix use-after-free in gadget_match_driver\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "1678fab2d2efa784460f26115d9b1e55a4d10f07",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"rpmsg: use generic driver_override infrastructure\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "d9e6bab9b78002aa4c29ae0b63802e7e8a124df2",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"libbpf: Reject non-exclusive metadata maps in the signed loader\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "e36401a6678336629220968e8b193395740d52a2",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"net: udp_tunnel: prevent double queueing in udp_tunnel_nic_device_sync\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "9f95aa1d4bf942e6964c70efcddf38856f5e515b",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"net: udp_tunnel: fix memory leak in udp_tunnel_nic_unregister()\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "3832a6dd3948c04a5b4ca2d388c2236bab96e5b7",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"mm: page_alloc: move capture_control to the page allocator\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "e330f6573de67d4ee117a393665ecb1831287416",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"mm: page_alloc: fix non-movable reclaim storm in defrag_mode\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "8c1f94a47ac110dde26a54f0b803188d5520fbba",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"usb: typec: tcpci: pass correct rx_type to tcpm_pd_receive()\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "014f1f8fde8debe077f3f3701df8a1d3021e372b",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "PONG U59: keep io_uring at android17-6.18-2026-09_r5",
+    "kind": "integration"
+  },
+  {
+    "commit": "f86692bfeefbaaadc8d64c1d9faee1251656c7ed",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "PONG U59: keep kernel/futex at android17-6.18-2026-09_r5",
+    "kind": "integration"
+  },
+  {
+    "commit": "ca097ec910a25e871cd1c73d26fcb30274ada074",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"tcp: use GFP_ATOMIC in tcp_send_active_reset()\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "e706e5048c15ced671ae408f06ae27418371d401",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"igmp: convert struct ip_sf_list to RCU\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "187b549fefa650a9939df07e277190d62d59dc41",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"media: v4l2-mem2mem: Add a kref to the v4l2_m2m_dev structure\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "f0b01f206504029b738240bb66effcd27893868c",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"eventfs: Use children field for rcu head and add memory barriers\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "72e116d56686908ed4d9a3b7065fd9440a9c3cbb",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"blk-cgroup: delay freeing policy data after rcu grace period\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "801a50ce22d42075755e604da88dc5016ef6f9e8",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"blk-iocost: clear delay state when freeing policy data\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "b69f857ec232aa86832fa9b991160dbd2b79b6ed",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"blk-iolatency: clear delay state when freeing policy data\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "cbb57d9f0fd590aff5df3675049a849a8ac38e42",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"regcache: Add ->populate() callback to separate from ->init()\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "3fdeba14fe25003b1431b8f04a01c7f4e3e304b7",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"regcache: Do not overwrite error code when finalizing cache after error\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "40b544901de5d203f663ade93bbc3b05a78b3b03",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"regmap: Drop map lock during cache init and exit\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "cc57b9d1451cecf11ea723e6903185f2e0a88d87",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"unicode: free the map after a grace period\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "6962222aa60f8509157dc303d616f6264ce22a7e",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"Bluetooth: hci_qca: Migrate to serdev specific shutdown function\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "07c17449b801f58a2b33e8fc6f3caf6a2c7592fa",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"Bluetooth: hci_qca: Convert timeout from jiffies to ms\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "c68edf0065939d15c0c287415cde466ed513f59e",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"xsk: drain continuation descs after overflow in xsk_build_skb()\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "aa4cd854661c8468f79b103140688dc6d57e91f3",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"nvme: Add a quirk for page aligned admin queue buffers\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "b5855269629a2683b43bf7be0b5bc7c2c3c8c642",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"net/sched: fix packet loop on netem when duplicate is on\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "22120a3a2929363f77d4a0bb133666a52a06360f",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"net: plumb drop reasons to __dev_queue_xmit()\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "8072cb26ef9cef8ec5db17b072e9019c007bfd2f",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"nvme: remove virtual boundary for sgl capable devices\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "58ce2e85fd9c9495b5fe6205b160f3553e38d247",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"drm/vblank: Add vblank timer\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "ac316fe871c9fcb4418fa5263f40ed386ffc1af2",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"drm/vblank: Add CRTC helpers for simple use cases\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "26882ff507a489bc285ec3a08463a7df75db657f",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"drm/vkms: Convert to DRM's vblank timer\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "ca44617fadcb5ec47ff40651f3b5c272d2945d9f",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"drm/atomic: Increase timeout in drm_atomic_helper_wait_for_vblanks()\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "617999bc4986d04ec45f2e988ea23ab8862e6152",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"drm/vblank: Fix kernel docs for vblank timer\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "5acc91db4ce77b5473bd7fe16f15d6a68bd96c74",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"media: rc: fix race between unregister and urb/irq callbacks\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "3cec9ef1984a11249f14a004f0fa1832a70e1bdf",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"serdev: Provide a bustype shutdown function\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "1822ed694dd7b25daeeca151ba8537457a479a17",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"net/sched: act_api: use RCU with deferred freeing for action lifecycle\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "98e3d6bf3db52cb57fce60b74c7baccc5dfd6944",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"netfilter: conntrack: revert ct extension genid infrastructure\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "fea2049194895c661c0c66a4dfccab7880b93c3d",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"net: watchdog: fix refcount tracking races\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "34ae65dcfa7774a05c507cd2d84b153505f48143",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"net: do not acquire dev->tx_global_lock in netdev_watchdog_up()\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "5e99668c65a109ca89c72c97b7daa08d4e5e0666",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "PONG U59: keep i3c at android17-6.18-2026-09_r5",
+    "kind": "integration"
+  },
+  {
+    "commit": "3a22a735fcb6acb944050e7ca2de5d4d45a595cd",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "PONG U59: keep drivers/usb/dwc3 at android17-6.18-2026-09_r5",
+    "kind": "integration"
+  },
+  {
+    "commit": "7aa8f00646e83baf2541fb8c8eafb0de2a485161",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"net: dropreason: add SKB_DROP_REASON_RECURSION_LIMIT\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "1823363388e5b741ba753dd8a39230d2b4da63ac",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"scsi: core: wake eh reliably when using scsi_schedule_eh\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "4618e0c48d762a245348744b003d59807a059cd8",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"xsk: use a smaller new lock for shared pool case\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "e072cf98bf47ab6754f616ac24a436ea9d0bafb6",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"sched/fair: Separate se->vlag from se->vprot\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "f591bb61ae9ac575218ff7b1da729ba5b2c6416d",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "PONG U59: Revert \"net: add bare bone queue configs\" and bnxt qcfg users",
+    "kind": "integration"
+  },
+  {
+    "commit": "2d368b64e2143c1901b50c5248ca973d3dd72909",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"eth: bnxt: make sure we populate the qcfg defaults on old FW/HW\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "9aa307e253d5b81723fb78b690962f203e612717",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"net: pass queue rx page size from memory provider\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "a777485927fdbbc794ad7764923939babd779827",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"net/sched: reject overly deep qdisc hierarchies\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "64a21b3c403013614a24d1a6355650b578c275ce",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "PONG U59: keep xhci host driver at android17-6.18-2026-09_r5",
+    "kind": "integration"
+  },
+  {
+    "commit": "50220624d05c10fe7d4f4694d8f0a4ab6a899ee3",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"PCI: Allow per function PCI slots to fix slot reset on s390\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "626ae798ca7e4678cd6ef8667b23a0220485a392",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"serial: core: Add dedicated uart_port field for console flow\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "ee4a995acdee8940bc22abe4525bb59e5f789f33",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"serial: Replace driver usage of UPF_CONS_FLOW\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "93b22414aac070de5024f6df58e604d45cffef1c",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"serial: 8250: Set cons_flow on port registration\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "c3d11163107eea6a9de440228b5c32f9f4598d4e",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"serial: 8250: Add support for console flow control\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "458aaf9877a1052a23b0f75caaf234fbafcd5fd6",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"serial: 8250: Ignore flow control on suspend/resume with no_console_suspend\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "92cf0313373155f578276ca13825eedce5e809c7",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"remoteproc: core: Attach rproc asynchronously in rproc_add() path via schedule_work()\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "eac1ba71f983c8736ceb472771c420ba4e18c276",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"remoteproc: Prevent crash handling to race with rproc_del()\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "c1a335f7350ed8bff9ea718648db4b2d986a1677",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"block: accumulate memory segment gaps per bio\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "40d6eb7b5f5305ec175c33a6e48db57d2094c3b8",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"block: save page offset gaps in cloned bio\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "27d2d6e2f91266e9f7b63a4e200692d187002df5",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"block: fix merging data-less bios\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "2a014d8fc755250ffa8eb605748804ca6317ad4e",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"IB/core: Add query_port_speed verb\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "f3243febf7ea636c266527339044eadfd059d141",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"mailbox: Make mbox_send_message() return error code when tx fails\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "77669b602636151fb22384543666d2fe60f531eb",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"bpf: Reject non-scalar bpf_loop iteration counts\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "10afaa5ad70d90bfa0cd5fdfd3fb0f4082023f5b",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"devlink: Add port-level resource registration infrastructure\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "e7daa7c79a1bc4e5b596341702bd8c1beb5c11a0",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"ASoC: Rename snd_soc_dai_link_ch_map.ch_mask to cpu_ch_mask\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "e8958417bb3174a1d9c5619de94af49849c2512d",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"ASoC: soc-pcm: Apply snd_soc_dai_link_ch_map.codec_ch_mask to codec params\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "68e8763d131a52e45f30e4d24627f9a152f5230d",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"ASoC: sdw_utils: Set snd_soc_dai_link_ch_map.codec_ch_mask for capture\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "0056182165c53d11b6842bcb8a741524060771f1",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"ASoC: Add codec_ch_mask to snd_soc_dai_link_ch_map\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "7273662baa60f4fd243df28c1e9f7b49cd093636",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"bpf: Register dtor for freeing special fields\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "26107a7a95226a1507e0ddcc3700002e093e96e3",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"bpf: Reject key-less BTF for hash maps\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "ecb249c0f83b9f735e305a496080efbc9fef73ee",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"bpf: Fix UAF due to concurrent consumption of ttrace lists in alloc_bulk\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "1d4bd225bc34a07587e35ff431dd177ba3ff2220",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"tty: abort break signalling on hangup\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "a781709cfee964b3c2ef8d772c6ac67d00979965",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"net: Introduce skb tc depth field to track packet loops\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "19ed89f77b34d6f97407e452d5e7a5900668115a",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"xsk: reclaim invalid Tx descriptors in ZC batch path\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "c06d878ffaef6292b0261dd6fee81cf67509b4c3",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"bpf: don't rewrite bpf_fastcall patterns entered by a jump\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "ca73bda11a4d07871a8dd60b89cb04b14f161de2",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"power: supply: core: prevent unregistering a power supply while a callback runs\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "4dc973ba6a9cdf1a600a98eff5206fcb9c061886",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"tracing: Take trace_array reference when opening a tracer options file\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "3fb8fb9ce012c906b0eec2c9bdf531ee532b8c5f",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"tcp: introduce icsk->icsk_keepalive_timer\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "5f4f5767abfb7ba00abfa37cc27e97aba37a6de8",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"tcp: remove icsk->icsk_retransmit_timer\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "d76b59419803edc464b5829b920a755d9f81fa7e",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"ALSA: usb-audio: Clamp implicit feedback packet count to URB capacity\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "b58c11d8d8de074702ee2081a4a6ba21b46957c8",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"fs: don't let a migrating task hide its reference from do_umount()\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "327071d9dcf1e3a649c3ffacbcfc685bf20d852e",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"perf: Track the perf mlock gift separately\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "5acc1de7c9fe718390ba29bffa27a619c6b4d818",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"usb: dwc3: gadget: fix IRQ storm on invalid event buffer count\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "4100e5bdfadab5f0ca84f754b5083ec012b0c178",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"sched_ext: Generate qseq from a per-task counter\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "4292501621c1db016574dbf40689762ad095412b",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"futex: Fix mm reuse handling for FUT_OFF_MMSHARED\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "5ddea01b91a04e6add6dc2b475a9097d6e844609",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"drm/client: Remove drm_client_framebuffer_delete()\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "3680cfc22ec7082a03e79eb0aea13bfcc50add1c",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"media: v4l2-fwnode: Fix subdev owner overwritten in v4l2_async_register_subdev_sensor()\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "fb1c321a4a59129b15b6c0e94f3ad9b38e55f217",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"tty: port: fix tty_port_tty_vhangup() race\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "9caec8d90f0befbd680e3b24955c239eacf494b4",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "PONG U59: sched: port futex helpers (844839aa89e7, 942b89f7824f) to r5 sched",
+    "kind": "integration"
+  },
+  {
+    "commit": "8261b06fa5da6dae6a7c320fa444d9259b677591",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"net: remove addr_len argument of recvmsg() handlers\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "a6a5e46b96598a7e755d72fa8a8d39e4b52f66ec",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"driver core: Replace dev->can_match with dev_can_match()\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "92bbcea50061dcf5a24c6a9f55df877f9174eaf3",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"netfilter: nf_conntrack_expect: restore helper propagation via expectation\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "d6f198428cea09e0f926904f91cd13a86e91c9e1",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"of: dynamic: Fix overlayed devices not probing because of fw_devlink\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "72b927397d14177b90335c22b86eec31f24efffc",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "PONG U59: rolling_buffer.h back to r5 (part of netfs kept at r5)",
+    "kind": "integration"
+  },
+  {
+    "commit": "b1badc54c14e2a9bef43f55567d99be5b8aa76b6",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "PONG U59: keep netfs at android17-6.18-2026-09_r5",
+    "kind": "integration"
+  },
+  {
+    "commit": "6343e2cc7a3e9ef228f2dc9ac7d1f6c83c1a9d21",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "PONG U59: sched/psi: port 102fb2dacf45 to the r5 psi.c",
+    "kind": "integration"
+  },
+  {
+    "commit": "b8618a578df2fd36b424d8c642e555c71431bfd6",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"tracing: Fix subbuf resize races with trace_pipe_raw readers\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "9d5321bfe9e7a52273970cfd6508848bb2cf4a16",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"selinux: fix overlayfs mmap() and mprotect() access checks\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "5fcb0aeb7f6f96ac016b2248652241a3c4a9db9b",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"selinux: fix incorrect execmem checks on overlayfs\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "9d10c9b198fd667309631c3e0630c092120463b3",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"selinux: preserve user SID across nested backing files\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "0bdbbf4a01357fd22af9342ecc8f76b1a54b4b5d",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"selinux: recheck intermediate backing files on mprotect()\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "f0ba4388bdbe2ffa2fe6a3bbabecc90e6f00b748",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "PONG U59: blk-merge: drop duplicated nsegs/bytes declaration from merge",
+    "kind": "integration"
+  },
+  {
+    "commit": "2821e9c7698c3cfb47ecd87889e7c0704356f011",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "PONG U59: Revert \"lsm: add backing_file LSM hooks\"",
+    "kind": "integration"
+  },
+  {
+    "commit": "d2df841c2f964452505f42a6b4bde1e4e8295e3d",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "PONG U59: keep arm64 KVM headers at r5; port block plug ts fix into r5 sched",
+    "kind": "integration"
+  },
+  {
+    "commit": "68f427e72f1e019a2fd702bf806100ecd55c1139",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "PONG U59: Revert \"arm64: bti: Disable in-kernel BTI with recent versions of Clang\"",
+    "kind": "integration"
+  },
+  {
+    "commit": "fd9d607850907ba93b83ff66853a0dce29937af5",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "PONG U59: Revert rust uwtable/frame-pointer llvm module flags (Android rustc)",
+    "kind": "integration"
+  },
+  {
+    "commit": "b4a5df8dcfb97a4236def32ea8545557415a343a",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "PONG U59: gki_defconfig: drop CONFIG_KUNIT_DEBUGFS (now default y after 6.18.59)",
+    "kind": "integration"
+  },
+  {
+    "commit": "2c6310bb7b2ef8b104513cacf1e5122cc1e8b2b9",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"syscore: Pass context data to callbacks\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "f983ecefa0f25ce59fe3ac0474b5f1b691b4d0cf",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"iommu: Pass in old domain to attach_dev callback functions\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "7f2656c0d4f88ae936a0bdc28d17bdd0e1cfb7d1",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"mm/slab: prevent unbounded recursion in free path with new kmalloc type\"",
+    "kind": "revert"
+  },
+  {
+    "commit": "067d94d0dcdd975b2fae7f3d1196c58d26e76e59",
+    "author": "Claude (pong U59)",
+    "email": "noreply@anthropic.com",
+    "subject": "Revert \"scsi: bsg: Pass reply_len to bsg_setup_queue() to fit UFS ARPMB replies\"",
+    "kind": "revert"
+  }
+]
