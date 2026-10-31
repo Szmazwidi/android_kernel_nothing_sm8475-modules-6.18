@@ -418,9 +418,25 @@ static const struct qcom_cpufreq_soc_data epss_soc_data = {
 	.lut_row_size = 4,
 };
 
+/*
+ * PONG CLS16: the waipio vendor DT describes EPSS as "qcom,cpufreq-epss-pdmem" (extra
+ * pdmem regs after the three freq domains) with qcom,skip-enable-check.
+ */
+static const struct qcom_cpufreq_soc_data epss_pdmem_soc_data = {
+	.reg_enable = 0x0,
+	.reg_domain_state = 0x20,
+	.reg_dcvs_ctrl = 0xb0,
+	.reg_freq_lut = 0x100,
+	.reg_volt_lut = 0x200,
+	.reg_intr_clr = 0x308,
+	.reg_perf_state = 0x320,
+	.lut_row_size = 4,
+};
+
 static const struct of_device_id qcom_cpufreq_hw_match[] = {
 	{ .compatible = "qcom,cpufreq-hw", .data = &qcom_soc_data },
 	{ .compatible = "qcom,cpufreq-epss", .data = &epss_soc_data },
+	{ .compatible = "qcom,cpufreq-epss-pdmem", .data = &epss_pdmem_soc_data },
 	{}
 };
 MODULE_DEVICE_TABLE(of, qcom_cpufreq_hw_match);
@@ -539,8 +555,9 @@ static int qcom_cpufreq_hw_cpu_init(struct cpufreq_policy *policy)
 	index = args.args[0];
 	data = &qcom_cpufreq.data[index];
 
-	/* HW should be in enabled state to proceed */
-	if (!(readl_relaxed(data->base + qcom_cpufreq.soc_data->reg_enable) & 0x1)) {
+	/* HW should be in enabled state to proceed (vendor DT may waive the check) */
+	if (!of_property_read_bool(dev->of_node, "qcom,skip-enable-check") &&
+	    !(readl_relaxed(data->base + qcom_cpufreq.soc_data->reg_enable) & 0x1)) {
 		dev_err(dev, "Domain-%d cpufreq hardware not enabled\n", index);
 		return -ENODEV;
 	}

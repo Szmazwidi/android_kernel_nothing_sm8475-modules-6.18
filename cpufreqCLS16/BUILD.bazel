@@ -1,0 +1,4 @@
+# Build-rule adaptation: original sources retained; binary symbol inputs resolved from source.
+package(default_visibility=['//visibility:public'])
+load('//build/kernel/kleaf:kernel.bzl', 'ddk_module')
+ddk_module(name='cpufreqCLS16', kernel_build='//common:kernel_aarch64', out='qcom-cpufreq-hw.ko', srcs=['qcom-cpufreq-hw.c'])
