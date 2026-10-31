@@ -35,7 +35,9 @@ def main():
     p=argparse.ArgumentParser(description=__doc__)
     for key in ['kernel','modules','vendor-symvers','reference','report']:p.add_argument('--'+key,type=pathlib.Path,required=True)
     a=p.parse_args();reference=json.loads(a.reference.read_text())
-    assert (a.kernel/'Image').is_file()and(a.kernel/'Module.symvers').is_file()
+    # kernel_aarch64_dist names it kernel_aarch64_Module.symvers
+    kernel_symvers=next((a.kernel/n for n in ['Module.symvers','kernel_aarch64_Module.symvers']if(a.kernel/n).is_file()),None)
+    assert (a.kernel/'Image').is_file()and kernel_symvers,'Image or Module.symvers missing in --kernel'
     assert (a.kernel/'Image').read_bytes()[56:60]==b'ARMd','Not an ARM64 Image'
     found={f.name:f for f in a.modules.glob('*.ko')};expected=set(reference['vendor'])
     errors=[]
@@ -43,7 +45,7 @@ def main():
     gki_missing=sorted(n for n in reference['gki']if not(a.kernel/n).exists())
     if gki_missing:errors.append(dict(missing_reference_GKI=gki_missing))
     symbols=collections.defaultdict(set);seen=set()
-    files=[a.kernel/'Module.symvers']+list(a.vendor_symvers.rglob('*Module.symvers'))
+    files=[kernel_symvers]+list(a.vendor_symvers.rglob('*Module.symvers'))
     for f in files:
         text=f.read_bytes();key=hashlib.sha256(text).digest()
         if key in seen:continue
