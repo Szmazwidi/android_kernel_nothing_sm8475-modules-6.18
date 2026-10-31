@@ -1,0 +1,10 @@
+# Build-rule adaptation: original sources retained; binary symbol inputs resolved from source.
+package(default_visibility=['//visibility:public'])
+load('//build/kernel/kleaf:kernel.bzl', 'ddk_config', 'ddk_headers', 'ddk_module')
+load('@rules_pkg//pkg:install.bzl', 'pkg_install')
+load('@rules_pkg//pkg:mappings.bzl', 'pkg_files', 'strip_prefix')
+ddk_headers(name='headers', hdrs=glob(['vendor/**/*.h'], allow_empty=True), linux_includes=['vendor'])
+ddk_config(name='config541', kernel_build='//common:kernel_aarch64', kconfigs=['Kconfig'], defconfig='defconfig', deps=[])
+ddk_module(name='btCLS33', kernel_build='//common:kernel_aarch64', config=':config541', out='btpower.ko', srcs=['pwr/btpower.c', 'include/btpower.h', 'include/bt541_internal.h'], includes=['include'], hdrs=[':headers'], deps=['//devices/pong618/build:symbol_pinctrl_msm', '//devices/pong618/build:symbol_qcom_aoss'], copts=['-ferror-limit=0'])
+pkg_files(name='files541', srcs=[':bt541'], strip_prefix=strip_prefix.files_only())
+pkg_install(name='dist541', srcs=[':files541'])
