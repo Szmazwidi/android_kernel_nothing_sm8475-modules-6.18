@@ -1,3 +1,5 @@
+> Historical image-734 recipe (6.18.32 / 243 modules). The current 6.18.59 source set has 262 reference modules; this recipe has not been promoted to a tested CLS33 image profile. See the repository README.
+
 # Image tools
 
 `build_images.py` turns a kernel and module build into flashable `boot`, `vendor_boot`,

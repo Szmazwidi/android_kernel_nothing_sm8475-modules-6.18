@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-only
 """Regenerate kernel/module/pong251-module-policy.h from a set of built modules.
 
-The kernel branch pong-a17-6.18.32 carries a lab guard ("pong: LAB: Load only the
+The 6.18.32 and 6.18.59 kernel branches carry a lab guard ("pong: LAB: Load only the
 verified module payloads") that refuses any module whose ELF payload is not listed
 in kernel/module/pong251-module-policy.h. The payload is the .ko file without the
 appended PKCS#7 signature, i.e. exactly what load_module() hashes after
@@ -14,8 +14,8 @@ ship, and the kernel rebuilt with the new header:
 
     tools/gen-module-policy.py out/modules/*.ko > common/kernel/module/pong251-module-policy.h
 
-Directories are searched recursively for *.ko. Alternatively, revert the LAB
-commits on the kernel branch (see README.pong.md there).
+Directories are searched recursively for *.ko. This regenerates only the exact
+module payload list; critical device write/identity protections remain unchanged.
 """
 import hashlib
 import os
