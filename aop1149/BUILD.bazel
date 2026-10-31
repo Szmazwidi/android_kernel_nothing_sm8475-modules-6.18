@@ -1,0 +1,7 @@
+# Build-rule adaptation: original sources retained; binary symbol inputs resolved from source.
+package(default_visibility=['//visibility:public'])
+load('//build/kernel/kleaf:kernel.bzl', 'ddk_module', 'ddk_headers', 'ddk_config')
+ddk_headers(name='headers', hdrs=glob(['include/**/*.h'], allow_empty=True), linux_includes=['include'])
+ddk_config(name='config', kernel_build='//common:kernel_aarch64', kconfigs=['Kconfig'], defconfig='defconfig', deps=[])
+ddk_module(name='aoss1149', out='qcom_aoss.ko', kernel_build='//common:kernel_aarch64', config=':config', srcs=['qcom_aoss.c', 'trace-aoss.h'], includes=['.'], hdrs=[':headers'])
+ddk_module(name='mem1149', out='pong_mem_hotplug.ko', kernel_build='//common:kernel_aarch64', srcs=['pong_mem_hotplug.c'])

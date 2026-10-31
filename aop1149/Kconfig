@@ -1,0 +1,3 @@
+config PONG1149_AOSS
+    tristate "Pong AOSS1149"
+    select QCOM_AOSS_QMP

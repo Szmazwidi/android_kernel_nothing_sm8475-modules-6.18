@@ -46,6 +46,7 @@
 
 /* 64 bytes is enough to store the requests and provides padding to 4 bytes */
 #define QMP_MSG_LEN			64
+#define QMP_MAX_MSG_LEN			96
 
 #define QMP_NUM_COOLING_RESOURCES	2
 
@@ -225,10 +226,25 @@ static bool qmp_message_empty(struct qmp *qmp)
  *
  * Return: 0 on success, negative errno on failure
  */
+/* Header is part of the firmware mailbox allocation. Preserve legacy short
+ * messages; never truncate a stock PASR request or exceed the advertised RAM. */
+static int qmp_wire_size(int len, u32 capacity)
+{
+ unsigned int wire;
+
+ if (len < 0 || len >= QMP_MAX_MSG_LEN)
+  return -EMSGSIZE;
+ wire = max_t(unsigned int, QMP_MSG_LEN, ALIGN(len + 1, sizeof(u32)));
+ if (capacity < sizeof(u32) || wire > capacity - sizeof(u32))
+  return -EMSGSIZE;
+ return wire;
+}
+
 int __printf(2, 3) qmp_send(struct qmp *qmp, const char *fmt, ...)
 {
-	char buf[QMP_MSG_LEN];
+	char buf[QMP_MAX_MSG_LEN];
 	long time_left;
+	int wire;
 	va_list args;
 	int len;
 	int ret;
@@ -241,8 +257,9 @@ int __printf(2, 3) qmp_send(struct qmp *qmp, const char *fmt, ...)
 	len = vsnprintf(buf, sizeof(buf), fmt, args);
 	va_end(args);
 
-	if (WARN_ON(len >= sizeof(buf)))
-		return -EINVAL;
+	wire = qmp_wire_size(len, qmp->size);
+	if (wire < 0)
+		return wire;
 
 	mutex_lock(&qmp->tx_lock);
 
@@ -250,8 +267,8 @@ int __printf(2, 3) qmp_send(struct qmp *qmp, const char *fmt, ...)
 
 	/* The message RAM only implements 32-bit accesses */
 	__iowrite32_copy(qmp->msgram + qmp->offset + sizeof(u32),
-			 buf, sizeof(buf) / sizeof(u32));
-	writel(sizeof(buf), qmp->msgram + qmp->offset);
+			 buf, wire / sizeof(u32));
+	writel(wire, qmp->msgram + qmp->offset);
 
 	/* Read back length to confirm data written in message RAM */
 	readl(qmp->msgram + qmp->offset);
@@ -270,6 +287,8 @@ int __printf(2, 3) qmp_send(struct qmp *qmp, const char *fmt, ...)
 	}
 
 	trace_aoss_send_done(buf, ret);
+	if (len >= QMP_MSG_LEN)
+		dev_info(qmp->dev, "PONG1149_QMP_LONG len=%d wire=%d capacity=%zu ack=%d\n", len, wire, qmp->size, ret);
 
 	mutex_unlock(&qmp->tx_lock);
 
