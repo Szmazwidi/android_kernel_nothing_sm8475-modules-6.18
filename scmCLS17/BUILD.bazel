@@ -1,0 +1,10 @@
+# Build-rule adaptation: original sources retained; binary symbol inputs resolved from source.
+package(default_visibility=['//visibility:public'])
+load('//build/kernel/kleaf:kernel.bzl', 'ddk_config', 'ddk_headers', 'ddk_module')
+load('@rules_pkg//pkg:install.bzl', 'pkg_install')
+load('@rules_pkg//pkg:mappings.bzl', 'pkg_files', 'strip_prefix')
+ddk_headers(name='headers', hdrs=glob(['include/**/*.h', 'vendor/**/*.h'], allow_empty=True), linux_includes=['include', 'vendor'])
+ddk_config(name='config590', kernel_build='//common:kernel_aarch64', kconfigs=['Kconfig'], defconfig='defconfig')
+ddk_module(name='scmCLS17', kernel_build='//common:kernel_aarch64', config=':config590', out='qcom-scm.ko', srcs=['qcom_scm-legacy.c', 'qcom_scm-smc.c', 'qcom_scm.c', 'qcom_scm.h', 'qcom_tzmem.c', 'qcom_tzmem.h', 'qtee_shmbridge.c', 'qtee_shmbridge_internal.h', 'ipa_scm558.h', 'camera_scm590.h'], includes=['.'], hdrs=[':headers'], copts=['-ferror-limit=0'])
+pkg_files(name='files590', srcs=[':scmCLS17'], strip_prefix=strip_prefix.files_only())
+pkg_install(name='dist590', srcs=[':files590'])
