@@ -1,0 +1,8 @@
+# Build-rule adaptation: original sources retained; binary symbol inputs resolved from source.
+package(default_visibility=['//visibility:public'])
+load('//build/kernel/kleaf:kernel.bzl', 'ddk_config', 'ddk_module')
+load('@rules_pkg//pkg:install.bzl', 'pkg_install')
+load('@rules_pkg//pkg:mappings.bzl', 'pkg_files', 'strip_prefix')
+ddk_config(name='config', kernel_build='//common:kernel_aarch64', kconfigs=['Kconfig'], defconfig='defconfig')
+ddk_module(name='control', out='mdt_loader.ko', kernel_build='//common:kernel_aarch64', config=':config', srcs=['control/drivers/soc/qcom/mdt_loader.c'], deps=['//devices/pong618/build:symbol_qcom_scm'])
+ddk_module(name='fixed', out='mdt_loader.ko', kernel_build='//common:kernel_aarch64', config=':config', srcs=['drivers/soc/qcom/mdt_loader.c', 'drivers/soc/qcom/pong_mdt_dma32.c'], deps=['//devices/pong618/build:symbol_qcom_scm'])

@@ -227,6 +227,51 @@ void *qcom_mdt_read_metadata(const struct firmware *fw, size_t *data_len,
 }
 EXPORT_SYMBOL_GPL(qcom_mdt_read_metadata);
 
+/*
+ * PONG CL14: on waipio the secure world only accepts PAS metadata below 4 GiB
+ * (the vendor tree sets dma_phys_below_32b for every SM8450 PAS).  Metadata of
+ * at most one page bypasses CMA in dma-direct and lands anywhere in the single
+ * Normal zone, which here spans RAM above 4 GiB, so a730_zap.mdt (4044 bytes)
+ * fails with -ENOMEM until the per-cpu page lists happen to hand out a low
+ * page.  Pad the blob past one page and allocate it on a 32-bit DMA device so
+ * it comes from the default CMA area (linux,cma, below 4 GiB).  Trailing zero
+ * padding is never parsed: the secure world reads the ELF headers it finds.
+ */
+int pong416_scm_pas_init_image(u32 peripheral, const void *metadata, size_t size,
+			       struct qcom_scm_pas_metadata *ctx,
+			       struct device *dma32_dev);
+
+/* pong_mdt_dma32.c: kept apart so the exported CRCs of this unit stay unchanged. */
+struct device *pong_mdt_dma32_dev(void);
+
+static int mdt_pas_init_image(struct device *dev, const char *fw_name, int pas_id,
+			      const void *metadata, size_t metadata_len,
+			      struct qcom_scm_pas_metadata *ctx)
+{
+	struct device *dma32_dev = pong_mdt_dma32_dev();
+	size_t padded = max_t(size_t, metadata_len, PAGE_SIZE + 1);
+	void *buf;
+	int ret;
+
+	/* A caller-owned context is released through __scm->dev, keep that path. */
+	if (ctx || !dma32_dev)
+		return qcom_scm_pas_init_image(pas_id, metadata, metadata_len, ctx);
+
+	buf = kzalloc(padded, GFP_KERNEL);
+	if (!buf)
+		return -ENOMEM;
+	memcpy(buf, metadata, metadata_len);
+
+	ret = pong416_scm_pas_init_image(pas_id, buf, padded, NULL, dma32_dev);
+	kfree(buf);
+	if (ret != -ENOMEM)
+		return ret;
+
+	dev_warn(dev, "PONG_CL14 dma32 metadata for %s unavailable, using default path\n",
+		 fw_name);
+	return qcom_scm_pas_init_image(pas_id, metadata, metadata_len, ctx);
+}
+
 /**
  * qcom_mdt_pas_init() - initialize PAS region for firmware loading
  * @dev:	device handle to associate resources with
@@ -282,7 +327,7 @@ int qcom_mdt_pas_init(struct device *dev, const struct firmware *fw,
 		goto out;
 	}
 
-	ret = qcom_scm_pas_init_image(pas_id, metadata, metadata_len, ctx);
+	ret = mdt_pas_init_image(dev, fw_name, pas_id, metadata, metadata_len, ctx);
 	kfree(metadata);
 	if (ret) {
 		/* Invalid firmware metadata */
