@@ -1,0 +1,5 @@
+# Build-rule adaptation: original sources retained; binary symbol inputs resolved from source.
+package(default_visibility=['//visibility:public'])
+load('//build/kernel/kleaf:kernel.bzl', 'ddk_module')
+load('//devices/pong618/av580/providers:providers.bzl', 'PROVIDERS')
+ddk_module(name='camcc861', kernel_build='//common:kernel_aarch64', out='camcc-sm8450.ko', srcs=['drivers/clk/qcom/camcc-waipio.c', 'drivers/clk/qcom/common.c', 'drivers/clk/qcom/clk-alpha-pll.c', 'drivers/clk/qcom/clk-regmap.c', 'drivers/clk/qcom/clk-branch.c', 'drivers/clk/qcom/clk-rcg.c', 'drivers/clk/qcom/clk-rcg2.c', 'drivers/clk/qcom/clk-regmap-divider.c', 'drivers/clk/qcom/clk-regmap-mux.c', 'drivers/clk/qcom/reset.c', 'drivers/clk/qcom/vdd-class.c', 'drivers/clk/qcom/clk-opp.c', 'drivers/clk/qcom/clk-debug.c', 'drivers/clk/qcom/gdsc.c', 'drivers/clk/qcom/gdsc-debug.c'] + glob(['drivers/**/*.h', 'include/**/*.h'], allow_empty=True), includes=['include', 'drivers/clk/qcom'], deps=[], copts=['-ferror-limit=0'])
