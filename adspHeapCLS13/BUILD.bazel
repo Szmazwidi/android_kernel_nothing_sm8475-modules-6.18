@@ -1,0 +1,5 @@
+# Build-rule adaptation: original sources retained; binary symbol inputs resolved from source.
+package(default_visibility=['//visibility:public'])
+load('//build/kernel/kleaf:kernel.bzl', 'ddk_module')
+load('//devices/pong618/av580/providers:providers.bzl', 'PROVIDERS')
+ddk_module(name='adspHeapCLS13', kernel_build='//common:kernel_aarch64', out='pong_adsp_heap.ko', srcs=['pong_adsp_heap.c', 'heaps/qcom_sg_ops.h', 'heaps/qcom_dma_heap_priv.h', 'heaps/deferred-free-helper.h'], includes=['heaps'], deps=['//devices/pong618/av580/providers:vendor_headers', '//devices/pong618/build:symbol_mem_buf_dev', '//devices/pong618/build:symbol_qcom_reserved_heaps'])
