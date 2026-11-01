@@ -1,9 +1,15 @@
 # Nothing Phone (2): android17-6.18.60 vendor modules
 
-**Upstream candidate:** all 262 source outputs, final ABI, SHA-256 signatures
-and diskless signature/payload VM tests passed on 6.18.60. No 6.18.60 image was
-flashed. The phone/ROM runtime reference remains CLS38 / 6.18.59; that branch
-and its remote default are preserved. See `docs/build-evidence/upstream-6.18.60`.
+**6.18.60 hardware qualification failed:** the first source-built candidate
+passed compile/CRC/signature/VM checks but could not complete Android boot.
+The release recipe selected the previously rejected heap974 exporter rather
+than accepted heap982, losing the `qcom,system` name, userspace mmap and lazy
+DMA mapping. The phone was restored to exact CLS38 / 6.18.59 without a reset.
+This branch now selects the unchanged accepted heap982 source and checks its
+runtime interfaces during artifact verification. A new complete build,
+signing/VM qualification and hardware test are still required before use.
+See [runtime regression](docs/runtime-regression-6.18.60.md). The remote default
+and preserved 6.18.59 branch remain unchanged.
 
 
 Source release branch: `pong-a17-6.18.60`. The older `pong-a17-6.18.32` branch

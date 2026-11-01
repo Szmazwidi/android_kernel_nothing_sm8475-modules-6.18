@@ -41,8 +41,9 @@
     "BUILD.bazel": {
       "status": "NEW",
       "previous_port_revision": "b85102e7eab9db69c9d456902bf8f9cb1845eba3",
-      "sha256": "0efc6d6f3fc4835de84bc3799a716ee4008e0d40bcd16262d2996e925c7976a1",
-      "earlier_release_sha256": "9ed1d42cad8ab2cbf1d766aaad19e370404993ba11c23032a9c07f4da8c969f3"
+      "sha256": "cc5efa5e9f44746d6f7a2a01b8bb251bb583fcf65165ec19d358bda18301273d",
+      "earlier_release_sha256": "9ed1d42cad8ab2cbf1d766aaad19e370404993ba11c23032a9c07f4da8c969f3",
+      "previous_release_sha256": "f8ff226f2b7781ce352584134fa5f6f2f58f721e9dfda0ba417c2835e53bd2cd"
     },
     "COPYING": {
       "status": "VERBATIM",
@@ -190,8 +191,9 @@
     },
     "README.md": {
       "status": "NEW",
-      "sha256": "10cca6974b9687834e33f38005b7dd06f8df8560a995c332188b3f0ce5564e75",
-      "earlier_release_sha256": "145f3b5d5b97555ed642d91e759f595145161a5dd4f7a52cb3f9cecff1e9f774"
+      "sha256": "1ec301307244673e9a05a998544b46a1dca93167b067d503bca25533c3da21d2",
+      "earlier_release_sha256": "145f3b5d5b97555ed642d91e759f595145161a5dd4f7a52cb3f9cecff1e9f774",
+      "previous_release_sha256": "10cca6974b9687834e33f38005b7dd06f8df8560a995c332188b3f0ce5564e75"
     },
     "adc152r2/BUILD.bazel": {
       "status": "NEW",
@@ -3270,12 +3272,13 @@
       "ref": "rmodules",
       "status": "MODIFIED",
       "previous_port_revision": "b85102e7eab9db69c9d456902bf8f9cb1845eba3",
-      "sha256": "7baae4df721b373456540c4df1c754cd7e15b1101592994082e2c1a24d72cf10",
+      "sha256": "b64700b5021a402fbad9894dec130e31113e5018dab66efb3fa1ca797ee983fd",
       "port_snapshot": {
         "package": "av580/qcom/opensource/camera-kernel",
         "path": "camera_modules.bzl",
         "original_snapshot_sha256": "2d2678b2e96ec0995f258ef931e614558c762812836404ce7be585e0b5e0d1d6"
-      }
+      },
+      "previous_release_sha256": "7baae4df721b373456540c4df1c754cd7e15b1101592994082e2c1a24d72cf10"
     },
     "av580/qcom/opensource/camera-kernel/config/cape.mk": {
       "path": "qcom/opensource/camera-kernel/config/cape.mk",
@@ -8050,8 +8053,9 @@
     "build/BUILD.bazel": {
       "status": "NEW",
       "previous_port_revision": "b85102e7eab9db69c9d456902bf8f9cb1845eba3",
-      "sha256": "23c5f4d60a18c3004dd7618216658a16c35898935cd8465e8b4220b4bbd8532f",
-      "earlier_release_sha256": "be9b9478d2dfc01f06a93dc3520c8ce4510ed0ca4b49b1cc68d966b17b3e09ac"
+      "sha256": "a82220a973389475d7b9f4c39d665ac4ce5b483dd735af0f7608700b5d182502",
+      "earlier_release_sha256": "be9b9478d2dfc01f06a93dc3520c8ce4510ed0ca4b49b1cc68d966b17b3e09ac",
+      "previous_release_sha256": "2f97c42e60be5cef7c7594e809526caa9b209fc3bc337f3cdab60ceb90bd2c5e"
     },
     "build/deps.bzl": {
       "status": "NEW",
@@ -15416,7 +15420,8 @@
     "docs/build-reference-6.18.60.json": {
       "status": "LOCAL_INTEGRATION",
       "attribution": "Release integration/documentation; no claim of original upstream driver authorship",
-      "sha256": "79c7a735f0ad5360dcf4939306451d041da39831c4cbae8309674ebd0031f1d6"
+      "sha256": "bb140f213f9591cb4ffd2d4b4b0ca94119a1a1d50cb07138d63eb3de703cedd8",
+      "previous_release_sha256": "c082d0bc7b41720832823b1d9c02043aaedead1e701b66e26fe78a79ffcaa1de"
     },
     "docs/hal-interfaces.md": {
       "status": "LOCAL_INTEGRATION",
@@ -33242,8 +33247,9 @@
     "tools/verify_build.py": {
       "status": "LOCAL_INTEGRATION",
       "attribution": "Release integration/documentation; no claim of original upstream driver authorship",
-      "sha256": "653c5cda4597458d3eb22d2649d843668dd9f8da37593e7376b198654d7e1ef0",
-      "earlier_release_sha256": "9b64edba304d1190df9e34e228e0295727241d6591f829b337185b8f821d15fc"
+      "sha256": "ab10de7786a27880425f1328b1e790297591c7de22e6ecd95a9cc7264c03ef97",
+      "earlier_release_sha256": "9b64edba304d1190df9e34e228e0295727241d6591f829b337185b8f821d15fc",
+      "previous_release_sha256": "653c5cda4597458d3eb22d2649d843668dd9f8da37593e7376b198654d7e1ef0"
     },
     "uart480/BUILD.bazel": {
       "status": "NEW",
@@ -73705,6 +73711,28 @@
       "ref": "rmodules",
       "status": "MODIFIED",
       "sha256": "f1693bbf33563861747b365ccaa1d72bde6dbfc837576e3e95cc4542f55307ea"
+    },
+    "heap982/fixed/pong_membuf_heap.c": {
+      "status": "LOCAL_PORT_SOURCE",
+      "attribution": "Existing Pong port source or release integration; upstream notices retained; no claim of new original driver authorship",
+      "sha256": "d40f2e640fb8b28c94e2caa87e058235b5d12c38577cd3679440ffafecb583c8",
+      "port_snapshot": {
+        "package": "heap982",
+        "path": "fixed/pong_membuf_heap.c",
+        "original_snapshot_sha256": "d40f2e640fb8b28c94e2caa87e058235b5d12c38577cd3679440ffafecb583c8"
+      },
+      "note": "Accepted stage982/983 adaptation of display108 heap102; copied unchanged, retaining original notices and permission ownership. Replaces rejected heap974 selection."
+    },
+    "heap982/fixed/BUILD.bazel": {
+      "status": "LOCAL_INTEGRATION",
+      "attribution": "Existing Pong port source or release integration; upstream notices retained; no claim of new original driver authorship",
+      "sha256": "62f6da5751e1e826e63773b1808e11c41901c2b865a2c450308a21edc4795136"
+    },
+    "docs/runtime-regression-6.18.60.md": {
+      "status": "LOCAL_INTEGRATION",
+      "attribution": "Existing Pong port source or release integration; upstream notices retained; no claim of new original driver authorship",
+      "sha256": "6fe766af4cabd6ba0259894fd7d847b9b5f83470f84547e301007569bec41419",
+      "previous_release_sha256": "6177aa738221ff597a4ba326c57e22980b36b53731a56b0b712a0f478754bb10"
     }
   },
   "snapshot": {

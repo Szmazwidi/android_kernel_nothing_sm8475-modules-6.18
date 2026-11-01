@@ -97,8 +97,8 @@
     "pong416_mdt_loader.ko": "//devices/pong618/subsystems407:remote407",
     "pong70-llcc-consumer.ko": "//devices/pong618/native-llcc70:consumer",
     "pong_adsp_heap.ko": "//devices/pong618/adspHeapCLS13:adspHeapCLS13",
-    "pong_mem_hotplug.ko": "//devices/pong618/memHotplugCLS16:memHotplugCLS16",
-    "pong_membuf_heap.ko": "//devices/pong618/heap974/fixed:heap_fixed974",
+    "pong_mem_hotplug.ko": "//devices/pong618/aop1149:mem1149",
+    "pong_membuf_heap.ko": "//devices/pong618/heap982/fixed:heap_fixed982",
     "proxy-consumer.ko": "//devices/pong618/power-consumers29:proxy",
     "q6_dlkm.ko": "//devices/pong618/av580/qcom/opensource/audio-kernel:waipio_perf_modules",
     "q6_notifier_dlkm.ko": "//devices/pong618/av580/qcom/opensource/audio-kernel:waipio_perf_modules",
@@ -272,5 +272,38 @@
     "Source snapshots are host-verified separately; no claim that a fresh local-key build was flashed.",
     "Private userspace/DSP blobs and personal signing keys are not included."
   ],
-  "runtime_reference": "CLS38 / 6.18.59; upstream 6.18.60 candidate is host-only until qualified"
+  "runtime_reference": "CLS38 / 6.18.59; upstream 6.18.60 candidate is host-only until qualified",
+  "runtime_contracts": {
+    "pong_membuf_heap.ko": {
+      "required_functions": [
+        "pong104_mmap",
+        "pong104_vma_open",
+        "pong104_vma_close",
+        "system_heap_vmap",
+        "system_heap_vunmap"
+      ],
+      "required_imports": [
+        "mem_buf_vmperm_can_mmap",
+        "mem_buf_vmperm_pin",
+        "mem_buf_vmperm_unpin",
+        "msm_dma_map_sg_attrs",
+        "msm_dma_unmap_sg_attrs",
+        "remap_pfn_range"
+      ],
+      "required_strings": [
+        "qcom,system"
+      ]
+    },
+    "pong_mem_hotplug.ko": {
+      "required_functions": [
+        "pong_aop_tx_done"
+      ]
+    },
+    "camera.ko": {
+      "required_imports": [
+        "qti_flash_led_prepare",
+        "qti_flash_led_set_param"
+      ]
+    }
+  }
 }

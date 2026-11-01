@@ -56,6 +56,31 @@ def export_crcs(data):
             exports[name[6:]]=crc
     return exports
 
+def runtime_contract_errors(data, sec, contract):
+    """Require runtime interfaces that a symbol-CRC-only audit cannot prove.
+
+    In particular a vmap-capable diagnostic heap can compile and link while
+    lacking the userspace mmap callback required by Android gralloc.
+    """
+    offset=struct.unpack_from('<Q',data,40)[0]
+    size,count,_=struct.unpack_from('<HHH',data,58)
+    headers=[struct.unpack_from('<IIQQQQIIQQ',data,offset+i*size)for i in range(count)]
+    functions=set()
+    for h in headers:
+        if h[1]!=2:continue
+        strings=headers[h[6]]
+        names=data[strings[4]:strings[4]+strings[5]]
+        for pos in range(h[4],h[4]+h[5],24):
+            index,info,_,section,_,_=struct.unpack_from('<IBBHQQ',data,pos)
+            if info&15==2 and section:
+                functions.add(names[index:names.find(b'\0',index)].decode())
+    missing_functions=sorted(set(contract.get('required_functions',[]))-functions)
+    missing_imports=sorted(set(contract.get('required_imports',[]))-set(versions(sec)))
+    missing_strings=[s for s in contract.get('required_strings',[])if s.encode()+b'\0'not in data]
+    if missing_functions or missing_imports or missing_strings:
+        return dict(missing_functions=missing_functions,missing_imports=missing_imports,missing_strings=missing_strings)
+    return {}
+
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     for key in ['kernel','modules','reference','report']:p.add_argument('--'+key,type=pathlib.Path,required=True)
@@ -98,6 +123,10 @@ def main():
         magic=info.get('vermagic','')
         if not magic or magic.split()[0]!=kernel_release:errors.append(dict(module=name,kernel_release_mismatch=magic,expected_release=kernel_release))
         vermagics.add(magic)
+        contract=reference.get('runtime_contracts',{}).get(name)
+        if contract:
+            failures=runtime_contract_errors(data,sec,contract)
+            if failures:errors.append(dict(module=name,runtime_contract_errors=failures))
         imports=versions(sec);bad={n:dict(module_crc=hex(crc),provider_crcs=sorted(hex(v)for v in symbols[n]))for n,crc in imports.items()if crc not in symbols[n]}
         if bad:errors.append(dict(module=name,symbol_version_errors=bad))
         missing_deps=[n for n in info.get('depends','').split(',')if n and n.replace('-','_')not in normalized_names]
