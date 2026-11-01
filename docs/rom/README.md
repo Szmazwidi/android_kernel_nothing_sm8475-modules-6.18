@@ -1,5 +1,33 @@
 # DerpFest 17 / Linux 6.18: source-state recipes
 
+## Latest qualification update (2026-11-01)
+
+The later full ROM combining the telephony compatibility shim and fingerprint
+startup fixes built successfully and passed payload/kernel/module checks. One
+bounded installation on the development slot did **not** reach a completed
+Android boot: it restarted with a checkpoint-related boot reason. The complete
+previous image set was restored and checked. The exact checkpoint failure is
+still under investigation; neither a generic flashable release nor a successful
+full-ROM boot is established by these build results.
+
+Device source commit
+[`756924eeeae0f33dd26e969231ba5e14d246572f`](https://github.com/Szmazwidi/android_device_nothing_Pong/commit/756924eeeae0f33dd26e969231ba5e14d246572f)
+defers fingerprint initialization until Android finishes booting and returns a
+recoverable Binder transport error when the legacy hardware module is absent.
+Its source-built AIDL executable was separately tested as a reversible,
+systemless replacement on the previous working 6.18.60 installation. After one
+normal reboot and the required initial PIN unlock, the user confirmed that an
+existing enrolled finger unlocked the phone; the framework also recorded an
+accepted authentication. The full RAM profile returned automatically and
+SELinux remained Enforcing. Fresh enrollment and long-term suspend/AOD behavior
+have not yet been qualified. This AIDL frontend still uses the proprietary
+legacy Goodix backend.
+
+The pinned manifests below predate that device-source commit. They remain
+source-state snapshots, not recipes for the temporary systemless deployment or
+proof that the full newer ROM works. No data reset or protection-policy bypass
+was used for the successful fingerprint test.
+
 `derpfest17-pong618-6.18.60.xml` is the 6.18.60 candidate: it retains the
 same pinned projects and updates the device and prebuilt commits. All 1,259
 project revisions were checked against the existing local source workspace.
