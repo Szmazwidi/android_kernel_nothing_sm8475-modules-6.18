@@ -70,3 +70,28 @@ per-buffer kernel-log flooding; permission and failure diagnostics remain.
 The verifier now inspects AArch64 call relocations within both CPU callbacks,
 requiring pin, permission check and unpin at the actual callback call sites.
 Global imports alone could not detect the missing ownership pin.
+
+The complete bank with the stage1063 heap was subsequently rebuilt: all 178
+vendor and 84 GKI modules passed the final ABI check, the immutable payload
+policy and CMS signature verification, and the default-enforcement VM admission
+tests passed. A source-to-ROM prebuilt import passed its check-only validation.
+On the development phone that exact kernel/module cohort subsequently booted
+native Android with SELinux enforcing and signature enforcement enabled. The
+partition hashes, unchanged slot A/GPT layout, normal data checkpoint and a
+pre-existing data canary were verified. A data-interface-bound Internet ping
+also succeeded. No data reset was performed.
+
+In a 12-second NDK camera test, IDs 0 and 1 under the shell UID produced 223
+and 185 preview frames respectively, with two JPEG frames each and no reported
+capture failures. Physical ID 2, tested as root because it is not a public
+camera ID, produced 187 preview frames and two JPEGs. The test discarded the
+images instead of saving them. This does not validate a graphical camera app,
+image quality, video, every lens mode, or another device.
+
+The same boot retained nine kernel warnings (one SPMI and eight IOMMU fault
+handler registrations); no kernel panic, lockup or filesystem corruption was
+detected in this snapshot. The original fingerprint service crashed once on a
+null device and restarted, and com.qti.phone reported a missing Nothing
+telephony class. The latter warrants further investigation despite the bound
+data ping succeeding. These warnings and crashes remain open issues, not proof
+of a regression introduced by the version update.
