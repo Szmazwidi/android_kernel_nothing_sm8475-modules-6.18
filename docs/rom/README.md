@@ -19,6 +19,16 @@ modules and all 94 vendor-ramdisk modules. This is build/image evidence, not
 proof that the complete ROM boots. The separately developed telephony shim is
 not included in that ZIP or in this pinned manifest.
 
+The payload file and metadata hashes were checked and the `boot`, `vendor_boot`
+and `vendor_dlkm` payload partitions were extracted and checked independently.
+Their kernel and module contents match the tested cohort. The payload boot
+ramdisk, however, does not contain the Magisk files or custom init parameters
+of the development phone's current boot image. Android OS version and boot
+patch level match, but that does not establish boot or data compatibility.
+Consequently this ZIP is not a drop-in replacement for the currently rooted
+installation; root, startup, slot behavior and data recovery need their own
+qualification before any installation.
+
 `derpfest17-pong618-current.xml` pins **1,259 projects**, including the manually attached
 Pong device/vendor/kernel projects that `repo manifest -r` alone omitted.
 The current recipe includes the AIDL fingerprint error fix, opt-in sensors
