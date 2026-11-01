@@ -15405,7 +15405,7 @@
     "docs/manifest/pong618-6.18.59.xml": {
       "status": "LOCAL_INTEGRATION",
       "attribution": "Release integration/documentation; no claim of original upstream driver authorship",
-      "sha256": "724f57ff3d5126323d464aeaaf4b579d7b6b1de24089bc34413788d4ae719472"
+      "sha256": "2dda20a9a4fa0768916d66534e2818262f11392468aa54d5fdac233ecaae0b0a"
     },
     "docs/provenance-guide.md": {
       "status": "LOCAL_INTEGRATION",
@@ -73682,7 +73682,9 @@
     "source_graph_modules": 178,
     "original_notices_preserved": true,
     "selected_GKI_modules": 84,
-    "self_digest_excluded": true
+    "self_digest_excluded": true,
+    "locked_kernel_commit": "faf5816ea2a11522f22a978d73a5d4472ddbe1aa",
+    "locked_module_source_commit": "087f9114b1a580262cb7dfb34d190f133ca18b08"
   },
   "retired_files": {
     "ipa930/.gitupstream": {
