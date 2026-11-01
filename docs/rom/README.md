@@ -28,6 +28,10 @@ patch level match, but that does not establish boot or data compatibility.
 Consequently this ZIP is not a drop-in replacement for the currently rooted
 installation; root, startup, slot behavior and data recovery need their own
 qualification before any installation.
+The payload also includes `recovery`, `vbmeta`, `vbmeta_system` and
+`vbmeta_vendor`. A normal installation would therefore exceed the protected
+partition scope of the development workflow; do not apply it to that phone
+without a separately reviewed update and recovery plan.
 
 `derpfest17-pong618-current.xml` pins **1,259 projects**, including the manually attached
 Pong device/vendor/kernel projects that `repo manifest -r` alone omitted.
