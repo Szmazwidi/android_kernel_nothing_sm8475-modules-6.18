@@ -7,7 +7,7 @@ load(':project_defconfig.bzl', 'get_project_defconfig')
 
 def _define_module(target, variant, host_native=False):
     tv = '{}_{}'.format(target, variant) + ('_host_native' if host_native else '')
-    deps = [] + [':camera_headers', '//devices/pong618/av580/providers:vendor_headers']
+    deps = [] + [':camera_headers', '//devices/pong618/av580/providers:vendor_headers', '//devices/pong618/camera886:flash_headers']
     native.genrule(name='{}_defconfig_generated'.format(tv), srcs=[get_project_defconfig(target, variant, host_native)], outs=['{}_defconfig.generated'.format(tv)], cmd='cat $(SRCS) > $@')
     if target == 'waipio':
         deps.extend(['//devices/pong618/av580/qcom/opensource/synx-kernel:synx_headers', '//devices/pong618/av580/qcom/opensource/synx-kernel:{}_{}_modules'.format(target, variant)])

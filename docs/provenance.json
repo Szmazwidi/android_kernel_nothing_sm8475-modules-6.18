@@ -3272,13 +3272,13 @@
       "ref": "rmodules",
       "status": "MODIFIED",
       "previous_port_revision": "b85102e7eab9db69c9d456902bf8f9cb1845eba3",
-      "sha256": "b64700b5021a402fbad9894dec130e31113e5018dab66efb3fa1ca797ee983fd",
+      "sha256": "d26e63fd01aad58dd5304613ffc9ceabc2784d7096f1129715eb7a37fe527011",
       "port_snapshot": {
         "package": "av580/qcom/opensource/camera-kernel",
         "path": "camera_modules.bzl",
         "original_snapshot_sha256": "2d2678b2e96ec0995f258ef931e614558c762812836404ce7be585e0b5e0d1d6"
       },
-      "previous_release_sha256": "7baae4df721b373456540c4df1c754cd7e15b1101592994082e2c1a24d72cf10"
+      "previous_release_sha256": "b64700b5021a402fbad9894dec130e31113e5018dab66efb3fa1ca797ee983fd"
     },
     "av580/qcom/opensource/camera-kernel/config/cape.mk": {
       "path": "qcom/opensource/camera-kernel/config/cape.mk",
@@ -8523,13 +8523,14 @@
     "camera886/BUILD.bazel": {
       "status": "NEW",
       "note": "Build/integration material; source licensing notices take precedence.",
-      "sha256": "bb3711176478484107b4b7e0e550e099d1ad6d62add7fe42f715fe01a2b3e0f7",
+      "sha256": "27fcd7e907d90f57fdb3585eb50d671dbe974b2fbed75436e8519904e02282ff",
       "port_snapshot": {
         "package": "camera886",
         "path": "BUILD.bazel",
         "original_snapshot_sha256": "9a535ffc6a3cc7a7d7d58a99616d8e2f8c1dcbb8d2ec9da964449299ea3e0a68"
       },
-      "earlier_release_sha256": "9dcbaca89f5c7c49c23a5a299915de061f26fb31862af990883998a9349bd8d1"
+      "earlier_release_sha256": "9dcbaca89f5c7c49c23a5a299915de061f26fb31862af990883998a9349bd8d1",
+      "previous_release_sha256": "bb3711176478484107b4b7e0e550e099d1ad6d62add7fe42f715fe01a2b3e0f7"
     },
     "camera886/drivers/leds/leds-qti-flash.c": {
       "status": "MODIFIED",
