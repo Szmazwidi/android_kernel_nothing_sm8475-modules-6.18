@@ -1,0 +1,2111 @@
+{
+  "status": "SOURCE_BUILD_COVERAGE_ARCH_VERSION_CRC_PASS",
+  "schema": "pong-source-build-check-v2",
+  "vendor_modules": 178,
+  "reference_GKI_modules": 84,
+  "selected_modules": 262,
+  "kernel_release": "6.18.60-android17-5-maybe-dirty-4k",
+  "provider_source": "vmlinux symvers plus selected ELF __crc_* symbols",
+  "kernel_sha256": "00661b016fcb401a0f1e165054aa0dda7d0a939e6bcef8bb4a47378fcdca9da4",
+  "modules": [
+    {
+      "name": "6lowpan.ko",
+      "kind": "gki",
+      "sha256": "c8ed1ec69224f994ac74f3c48ced1ce965ef0ca8032d1ceb3fba8fbbf7b5bda6",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 29,
+      "signed": true
+    },
+    {
+      "name": "8021q.ko",
+      "kind": "gki",
+      "sha256": "a8028c24b5a04c869e70c2511de30a9c5d94f00de3e97b24cfac2299d838754c",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 101,
+      "signed": true
+    },
+    {
+      "name": "9pnet.ko",
+      "kind": "gki",
+      "sha256": "f43f049a769ddfa6694915a63254c4d30abfd54402d0dabe71a782f354b87328",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 86,
+      "signed": true
+    },
+    {
+      "name": "9pnet_fd.ko",
+      "kind": "gki",
+      "sha256": "3cfbe080b7ce7ae1811560f1eaa7c2f35de5a4909653944a970a38aec94d30e5",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 46,
+      "signed": true
+    },
+    {
+      "name": "adsp_loader_dlkm.ko",
+      "kind": "vendor",
+      "sha256": "3409e4320ca52c07b05e7c8686d5b96285e60ec03bf92ce6c25e7ff8fa6dcbf1",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 38,
+      "signed": false
+    },
+    {
+      "name": "aqc111.ko",
+      "kind": "gki",
+      "sha256": "ea919b3942963f6f9962bafef8fc25499bca722df980b5bac99f2358d52b10d0",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 53,
+      "signed": true
+    },
+    {
+      "name": "arm_smmu.ko",
+      "kind": "vendor",
+      "sha256": "3b0759efb988a6d8bf691e9fe6ba19fd4464fabaa657daf7b751cc729a379fb8",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 167,
+      "signed": false
+    },
+    {
+      "name": "asix.ko",
+      "kind": "gki",
+      "sha256": "dd4c8a8c81e6c6bf72b07b3ff04f4cf7b10271ec936b9ac40f571b7fd8161eb5",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 100,
+      "signed": true
+    },
+    {
+      "name": "audio_pkt_dlkm.ko",
+      "kind": "vendor",
+      "sha256": "585bb969e747c4effc662df8009817b90caffafb5d4d2a8ca8328776050ec1f1",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 49,
+      "signed": false
+    },
+    {
+      "name": "audio_prm_dlkm.ko",
+      "kind": "vendor",
+      "sha256": "59a4f9fce6de2cc5006c651a213afc4304eac945bb92c84ddca9c838f57763ba",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 25,
+      "signed": false
+    },
+    {
+      "name": "audpkt_ion_dlkm.ko",
+      "kind": "vendor",
+      "sha256": "494183ea06354ce1e060781aee074d6c0e21513a63e69bfb53d7e3d70e698603",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 42,
+      "signed": false
+    },
+    {
+      "name": "ax88179_178a.ko",
+      "kind": "gki",
+      "sha256": "de8988379027f3de42d81d24bb3306825526960f02d028bf0ab72e6bdae824f6",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 58,
+      "signed": true
+    },
+    {
+      "name": "bam_dma.ko",
+      "kind": "vendor",
+      "sha256": "23c735b5a2b7fda9750469817577cb543f3365e4ff6f650c0d3afbb601edd6c4",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 82,
+      "signed": false
+    },
+    {
+      "name": "bluetooth.ko",
+      "kind": "gki",
+      "sha256": "1525860794f7e091a8678dbc38139000ca4cf4f1468652c56a195bc9fefcd703",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 250,
+      "signed": true
+    },
+    {
+      "name": "bsd_comp.ko",
+      "kind": "gki",
+      "sha256": "83464da8ff839ca897fb2a445476d4102d6d4bc562ed8bc9a4057b89277f9cd9",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 10,
+      "signed": true
+    },
+    {
+      "name": "bt_fm_slim.ko",
+      "kind": "vendor",
+      "sha256": "b982196f22d4daaa27c263230067a3deaff868b9d84f242f98d90ef0b6cd1174",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 38,
+      "signed": false
+    },
+    {
+      "name": "btbcm.ko",
+      "kind": "gki",
+      "sha256": "f07c9e41ca873efb9b5fbc71addde93036881046dccea7d8966185ced33e162d",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 21,
+      "signed": true
+    },
+    {
+      "name": "btpower.ko",
+      "kind": "vendor",
+      "sha256": "cfe91d240607777fdd24317c8f3c2010463cb644f5722e1a7192f28e2d873e01",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 95,
+      "signed": false
+    },
+    {
+      "name": "btqca.ko",
+      "kind": "gki",
+      "sha256": "0f857040256aadd646a714e72f7697fdf3181ed9112b659ff91a00fdf050f6ce",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 31,
+      "signed": true
+    },
+    {
+      "name": "btsdio.ko",
+      "kind": "gki",
+      "sha256": "9c176d6db7f32e1f862a70bb864b6a7c9fb31914b7058c7ad0a73d4fcc8a52ae",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 33,
+      "signed": true
+    },
+    {
+      "name": "camcc-sm8450.ko",
+      "kind": "vendor",
+      "sha256": "2fc6345a55bf6a871de6c43edc708910cc284e69671f9216dc0eebc017ee9e85",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 158,
+      "signed": false
+    },
+    {
+      "name": "camera.ko",
+      "kind": "vendor",
+      "sha256": "efe5f1505c78b04c0896d9c574c48b27b55c854fd2ff64b90a4caa41e9c96104",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 335,
+      "signed": false
+    },
+    {
+      "name": "can-bcm.ko",
+      "kind": "gki",
+      "sha256": "e08cbb0e2c4fd6e550f0a14e185080e0e0f0c8de1ddcca9fb1d8fedbd1956682",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 82,
+      "signed": true
+    },
+    {
+      "name": "can-dev.ko",
+      "kind": "gki",
+      "sha256": "222170c0a9ba32e6e7a8523d71c4a852053c2f5abf5e02b19dd65582e3b308b2",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 64,
+      "signed": true
+    },
+    {
+      "name": "can-gw.ko",
+      "kind": "gki",
+      "sha256": "38c8d23bcf597b7ddc2c96d46ffebdae4a46384a82926ac9d5f36e25c7307ed7",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 43,
+      "signed": true
+    },
+    {
+      "name": "can-raw.ko",
+      "kind": "gki",
+      "sha256": "e65477a3e62bfcec7f68b3277e762b920d23be89bcf51f90b2331bb2f06d69ec",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 61,
+      "signed": true
+    },
+    {
+      "name": "can.ko",
+      "kind": "gki",
+      "sha256": "0bce6cee62c898add2a5af41e272cd91a8cc1dc41804c514994beebba475ead2",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 60,
+      "signed": true
+    },
+    {
+      "name": "cctrng.ko",
+      "kind": "gki",
+      "sha256": "c999e4d93eb8e7245553c42018d215cbb515740bca9bfb3795092de330a12199",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 41,
+      "signed": true
+    },
+    {
+      "name": "cdc-acm.ko",
+      "kind": "gki",
+      "sha256": "8e94d29bc9c6568dd06afa6114662e56769636fc7f66043db51678a1bf0ef9c2",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 95,
+      "signed": true
+    },
+    {
+      "name": "cdc_eem.ko",
+      "kind": "gki",
+      "sha256": "243870e4b5d60d2f571ab0939d0079ba658ebd27b01fb57e0376673915dcf206",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 24,
+      "signed": true
+    },
+    {
+      "name": "cdc_ether.ko",
+      "kind": "gki",
+      "sha256": "157216e8584ff12e2abd51fb668821e0199309eb49ed24ec92a905c51c97c574",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 30,
+      "signed": true
+    },
+    {
+      "name": "cdc_ncm.ko",
+      "kind": "gki",
+      "sha256": "bf2b126dac0285f6ecc8c23898e80059f12efd38c87e4065c1b8afe11d7864ea",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 72,
+      "signed": true
+    },
+    {
+      "name": "cdsp-loader.ko",
+      "kind": "vendor",
+      "sha256": "a0282debf93b761e2c978290fd819f51f7e7928d5d62684fa06249b2de6d1027",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 20,
+      "signed": false
+    },
+    {
+      "name": "cfg80211.ko",
+      "kind": "vendor",
+      "sha256": "8f4041397cc1a22ee1b869e7e3c36095a5b99121c54b4704a9a474b7a85c1a24",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 200,
+      "signed": false
+    },
+    {
+      "name": "clk-qcom.ko",
+      "kind": "vendor",
+      "sha256": "6ac92cd4c0433e95342709556e07aabf6b8c84028a76d2e94a6151853e04f517",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 67,
+      "signed": false
+    },
+    {
+      "name": "clk-rpmh.ko",
+      "kind": "vendor",
+      "sha256": "45aedb8348374eb85ce05d7b00a821b96ede50c3a1fd6e01817d8fbd6e2a45ca",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 18,
+      "signed": false
+    },
+    {
+      "name": "cmd-db.ko",
+      "kind": "vendor",
+      "sha256": "0686f2066d84a86dba43ade09dbbdf0248feb180211094a74928206049db0d8f",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 17,
+      "signed": false
+    },
+    {
+      "name": "cnss2.ko",
+      "kind": "vendor",
+      "sha256": "80dae5556a4d71bb840f989b32dd3a154b40379c4b3192270656ee9f7d537489",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 360,
+      "signed": false
+    },
+    {
+      "name": "cnss_nl.ko",
+      "kind": "vendor",
+      "sha256": "1a7717fb306f45d3257b204cb84d8ad328179a7d2e0d77cc619da13dab11c242",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 7,
+      "signed": false
+    },
+    {
+      "name": "cnss_plat_ipc_qmi_svc.ko",
+      "kind": "vendor",
+      "sha256": "130429ebf65b9e2a7d59be3b6c9ef99ab29e2ec3884ea62f3e63f1d86c8fc480",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 34,
+      "signed": false
+    },
+    {
+      "name": "cnss_prealloc.ko",
+      "kind": "vendor",
+      "sha256": "76b4bce28e578c3a1f360b7c3fa94c05d98c36eb8ee35fbfc7dabf3afa40b865",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 41,
+      "signed": false
+    },
+    {
+      "name": "cnss_utils.ko",
+      "kind": "vendor",
+      "sha256": "000942800fc84eb98b3e9e859e5c064fa0852a1eec1a075b78d26f9a71d7fc5c",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 34,
+      "signed": false
+    },
+    {
+      "name": "crc-ccitt.ko",
+      "kind": "gki",
+      "sha256": "62587990efbfc835d314cd8b85c8917e54ef6bb7b0b64b84bb38ae411b2393f0",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 1,
+      "signed": true
+    },
+    {
+      "name": "debug-regulator.ko",
+      "kind": "vendor",
+      "sha256": "68b7fdcdd574a47aae0d0d1497bef43bab196f0da3356d5eef43be6225adfab1",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 58,
+      "signed": false
+    },
+    {
+      "name": "dispcc-sm8450.ko",
+      "kind": "vendor",
+      "sha256": "8113906046a399fd379d12660997802db34c000303ba3f718a9091caec4e4413",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 35,
+      "signed": false
+    },
+    {
+      "name": "dwc3-msm.ko",
+      "kind": "vendor",
+      "sha256": "92feccd7c2838e11440f2591f81cdf46f3df6d81041d8abbcb41a4df017c4ba1",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 52,
+      "signed": false
+    },
+    {
+      "name": "dwc_pcie_pmu.ko",
+      "kind": "gki",
+      "sha256": "c5f856ed7e2f60546e502da7d298072afcc7607f23785bdd754d0cc10b096c48",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 43,
+      "signed": true
+    },
+    {
+      "name": "frpc-adsprpc.ko",
+      "kind": "vendor",
+      "sha256": "11ac874a52bafdbbdea0dc76ec39c2977f899e299c63ab15baa32a5805e84994",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 160,
+      "signed": false
+    },
+    {
+      "name": "frpc-legacy-sdsp.ko",
+      "kind": "vendor",
+      "sha256": "d54eb39d2d8851fda14507b2cb6821fd6fcce104b4e4d029f3cb5b1fadeb5dab",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 151,
+      "signed": false
+    },
+    {
+      "name": "ftdi_sio.ko",
+      "kind": "gki",
+      "sha256": "f6fbe4e32dba476c1f7969596db24a1ea05ae1cf844015297e4a7461535e1380",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 48,
+      "signed": true
+    },
+    {
+      "name": "gcc-sm8450.ko",
+      "kind": "vendor",
+      "sha256": "37240db6a0253fccadd483a6b43d97f5914a03e2307f6a459d76e23b24323aef",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 38,
+      "signed": false
+    },
+    {
+      "name": "gdsc-regulator.ko",
+      "kind": "vendor",
+      "sha256": "9a102aa5cb50ea72bdb8fae58c1973ac83218f4cfb40754979e553886a804b02",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 72,
+      "signed": false
+    },
+    {
+      "name": "gh_arm_drv.ko",
+      "kind": "vendor",
+      "sha256": "2b88b8378afb2eb5afda202587c9c62e666773e8047a5db66b84d7daf686b315",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 10,
+      "signed": false
+    },
+    {
+      "name": "gh_dbl.ko",
+      "kind": "vendor",
+      "sha256": "9254328dc2e8c311b70e7399224a109e6d7321b1b91702198b6ff3bb2301f7f2",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 19,
+      "signed": false
+    },
+    {
+      "name": "gh_mem_notifier.ko",
+      "kind": "vendor",
+      "sha256": "16a4c8419ab7a4b915540efeba090022c323827d07dfbf710595bb899c2c2e25",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 6,
+      "signed": false
+    },
+    {
+      "name": "gh_msgq.ko",
+      "kind": "vendor",
+      "sha256": "8e815fcab50cc1a165942837d335a5ff322cb01c110ec3ccfdab84121cccb2e3",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 24,
+      "signed": false
+    },
+    {
+      "name": "gh_rm_drv.ko",
+      "kind": "vendor",
+      "sha256": "d70d3fbdc955293f465a3690cfceb3bfc1a7f80a84f5e4ac1126ce776d545590",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 100,
+      "signed": false
+    },
+    {
+      "name": "gnss.ko",
+      "kind": "gki",
+      "sha256": "24b1b8b14d67f4f566afb3dd516c89a55bf52a7a57df92eae3f16740f581f461",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 51,
+      "signed": true
+    },
+    {
+      "name": "goodix_core.ko",
+      "kind": "vendor",
+      "sha256": "382cf0f05fa98e7a95d7a9ee279bbd2ee70bea0939a1a37696ab73f65951f5ec",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 119,
+      "signed": false
+    },
+    {
+      "name": "goodix_fp.ko",
+      "kind": "vendor",
+      "sha256": "08f5bc71d323691842d69cd478749bfc8937719165b96bf724b4c0a5b93f2365",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 66,
+      "signed": false
+    },
+    {
+      "name": "gpr_dlkm.ko",
+      "kind": "vendor",
+      "sha256": "5d0a4697e7acd115ff883c4c7aedef704a632ba33f63448a8bac009a03f8af76",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 51,
+      "signed": false
+    },
+    {
+      "name": "gpucc-sm8450.ko",
+      "kind": "vendor",
+      "sha256": "274660ba5147b162463d218192403efe0bc56c23a8ce20f39e0e7b30c92be461",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 15,
+      "signed": false
+    },
+    {
+      "name": "gsim.ko",
+      "kind": "vendor",
+      "sha256": "8910c180e84cc453455db430740c5f375c9101e819263315769852bd632e9c92",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 82,
+      "signed": false
+    },
+    {
+      "name": "gzvm.ko",
+      "kind": "gki",
+      "sha256": "53db8ab3896c247751530f21dd61b082ca252f32b5e8c89b965fa63b8f132d3e",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 104,
+      "signed": true
+    },
+    {
+      "name": "haptic.ko",
+      "kind": "vendor",
+      "sha256": "b3e8f6748d0d2a332cd064a62e16b7a823dc8701123c0459f06cca8470a1c0ed",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 89,
+      "signed": false
+    },
+    {
+      "name": "hci_uart.ko",
+      "kind": "gki",
+      "sha256": "6a2759eed2a4713e40cb5ad5d0b20014542d1d3b745fcaffa039786e93fee981",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 185,
+      "signed": true
+    },
+    {
+      "name": "hdcp_qseecom_dlkm.ko",
+      "kind": "vendor",
+      "sha256": "03dfb641cbd517d4aba9e71da40c729af9b5665bdf4384afc80c307c5da6179b",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 22,
+      "signed": false
+    },
+    {
+      "name": "hdmi_dlkm.ko",
+      "kind": "vendor",
+      "sha256": "0d18d6710fc028455705fe9557413df35cf672caa0061e1adb88ef7d800cb7d1",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 23,
+      "signed": false
+    },
+    {
+      "name": "hidp.ko",
+      "kind": "gki",
+      "sha256": "4a817a6b0f10226a5e2daa3d1ded62bfa45ecb294e04ba02b65895fe2660aa20",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 106,
+      "signed": true
+    },
+    {
+      "name": "i2c-msm-geni.ko",
+      "kind": "vendor",
+      "sha256": "31f0aab1dd87c8be627df4ca52618fa3b6f99e961e195c3f5e698caed3f294fe",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 103,
+      "signed": false
+    },
+    {
+      "name": "icc-bcm-voter.ko",
+      "kind": "vendor",
+      "sha256": "069a10789ab24b47be0ddf7f5e11ff58e4518890aabf87a4dff48b34ef214583",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 35,
+      "signed": false
+    },
+    {
+      "name": "icc-clk.ko",
+      "kind": "vendor",
+      "sha256": "0a0ece0831d9bd60ed9f3e73446dcfe203c67aa6145337db797151d2fbef7ae1",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 20,
+      "signed": false
+    },
+    {
+      "name": "icc-debug.ko",
+      "kind": "vendor",
+      "sha256": "e2220bed72dca45250ed468ff869f847f6f5952af78ae6e1a3d9e628d4ba7fea",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 21,
+      "signed": false
+    },
+    {
+      "name": "icc-rpmh.ko",
+      "kind": "vendor",
+      "sha256": "c7e89d8cbf30275e348397b7148ead78636a341fb9be081172108c0c294a0c92",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 44,
+      "signed": false
+    },
+    {
+      "name": "ieee802154.ko",
+      "kind": "gki",
+      "sha256": "773d7390528e4518efcca41b6557d33735dead7c35acc4c533933843961bdb05",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 96,
+      "signed": true
+    },
+    {
+      "name": "ieee802154_6lowpan.ko",
+      "kind": "gki",
+      "sha256": "c31c7f84974664daa9015bc7ac5660b25960bd3a9316f255796b935eb853fd84",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 68,
+      "signed": true
+    },
+    {
+      "name": "ieee802154_socket.ko",
+      "kind": "gki",
+      "sha256": "2cf923ef91499d7781c883a3aea17195c93096ad0c73c2418768ebc13fd3c150",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 75,
+      "signed": true
+    },
+    {
+      "name": "iommu-logger.ko",
+      "kind": "vendor",
+      "sha256": "8b1caf987b9316774e2f510a775fff207191a8fca908444beb5ca6a9b3f9b47c",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 13,
+      "signed": false
+    },
+    {
+      "name": "ipam.ko",
+      "kind": "vendor",
+      "sha256": "290a0d42f5f04c30b103a48801bf92bcf1c91bcbd6d726e69afafa1109d6dd06",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 376,
+      "signed": false
+    },
+    {
+      "name": "ipanetm.ko",
+      "kind": "vendor",
+      "sha256": "b418be82ab1f66d65f0a26543a1c6d49684d55035ca2838dbef8ad4d61b9c4b3",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 6,
+      "signed": false
+    },
+    {
+      "name": "l2tp_core.ko",
+      "kind": "gki",
+      "sha256": "b1cd0c7ffcec5cab0fab1eeb2d0a619da1b5bdb9b21aa1cc8e5937463d13c820",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 84,
+      "signed": true
+    },
+    {
+      "name": "l2tp_ppp.ko",
+      "kind": "gki",
+      "sha256": "9bd9470bab9a00d270966556dddf3a88104b83f8057d95024aa9f4061fda510b",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 84,
+      "signed": true
+    },
+    {
+      "name": "leds-aw20036.ko",
+      "kind": "vendor",
+      "sha256": "038d5605f0fad8a4a1fcc5bd1f30e204a393c99ae76259fd97901c5acc6fc155",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 74,
+      "signed": false
+    },
+    {
+      "name": "leds-qti-flash.ko",
+      "kind": "vendor",
+      "sha256": "c223f4ab1101098577e80f8e361b98259dd36519b7ba982d92365e3e3c639821",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 41,
+      "signed": false
+    },
+    {
+      "name": "libarc4.ko",
+      "kind": "gki",
+      "sha256": "f4c1de8445482a973ec67726d113b45a5e6960d838fe1dc4512098faa8ae4122",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 1,
+      "signed": true
+    },
+    {
+      "name": "llcc-qcom.ko",
+      "kind": "vendor",
+      "sha256": "cbede768524af4f30478ef9ffddbaa9630402c861c747728d33ed2932d2b0dd0",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 30,
+      "signed": false
+    },
+    {
+      "name": "lpass_cdc_dlkm.ko",
+      "kind": "vendor",
+      "sha256": "d402cb132b2b827082b937ea6c17a198a7bc790e32f5e635db9b8eac0b95b919",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 74,
+      "signed": false
+    },
+    {
+      "name": "lpass_cdc_rx_macro_dlkm.ko",
+      "kind": "vendor",
+      "sha256": "6155f2b975dc0930b847e1919355f6891a3fea003afe20e79b3592d711e46ca7",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 93,
+      "signed": false
+    },
+    {
+      "name": "lpass_cdc_tx_macro_dlkm.ko",
+      "kind": "vendor",
+      "sha256": "891ed92d69b8bf090c7f0ab09917839b9518f054f710ea1cdf83f9741f835510",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 74,
+      "signed": false
+    },
+    {
+      "name": "lpass_cdc_va_macro_dlkm.ko",
+      "kind": "vendor",
+      "sha256": "323d44c564a0924d9597b6b737dc56031607e71e70ab2ccea4216aafa33eeb03",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 103,
+      "signed": false
+    },
+    {
+      "name": "lpass_cdc_wsa2_macro_dlkm.ko",
+      "kind": "vendor",
+      "sha256": "4c31526475fb5592b3e40b4ed44c69df2daf7c86d38745d0fecdffe266845640",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 87,
+      "signed": false
+    },
+    {
+      "name": "lpass_cdc_wsa_macro_dlkm.ko",
+      "kind": "vendor",
+      "sha256": "4062bd62d973aa72bb58581c6aa79cda8aa6d26beb7ca0e7fd42595fb5f34db3",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 87,
+      "signed": false
+    },
+    {
+      "name": "mac802154.ko",
+      "kind": "gki",
+      "sha256": "74b4fb52c040c2746e81ebadcf2819ca81597fe7324abe0943f12acf2e827c0d",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 143,
+      "signed": true
+    },
+    {
+      "name": "machine_dlkm.ko",
+      "kind": "vendor",
+      "sha256": "18653d9656141bc562f428abba6d0e7ffe9311dfa397f51345a052e4b6ffbd72",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 96,
+      "signed": false
+    },
+    {
+      "name": "macsec.ko",
+      "kind": "gki",
+      "sha256": "c88b0f528ef1bda10c3b265ac436f115e3525a6e6aae15da62f3fbb5ba4677e8",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 109,
+      "signed": true
+    },
+    {
+      "name": "mbhc_dlkm.ko",
+      "kind": "vendor",
+      "sha256": "701610369daed1cce69836471c17e88031b964fc7298fce7502e35c2aa6e592c",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 39,
+      "signed": false
+    },
+    {
+      "name": "mdt_loader.ko",
+      "kind": "vendor",
+      "sha256": "6d99f413177d993d45a6b9c634490ebbb3dc20908e4d9f214343579479f16d74",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 20,
+      "signed": false
+    },
+    {
+      "name": "mem_buf.ko",
+      "kind": "vendor",
+      "sha256": "a03d080c2f657374a91100d72aea3bee44104526cb9e2fb05d2d0c3619d0cca4",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 117,
+      "signed": false
+    },
+    {
+      "name": "mem_buf_dev.ko",
+      "kind": "vendor",
+      "sha256": "5a0b9e716cb50759ec5169a9d010d6b38eb282402c91671751c3f64f69aabafe",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 86,
+      "signed": false
+    },
+    {
+      "name": "mem_buf_msgq.ko",
+      "kind": "vendor",
+      "sha256": "983f3d22cbc5639d91a1fcaf7fef18df1d317f9423a383aca040abf4a58a36d4",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 42,
+      "signed": false
+    },
+    {
+      "name": "mhi.ko",
+      "kind": "vendor",
+      "sha256": "4178a9b6bc61f66669717f6fc4a4490ac031b26b34b9c9a5751858414f62f0cc",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 126,
+      "signed": false
+    },
+    {
+      "name": "mii.ko",
+      "kind": "gki",
+      "sha256": "da9c85fe0b1a27eb413f5480421681ae344d6745463993de571120490013ec03",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 7,
+      "signed": true
+    },
+    {
+      "name": "msm-eva.ko",
+      "kind": "vendor",
+      "sha256": "03bbc9cd9c5970bb697f975e7f90ce46728bb21c050ef6d8d83ddc88c6faad1a",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 225,
+      "signed": false
+    },
+    {
+      "name": "msm_dma_iommu_mapping.ko",
+      "kind": "vendor",
+      "sha256": "b4fcc3d36afe2f4ee2d4a56f28ab1331396fe6a4fd5c8894f4b9ead3fa32929c",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 27,
+      "signed": false
+    },
+    {
+      "name": "msm_drm.ko",
+      "kind": "vendor",
+      "sha256": "0f81f18f54ba11a0a37235ea7f64a0c0fa61b6476ce32cce3e215ec3820224ab",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 593,
+      "signed": false
+    },
+    {
+      "name": "msm_ext_display.ko",
+      "kind": "vendor",
+      "sha256": "25afff4b8dee92d184f226d1e5bc1a9d1e1eacb34764bcf161fffc772f3f419c",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 20,
+      "signed": false
+    },
+    {
+      "name": "msm_geni_serial.ko",
+      "kind": "vendor",
+      "sha256": "0c4928e842afb228f3f07f40bfee73e3d9563008534bc1df860c32732e6793c3",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 138,
+      "signed": false
+    },
+    {
+      "name": "msm_gpi.ko",
+      "kind": "vendor",
+      "sha256": "5551cc79c1033065f6b32f0f5448c9c706bf2631cc27306df09db7788af49be3",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 76,
+      "signed": false
+    },
+    {
+      "name": "msm_kgsl.ko",
+      "kind": "vendor",
+      "sha256": "cc571c0bb2015d1a1aab7e5abeda91da2d4adffc07d63152b010d92fb8ef33ab",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 506,
+      "signed": false
+    },
+    {
+      "name": "msm_qmp.ko",
+      "kind": "vendor",
+      "sha256": "72df28d64dc025915864f528638c48668d0b8baaf683ab9db3d19c6cc1b20e01",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 58,
+      "signed": false
+    },
+    {
+      "name": "msm_sharedmem.ko",
+      "kind": "vendor",
+      "sha256": "0ac9287ee1e4d21218cd684d02f2e4cb8e5d630ad6a56e537fe0cc69b89fc810",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 18,
+      "signed": false
+    },
+    {
+      "name": "msm_video.ko",
+      "kind": "vendor",
+      "sha256": "9989e833116998f402492296d0933b1b2775270278d5dd547522b1bbf6c21809",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 209,
+      "signed": false
+    },
+    {
+      "name": "nb7vpq904m.ko",
+      "kind": "vendor",
+      "sha256": "974cefb54ce849cae61203420bce5755fdc7e54c689124e72fa833f1d04701e2",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 46,
+      "signed": false
+    },
+    {
+      "name": "netfs.ko",
+      "kind": "gki",
+      "sha256": "fee0631ad9224827e75983baaa07e11a56590370ef87760ea5d7952ee966390d",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 144,
+      "signed": true
+    },
+    {
+      "name": "nfc-qti-i2c.ko",
+      "kind": "vendor",
+      "sha256": "dab18486f7115ddfc43dcfec6c56ae07b0b9604555b16f1d89b254b6bcbb2b36",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 71,
+      "signed": false
+    },
+    {
+      "name": "nfc.ko",
+      "kind": "gki",
+      "sha256": "5643eb4bdca2aaca1c301dfd6cc72e0f985ff8dd07b869d32475f9a485b06aac",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 135,
+      "signed": true
+    },
+    {
+      "name": "nhc_dest.ko",
+      "kind": "gki",
+      "sha256": "70f5e1e1aa1767e576a679961353788533646c40b5e11a054a567af90b05d0ba",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 3,
+      "signed": true
+    },
+    {
+      "name": "nhc_fragment.ko",
+      "kind": "gki",
+      "sha256": "866ba40aeea3099f0b513b0f3b41ee941a44faf8d5c334e5d5d5125bcb5ec1ec",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 3,
+      "signed": true
+    },
+    {
+      "name": "nhc_hop.ko",
+      "kind": "gki",
+      "sha256": "fc53d6b94f478db3cce54ecc7667abd2a979449c57b52a1edd0bb7329fe861ec",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 3,
+      "signed": true
+    },
+    {
+      "name": "nhc_ipv6.ko",
+      "kind": "gki",
+      "sha256": "980b73f2be49ed2fa1ce7c8b0d21a27422df33add4df8c99b4d0fa4cc3925a3d",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 3,
+      "signed": true
+    },
+    {
+      "name": "nhc_mobility.ko",
+      "kind": "gki",
+      "sha256": "ad2f2e92e3574c3f4e7049696cd2440842a2179e842098b276ef5e197a02a114",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 3,
+      "signed": true
+    },
+    {
+      "name": "nhc_routing.ko",
+      "kind": "gki",
+      "sha256": "9ed9c9f5f1b443e720b3ae26ffe1f2b85d2381ef4b559e26705fcd304b122e11",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 3,
+      "signed": true
+    },
+    {
+      "name": "nhc_udp.ko",
+      "kind": "gki",
+      "sha256": "f10eee9a6906e64e3d72063e16443de2cbf6be2c5b964059d27ef841fbca861c",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 7,
+      "signed": true
+    },
+    {
+      "name": "nvmem_qcom-spmi-sdam.ko",
+      "kind": "vendor",
+      "sha256": "a3941d96839686947d5bd1d697ce0adeeedbb5048af9f00cd23ab19c1409a31e",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 12,
+      "signed": false
+    },
+    {
+      "name": "nvmem_qfprom.ko",
+      "kind": "vendor",
+      "sha256": "9c4f6878ca696ef749ee67898b825d03e897973f90fa603424e309fa60bc87a2",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 23,
+      "signed": false
+    },
+    {
+      "name": "open-dice.ko",
+      "kind": "gki",
+      "sha256": "43cfb30d333ad7c1ad57e94b74d5be3409da0ca2128c3e1c436936e296cf793a",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 19,
+      "signed": true
+    },
+    {
+      "name": "panel_event_notifier.ko",
+      "kind": "vendor",
+      "sha256": "96f3cfdd7fb75c0d2fd6c7fc9af4e7b2c55fe4c7b926cec09bbde23e4b4da504",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 7,
+      "signed": false
+    },
+    {
+      "name": "pci-msm-drv.ko",
+      "kind": "vendor",
+      "sha256": "8bb84f62e64698499e610affeb7b584c2a651017aeacf75ee91eed29cb67065c",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 198,
+      "signed": false
+    },
+    {
+      "name": "pdr_interface.ko",
+      "kind": "vendor",
+      "sha256": "8defa701ea90582409b76ab11d2f1174aa041c3d181b4712e45054e2e7a81a75",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 35,
+      "signed": false
+    },
+    {
+      "name": "phy-msm-snps-eusb2.ko",
+      "kind": "vendor",
+      "sha256": "993e5ec1ed5269634c43ada99d281025f5fdb6a64ddb35a34b7c8fee9f20be97",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 68,
+      "signed": false
+    },
+    {
+      "name": "phy-msm-ssusb-qmp.ko",
+      "kind": "vendor",
+      "sha256": "783d6f8ade2acadd1c68703ed281a5a55b7fc3a7a3e5694a2a328255e79ae967",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 50,
+      "signed": false
+    },
+    {
+      "name": "phy-qcom-ufs-qmp-v4-cape.ko",
+      "kind": "vendor",
+      "sha256": "70ea203785129804c6dde974fb49a6d31e8800fc3b872ce16af19df87c77e3b6",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 28,
+      "signed": false
+    },
+    {
+      "name": "phy-qcom-ufs.ko",
+      "kind": "vendor",
+      "sha256": "99e3f5b88b0ba49850dfcd8477156ff8fe808451f5d18142eaf37d71e6461d6c",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 48,
+      "signed": false
+    },
+    {
+      "name": "pinctrl-msm.ko",
+      "kind": "vendor",
+      "sha256": "c3fae48bff413f92b4df2257d693bf662ea13bf14464e8b97fd26b7049df7e90",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 86,
+      "signed": false
+    },
+    {
+      "name": "pinctrl-spmi-gpio.ko",
+      "kind": "vendor",
+      "sha256": "ef4b6a51677db3de5fc1c9596f585397f3d9a5ced0512cf3c2bec0b78bb98961",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 40,
+      "signed": false
+    },
+    {
+      "name": "pinctrl-waipio.ko",
+      "kind": "vendor",
+      "sha256": "7552c3eb2b87c84a5db525fcd5ba6c32aed2bc41f312646818ba9b3a11d65eb0",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 6,
+      "signed": false
+    },
+    {
+      "name": "pinctrl_lpi_dlkm.ko",
+      "kind": "vendor",
+      "sha256": "3e9faeda1ce6b678db482331c3052151cdf9dca2835ac8e5884bee8bfa98b371",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 53,
+      "signed": false
+    },
+    {
+      "name": "pm8941-pwrkey.ko",
+      "kind": "vendor",
+      "sha256": "4ed772827f08ead1fc4fbe18d3f8be93f78916d4ad560bda4995acb04bbd989c",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 28,
+      "signed": false
+    },
+    {
+      "name": "pong-return37.ko",
+      "kind": "vendor",
+      "sha256": "055c8a07f5db8b0697c2b63bfbf8ebae2cb2ca7abb169dd393851054665b4e60",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 21,
+      "signed": false
+    },
+    {
+      "name": "pong416_mdt_loader.ko",
+      "kind": "vendor",
+      "sha256": "b382ca3272dd19730213d711c97d47f284bf40d6d3470a8ac290e8dcb5f2a929",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 18,
+      "signed": false
+    },
+    {
+      "name": "pong70-llcc-consumer.ko",
+      "kind": "vendor",
+      "sha256": "f2cc24b1c7cdc73bf4a0836a2facf38d971e2bc8cbefe04d4ab97fbf3f565f77",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 7,
+      "signed": false
+    },
+    {
+      "name": "pong_adsp_heap.ko",
+      "kind": "vendor",
+      "sha256": "a8493c48efb2805c160ef6a8141dd80adbfda17eddaa3e178bf38d2a7e51ffb5",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 44,
+      "signed": false
+    },
+    {
+      "name": "pong_mem_hotplug.ko",
+      "kind": "vendor",
+      "sha256": "663107d9c486505043c6e49f7048e24e1d27b41a062cff18bf617da2db2931c9",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 17,
+      "signed": false
+    },
+    {
+      "name": "pong_membuf_heap.ko",
+      "kind": "vendor",
+      "sha256": "873e6c75df3ecf95331047d66eae104f5dd5c7a048f70b1c5d9ac3432c2f95a1",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 38,
+      "signed": false
+    },
+    {
+      "name": "ppp_deflate.ko",
+      "kind": "gki",
+      "sha256": "f85a20800bffc80c2a9b2f6bf30726ea6e1c89103ac0cf0dcbe8305946fe7f43",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 21,
+      "signed": true
+    },
+    {
+      "name": "ppp_generic.ko",
+      "kind": "gki",
+      "sha256": "57bcc356df673f31f6ab34baaba47072df001d468db48edd52f0d10546b27580",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 111,
+      "signed": true
+    },
+    {
+      "name": "ppp_mppe.ko",
+      "kind": "gki",
+      "sha256": "9a5d602489dddb7bc0935969f9bf2ff11b4351a06938074c960ab67d4be7a20a",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 16,
+      "signed": true
+    },
+    {
+      "name": "pppox.ko",
+      "kind": "gki",
+      "sha256": "47a208975f48c902e7be8628012feae30924cc2a5044a143889aaf5711c6be0c",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 14,
+      "signed": true
+    },
+    {
+      "name": "pps_core.ko",
+      "kind": "gki",
+      "sha256": "13b7136babd9f51b34ba23eef102e93e7dffe3d79e79c833d5c0b421fec61597",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 46,
+      "signed": true
+    },
+    {
+      "name": "pptp.ko",
+      "kind": "gki",
+      "sha256": "34567cabb6a59dc2748c07e408c7e1814c2f4e00ecfe2143025dd4ea3170b10f",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 58,
+      "signed": true
+    },
+    {
+      "name": "proxy-consumer.ko",
+      "kind": "vendor",
+      "sha256": "be98af57b6801ecd6f54fa43797b89247d215ac90714202500401d6449070f21",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 25,
+      "signed": false
+    },
+    {
+      "name": "ptp.ko",
+      "kind": "gki",
+      "sha256": "1e9fde6c62d04ea3cec452d680a2f29aeb576158a290e39d87b524ca83055069",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 93,
+      "signed": true
+    },
+    {
+      "name": "pwrseq-core.ko",
+      "kind": "gki",
+      "sha256": "b1b40275347b304412b34a482299db04a3299229b47ce9e11741271854e10e26",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 54,
+      "signed": true
+    },
+    {
+      "name": "q6_dlkm.ko",
+      "kind": "vendor",
+      "sha256": "5c0c54201ae435e9f26de0de5060e1968cf84322d548d3c3d99eab8ba8370d3a",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 7,
+      "signed": false
+    },
+    {
+      "name": "q6_notifier_dlkm.ko",
+      "kind": "vendor",
+      "sha256": "26046636a4ac52836a16b2aa562653374b560176c554d6637532598746e1b46f",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 30,
+      "signed": false
+    },
+    {
+      "name": "q6_pdr_dlkm.ko",
+      "kind": "vendor",
+      "sha256": "1f3428a025e0c8959cbf0d9a79dab82d98dd4e3196323808aef0b588fda6f735",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 5,
+      "signed": false
+    },
+    {
+      "name": "qca_cld3_qca6490.ko",
+      "kind": "vendor",
+      "sha256": "500dfcf0aa1a213879b2765c481794d57f02af33a4734f0d1a574c29f134d5b9",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 494,
+      "signed": false
+    },
+    {
+      "name": "qcom-cpufreq-hw.ko",
+      "kind": "vendor",
+      "sha256": "3668c8c5623f74689bebf632d2a4d7695bdf9067c6c72896f4d1a4ebbccb9e02",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 78,
+      "signed": false
+    },
+    {
+      "name": "qcom-ipcc.ko",
+      "kind": "vendor",
+      "sha256": "7f9076a9992c9cabdc4d32ae964dd249b8125907655ffb80c51795b4cf2ae76d",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 33,
+      "signed": false
+    },
+    {
+      "name": "qcom-pdc.ko",
+      "kind": "vendor",
+      "sha256": "0a58ca70127e2c9b353c3944dbe9ce64a72d97db3908b5d4143932491391eae1",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 48,
+      "signed": false
+    },
+    {
+      "name": "qcom-pon-parent68.ko",
+      "kind": "vendor",
+      "sha256": "77ecd6e1eea9eefd0327c1840c6f562e2f637e22752d7bee03ab6e24a8f1b5e6",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 9,
+      "signed": false
+    },
+    {
+      "name": "qcom-reboot-reason39.ko",
+      "kind": "vendor",
+      "sha256": "4a98b44d54c9ca9a3b27ba61260726897a685a08397c9d5c6d2fcbeafb09358c",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 19,
+      "signed": false
+    },
+    {
+      "name": "qcom-scm.ko",
+      "kind": "vendor",
+      "sha256": "9614bedb8923ab8ae2f4e349b9be3808e8aa057f6a908dbbdf8cf257d6c3ee7b",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 82,
+      "signed": false
+    },
+    {
+      "name": "qcom-spmi-adc5.ko",
+      "kind": "vendor",
+      "sha256": "8711d55257c4dfac52eb3de9ba81d63ff3b673336c95e77435680405f82420e9",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 37,
+      "signed": false
+    },
+    {
+      "name": "qcom-spmi-pmic.ko",
+      "kind": "vendor",
+      "sha256": "b0e81ffd887bc9e48d07b0d88bead7d8d661bc75ebdb962948b15b2b80753a40",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 17,
+      "signed": false
+    },
+    {
+      "name": "qcom-spmi-temp-alarm.ko",
+      "kind": "vendor",
+      "sha256": "d482b72d6f22bb7bc9755e70761bed557064eef70747b1900a01d6767156a1cc",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 25,
+      "signed": false
+    },
+    {
+      "name": "qcom-vadc-common.ko",
+      "kind": "vendor",
+      "sha256": "5d951f873d62144c7b8efe6e16bdb2ec1274eb743aa7d42cc8c4cf67c95f00f5",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 2,
+      "signed": false
+    },
+    {
+      "name": "qcom_aoss.ko",
+      "kind": "vendor",
+      "sha256": "e34b88ccb8af560817cc7e6b83528661629c5f6531e46571381c560b9c2bb3d7",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 69,
+      "signed": false
+    },
+    {
+      "name": "qcom_cpucp.ko",
+      "kind": "vendor",
+      "sha256": "d94bde968f9c9a201466c78e1ad324c1a87e9313fa520a22672ef6291fd0d7a0",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 27,
+      "signed": false
+    },
+    {
+      "name": "qcom_glink.ko",
+      "kind": "vendor",
+      "sha256": "c39aa543e0d1f8393792ab18daa4df7d0bcb182f69167d2e98a31b2a13f48abb",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 79,
+      "signed": false
+    },
+    {
+      "name": "qcom_glink_smem.ko",
+      "kind": "vendor",
+      "sha256": "397ec723962b5a16542888b063247cec6fc119cd1bbbc7fee2538aa609d1fb32",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 33,
+      "signed": false
+    },
+    {
+      "name": "qcom_hwspinlock.ko",
+      "kind": "vendor",
+      "sha256": "17837c13b07ba57d28e16c6d19d16f1cdec4a191b8fb64518c1a75666c39d032",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 17,
+      "signed": false
+    },
+    {
+      "name": "qcom_ice.ko",
+      "kind": "vendor",
+      "sha256": "3939e9feeeec1a1b6848bd00397e6894ace69d6a1eb200b6ed49b0fea35dba90",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 50,
+      "signed": false
+    },
+    {
+      "name": "qcom_iommu_util.ko",
+      "kind": "vendor",
+      "sha256": "1eb31b0ed1cd2e5a088f0c4430300b3f457cba947cb2b876df0da9de944847d3",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 124,
+      "signed": false
+    },
+    {
+      "name": "qcom_ipc_lite.ko",
+      "kind": "vendor",
+      "sha256": "8e99324d438977473fdbcb54d09ff367614ce9e5f3cb701dd93de8bcc951aa97",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 8,
+      "signed": false
+    },
+    {
+      "name": "qcom_pil_info.ko",
+      "kind": "vendor",
+      "sha256": "569a2c3e02d0153ec64b9a14f8d81ce2cab5e08f14b1528898eab61dc68a325f",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 19,
+      "signed": false
+    },
+    {
+      "name": "qcom_q6v5.ko",
+      "kind": "vendor",
+      "sha256": "d808e36c397da42a99e5047de89f77a8db154665fb76e0f45cb6a3b938136e7d",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 34,
+      "signed": false
+    },
+    {
+      "name": "qcom_q6v5_pas.ko",
+      "kind": "vendor",
+      "sha256": "ce1d8c76f9ab8f55168098d586d747ecfb03ec0f7f0528241364fc1635de0281",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 120,
+      "signed": false
+    },
+    {
+      "name": "qcom_ramdump.ko",
+      "kind": "vendor",
+      "sha256": "a31bbf9329332155b51d0762ddeef198cdb954c6597dc8bb6353f6e5ad276674",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 35,
+      "signed": false
+    },
+    {
+      "name": "qcom_reserved_heaps.ko",
+      "kind": "vendor",
+      "sha256": "23e223bb71c14c2ffaf05a84f73b8edc17854db50fb23b5fd4324bf74cb4d1d1",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 68,
+      "signed": false
+    },
+    {
+      "name": "qcom_rpmh.ko",
+      "kind": "vendor",
+      "sha256": "0e453ad3b9805d79777fd04022cb341b03ca91e0f70906b10a33ceaeae881777",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 104,
+      "signed": false
+    },
+    {
+      "name": "qcom_sysmon.ko",
+      "kind": "vendor",
+      "sha256": "504dc450a7c6582f701b0867daf8f77013574dab3c1fc68224ccd314c96ae629",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 51,
+      "signed": false
+    },
+    {
+      "name": "qcom_tsens.ko",
+      "kind": "vendor",
+      "sha256": "61ef7a51ed5a267519c44695bd65d989d51db9baf844a32c645a5d728f636010",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 51,
+      "signed": false
+    },
+    {
+      "name": "qmi_helpers.ko",
+      "kind": "vendor",
+      "sha256": "f44bbb7b4ab4a5bc386007d8c0e91624f21b1c6c77e41d7d07a24884323b4401",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 37,
+      "signed": false
+    },
+    {
+      "name": "qnoc-qos.ko",
+      "kind": "vendor",
+      "sha256": "e9d63c587c7ed66a5933c7f6d3f97de7b7302c394271e3483a26258d7c516aa9",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 2,
+      "signed": false
+    },
+    {
+      "name": "qnoc-waipio.ko",
+      "kind": "vendor",
+      "sha256": "4aa089bd454b1e6a433dffb38503704512881686d4993aa06089a787a7204685",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 9,
+      "signed": false
+    },
+    {
+      "name": "qrtr-gunyah.ko",
+      "kind": "vendor",
+      "sha256": "90c136adf17a808469029f858cbb138f0900c176448089f9a0a35d050de4ca65",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 55,
+      "signed": false
+    },
+    {
+      "name": "qrtr-mhi.ko",
+      "kind": "vendor",
+      "sha256": "61c32f8752e990dd49d3547a3f7777b1dcf7d4228f9c763d7d4555c8a18b3020",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 20,
+      "signed": false
+    },
+    {
+      "name": "qrtr-smd.ko",
+      "kind": "vendor",
+      "sha256": "17138e261e9bb7da5336d18f5fc57ae6219dc9f3efb821b759a712674735d8ba",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 12,
+      "signed": false
+    },
+    {
+      "name": "qrtr.ko",
+      "kind": "vendor",
+      "sha256": "471e35ee341021896b8d156693f741883f3594a751d242e1432117c38c3f1a06",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 117,
+      "signed": false
+    },
+    {
+      "name": "qseecom_dlkm.ko",
+      "kind": "vendor",
+      "sha256": "070243594ae7d5841db98bf28d8b2c1e9b20ed3015546acd6fb79861080f8719",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 108,
+      "signed": false
+    },
+    {
+      "name": "qti-fixed-regulator.ko",
+      "kind": "vendor",
+      "sha256": "b198531b44a3e656fde84a225cb11ba5f455d82e4c1b4ac5c7c21e9d51e99788",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 26,
+      "signed": false
+    },
+    {
+      "name": "qti_battery_charger.ko",
+      "kind": "vendor",
+      "sha256": "2470489cf6bc6834340182e352ee3c6e8b363e251c8d4b287ab20f7a011ae91a",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 97,
+      "signed": false
+    },
+    {
+      "name": "qti_pmic_glink.ko",
+      "kind": "vendor",
+      "sha256": "7df87fe50861e6482b1d190efe7f37bd690ff0a6721db79820522f76bc3bb3ae",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 58,
+      "signed": false
+    },
+    {
+      "name": "r8152.ko",
+      "kind": "gki",
+      "sha256": "6e43416bfb90978ddc05892dba5a7607193d2180a3e03f7e51147d12b78b55e4",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 131,
+      "signed": true
+    },
+    {
+      "name": "r8153_ecm.ko",
+      "kind": "gki",
+      "sha256": "5a8328f5f759c52d6973222de146a1a0e623de72366c1f6aa6174ab83dae9718",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 15,
+      "signed": true
+    },
+    {
+      "name": "redriver.ko",
+      "kind": "vendor",
+      "sha256": "f0aadcc47d8ea859340507a294ee4d1a6faebf38b1d13c08357422f64dc0019b",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 8,
+      "signed": false
+    },
+    {
+      "name": "regmap-ram.ko",
+      "kind": "gki",
+      "sha256": "3753ec3b1f8a144f9b8857b8696532f0e3ecfd95024cae2bcfd79deb02ee46f4",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 6,
+      "signed": true
+    },
+    {
+      "name": "regmap-raw-ram.ko",
+      "kind": "gki",
+      "sha256": "0ba257f0181adffaec447bd486dd119f6fbe2597c0b93520e307ad015a7cc9a9",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 7,
+      "signed": true
+    },
+    {
+      "name": "repeater-i2c-eusb2.ko",
+      "kind": "vendor",
+      "sha256": "36d84c541285526bfc31c207cd6666c738dbc22bdbc26387dded025dce0b8fc1",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 22,
+      "signed": false
+    },
+    {
+      "name": "repeater.ko",
+      "kind": "vendor",
+      "sha256": "c9be07a0e91972ce929130aa773023a5b2bf0dbdfac4f06c821620749388b998",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 18,
+      "signed": false
+    },
+    {
+      "name": "rfcomm.ko",
+      "kind": "gki",
+      "sha256": "b4713d72d1da6d8fbbf956dc542e367e89b7232bee74bea32f8b4359cfebff50",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 145,
+      "signed": true
+    },
+    {
+      "name": "rfkill.ko",
+      "kind": "gki",
+      "sha256": "9611a8dcc30697294c6f20e50fea124842c884b441412e9939e8ad3616da4d9f",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 59,
+      "signed": true
+    },
+    {
+      "name": "rmnet.ko",
+      "kind": "vendor",
+      "sha256": "656f136d4bb037af6df90b3131db33b49063842604ec4440c67969ae55a46e18",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 66,
+      "signed": false
+    },
+    {
+      "name": "rmnet_core.ko",
+      "kind": "vendor",
+      "sha256": "281728568578768e20bf844dad1b92d66465cb506525f68a92a0978018a907ab",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 153,
+      "signed": false
+    },
+    {
+      "name": "rmnet_ctl.ko",
+      "kind": "vendor",
+      "sha256": "9dfc60e4b3314d8f84d44eca8e033008e5a67b42d825c422963b6f6ac0d7efd5",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 24,
+      "signed": false
+    },
+    {
+      "name": "rmnet_mem.ko",
+      "kind": "vendor",
+      "sha256": "56b5564193a1e81e521c8f2595fa62513db28d793c96ee856524116991666b22",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 43,
+      "signed": false
+    },
+    {
+      "name": "rpmh-regulator.ko",
+      "kind": "vendor",
+      "sha256": "bf8cda40885d429bc571daf8677367abd3d2261f4f9107d99594304e2ff58fa8",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 36,
+      "signed": false
+    },
+    {
+      "name": "rproc_qcom_common.ko",
+      "kind": "vendor",
+      "sha256": "191adee8634bdb7a5ed5492aa39adccee6571e46b57c9dec5032ae7a98aa291e",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 76,
+      "signed": false
+    },
+    {
+      "name": "rtc-pm8xxx.ko",
+      "kind": "vendor",
+      "sha256": "b1f90471a659ff7820658d387dc2568b7b8da20d220536fae4a52edb3334bcfb",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 36,
+      "signed": false
+    },
+    {
+      "name": "rtl8150.ko",
+      "kind": "gki",
+      "sha256": "0fecb60f843b03731b27a30d5da165c16ade89698de65700f2ccbe145f3f1692",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 55,
+      "signed": true
+    },
+    {
+      "name": "rust_binder.ko",
+      "kind": "gki",
+      "sha256": "7f5d0f9161fb358f9bc48846701fa89d4442cc9cd8791391fdf5fe2fe9b1ecc8",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 191,
+      "signed": true
+    },
+    {
+      "name": "secure_buffer.ko",
+      "kind": "vendor",
+      "sha256": "52fe1c68c5fa28d346b6b24b0edd880bc7f0088036a816ee613cd310c9c5c08e",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 41,
+      "signed": false
+    },
+    {
+      "name": "sensors_ssc.ko",
+      "kind": "vendor",
+      "sha256": "d28f5f8335a8a432a15dac0dce1f1148ad434c90c42762a931f544a62b26a0d9",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 36,
+      "signed": false
+    },
+    {
+      "name": "slcan.ko",
+      "kind": "gki",
+      "sha256": "410e7fbdd4adf96ee870a98a6a959ac8a0c7c856263b6ff042473fe328c5eeb7",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 54,
+      "signed": true
+    },
+    {
+      "name": "slhc.ko",
+      "kind": "gki",
+      "sha256": "4dd73bfd9689d96fe5dd8540d7a9c9dfb74c96e37d204b0be698fca3f59f2b18",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 12,
+      "signed": true
+    },
+    {
+      "name": "slim-qcom-ngd-ctrl.ko",
+      "kind": "vendor",
+      "sha256": "65cef6eb30bcf2dae5bcd10510719dbe6c38ea64340892ea2084c53025878771",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 118,
+      "signed": false
+    },
+    {
+      "name": "slimbus.ko",
+      "kind": "vendor",
+      "sha256": "f31e2adcb6cdde956862db32031581afa652da15f583643eb120b3e2aee0363e",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 52,
+      "signed": false
+    },
+    {
+      "name": "smcinvoke_dlkm.ko",
+      "kind": "vendor",
+      "sha256": "bf10ee6af86142a1efb22d70f4cc4e1b84321801f8dfb3a5cabd7b89da37fbde",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 102,
+      "signed": false
+    },
+    {
+      "name": "smem.ko",
+      "kind": "vendor",
+      "sha256": "204e1082336c76ce1c0981c3508e1599f1f1d5033c0f46a2e4b3a56ff34fa605",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 24,
+      "signed": false
+    },
+    {
+      "name": "smp2p.ko",
+      "kind": "vendor",
+      "sha256": "244b9deab91161de9faad7ba03c711ab5f38f8d73253194782178426321a2c4b",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 56,
+      "signed": false
+    },
+    {
+      "name": "snd_event_dlkm.ko",
+      "kind": "vendor",
+      "sha256": "557fd403c770b51829a8b019b44820822d2f3a47d00bb3b75b3e0e2a1577308c",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 12,
+      "signed": false
+    },
+    {
+      "name": "socinfo.ko",
+      "kind": "vendor",
+      "sha256": "f3523a8902c373747a2bfeafc54e33bebaaeb109ffed666bfd9ff45ea8b9c212",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 31,
+      "signed": false
+    },
+    {
+      "name": "spf_core_dlkm.ko",
+      "kind": "vendor",
+      "sha256": "845a84b36ac12341f7694584b5f7a72f85157ca1367412576b297c353b24d4b0",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 35,
+      "signed": false
+    },
+    {
+      "name": "spi-msm-geni.ko",
+      "kind": "vendor",
+      "sha256": "87add9912c76a6df73ca80baaf6d54c77de17f7c628cb40cacac257efabc9607",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 106,
+      "signed": false
+    },
+    {
+      "name": "spmi-pmic-arb.ko",
+      "kind": "vendor",
+      "sha256": "67deee67331b85fa596cb7e02c50de8c447fa2020fd4cbdffae55eca6559c51c",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 47,
+      "signed": false
+    },
+    {
+      "name": "stub_dlkm.ko",
+      "kind": "vendor",
+      "sha256": "217d062cd0b69a1cf4a6ef37f970340817d04e361b91ca420c4b57360574e549",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 5,
+      "signed": false
+    },
+    {
+      "name": "swr_ctrl_dlkm.ko",
+      "kind": "vendor",
+      "sha256": "a32086172ff2b32236484f54e89db8c445f7ee974080da389adf64d872a94da3",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 101,
+      "signed": false
+    },
+    {
+      "name": "swr_dlkm.ko",
+      "kind": "vendor",
+      "sha256": "9c7f562bcf1f8f1d4d8992ebe6657553bb8f7892c04dc896f8650320902abd03",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 41,
+      "signed": false
+    },
+    {
+      "name": "swr_dmic_dlkm.ko",
+      "kind": "vendor",
+      "sha256": "d3aea405d3efa0ff009b184a08f5cc551b93407b2c06102632112c0286569ef5",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 43,
+      "signed": false
+    },
+    {
+      "name": "swr_haptics_dlkm.ko",
+      "kind": "vendor",
+      "sha256": "17d1c7aca2bb5b16ac604e8fab955a707ad842b49d1cb05b8f2aa603b9797fe5",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 33,
+      "signed": false
+    },
+    {
+      "name": "synx-driver.ko",
+      "kind": "vendor",
+      "sha256": "82bccc2a8d9a6cfd40ea9a1f5da023ef6883ccb493ec1cebc949b2351638c53d",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 72,
+      "signed": false
+    },
+    {
+      "name": "system_heap.ko",
+      "kind": "vendor",
+      "sha256": "afa60a1775abcfc822cdf78ffa7162e33972db3de5fb74ae83e74690d22d41b9",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 39,
+      "signed": false
+    },
+    {
+      "name": "tfa98xx_dlkm.ko",
+      "kind": "vendor",
+      "sha256": "77f1ec5b6a85da3bddbb0ac5b4ad7e265a6802423433e296fd3bff052dc9fafb",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 99,
+      "signed": false
+    },
+    {
+      "name": "thermal-generic-adc.ko",
+      "kind": "vendor",
+      "sha256": "e94156e4df23f1c1f48f418d86694888d681ce3879e2e1d95c2fc5037574b871",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 17,
+      "signed": false
+    },
+    {
+      "name": "thunderbolt.ko",
+      "kind": "gki",
+      "sha256": "4855b718786aa87c9e9a1796ff5cafbd277ba69ae7759f5f8ee41cac8c3745b3",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 201,
+      "signed": true
+    },
+    {
+      "name": "tipc.ko",
+      "kind": "gki",
+      "sha256": "5e6a4874e924e3b656cd4a1c0ee973417abe06d980dc3662e895a2fef5d10021",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 254,
+      "signed": true
+    },
+    {
+      "name": "tipc_diag.ko",
+      "kind": "gki",
+      "sha256": "727ca96f2e4297cc3f6e9bf57d754d6ad7418df3b67b40798bb2431b6f7760c9",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 11,
+      "signed": true
+    },
+    {
+      "name": "tmecom-intf.ko",
+      "kind": "vendor",
+      "sha256": "3afabeaf5776a2cd40bcde5b4fa57684dc88a62cc0d23655bed1ac8f84e13270",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 27,
+      "signed": false
+    },
+    {
+      "name": "ufs-qcom.ko",
+      "kind": "vendor",
+      "sha256": "8ad9a208c2f678a90dd95db4af26ca6f8770d2c275b20c8256f3dc210a1fa818",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 111,
+      "signed": false
+    },
+    {
+      "name": "usbmon.ko",
+      "kind": "gki",
+      "sha256": "8cef8478dd804f04332887b3dd1553c70116693254d7cdde629f29934909cb9e",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 64,
+      "signed": true
+    },
+    {
+      "name": "usbnet.ko",
+      "kind": "gki",
+      "sha256": "9979c2ad51a29abf8ece40d48e8ed6989441b2ae4e5251c741f4f88aa724737b",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 94,
+      "signed": true
+    },
+    {
+      "name": "usbserial.ko",
+      "kind": "gki",
+      "sha256": "10df8ecb116baace17dd8c9e6d86f78a3d95ffab9a6674326ed0fcbb98e28a81",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 107,
+      "signed": true
+    },
+    {
+      "name": "vcan.ko",
+      "kind": "gki",
+      "sha256": "c015a3474d6786a4251d4e61e50bab2df1d192690c586d0221d67d360f833303",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 16,
+      "signed": true
+    },
+    {
+      "name": "vcpu_stall_detector.ko",
+      "kind": "gki",
+      "sha256": "a5773fbbbd7fc67a3fbae3e1d6d5f91342825f14af3e6fddd93cb3344983b9e8",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 26,
+      "signed": true
+    },
+    {
+      "name": "videocc-sm8450.ko",
+      "kind": "vendor",
+      "sha256": "0624fd87fdd3c90305fa3786c10b120923b3d9cf5fcfb0bd0ec0db45c7d8222d",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 158,
+      "signed": false
+    },
+    {
+      "name": "virtio_balloon.ko",
+      "kind": "gki",
+      "sha256": "2b47b9bdce65f51525d9330fea8e72ef0bad51c1117c0b0c5574a3408df8fe09",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 80,
+      "signed": true
+    },
+    {
+      "name": "virtio_blk.ko",
+      "kind": "gki",
+      "sha256": "6183e6ec804b238ee799aa46fe6ea43fb86c7558b481638b01eb4ab4fa9e501f",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 84,
+      "signed": true
+    },
+    {
+      "name": "virtio_console.ko",
+      "kind": "gki",
+      "sha256": "1636987567864ad73b800a9a0ef0bc499d0e56b2c627829dee20dd029b459d16",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 99,
+      "signed": true
+    },
+    {
+      "name": "virtio_pci.ko",
+      "kind": "gki",
+      "sha256": "dc2f98c19b977a4562dcaa023f300101e7df7e57ed2e3341721a351595e12b43",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 114,
+      "signed": true
+    },
+    {
+      "name": "virtio_pci_legacy_dev.ko",
+      "kind": "gki",
+      "sha256": "da011917acab98588405b5e9fddb2355cb8a0a4ac5cc54b69a4723ac901ee0e5",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 16,
+      "signed": true
+    },
+    {
+      "name": "virtio_pci_modern_dev.ko",
+      "kind": "gki",
+      "sha256": "1b5ea5bcf2d74efca6c0ba0e34c5f8499da6f42c791ac99d2d1b6f3cc78b5519",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 24,
+      "signed": true
+    },
+    {
+      "name": "vmw_vsock_virtio_transport.ko",
+      "kind": "gki",
+      "sha256": "1a0ed4537eab9586acbe9f902bef107b721ffdbdef63ebf46b654e6e197cef99",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 79,
+      "signed": true
+    },
+    {
+      "name": "wcd938x_dlkm.ko",
+      "kind": "vendor",
+      "sha256": "c947efc4029da6e329de568ef6549a8baa63b40eccf5540f564faba0a407973a",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 103,
+      "signed": false
+    },
+    {
+      "name": "wcd938x_slave_dlkm.ko",
+      "kind": "vendor",
+      "sha256": "4ad3374a409c4ea57e657de30368b435b71ac25b9c737ef479182367c635c8a0",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 30,
+      "signed": false
+    },
+    {
+      "name": "wcd9xxx_dlkm.ko",
+      "kind": "vendor",
+      "sha256": "f61062ea16c2e394e5aee989dd334635662721b493ecdf54a32b50e87b37707e",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 35,
+      "signed": false
+    },
+    {
+      "name": "wcd_core_dlkm.ko",
+      "kind": "vendor",
+      "sha256": "0d61196301c8344184298aea66bbeb9615838051006736331e522b1cd5aee93d",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 60,
+      "signed": false
+    },
+    {
+      "name": "wlan_firmware_service.ko",
+      "kind": "vendor",
+      "sha256": "9e72104a743d6e440dec38ec7ee163477b55d344ba6bf0de43d1b4f58ecb593c",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 4,
+      "signed": false
+    },
+    {
+      "name": "wsa883x_dlkm.ko",
+      "kind": "vendor",
+      "sha256": "43fa255671e29bb897667fdb0dd9981836e273071e75c9ad2c870f5c15543306",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 84,
+      "signed": false
+    },
+    {
+      "name": "wwan.ko",
+      "kind": "gki",
+      "sha256": "5fe3a4fcf673f5fa3fdac6a46059377957044892cf834ec20324ab0999afb928",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 78,
+      "signed": true
+    },
+    {
+      "name": "zram.ko",
+      "kind": "gki",
+      "sha256": "e8a4980f4d9bbfcc6551015857c805e4a73862535202056f76d67f67e08597bb",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 181,
+      "signed": true
+    },
+    {
+      "name": "zsmalloc.ko",
+      "kind": "gki",
+      "sha256": "ed4972abfe2dcb58acfd25a38375c4f1a4a58fad45096a3ff57b1775c74091fa",
+      "vermagic": "6.18.60-android17-5-maybe-dirty-4k SMP preempt mod_unload modversions aarch64",
+      "imports": 50,
+      "signed": true
+    }
+  ],
+  "errors": [],
+  "hardware_tested": false,
+  "phone_operations": 0
+}

@@ -1,11 +1,17 @@
-# Nothing Phone (2): android17-6.18.59 vendor modules
+# Nothing Phone (2): android17-6.18.60 vendor modules
 
-Source release branch: `pong-a17-6.18.59`. The older `pong-a17-6.18.32` branch
+**Upstream candidate:** all 262 source outputs, final ABI, SHA-256 signatures
+and diskless signature/payload VM tests passed on 6.18.60. No 6.18.60 image was
+flashed. The phone/ROM runtime reference remains CLS38 / 6.18.59; that branch
+and its remote default are preserved. See `docs/build-evidence/upstream-6.18.60`.
+
+
+Source release branch: `pong-a17-6.18.60`. The older `pong-a17-6.18.32` branch
 is preserved as the historical image-734 checkpoint. This branch extends it
 with the current port source snapshots: **178 vendor module outputs** plus
 **84 reference GKI modules** built with the companion kernel.
 
-Kernel: [android_kernel_nothing_sm8475-6.18](https://github.com/Szmazwidi/android_kernel_nothing_sm8475-6.18/tree/pong-a17-6.18.59).
+Kernel: [android_kernel_nothing_sm8475-6.18](https://github.com/Szmazwidi/android_kernel_nothing_sm8475-6.18/tree/pong-a17-6.18.60).
 The kernel retains Linux/ACK/stable history, the U59 integration and its KMI
 reverts. Its 6.18.59 release string does not imply an unmodified mainline tree.
 
@@ -20,11 +26,11 @@ The final XML pins the verified source commits. A subsequent documentation-only
 commit stores that lock without changing the compiled source inputs.
 
 ```sh
-git clone --branch pong-a17-6.18.59 --single-branch \
+git clone --branch pong-a17-6.18.60 --single-branch \
   https://github.com/Szmazwidi/android_kernel_nothing_sm8475-modules-6.18.git pong-source
 mkdir pong-workspace && cd pong-workspace
 repo init -u https://android.googlesource.com/kernel/manifest -b common-android17-6.18
-cp ../pong-source/docs/manifest/pong618-6.18.59.xml .repo/manifests/pong618.xml
+cp ../pong-source/docs/manifest/pong618-6.18.60.xml .repo/manifests/pong618.xml
 repo init -m pong618.xml
 repo sync -c -j4
 bash devices/pong618/tools/build-pong.sh
@@ -45,7 +51,7 @@ tools/bazel run //common:kernel_aarch64_dist -- --destdir=out/pong/kernel
 tools/bazel run //devices/pong618:pong_dist -- --destdir=out/pong/modules
 ```
 
-See `docs/build-reference-6.18.59.json` for every selected vendor target and GKI
+See `docs/build-reference-6.18.60.json` for every selected vendor target and GKI
 filename. `build/providers.bzl` obtains symbol providers from source builds.
 The original stage-based package paths are retained for traceability and to
 avoid gratuitous source-path/BTF changes.

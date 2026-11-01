@@ -190,7 +190,7 @@
     },
     "README.md": {
       "status": "NEW",
-      "sha256": "8174abac65fcf5174a7efa6b35cb075a38b2973273694bd0a55d4061371a44da",
+      "sha256": "10cca6974b9687834e33f38005b7dd06f8df8560a995c332188b3f0ce5564e75",
       "earlier_release_sha256": "145f3b5d5b97555ed642d91e759f595145161a5dd4f7a52cb3f9cecff1e9f774"
     },
     "adc152r2/BUILD.bazel": {
@@ -15388,10 +15388,35 @@
       "attribution": "Release integration/documentation; no claim of original upstream driver authorship",
       "sha256": "c00bbcb025724f64ae3f917de706f1e246180116e8f43c6051217c064b5c6e3e"
     },
+    "docs/build-evidence/upstream-6.18.60/signature-VM.json": {
+      "status": "LOCAL_INTEGRATION",
+      "attribution": "Release integration/documentation; no claim of original upstream driver authorship",
+      "sha256": "1bb15205ea6c1dc462a4ad7803707a29eff2070e998ac3104b6cf6f728ba0ad2"
+    },
+    "docs/build-evidence/upstream-6.18.60/signed-bank.json": {
+      "status": "LOCAL_INTEGRATION",
+      "attribution": "Release integration/documentation; no claim of original upstream driver authorship",
+      "sha256": "0c7ec7ea4ecddd31ca0a9fd5f077eacecc1b6b61e2f0e729317f744e76d06c98"
+    },
+    "docs/build-evidence/upstream-6.18.60/source-build.json": {
+      "status": "LOCAL_INTEGRATION",
+      "attribution": "Release integration/documentation; no claim of original upstream driver authorship",
+      "sha256": "1dede818ff7773561f746e1a3b1da670d6a9c9f2c61c6b91d41ca0dfbeedaa16"
+    },
+    "docs/build-evidence/upstream-6.18.60/upstream-provenance.json": {
+      "status": "LOCAL_INTEGRATION",
+      "attribution": "Release integration/documentation; no claim of original upstream driver authorship",
+      "sha256": "40606ff8ddefaf6fb1ad8ee6e55569dda69f8e6c3dde43f21457dd50fe2e539d"
+    },
     "docs/build-reference-6.18.59.json": {
       "status": "LOCAL_INTEGRATION",
       "attribution": "Release integration/documentation; no claim of original upstream driver authorship",
       "sha256": "09fa65f3028feae5e6039489c9c88a86394acd458970d66b956a640ee1554250"
+    },
+    "docs/build-reference-6.18.60.json": {
+      "status": "LOCAL_INTEGRATION",
+      "attribution": "Release integration/documentation; no claim of original upstream driver authorship",
+      "sha256": "79c7a735f0ad5360dcf4939306451d041da39831c4cbae8309674ebd0031f1d6"
     },
     "docs/hal-interfaces.md": {
       "status": "LOCAL_INTEGRATION",
@@ -15406,6 +15431,11 @@
       "status": "LOCAL_INTEGRATION",
       "attribution": "Release integration/documentation; no claim of original upstream driver authorship",
       "sha256": "2dda20a9a4fa0768916d66534e2818262f11392468aa54d5fdac233ecaae0b0a"
+    },
+    "docs/manifest/pong618-6.18.60.xml": {
+      "status": "LOCAL_INTEGRATION",
+      "attribution": "Release integration/documentation; no claim of original upstream driver authorship",
+      "sha256": "5293d6f34161c55f2d6fdff674f14f923f9fb01ff07cf8bc4c9ed576fdc7810a"
     },
     "docs/provenance-guide.md": {
       "status": "LOCAL_INTEGRATION",
@@ -33129,7 +33159,8 @@
     "tools/build-pong.sh": {
       "status": "LOCAL_INTEGRATION",
       "attribution": "Release integration/documentation; no claim of original upstream driver authorship",
-      "sha256": "71ec54a35d0733224f2de9d7c76bf87c52257586927617e3ae5a80dfe104666c"
+      "sha256": "10e485105124a377b94d7849807e13df967c26ffc56a43387a85edf01084ea4c",
+      "earlier_release_sha256": "71ec54a35d0733224f2de9d7c76bf87c52257586927617e3ae5a80dfe104666c"
     },
     "tools/gen-module-policy.py": {
       "status": "NEW",
@@ -73683,8 +73714,11 @@
     "original_notices_preserved": true,
     "selected_GKI_modules": 84,
     "self_digest_excluded": true,
-    "locked_kernel_commit": "faf5816ea2a11522f22a978d73a5d4472ddbe1aa",
-    "locked_module_source_commit": "087f9114b1a580262cb7dfb34d190f133ca18b08"
+    "locked_kernel_commit": "89684ef737b91893c9c982200f9bd3402a0e4ec2",
+    "locked_module_source_commit": "3a5a4ec78c1635e2d7b2afa686e5d2cbbd6db076",
+    "upstream_candidate": "6.18.60",
+    "runtime_reference": "CLS38 / 6.18.59",
+    "previous_verified_59_modules_commit": "cbb11e90d28906b232dd31c4c09cc773c6af10eb"
   },
   "retired_files": {
     "ipa930/.gitupstream": {

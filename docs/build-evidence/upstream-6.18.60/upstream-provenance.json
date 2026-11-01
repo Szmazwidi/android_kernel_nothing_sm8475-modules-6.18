@@ -1,0 +1,13 @@
+{
+  "stable_tag": "v6.18.60",
+  "commit": "f45ed76d6791cf72ff1265ee93511175bbbc2f18",
+  "stable_delta_commits": 113,
+  "tag_signature_verified": true,
+  "signer_primary_fingerprint": "647F28654894E3BD457199BE38DBBDC86092693E",
+  "key_identity_source": "https://www.kernel.org/signature.html",
+  "tested_kernel_commit": "89684ef737b91893c9c982200f9bd3402a0e4ec2",
+  "tested_module_commit": "3a5a4ec78c1635e2d7b2afa686e5d2cbbd6db076",
+  "eventfs_resolution": "Keep existing U59 revert; stable fix modifies only the removed barrier block",
+  "phone_operations": 0,
+  "hardware_tested": false
+}
