@@ -21,9 +21,9 @@ PONG_FLAGS=("--jobs=$PONG_BUILD_JOBS" "--make_jobs=$PONG_BUILD_JOBS" "--local_re
 "${PONG_BAZEL[@]}" run "${PONG_FLAGS[@]}" //devices/pong618:pong_dist -- "--destdir=$PONG_OUT/modules"
 python3 devices/pong618/tools/verify_build.py \
     --kernel "$PONG_OUT/kernel" --modules "$PONG_OUT/modules" \
-    --reference devices/pong618/docs/build-reference-6.18.59.json \
+    --reference devices/pong618/docs/build-reference-6.18.60.json \
     --report "$PONG_OUT/build-report.json"
 python3 devices/pong618/tools/prepare-modules.py freeze \
     --kernel "$PONG_OUT/kernel" --modules "$PONG_OUT/modules" \
-    --reference devices/pong618/docs/build-reference-6.18.59.json --output "$PONG_OUT/frozen"
+    --reference devices/pong618/docs/build-reference-6.18.60.json --output "$PONG_OUT/frozen"
 echo "Build checked. Artifacts: $PONG_OUT. Review README before any hardware packaging."
