@@ -1,0 +1,23 @@
+{
+  "status": "PASS",
+  "results": {
+    "unsigned.ko": -129,
+    "wrong-key.ko": -129,
+    "corrupt-signature.ko": -129,
+    "changed-signed.ko": -1,
+    "good.ko": 0
+  },
+  "expected": {
+    "unsigned.ko": -129,
+    "wrong-key.ko": -129,
+    "corrupt-signature.ko": -129,
+    "changed-signed.ko": -1,
+    "good.ko": 0
+  },
+  "forced_by_default": true,
+  "kernel_sha256": "334019edf71b3f61c47c3fb74350ae209237b98010d644aa582a039a368c8971",
+  "seconds": 2.03,
+  "phone_operations": 0,
+  "disks_attached": 0,
+  "hardware_tested": false
+}

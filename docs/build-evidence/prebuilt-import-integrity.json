@@ -1,0 +1,10 @@
+{
+  "status": "PASS",
+  "files": 272,
+  "mismatch": [],
+  "binary_payloads_changed": false,
+  "phone_operations": 0,
+  "isolated_import": "262 modules and all metadata checksums PASS",
+  "bad_vendor_dlkm_checksum": "REFUSED_BEFORE_TARGET_MUTATION",
+  "commit": "3ed598671caa1f2e51c2bb10ef8504d1490cd25f"
+}

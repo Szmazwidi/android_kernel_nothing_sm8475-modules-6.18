@@ -1,0 +1,21 @@
+{
+  "status": "ALL_SOURCE_WORKTREES_ACCOUNTED_FOR",
+  "pinned_projects": 1259,
+  "actual_Git_worktrees": 1261,
+  "unlisted_worktrees": [
+    {
+      "path": "kernel/nothing/sm8475-modules",
+      "revision": "2f0edec00b101b1dd3efc05e6b5a65e726fb43ed"
+    },
+    {
+      "path": "kernel/nothing/sm8475/KernelSU",
+      "revision": "932014ab5b2c9b74a3d11e2ec4d17dd10fc9442e"
+    }
+  ],
+  "seconds": 23.18,
+  "classifications": {
+    "kernel/nothing/sm8475-modules": "Unused in 6.18 prebuilt ROM configuration; intentionally omitted",
+    "kernel/nothing/sm8475/KernelSU": "Pinned gitlink of the header project; fetched by sync-s=true"
+  },
+  "KernelSU_revision_remote_verified": true
+}

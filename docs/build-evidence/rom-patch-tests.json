@@ -1,0 +1,12 @@
+{
+  "stage": 1207,
+  "status": "PASS",
+  "tests": [
+    "Clean-base dry run",
+    "Apply exact captured patch",
+    "Idempotent already-applied check",
+    "Unknown local contents refused"
+  ],
+  "active_tree_changed": false,
+  "phone_operations": 0
+}

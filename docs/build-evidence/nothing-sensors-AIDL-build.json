@@ -1,0 +1,15 @@
+{
+  "stage": 1204,
+  "status": "BUILD_PASS",
+  "product_selection_changed": false,
+  "phone_operations": 0,
+  "graph_returncode": 0,
+  "graph_attempts": [
+    "Missing standard lunch namespace state; corrected",
+    "VINTF filename collision; renamed",
+    "Corrected graph"
+  ],
+  "returncode": 0,
+  "target": "out/soong/.intermediates/device/nothing/Pong/sensors/android.hardware.sensors-service.nothing-aidl/android_vendor_arm64_armv8-2a-dotprod/android.hardware.sensors-service.nothing-aidl",
+  "runtime_tested": false
+}

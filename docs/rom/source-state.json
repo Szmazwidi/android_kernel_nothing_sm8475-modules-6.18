@@ -1,0 +1,73 @@
+{
+  "stage": 1200,
+  "status": "SNAPSHOT_PREPARED",
+  "project_count": 1259,
+  "manually_attached_projects": [
+    {
+      "path": "device/nothing/Pong",
+      "repository": "Szmazwidi/android_device_nothing_Pong",
+      "revision": "6341417e98435f9633538258063a2e8ba6d5c6ec"
+    },
+    {
+      "path": "vendor/nothing/Pong",
+      "repository": "Szmazwidi/android_vendor_nothing_Pong",
+      "revision": "fcb71610a7f6506f5e07761d91044125cf1aaec5"
+    },
+    {
+      "path": "kernel/nothing/sm8475",
+      "repository": "Szmazwidi/android_kernel_nothing_sm8475",
+      "revision": "673fc11462a0cdb264230c136a964583cceec798"
+    },
+    {
+      "path": "kernel/nothing/sm8475-devicetrees",
+      "repository": "Nothing-phone-2-Development/android_kernel_nothing_sm8475-devicetrees",
+      "revision": "4b06eb8d7c0bbc548a5f3336ac201e4fb29ccaf8"
+    },
+    {
+      "path": "hardware/dolby",
+      "repository": "Pong-Development/hardware_dolby",
+      "revision": "0bae4ceb87b2d3ff0bf66c592b964c0380d1c99a"
+    },
+    {
+      "path": "packages/apps/GlyphAdapter",
+      "repository": "Pong-Development/packages_apps_GlyphAdapter",
+      "revision": "9f43981b04189d8ec2026673153fb807b4b74b7c"
+    },
+    {
+      "path": "packages/apps/ParanoidGlyphPhone2",
+      "repository": "Pong-Development/packages_apps_ParanoidGlyph",
+      "revision": "81443b0faebc7290c240a6f1b00ddc0c3fc39965"
+    },
+    {
+      "path": "device/nothing/Pong-kernel",
+      "repository": "Szmazwidi/android_device_nothing_Pong-kernel",
+      "revision": "9f4e415436e17270141df5a5b57f9ea55b7b9e01"
+    }
+  ],
+  "patches": [
+    {
+      "project": "system/sepolicy",
+      "revision": "a09cd5e0f6f9a85707460914970cb5d17054c2cb",
+      "patch": "system_sepolicy.patch",
+      "sha256": "ebd6915d7a3ace667c7c20dd9f591012211cd5f1ea7d1256e44f42c8e61525ab",
+      "files": [
+        {
+          "path": "private/compat/202504/202504.ignore.cil",
+          "before": "baeccbf6f4407f25ea877ae2fe30106821a7237f9863a8a34778373da9e1b937",
+          "after": "5cf1c1467034157d098d9d5741503f0c19fb96bb0cf6381e391c6699990c1ce7"
+        }
+      ]
+    }
+  ],
+  "omitted_unused_510_ext_modules": true,
+  "original_patch_applier": {
+    "repository": "Szmazwidi/android_device_nothing_Pong",
+    "revision": "6341417e98435f9633538258063a2e8ba6d5c6ec",
+    "path": "manifests/apply-snapshot.py",
+    "sha256": "21916b352b133c30007030b0ed7485824eeb49faa985ddcfd231b1bfa5eddc34"
+  },
+  "existing_rom_build": "DerpFest-v17-20261101-Pong-Community-Stable.zip",
+  "clean_resync_tested": false,
+  "rom_hardware_tested": false,
+  "phone_operations": 0
+}

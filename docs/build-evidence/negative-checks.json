@@ -1,0 +1,12 @@
+{
+  "stage": 1205,
+  "status": "PASS",
+  "tests": [
+    "Corrupted imported CRC rejected despite valid ELF and unchanged cached symvers",
+    "Truncated signature trailer rejected",
+    "Two different payloads with the same module filename rejected",
+    "Competing standard AIDL/HIDL fingerprint declarations rejected"
+  ],
+  "phone_operations": 0,
+  "original_artifacts_modified": false
+}

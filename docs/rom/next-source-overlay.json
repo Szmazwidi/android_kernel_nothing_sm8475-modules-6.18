@@ -1,0 +1,15 @@
+{
+  "schema": "pong-next-source-overlay-v1",
+  "base_snapshot": "derpfest17-CLS38.xml",
+  "device_commit": "9c8085c5c41885169350f1873c88f3a634b86251",
+  "prebuilt_integrity_commit": "3ed598671caa1f2e51c2bb10ef8504d1490cd25f",
+  "notes": [
+    "The original as-built snapshot remains unchanged.",
+    "New fingerprint guard builds; optional Nothing sensors AIDL builds and passes offline VINTF/checkfc.",
+    "Sensors AIDL remains opt-in pending device events/power qualification.",
+    "Kernel prebuilt bytes remain CLS38; fresh signature-forced source artifacts are separate.",
+    "Current device source additionally removes auto-format from data/metadata, preserving all encryption/checkpoint settings."
+  ],
+  "full_ROM_rebuild_tested": false,
+  "runtime_tested": false
+}

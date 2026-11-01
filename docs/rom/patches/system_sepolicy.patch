@@ -1,0 +1,17 @@
+diff --git a/private/compat/202504/202504.ignore.cil b/private/compat/202504/202504.ignore.cil
+index a45d73e50..6625a5e16 100644
+--- a/private/compat/202504/202504.ignore.cil
++++ b/private/compat/202504/202504.ignore.cil
+@@ -43,4 +43,12 @@
+     mmd_setup
+     contextual_mode_service
+     system_server_wrapfd
++device_extras
++glyph_app
++nt_chg_recovery
++proc_charger
++proc_simulated_temp
++sltntc
++sysfs_powershare
++
+   ))

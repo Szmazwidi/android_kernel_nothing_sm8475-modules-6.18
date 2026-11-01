@@ -1,0 +1,22 @@
+{
+  "stage": 1211,
+  "status": "PASS",
+  "profiles": [
+    {
+      "profile": "baseline",
+      "returncode": 0
+    },
+    {
+      "profile": "sensors-AIDL",
+      "returncode": 0
+    }
+  ],
+  "existing_sensor_domain_exact_file_context_matches": [
+    "/(vendor|system/vendor)/bin/hw/android\\.hardware\\.sensors-service\\.nothing-aidl"
+  ],
+  "kernel_config_checked": false,
+  "runtime_tested": false,
+  "phone_operations": 0,
+  "checkfc_returncode": 0,
+  "exact_new_context_checked_against_existing_compiled_policy": true
+}

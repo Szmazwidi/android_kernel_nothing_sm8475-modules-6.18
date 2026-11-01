@@ -1,0 +1,12 @@
+{
+  "status": "PASS",
+  "tests": [
+    "CMS/sha256 -> cryptographically valid SHA256",
+    "BoringSSL-PKCS7-branch/sha256 -> cryptographically valid SHA256",
+    "BoringSSL-PKCS7-branch/sha1 -> cryptographically valid SHA256",
+    "Unsupported digest refused without target mutation",
+    "Raw signature packaging avoids null hash argument"
+  ],
+  "note": "Conditional BoringSSL branch compiled against host OpenSSL; actual hermetic implementation is checked by the complete kernel build",
+  "phone_operations": 0
+}

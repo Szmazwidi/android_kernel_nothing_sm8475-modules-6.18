@@ -1,0 +1,14 @@
+{
+  "status": "PASS",
+  "commit": "afb29385bfce9103316655f6a2b14518f19c8a60",
+  "removed_flags": [
+    "/data:formattable",
+    "/metadata:formattable"
+  ],
+  "source_sha256": "65e177c7b5b2e7783f5d6d139a5e8a1dfaa1eadaae029ad4fdd44a9bb119cc76",
+  "vendor_and_firststage_copies_verified": true,
+  "recovery_source_rule_verified": true,
+  "recovery_image_rebuilt": false,
+  "phone_operations": 0,
+  "data_resets": 0
+}

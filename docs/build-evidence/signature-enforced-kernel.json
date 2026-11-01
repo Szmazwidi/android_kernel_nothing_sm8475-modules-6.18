@@ -1,0 +1,28 @@
+{
+  "stage": 1221,
+  "status": "PASS",
+  "phone_operations": 0,
+  "steps": [
+    {
+      "name": "kernel",
+      "returncode": 0
+    },
+    {
+      "name": "frozen-ABI",
+      "returncode": 0
+    },
+    {
+      "name": "sign",
+      "returncode": 0
+    }
+  ],
+  "reason": "Old source default did not enforce signatures; make the standalone source configuration explicit",
+  "active_step": "sign",
+  "canonical_policy_restored": true,
+  "signature_force": true,
+  "signature_hash": "sha256",
+  "frozen_module_count": 262,
+  "hardware_tested": false,
+  "critical_write_guards_unchanged": true,
+  "generated_policy_sha256": "1451c6e010bbc94200fa5adc52068c9567fbd81d06a3c426a11258e56e1bad99"
+}
