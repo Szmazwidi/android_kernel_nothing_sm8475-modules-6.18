@@ -98,7 +98,7 @@
     "pong70-llcc-consumer.ko": "//devices/pong618/native-llcc70:consumer",
     "pong_adsp_heap.ko": "//devices/pong618/adspHeapCLS13:adspHeapCLS13",
     "pong_mem_hotplug.ko": "//devices/pong618/aop1149:mem1149",
-    "pong_membuf_heap.ko": "//devices/pong618/heap982/fixed:heap_fixed982",
+    "pong_membuf_heap.ko": "//devices/pong618/heap1063:heap_CPU_pin1063",
     "proxy-consumer.ko": "//devices/pong618/power-consumers29:proxy",
     "q6_dlkm.ko": "//devices/pong618/av580/qcom/opensource/audio-kernel:waipio_perf_modules",
     "q6_notifier_dlkm.ko": "//devices/pong618/av580/qcom/opensource/audio-kernel:waipio_perf_modules",
@@ -292,7 +292,19 @@
       ],
       "required_strings": [
         "qcom,system"
-      ]
+      ],
+      "required_calls": {
+        "system_heap_dma_buf_begin_cpu_access": [
+          "mem_buf_vmperm_pin",
+          "mem_buf_vmperm_can_cmo",
+          "mem_buf_vmperm_unpin"
+        ],
+        "system_heap_dma_buf_end_cpu_access": [
+          "mem_buf_vmperm_pin",
+          "mem_buf_vmperm_can_cmo",
+          "mem_buf_vmperm_unpin"
+        ]
+      }
     },
     "pong_mem_hotplug.ko": {
       "required_functions": [

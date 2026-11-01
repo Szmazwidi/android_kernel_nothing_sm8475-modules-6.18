@@ -41,9 +41,9 @@
     "BUILD.bazel": {
       "status": "NEW",
       "previous_port_revision": "b85102e7eab9db69c9d456902bf8f9cb1845eba3",
-      "sha256": "cc5efa5e9f44746d6f7a2a01b8bb251bb583fcf65165ec19d358bda18301273d",
+      "sha256": "71424a62626ad95b741ec50f50a715d75ea1b0b8c0b95ca7ca3f27a54dc77c23",
       "earlier_release_sha256": "9ed1d42cad8ab2cbf1d766aaad19e370404993ba11c23032a9c07f4da8c969f3",
-      "previous_release_sha256": "f8ff226f2b7781ce352584134fa5f6f2f58f721e9dfda0ba417c2835e53bd2cd"
+      "previous_release_sha256": "cc5efa5e9f44746d6f7a2a01b8bb251bb583fcf65165ec19d358bda18301273d"
     },
     "COPYING": {
       "status": "VERBATIM",
@@ -191,9 +191,9 @@
     },
     "README.md": {
       "status": "NEW",
-      "sha256": "1ec301307244673e9a05a998544b46a1dca93167b067d503bca25533c3da21d2",
+      "sha256": "0830449ff8d6370db54b84dcfeeaed2cd7a8c22452e46e3a44471e80958489ed",
       "earlier_release_sha256": "145f3b5d5b97555ed642d91e759f595145161a5dd4f7a52cb3f9cecff1e9f774",
-      "previous_release_sha256": "10cca6974b9687834e33f38005b7dd06f8df8560a995c332188b3f0ce5564e75"
+      "previous_release_sha256": "1ec301307244673e9a05a998544b46a1dca93167b067d503bca25533c3da21d2"
     },
     "adc152r2/BUILD.bazel": {
       "status": "NEW",
@@ -8053,9 +8053,9 @@
     "build/BUILD.bazel": {
       "status": "NEW",
       "previous_port_revision": "b85102e7eab9db69c9d456902bf8f9cb1845eba3",
-      "sha256": "a82220a973389475d7b9f4c39d665ac4ce5b483dd735af0f7608700b5d182502",
+      "sha256": "008a4d62d0bc0b15e783c9975597b9509559639ed3dfafe2d475540fe521ca7d",
       "earlier_release_sha256": "be9b9478d2dfc01f06a93dc3520c8ce4510ed0ca4b49b1cc68d966b17b3e09ac",
-      "previous_release_sha256": "2f97c42e60be5cef7c7594e809526caa9b209fc3bc337f3cdab60ceb90bd2c5e"
+      "previous_release_sha256": "a82220a973389475d7b9f4c39d665ac4ce5b483dd735af0f7608700b5d182502"
     },
     "build/deps.bzl": {
       "status": "NEW",
@@ -15421,8 +15421,8 @@
     "docs/build-reference-6.18.60.json": {
       "status": "LOCAL_INTEGRATION",
       "attribution": "Release integration/documentation; no claim of original upstream driver authorship",
-      "sha256": "bb140f213f9591cb4ffd2d4b4b0ca94119a1a1d50cb07138d63eb3de703cedd8",
-      "previous_release_sha256": "c082d0bc7b41720832823b1d9c02043aaedead1e701b66e26fe78a79ffcaa1de"
+      "sha256": "fa9136996b5beebb5bd4fd4d4d1893ed30f4fbcaa7c83339edc9738e2a3ab769",
+      "previous_release_sha256": "bb140f213f9591cb4ffd2d4b4b0ca94119a1a1d50cb07138d63eb3de703cedd8"
     },
     "docs/hal-interfaces.md": {
       "status": "LOCAL_INTEGRATION",
@@ -33248,9 +33248,9 @@
     "tools/verify_build.py": {
       "status": "LOCAL_INTEGRATION",
       "attribution": "Release integration/documentation; no claim of original upstream driver authorship",
-      "sha256": "ab10de7786a27880425f1328b1e790297591c7de22e6ecd95a9cc7264c03ef97",
+      "sha256": "b152c72e9579bc100f8db74dfb3aab0be418d8f80ecea13b538b0e2f48f02e9c",
       "earlier_release_sha256": "9b64edba304d1190df9e34e228e0295727241d6591f829b337185b8f821d15fc",
-      "previous_release_sha256": "653c5cda4597458d3eb22d2649d843668dd9f8da37593e7376b198654d7e1ef0"
+      "previous_release_sha256": "ab10de7786a27880425f1328b1e790297591c7de22e6ecd95a9cc7264c03ef97"
     },
     "uart480/BUILD.bazel": {
       "status": "NEW",
@@ -73732,8 +73732,29 @@
     "docs/runtime-regression-6.18.60.md": {
       "status": "LOCAL_INTEGRATION",
       "attribution": "Existing Pong port source or release integration; upstream notices retained; no claim of new original driver authorship",
-      "sha256": "6fe766af4cabd6ba0259894fd7d847b9b5f83470f84547e301007569bec41419",
-      "previous_release_sha256": "6177aa738221ff597a4ba326c57e22980b36b53731a56b0b712a0f478754bb10"
+      "sha256": "b1e5457767d8c619dc9bca1b8461544615f8dcf13fa80567e710cc1ddcf405bd",
+      "previous_release_sha256": "6fe766af4cabd6ba0259894fd7d847b9b5f83470f84547e301007569bec41419"
+    },
+    "heap1063/BUILD.bazel": {
+      "status": "LOCAL_INTEGRATION",
+      "attribution": "Existing Pong adaptation/build integration; original source notices retained",
+      "sha256": "19a35d78af34268a865329c9221f88678106bef9c553a7ad72dd92450f4b9fd2"
+    },
+    "heap1063/pong_membuf_heap.c": {
+      "status": "LOCAL_PORT_SOURCE",
+      "attribution": "Existing Pong adaptation/build integration; original source notices retained",
+      "sha256": "48da571d1af94e00493e0432e10afc09fb8a304d88fb6f758e8bcd2c7c8b6d91",
+      "port_snapshot": {
+        "package": "heap1063",
+        "path": "pong_membuf_heap.c",
+        "original_snapshot_sha256": "3803b7436bf9a9e23c9227e928f48233d068610553590a5e1f8c932bdf831494"
+      },
+      "local_adaptation": "Only routine allocation success logging changed to once-per-boot. Original ownership implementation and notices retained."
+    },
+    "tools/build-release.sh": {
+      "status": "LOCAL_INTEGRATION",
+      "attribution": "Source build orchestration and documentation; no claim of upstream driver authorship",
+      "sha256": "3587db3076c0de1b8b672d5ceae433a87e8a90900dcd933d6af086a68793ea94"
     }
   },
   "snapshot": {

@@ -1,0 +1,5 @@
+# Build-rule adaptation: original sources retained; binary symbol inputs resolved from source.
+load('//build/kernel/kleaf:kernel.bzl', 'ddk_module')
+load('//devices/pong618/av580/providers:providers.bzl', 'PROVIDERS')
+package(default_visibility=['//visibility:public'])
+ddk_module(name='heap_CPU_pin1063', out='pong_membuf_heap.ko', kernel_build='//common:kernel_aarch64', srcs=['pong_membuf_heap.c'], deps=['//devices/pong618/av580/providers:vendor_headers', '//devices/pong618/build:symbol_mem_buf_dev', '//devices/pong618/build:symbol_msm_dma_iommu_mapping'], copts=['-ferror-limit=0', '-DCONFIG_QCOM_MEM_BUF_DEV=1', '-DCONFIG_QCOM_MEM_BUF=1', '-DCONFIG_QCOM_LAZY_MAPPING=1'])

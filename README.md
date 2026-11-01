@@ -1,15 +1,14 @@
 # Nothing Phone (2): android17-6.18.60 vendor modules
 
-**6.18.60 hardware qualification failed:** the first source-built candidate
-passed compile/CRC/signature/VM checks but could not complete Android boot.
-The release recipe selected the previously rejected heap974 exporter rather
-than accepted heap982, losing the `qcom,system` name, userspace mmap and lazy
-DMA mapping. The phone was restored to exact CLS38 / 6.18.59 without a reset.
-This branch now selects the unchanged accepted heap982 source and checks its
-runtime interfaces during artifact verification. A new complete build,
-signing/VM qualification and hardware test are still required before use.
-See [runtime regression](docs/runtime-regression-6.18.60.md). The remote default
-and preserved 6.18.59 branch remain unchanged.
+**6.18.60 qualification is in progress.** The corrected source-built bank
+booted Android with full RAM, root and signature forcing under Enforcing.
+Camera testing then exposed an additional CPU-access ownership regression:
+the recipe now selects heap1063, whose complete machine code matches the
+working CLS38 heap, and verifies pin/check/unpin calls inside its CPU callbacks.
+This latest correction still needs its own complete signed-bank build and
+native hardware test. The first failed trials and accepted source provenance
+remain recorded in [runtime regression](docs/runtime-regression-6.18.60.md).
+The preserved 6.18.59 branch remains the remote default.
 
 
 Source release branch: `pong-a17-6.18.60`. The older `pong-a17-6.18.32` branch
@@ -19,7 +18,7 @@ with the current port source snapshots: **178 vendor module outputs** plus
 
 Kernel: [android_kernel_nothing_sm8475-6.18](https://github.com/Szmazwidi/android_kernel_nothing_sm8475-6.18/tree/pong-a17-6.18.60).
 The kernel retains Linux/ACK/stable history, the U59 integration and its KMI
-reverts. Its 6.18.59 release string does not imply an unmodified mainline tree.
+reverts. Its 6.18.60 release string does not imply an unmodified mainline tree.
 
 For the captured complete ROM recipe and the actual AIDL/HIDL selection, see
 [ROM source state](docs/rom/README.md) and [HAL interfaces](docs/hal-interfaces.md).
@@ -61,6 +60,23 @@ See `docs/build-reference-6.18.60.json` for every selected vendor target and GKI
 filename. `build/providers.bzl` obtains symbol providers from source builds.
 The original stage-based package paths are retained for traceability and to
 avoid gratuitous source-path/BTF changes.
+
+## Complete build with one command
+
+From the pinned Kleaf workspace root, with an AArch64 system QEMU installed:
+
+```sh
+PONG_QEMU=/absolute/path/to/qemu-system-aarch64 \
+PONG_OUT=out/pong-release bash devices/pong618/tools/build-release.sh
+```
+
+This runs the complete first pass, freezes the exact bank, rebuilds the final
+kernel policy, signs and rechecks all modules, and executes the diskless VM
+positive/negative tests. It restores the original policy on normal success or
+failure, refuses concurrent policy edits, and retains logs/frozen artifacts on
+a build error. `--help` lists resource/QEMU options. Private keys stay local.
+The existing `build-pong.sh` and manual commands below remain the phase-by-phase
+alternative. Host artifact qualification is separate from phone qualification.
 
 ## Before packaging for hardware
 

@@ -74,11 +74,39 @@ def runtime_contract_errors(data, sec, contract):
             index,info,_,section,_,_=struct.unpack_from('<IBBHQQ',data,pos)
             if info&15==2 and section:
                 functions.add(names[index:names.find(b'\0',index)].decode())
+    # Check call sites inside the actual callback, not just global imports:
+    # vmap already imported pin/unpin while begin/end CPU access still missed them.
+    required_calls=contract.get('required_calls',{})
+    call_errors={}
+    if required_calls:
+        symbol_tables={}
+        funcs={}
+        for index,h in enumerate(headers):
+            if h[1]!=2:continue
+            sh=headers[h[6]];names=data[sh[4]:sh[4]+sh[5]];symbols=[]
+            for pos in range(h[4],h[4]+h[5],24):
+                n,info,_,section,value,length=struct.unpack_from('<IBBHQQ',data,pos)
+                name=names[n:names.find(b'\0',n)].decode();symbols.append(name)
+                if info&15==2 and section and length:funcs[name]=(section,value,length)
+            symbol_tables[index]=symbols
+        for func,wanted in required_calls.items():
+            calls=set();f=funcs.get(func)
+            if f:
+                section,start,length=f
+                for h in headers:
+                    if h[1]!=4 or h[7]!=section:continue
+                    for pos in range(h[4],h[4]+h[5],24):
+                        offset,info,_=struct.unpack_from('<QQq',data,pos)
+                        # R_AARCH64_JUMP26 / R_AARCH64_CALL26
+                        if start<=offset<start+length and info&0xffffffff in [282,283]:
+                            calls.add(symbol_tables[h[6]][info>>32])
+            missing=sorted(set(wanted)-calls)
+            if missing:call_errors[func]=missing
     missing_functions=sorted(set(contract.get('required_functions',[]))-functions)
     missing_imports=sorted(set(contract.get('required_imports',[]))-set(versions(sec)))
     missing_strings=[s for s in contract.get('required_strings',[])if s.encode()+b'\0'not in data]
-    if missing_functions or missing_imports or missing_strings:
-        return dict(missing_functions=missing_functions,missing_imports=missing_imports,missing_strings=missing_strings)
+    if missing_functions or missing_imports or missing_strings or call_errors:
+        return dict(missing_functions=missing_functions,missing_imports=missing_imports,missing_strings=missing_strings,missing_callback_calls=call_errors)
     return {}
 
 def main():

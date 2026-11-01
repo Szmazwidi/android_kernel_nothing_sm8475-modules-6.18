@@ -53,3 +53,20 @@ CONFIG_LEDS_QTI_FLASH_MODULE, so those paths silently compiled out. That module
 configuration is now explicit. The artifact verifier requires both imports.
 These are source/config parity corrections, pending the full build and new
 hardware test, rather than newly invented hardware implementations.
+
+## CPU-access ownership parity with the working image
+
+The corrected heap982 build booted Android with signatures forced, full RAM and
+Enforcing, but camera/CDM command buffers still failed dma_buf_begin_cpu_access
+with EPERM. The actual working CLS38 heap matches stage1063 byte-for-byte in its
+entire .text and imported symbol CRCs. That later source pins VM permissions
+before the begin/end CPU-access checks and releases the pin on both paths.
+The release recipe now selects that actual heap1063 source, retaining mmap,
+vmap, lazy DMA and ownership checks. Its historical source SHA-256 is
+3803b7436bf9a9e23c9227e928f48233d068610553590a5e1f8c932bdf831494.
+The existing 2304 callback ownership/failure test cases are retained as evidence.
+Only the successful allocation message is changed to pr_info_once to avoid
+per-buffer kernel-log flooding; permission and failure diagnostics remain.
+The verifier now inspects AArch64 call relocations within both CPU callbacks,
+requiring pin, permission check and unpin at the actual callback call sites.
+Global imports alone could not detect the missing ownership pin.
