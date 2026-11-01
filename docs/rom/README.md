@@ -9,6 +9,16 @@ from this manifest has not been flashed or qualified, and a clean resync has
 not been tested. Some repositories remain private and the prebuilt includes
 device-specific LAB protection; this manifest is not a generic flashable release.
 
+An incremental build of that pinned source state completed on the existing
+maintainer checkout on 2026-11-01. The resulting
+`DerpFest-v17-20261101-Pong-Community-Stable.zip` had SHA-256
+`6907946b3f04c58d4d384f0b3f479bf797d08d27311dddb081cf832eef4d708e`;
+its ZIP CRCs and payload presence were checked. Independent extraction of the
+generated images confirmed the source-built kernel, all 262 vendor_dlkm
+modules and all 94 vendor-ramdisk modules. This is build/image evidence, not
+proof that the complete ROM boots. The separately developed telephony shim is
+not included in that ZIP or in this pinned manifest.
+
 `derpfest17-pong618-current.xml` pins **1,259 projects**, including the manually attached
 Pong device/vendor/kernel projects that `repo manifest -r` alone omitted.
 The current recipe includes the AIDL fingerprint error fix, opt-in sensors
