@@ -33,6 +33,14 @@ The payload also includes `recovery`, `vbmeta`, `vbmeta_system` and
 partition scope of the development workflow; do not apply it to that phone
 without a separately reviewed update and recovery plan.
 
+`derpfest17-pong618-6.18.60-telephony.xml` is a newer source candidate with
+the attributed `INothingTelephony` compatibility shim. Its 1,259 project pins
+match the local source checkout and the Android `nothing-fwk` target builds;
+the referenced DEX signatures were checked. A complete ROM from this newer
+manifest has not been built or tested on the device, and the already-built
+ZIP above does not contain the shim. The stub does not implement the Nothing
+OEM service; see `nothing-fwk/TELEPHONY_COMPAT.md` in the device repository.
+
 `derpfest17-pong618-current.xml` pins **1,259 projects**, including the manually attached
 Pong device/vendor/kernel projects that `repo manifest -r` alone omitted.
 The current recipe includes the AIDL fingerprint error fix, opt-in sensors
