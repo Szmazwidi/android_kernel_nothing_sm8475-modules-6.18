@@ -77,10 +77,12 @@ struct qrtr_node {
  */
 #define QRTR_NS_MAX_SERVERS 256
 
-/* Max lookup limit is chosen based on the current platform requirements. If the
- * requirement changes in the future, this value can be increased.
+/* Android's dual-SIM and DSP clients share this local-node lookup budget.
+ * A limit of 64 starves legitimate camera, sensor and radio lookups on Pong:
+ * even a diagnostic NEW_LOOKUP receives no terminator after the budget fills.
+ * Keep allocations bounded while allowing the complete Android service set.
  */
-#define QRTR_NS_MAX_LOOKUPS 64
+#define QRTR_NS_MAX_LOOKUPS 256
 
 /* Max nodes limit is chosen based on the current platform requirements.
  * If the requirement changes in the future, this value can be increased.
