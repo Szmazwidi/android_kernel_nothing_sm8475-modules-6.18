@@ -1,4 +1,13 @@
-# DerpFest 17 / Linux 6.18.59: source-state recipe
+# DerpFest 17 / Linux 6.18: source-state recipes
+
+`derpfest17-pong618-6.18.60.xml` is the 6.18.60 candidate: it retains the
+same pinned projects and updates the device and prebuilt commits. All 1,259
+project revisions were checked against the existing local source workspace.
+The source-built kernel and module cohort booted on the development phone;
+mobile-data and camera NDK tests are documented separately. A full ROM built
+from this manifest has not been flashed or qualified, and a clean resync has
+not been tested. Some repositories remain private and the prebuilt includes
+device-specific LAB protection; this manifest is not a generic flashable release.
 
 `derpfest17-pong618-current.xml` pins **1,259 projects**, including the manually attached
 Pong device/vendor/kernel projects that `repo manifest -r` alone omitted.
@@ -14,8 +23,9 @@ mapping. It does not set SELinux permissive or grant broad new permissions.
 The original CLS38 source state produced `DerpFest-v17-20261101-Pong-Community-Stable.zip` on the
 maintainer's existing host. **That full ROM has not been flashed/qualified, and
 a new full clean resync/build of this packaged recipe has not been performed.**
-The source overlay has binary/compatibility checks recorded under
-`docs/build-evidence`; a complete ROM rebuild of that overlay is still pending.
+The 6.18.59 source overlay also completed an incremental full ROM build on the
+existing host; that ZIP was not flashed and a clean resync was not tested.
+Binary/compatibility checks are recorded under `docs/build-evidence`.
 The tested CLS38 kernel/module image set is a separate runtime reference. Do
 not equate those results with hardware testing of the complete ROM.
 
@@ -45,6 +55,11 @@ source build/envsetup.sh
 lunch lineage_Pong-cp2a-userdebug
 m derp -j4
 ```
+
+For the 6.18.60 candidate, use the `pong-a17-6.18.60` modules branch and copy
+`derpfest17-pong618-6.18.60.xml` instead. The snapshot patch checks still apply.
+The optional camera enumeration recovery and sensors AIDL frontend are disabled
+by default; neither is claimed to be device-qualified by this recipe.
 
 The existing device `vendorsetup.sh` reconstructs the split Arcsoft file from
 the matching extracted blob parts. An unresolved LFS pointer is not firmware or
