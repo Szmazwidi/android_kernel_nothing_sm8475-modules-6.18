@@ -27,3 +27,10 @@ selection status.
 These files contain host evidence. They do not assert that fresh locally keyed
 artifacts were flashed, that the full reconstructed ROM was hardware-tested,
 or that payment/enrollment/interoperability/overnight stability tests passed.
+
+`native-stability-20261102.json` separates Android/Soong and image checks from
+short cold-boot runtime tests of native CDSP, fingerprint startup, camera
+readiness and private reboot logging. It states which tests ran on preceding
+component-equivalent boots and does not claim a newly built complete OTA,
+clean resync, overnight stability or fresh biometric enrollment. It contains
+no private raw device logs or signing keys.

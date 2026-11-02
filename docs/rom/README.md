@@ -1,6 +1,32 @@
 # DerpFest 17 / Linux 6.18: source-state recipes
 
-## Latest qualification update (2026-11-01)
+## Native stability update (2026-11-02)
+
+The current recipe is `derpfest17-pong618-6.18.60-stability.xml`. It preserves
+all bootfix pins except the device tree and uses the same `--profile bootfix`
+compatibility patches. The device tree imports Qualcomm FastRPC v1.0.8 with
+its full upstream history, adds a separate native CDSP listener and orders
+Goodix startup before Binder publication. The camera observer queries the
+physical camera count without listener callbacks or new SELinux permissions.
+It is now selected by default on 6.18; the alternative sensors AIDL frontend
+remains opt-in.
+
+The source-built native listener passed a vendor-domain cold boot without the
+legacy ENODEV loop. A subsequent cold boot of the qualified observer exposed
+five camera devices without its former unnecessary provider refresh and with
+zero observer AVCs. Forty-one sensors, zero fingerprint HAL deaths, connected
+Wi-Fi and private reboot collectors were checked on that boot. Saved-finger
+unlock, normal-UID front/main transient frames and cellular transmission have
+separate, earlier-boot qualification on the component cohort; they are not
+claims of fresh enrollment, all camera modes or overnight stability.
+See [sanitized qualification](../build-evidence/native-stability-20261102.json).
+
+These are qualified derived component images, not a newly qualified complete
+OTA ZIP or a clean-resync build. The historical manifests and their failures
+below are retained. Proprietary firmware, development write guards and WLAN
+MHI resume still need separate release/long-duration qualification.
+
+## Preserved full-ROM qualification history (2026-11-01)
 
 The later full ROM combining the telephony compatibility shim and fingerprint
 startup fixes built successfully and passed payload/kernel/module checks. One
@@ -121,7 +147,7 @@ git clone --branch pong-a17-6.18.60 --single-branch \
   https://github.com/Szmazwidi/android_kernel_nothing_sm8475-modules-6.18.git pong-source
 mkdir pong-android && cd pong-android
 repo init -u https://github.com/DerpFest-AOSP/android_manifest.git -b 17
-cp ../pong-source/docs/rom/derpfest17-pong618-6.18.60-bootfix.xml .repo/manifests/pong618-current.xml
+cp ../pong-source/docs/rom/derpfest17-pong618-6.18.60-stability.xml .repo/manifests/pong618-current.xml
 repo init -m pong618-current.xml
 repo sync -j4
 repo forall -c 'if git lfs ls-files | grep -q .; then git lfs pull; fi'
@@ -135,8 +161,9 @@ m derp -j4
 For the preserved earlier snapshots, select their corresponding XML and use
 the default `snapshot` patch profile instead. Do not mix historical pins with
 the current bootfix profile.
-The optional camera enumeration recovery and sensors AIDL frontend are disabled
-by default; neither is claimed to be device-qualified by this recipe.
+The physical camera observer is selected by default on the stability manifest.
+The sensors AIDL frontend remains disabled by default pending its own hardware
+events and power-management qualification.
 
 The existing device `vendorsetup.sh` reconstructs the split Arcsoft file from
 the matching extracted blob parts. An unresolved LFS pointer is not firmware or

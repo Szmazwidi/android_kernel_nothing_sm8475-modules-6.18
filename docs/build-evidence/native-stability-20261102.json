@@ -1,0 +1,92 @@
+{
+  "schema": "pong-native-stability-qualification-v1",
+  "date": "2026-11-02",
+  "device_source": "86bbe1e780d2a35c264cce336c8b5a1313996047",
+  "kernel_source": "63c338a72de26b1dcbada094f877552284932a91",
+  "module_compiled_source": "928853ff938e2cdbd0006550f5a811c05ff5886b",
+  "prebuilt_source": "69e1d7c218f0e0a5d64733123798f0c71474123b",
+  "vendor_source": "fcb71610a7f6506f5e07761d91044125cf1aaec5",
+  "kernel_notes_sha256": "58cb73e46dc18612594b7aa06eac3a5e5cf637d33036c6109b943e68189d5c7f",
+  "kernel_and_all262_modules_unchanged": true,
+  "Qualcomm_FastRPC": {
+    "upstream_commit": "d247519650fe5cb16de6c78edaa95bcc4be25073",
+    "tag": "v1.0.8",
+    "unsquashed_history": true,
+    "license": "BSD-3-Clause plus per-file notices",
+    "local_upstream_adaptation": "Make DMA_HEAP_NAME configurable; select qcom,system for native mem_buf ownership",
+    "existing_proprietary_ADSP_SDSP_clients_unchanged": true,
+    "original_proprietary_CDSP_binary_preserved": true,
+    "new_allow_rules": 0,
+    "Soong_artifacts": [
+      {
+        "destination": "bin/pong-cdsprpcd",
+        "sha256": "89533a337fe9906f41957921431aaa7cb51904adb54507a87101a489c5850f05"
+      },
+      {
+        "destination": "lib64/libpong_cdsprpc_v1.so",
+        "sha256": "aa1e22ad6050c53171641e365e0024296fcbaa7ff865d826de62cd7b8ced8c3f"
+      },
+      {
+        "destination": "lib64/libpong_cdsp_listener_v1.so",
+        "sha256": "60417595b836fc8cad6bb018e355135b0d1710b8c7b5571491e16afa7c30b7f4"
+      },
+      {
+        "destination": "etc/init/zz.pong618-cdsprpc.rc",
+        "sha256": "de76fa1279272a17cf9a489fba0178549aae043d28d9cd151afa31921a6aac5a"
+      }
+    ]
+  },
+  "camera_observer": {
+    "sha256": "fb8858aecd44449400a7fa24c535f7bfd1cf9751e8231299a1321ff088c93347",
+    "query": "typed CameraService backward-compatible count, physical/default device",
+    "opens_cameras": false,
+    "saves_frames": false,
+    "callbacks_or_virtual_device_service_permissions_required": false,
+    "maximum_provider_refreshes_per_boot": 1,
+    "cold_boot_observer_exit": 0,
+    "cold_boot_duration_seconds": 2.532,
+    "cold_boot_provider_refreshes": 0,
+    "observer_AVCs": 0,
+    "INFO_success_line_filtered": true,
+    "proof": "qualified helper exit 0, refresh_needed=0, five cameras; no exact count invented from absent INFO line"
+  },
+  "runtime": {
+    "native_Android17": true,
+    "Enforcing": true,
+    "signature_force": true,
+    "root": true,
+    "RAM_KiB": 11621732,
+    "sensor_count": 41,
+    "internal_camera_devices": 5,
+    "fingerprint_HAL_deaths": 0,
+    "saved_finger_user_confirmed_on_identical_fingerprint_binary_before_final_observer_change": true,
+    "fingerprint_sha256": "603f352c4b42ab57ec7cf321783bc3e8841d264bd83394629e30d4251806b766",
+    "CDSP_native_endpoint_and_vendor_domain_verified": true,
+    "CDSP_ENODEV_loop_absent": true,
+    "CDSP_CPU_ticks_in_592_second_observation_on_preceding_same_CDSP_boot": 1,
+    "wifi_connected_after_final_cold_boot": true,
+    "interface_bound_mobile_ping_passed_on_preceding_same_CDSP_boot": true,
+    "normal_UID_front_main_four_frames_each_passed_on_prototype_same_native_CDSP_sources": true,
+    "frames_saved": false,
+    "new_framework_fatal_or_watchdog_in_final_capture": false,
+    "focused_and_original_collectors_autostart_and_private_marker_verified": true,
+    "focused_log_files_mode": "0600 root",
+    "private_log_directory_mode": "0700 root",
+    "nine_image_readbacks_verified": true,
+    "data_canary_preserved": true,
+    "checkpoint_clean": true,
+    "GPT_A_and_layout_preserved": true
+  },
+  "limits": [
+    "Short tests on one development handset; no overnight soak or long WLAN suspend/resume qualification",
+    "Previous WLAN MHI M3-to-M0 failure remains unresolved",
+    "Fresh fingerprint enrollment, AOD and prolonged suspend remain separate tests",
+    "No complete OTA ZIP has been rebuilt or qualified from this exact manifest; no clean resync/build qualification",
+    "No active hardware RNG provider; kernel entropy pool reports 256/256; hardware RNG binding requires separate investigation",
+    "Existing PMIC/SPMI probe warning, VPP ADSP heap and tetheroffload netlink denials remain; no broad policy relaxations",
+    "Device-specific development write guards remain; not a universal flashable release"
+  ],
+  "data_resets": 0,
+  "new_policy_allow_rules": 0,
+  "raw_private_logs_included": false
+}

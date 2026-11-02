@@ -10,6 +10,12 @@ Overnight WLAN suspend/resume stability and background diagnostics remain open.
 See [native qualification](docs/build-evidence/native-qrtr256-20261102.json)
 and the preserved earlier failures in
 [runtime regression](docs/runtime-regression-6.18.60.md).
+The later [native stability update](docs/build-evidence/native-stability-20261102.json)
+qualifies source-built CDSP startup without the old ENODEV loop, fingerprint
+publication after hardware readiness, and physical camera enumeration without
+an unnecessary provider refresh or additional SELinux allow rules. The current
+ROM recipe is the `6.18.60-stability` manifest; a complete new OTA ZIP and an
+overnight stability run remain unqualified.
 The preserved 6.18.59 branch remains the remote default.
 
 
