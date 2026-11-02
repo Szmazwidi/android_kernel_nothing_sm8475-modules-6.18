@@ -41,7 +41,7 @@
     "BUILD.bazel": {
       "status": "NEW",
       "previous_port_revision": "b85102e7eab9db69c9d456902bf8f9cb1845eba3",
-      "sha256": "71424a62626ad95b741ec50f50a715d75ea1b0b8c0b95ca7ca3f27a54dc77c23",
+      "sha256": "400b2731b87a25dd212c2ce609dfe54897b3c50b4e70e5f6bb7551c7c44f3db3",
       "earlier_release_sha256": "9ed1d42cad8ab2cbf1d766aaad19e370404993ba11c23032a9c07f4da8c969f3",
       "previous_release_sha256": "cc5efa5e9f44746d6f7a2a01b8bb251bb583fcf65165ec19d358bda18301273d"
     },
@@ -191,9 +191,10 @@
     },
     "README.md": {
       "status": "NEW",
-      "sha256": "0830449ff8d6370db54b84dcfeeaed2cd7a8c22452e46e3a44471e80958489ed",
+      "sha256": "a1b98e882630d52f2ee53c3981bc0daea71043a25d09e73b565868f9246dcd18",
       "earlier_release_sha256": "145f3b5d5b97555ed642d91e759f595145161a5dd4f7a52cb3f9cecff1e9f774",
-      "previous_release_sha256": "1ec301307244673e9a05a998544b46a1dca93167b067d503bca25533c3da21d2"
+      "previous_release_sha256": "1ec301307244673e9a05a998544b46a1dca93167b067d503bca25533c3da21d2",
+      "previous_recorded_sha256": "4d3938308d56bffcb0719cafaab1c086867b8f7273f9512e3718b3ec768a6416"
     },
     "adc152r2/BUILD.bazel": {
       "status": "NEW",
@@ -15321,7 +15322,8 @@
     "docs/build-evidence/README.md": {
       "status": "LOCAL_INTEGRATION",
       "attribution": "Release integration/documentation; no claim of original upstream driver authorship",
-      "sha256": "e5dce45298ee6c3d0bef7f89ff684234fcc7a2022fa3d759343d8ca007ead7bf"
+      "sha256": "329145076ae93e4ff24e4810a2e8bea004b43676da2ccd88a01042cf75ad76be",
+      "previous_recorded_sha256": "e5dce45298ee6c3d0bef7f89ff684234fcc7a2022fa3d759343d8ca007ead7bf"
     },
     "docs/build-evidence/ROM-repository-coverage.json": {
       "status": "LOCAL_INTEGRATION",
@@ -15441,7 +15443,8 @@
     "docs/manifest/pong618-6.18.60.xml": {
       "status": "LOCAL_INTEGRATION",
       "attribution": "Release integration/documentation; no claim of original upstream driver authorship",
-      "sha256": "5293d6f34161c55f2d6fdff674f14f923f9fb01ff07cf8bc4c9ed576fdc7810a"
+      "sha256": "6010de0aac6a753fee8cfd08c0b2daf5c1d19da6c03a8c93d824eb22d44fa858",
+      "previous_recorded_sha256": "5293d6f34161c55f2d6fdff674f14f923f9fb01ff07cf8bc4c9ed576fdc7810a"
     },
     "docs/provenance-guide.md": {
       "status": "LOCAL_INTEGRATION",
@@ -15451,14 +15454,16 @@
     "docs/rom/README.md": {
       "status": "LOCAL_INTEGRATION",
       "attribution": "Release integration/documentation; no claim of original upstream driver authorship",
-      "sha256": "801d8af59e645b3b55a33a7d3caeb0b539332a7a274269f0265f261657b15bbd",
-      "earlier_release_sha256": "30ee993ed3dd19ee9ccd3a1cb9a99d8e9d80303de18931a8ad1d50c0340e80e8"
+      "sha256": "fc90c89c8ed1b2691183a61a92ce33012c5e71dc76d94a116ebf7d93e4e81c0d",
+      "earlier_release_sha256": "30ee993ed3dd19ee9ccd3a1cb9a99d8e9d80303de18931a8ad1d50c0340e80e8",
+      "previous_recorded_sha256": "801d8af59e645b3b55a33a7d3caeb0b539332a7a274269f0265f261657b15bbd"
     },
     "docs/rom/apply-snapshot.py": {
       "status": "VERBATIM",
       "source": "pong_device_support",
       "original_path": "manifests/apply-snapshot.py",
-      "sha256": "21916b352b133c30007030b0ed7485824eeb49faa985ddcfd231b1bfa5eddc34"
+      "sha256": "58189a8441b9d44dabbf92f557c61e5dff13e7ff07f711ae249a5b79a4768ef8",
+      "previous_recorded_sha256": "21916b352b133c30007030b0ed7485824eeb49faa985ddcfd231b1bfa5eddc34"
     },
     "docs/rom/derpfest17-CLS38.xml": {
       "status": "LOCAL_INTEGRATION",
@@ -29952,8 +29957,10 @@
     "qrtr154/net/qrtr/ns.c": {
       "path": "net/qrtr/ns.c",
       "ref": "ack",
-      "status": "VERBATIM",
-      "sha256": "9fd6aede7cbf457c6bce59533e4c700cdf999d673ffb61c242d3b07234fc1fef"
+      "status": "ADAPTED",
+      "sha256": "68efd602a7647c2360685732396f93f90b963e4237199c135b7b267df11fa839",
+      "previous_recorded_sha256": "9fd6aede7cbf457c6bce59533e4c700cdf999d673ffb61c242d3b07234fc1fef",
+      "adaptation_note": "ACK-origin source with the already-committed local QRTR nameservice port correction; earlier recorded digest retained. Not a verbatim ACK file."
     },
     "qrtr154/net/qrtr/qrtr.h": {
       "path": "net/qrtr/qrtr.h",
@@ -33165,7 +33172,7 @@
     "tools/build-pong.sh": {
       "status": "LOCAL_INTEGRATION",
       "attribution": "Release integration/documentation; no claim of original upstream driver authorship",
-      "sha256": "10e485105124a377b94d7849807e13df967c26ffc56a43387a85edf01084ea4c",
+      "sha256": "5774d02969ef4e894570eefe019b4bdc48955b9a54e1eb4fb37517702c59f4b5",
       "earlier_release_sha256": "71ec54a35d0733224f2de9d7c76bf87c52257586927617e3ae5a80dfe104666c"
     },
     "tools/gen-module-policy.py": {
@@ -73732,8 +73739,9 @@
     "docs/runtime-regression-6.18.60.md": {
       "status": "LOCAL_INTEGRATION",
       "attribution": "Existing Pong port source or release integration; upstream notices retained; no claim of new original driver authorship",
-      "sha256": "b1e5457767d8c619dc9bca1b8461544615f8dcf13fa80567e710cc1ddcf405bd",
-      "previous_release_sha256": "6fe766af4cabd6ba0259894fd7d847b9b5f83470f84547e301007569bec41419"
+      "sha256": "120dc6b64b179129b88e65e13c0cf1e36121a22e1bdc00e7d08b70addf4190e4",
+      "previous_release_sha256": "6fe766af4cabd6ba0259894fd7d847b9b5f83470f84547e301007569bec41419",
+      "previous_recorded_sha256": "b1e5457767d8c619dc9bca1b8461544615f8dcf13fa80567e710cc1ddcf405bd"
     },
     "heap1063/BUILD.bazel": {
       "status": "LOCAL_INTEGRATION",
@@ -73754,21 +73762,498 @@
     "tools/build-release.sh": {
       "status": "LOCAL_INTEGRATION",
       "attribution": "Source build orchestration and documentation; no claim of upstream driver authorship",
-      "sha256": "3587db3076c0de1b8b672d5ceae433a87e8a90900dcd933d6af086a68793ea94"
+      "sha256": "6772fb9288bd94738f03bb7ab2c3f218e4b4b08a74d1c2cefac5e173b4e20795"
+    },
+    "dcvsCLG3/BUILD.bazel": {
+      "status": "LOCAL_PORT_SOURCE",
+      "sha256": "c4aa3da7fdb80102d7eb572d201b1a379a47bc40f48748e967929f5e3ab01982",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [],
+      "origin_candidate_is_proven": false,
+      "attribution": "Original notices preserved; name-only matches are candidates, not invented upstream attribution."
+    },
+    "dcvsCLG3/SOURCE.md": {
+      "status": "LOCAL_PORT_SOURCE",
+      "sha256": "513ccf1d367f14486523077f9adddcf4296b6e24529353af044e5f762e7d3ab5",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [],
+      "origin_candidate_is_proven": false,
+      "attribution": "Original notices preserved; name-only matches are candidates, not invented upstream attribution."
+    },
+    "dcvsCLG3/bwmon.c": {
+      "status": "LOCAL_PORT_SOURCE",
+      "sha256": "ae21c7928a873cb4568916b7d4c993f32e441bebb7a32f0e290308c42e1495e1",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [
+        "drivers/soc/qcom/dcvs/bwmon.c"
+      ],
+      "origin_candidate_is_proven": false,
+      "attribution": "Original notices preserved; name-only matches are candidates, not invented upstream attribution."
+    },
+    "dcvsCLG3/bwmon.h": {
+      "status": "LOCAL_PORT_SOURCE",
+      "sha256": "f7d794dd1849f8e9eaac04223adc258ba5b9492dce0f56d50e619f3c928cb16f",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [
+        "drivers/soc/qcom/dcvs/bwmon.h"
+      ],
+      "origin_candidate_is_proven": true,
+      "attribution": "Original notices preserved; name-only matches are candidates, not invented upstream attribution."
+    },
+    "dcvsCLG3/dcvs.c": {
+      "status": "LOCAL_PORT_SOURCE",
+      "sha256": "00ec8d693ced6fd316a2b0eb92d6bd2e9313c1f98e97538db0beaeb1daf67375",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [
+        "drivers/soc/qcom/dcvs/dcvs.c"
+      ],
+      "origin_candidate_is_proven": false,
+      "attribution": "Original notices preserved; name-only matches are candidates, not invented upstream attribution."
+    },
+    "dcvsCLG3/dcvs_epss.c": {
+      "status": "LOCAL_PORT_SOURCE",
+      "sha256": "756970f3e4253fa5f872fe1b2c499115eb2aee0d9ee230ca992ad234a4ec2999",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [
+        "drivers/soc/qcom/dcvs/dcvs_epss.c"
+      ],
+      "origin_candidate_is_proven": false,
+      "attribution": "Original notices preserved; name-only matches are candidates, not invented upstream attribution."
+    },
+    "dcvsCLG3/dcvs_fp.c": {
+      "status": "LOCAL_PORT_SOURCE",
+      "sha256": "f2b26988fc337ddda5ddfd3cdd8065df2982fb2f0e8faba23d4576ffe80a163b",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [
+        "drivers/soc/qcom/dcvs/dcvs_fp.c"
+      ],
+      "origin_candidate_is_proven": false,
+      "attribution": "Original notices preserved; name-only matches are candidates, not invented upstream attribution."
+    },
+    "dcvsCLG3/dcvs_icc.c": {
+      "status": "LOCAL_PORT_SOURCE",
+      "sha256": "b31b668586e94260c4b325f455272572491210ed6494b0e7164fb3e1a9fbfe1b",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [
+        "drivers/soc/qcom/dcvs/dcvs_icc.c"
+      ],
+      "origin_candidate_is_proven": true,
+      "attribution": "Original notices preserved; name-only matches are candidates, not invented upstream attribution."
+    },
+    "dcvsCLG3/dcvs_private.h": {
+      "status": "LOCAL_PORT_SOURCE",
+      "sha256": "d6f95bbba2106341f33fd93e82ca2decaf405a6a54972e1104d22794dd8a9404",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [
+        "drivers/soc/qcom/dcvs/dcvs_private.h"
+      ],
+      "origin_candidate_is_proven": true,
+      "attribution": "Original notices preserved; name-only matches are candidates, not invented upstream attribution."
+    },
+    "dcvsCLG3/include/linux/scmi_memlat.h": {
+      "status": "LOCAL_PORT_SOURCE",
+      "sha256": "86c29d4a55fecb03b8d3b51b13c192c2455eefa779a10ff318990a9dd40a7559",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [
+        "include/linux/scmi_memlat.h"
+      ],
+      "origin_candidate_is_proven": true,
+      "attribution": "Original notices preserved; name-only matches are candidates, not invented upstream attribution."
+    },
+    "dcvsCLG3/include/linux/scmi_pmu.h": {
+      "status": "LOCAL_PORT_SOURCE",
+      "sha256": "e0020f2ac81621e487fcd041163465aef6adcbb50664d99294abc246742c061b",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [
+        "include/linux/scmi_pmu.h"
+      ],
+      "origin_candidate_is_proven": true,
+      "attribution": "Original notices preserved; name-only matches are candidates, not invented upstream attribution."
+    },
+    "dcvsCLG3/include/soc/qcom/dcvs.h": {
+      "status": "LOCAL_PORT_SOURCE",
+      "sha256": "2b5494d0f224cf212b57a97e21839c5c7f77a1de6c8734a0d191822eb8f9cdf6",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [
+        "include/soc/qcom/dcvs.h"
+      ],
+      "origin_candidate_is_proven": true,
+      "attribution": "Original notices preserved; name-only matches are candidates, not invented upstream attribution."
+    },
+    "dcvsCLG3/include/soc/qcom/of_common.h": {
+      "status": "LOCAL_PORT_SOURCE",
+      "sha256": "b2e77faae24101509a524f0eb92abbc6d504f77f86d4fc8b5cd519d4093c3ec7",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [
+        "include/soc/qcom/of_common.h"
+      ],
+      "origin_candidate_is_proven": true,
+      "attribution": "Original notices preserved; name-only matches are candidates, not invented upstream attribution."
+    },
+    "dcvsCLG3/include/soc/qcom/pmu_lib.h": {
+      "status": "LOCAL_PORT_SOURCE",
+      "sha256": "848acd72ecb2323ed09b63ee81d7afd9bf525f77f2e6c39a0b9e1891bd412bb2",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [
+        "include/soc/qcom/pmu_lib.h"
+      ],
+      "origin_candidate_is_proven": true,
+      "attribution": "Original notices preserved; name-only matches are candidates, not invented upstream attribution."
+    },
+    "dcvsCLG3/include/soc/qcom/qcom_llcc_pmu.h": {
+      "status": "LOCAL_PORT_SOURCE",
+      "sha256": "97f7f9f47db40a5ea896da9a46a6886aafe45ca6fe9915a3ed4d625143828d1c",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [
+        "include/soc/qcom/qcom_llcc_pmu.h"
+      ],
+      "origin_candidate_is_proven": true,
+      "attribution": "Original notices preserved; name-only matches are candidates, not invented upstream attribution."
+    },
+    "dcvsCLG3/memlat.c": {
+      "status": "LOCAL_PORT_SOURCE",
+      "sha256": "4e9a3a9278a9fde16f9d63b15719f756ccd29f34b09b314d22739d476aebd098",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [
+        "drivers/soc/qcom/dcvs/memlat.c"
+      ],
+      "origin_candidate_is_proven": false,
+      "attribution": "Original notices preserved; name-only matches are candidates, not invented upstream attribution."
+    },
+    "dcvsCLG3/pmu_lib.c": {
+      "status": "LOCAL_PORT_SOURCE",
+      "sha256": "b01d3450977798b0e825c1dfff441d773f1ef23726a29d366752350e97703d54",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [
+        "drivers/soc/qcom/dcvs/pmu_lib.c"
+      ],
+      "origin_candidate_is_proven": false,
+      "attribution": "Original notices preserved; name-only matches are candidates, not invented upstream attribution."
+    },
+    "dcvsCLG3/qcom_llcc_pmu.c": {
+      "status": "LOCAL_PORT_SOURCE",
+      "sha256": "c9039dfb3560394389821d962ffc5d195c0d8c8072d865e38c0022b61fc695eb",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [
+        "drivers/perf/qcom_llcc_pmu.c"
+      ],
+      "origin_candidate_is_proven": false,
+      "attribution": "Original notices preserved; name-only matches are candidates, not invented upstream attribution."
+    },
+    "dcvsCLG3/trace-dcvs.c": {
+      "status": "LOCAL_PORT_SOURCE",
+      "sha256": "81c4262d9e5ad9a91ffc93197c646497a40309a6b96ec2b725be48d13a44bafd",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [
+        "drivers/soc/qcom/dcvs/trace-dcvs.c"
+      ],
+      "origin_candidate_is_proven": true,
+      "attribution": "Original notices preserved; name-only matches are candidates, not invented upstream attribution."
+    },
+    "dcvsCLG3/trace-dcvs.h": {
+      "status": "LOCAL_PORT_SOURCE",
+      "sha256": "d1854f5b04949fc515e38dc65ac92920ec033a9cd47a37ab87c798615c6ca935",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [
+        "drivers/soc/qcom/dcvs/trace-dcvs.h"
+      ],
+      "origin_candidate_is_proven": false,
+      "attribution": "Original notices preserved; name-only matches are candidates, not invented upstream attribution."
+    },
+    "thermalCLG8/BUILD.bazel": {
+      "status": "LOCAL_PORT_SOURCE",
+      "sha256": "cff5650dcf51d914e6d278c0383d2256ce2f6f23adb1e2d47b6296e19a433cec",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [],
+      "origin_candidate_is_proven": false,
+      "attribution": "Original notices preserved; name-only matches are candidates, not invented upstream attribution."
+    },
+    "thermalCLG8/cpu_hotplug.c": {
+      "status": "LOCAL_PORT_SOURCE",
+      "sha256": "20091404f06e4e2af6257bd02ebd4dec89837d8cd1b87c5a0edc1935651d4a98",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [
+        "drivers/thermal/qcom/cpu_hotplug.c"
+      ],
+      "origin_candidate_is_proven": false,
+      "attribution": "Original notices preserved; name-only matches are candidates, not invented upstream attribution."
+    },
+    "thermalCLG8/ddr_cdev.c": {
+      "status": "LOCAL_PORT_SOURCE",
+      "sha256": "a1130a86d69684a262fffed30540224fe67d46a85048674503964bc6c18baf42",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [
+        "drivers/thermal/qcom/ddr_cdev.c"
+      ],
+      "origin_candidate_is_proven": false,
+      "attribution": "Original notices preserved; name-only matches are candidates, not invented upstream attribution."
+    },
+    "thermalCLG8/include/linux/ipc_logging.h": {
+      "status": "LOCAL_PORT_SOURCE",
+      "sha256": "87dd5d5a35b1b966268cfb45656066b920a1d32d46e76870f4d429a8bebb7bf4",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [
+        "include/linux/ipc_logging.h"
+      ],
+      "origin_candidate_is_proven": false,
+      "attribution": "Original notices preserved; name-only matches are candidates, not invented upstream attribution."
+    },
+    "thermalCLG8/qmi_cooling.c": {
+      "status": "LOCAL_PORT_SOURCE",
+      "sha256": "ea4550a3eb6d22809d91a365e62f15cb569f1dcaf0e2ce397c8d8c9a81630dc7",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [
+        "drivers/thermal/qcom/qmi_cooling.c"
+      ],
+      "origin_candidate_is_proven": false,
+      "attribution": "Original notices preserved; name-only matches are candidates, not invented upstream attribution."
+    },
+    "thermalCLG8/qmi_sensors.c": {
+      "status": "LOCAL_PORT_SOURCE",
+      "sha256": "a880715194d277e423539fc17beacc1616a18fa9ff226e291cd93743f867a272",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [
+        "drivers/thermal/qcom/qmi_sensors.c"
+      ],
+      "origin_candidate_is_proven": false,
+      "attribution": "Original notices preserved; name-only matches are candidates, not invented upstream attribution."
+    },
+    "thermalCLG8/qmi_sensors.h": {
+      "status": "LOCAL_PORT_SOURCE",
+      "sha256": "d8b848e66d4a0e74ef76c3c152d9bff851090b2aaf539b4f8c7bdf0fefdc5bbf",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [
+        "drivers/thermal/qcom/qmi_sensors.h"
+      ],
+      "origin_candidate_is_proven": true,
+      "attribution": "Original notices preserved; name-only matches are candidates, not invented upstream attribution."
+    },
+    "thermalCLG8/qti_bcl_pmic5.c": {
+      "status": "LOCAL_PORT_SOURCE",
+      "sha256": "41e4f147eed82631fb925be499c3a3ea290a442e50bc37402e8387d2c765df73",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [
+        "drivers/thermal/qcom/qti_bcl_pmic5.c"
+      ],
+      "origin_candidate_is_proven": false,
+      "attribution": "Original notices preserved; name-only matches are candidates, not invented upstream attribution."
+    },
+    "thermalCLG8/qti_bcl_stats.c": {
+      "status": "LOCAL_PORT_SOURCE",
+      "sha256": "25f2f2983f0fb02cb748ae64a360476c9c89540c1f3fc9219868fc90e73b1a87",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [
+        "drivers/thermal/qcom/qti_bcl_stats.c"
+      ],
+      "origin_candidate_is_proven": false,
+      "attribution": "Original notices preserved; name-only matches are candidates, not invented upstream attribution."
+    },
+    "thermalCLG8/qti_bcl_stats.h": {
+      "status": "LOCAL_PORT_SOURCE",
+      "sha256": "94c321470fd7edd754ac45b0e1e138688686f7ef8013bca1ebc3e1e4e61da159",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [
+        "drivers/thermal/qcom/qti_bcl_stats.h"
+      ],
+      "origin_candidate_is_proven": true,
+      "attribution": "Original notices preserved; name-only matches are candidates, not invented upstream attribution."
+    },
+    "thermalCLG8/thermal_mitigation_device_service_v01.c": {
+      "status": "LOCAL_PORT_SOURCE",
+      "sha256": "e66b996b3c775f06093fcbd375435bc2e40f9e884b2365cbd7fbbff755d49f9c",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [
+        "drivers/thermal/qcom/thermal_mitigation_device_service_v01.c"
+      ],
+      "origin_candidate_is_proven": true,
+      "attribution": "Original notices preserved; name-only matches are candidates, not invented upstream attribution."
+    },
+    "thermalCLG8/thermal_mitigation_device_service_v01.h": {
+      "status": "LOCAL_PORT_SOURCE",
+      "sha256": "1705a3f0a1315a37c4b694fed6f3257338d8228babcd1c791e879ceae1f6f7c2",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [
+        "drivers/thermal/qcom/thermal_mitigation_device_service_v01.h"
+      ],
+      "origin_candidate_is_proven": true,
+      "attribution": "Original notices preserved; name-only matches are candidates, not invented upstream attribution."
+    },
+    "thermalCLG8/thermal_pause_hp.c": {
+      "status": "NEW",
+      "sha256": "7af570d4fcecb859fb089dd99845f1d0da1c079615b2ca524a03b10073cb8111",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [],
+      "origin_candidate_is_proven": false,
+      "attribution": "Claude CLG8 local hotplug replacement for WALT pause; semantics require review."
+    },
+    "thermalCLG8/thermal_sensor_service_v01.c": {
+      "status": "LOCAL_PORT_SOURCE",
+      "sha256": "4991d8e7e4269687cdb408222bf9bbc2e42b4769790f0fb444bda344a54630e8",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [
+        "drivers/thermal/qcom/thermal_sensor_service_v01.c"
+      ],
+      "origin_candidate_is_proven": true,
+      "attribution": "Original notices preserved; name-only matches are candidates, not invented upstream attribution."
+    },
+    "thermalCLG8/thermal_sensor_service_v01.h": {
+      "status": "LOCAL_PORT_SOURCE",
+      "sha256": "d3a7641a574b5a7056dbd5083a33c1a5ccc596f96ca8ff16bdb190f0116c14b7",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [
+        "drivers/thermal/qcom/thermal_sensor_service_v01.h"
+      ],
+      "origin_candidate_is_proven": true,
+      "attribution": "Original notices preserved; name-only matches are candidates, not invented upstream attribution."
+    },
+    "thermalCLG8/thermal_zone_internal.h": {
+      "status": "LOCAL_PORT_SOURCE",
+      "sha256": "a973c037afff40ba9e083870f4dbf46ae90d21db43a5d2be8120a34cc65cdf44",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [
+        "drivers/thermal/qcom/thermal_zone_internal.h"
+      ],
+      "origin_candidate_is_proven": true,
+      "attribution": "Original notices preserved; name-only matches are candidates, not invented upstream attribution."
+    },
+    "wdtCLG8/BUILD.bazel": {
+      "status": "LOCAL_PORT_SOURCE",
+      "sha256": "22778252be37f8fda661fa57fe7d5c313ebc700ebcb35985c08b657a69c4c03a",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [],
+      "origin_candidate_is_proven": false,
+      "attribution": "Original notices preserved; name-only matches are candidates, not invented upstream attribution."
+    },
+    "wdtCLG8/gh_virt_wdt.c": {
+      "status": "LOCAL_PORT_SOURCE",
+      "sha256": "4e9f1f6c86bf2a08cca4efb48f29263ee7166b8447b7343159a3dfcd99f500f0",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [
+        "drivers/virt/gunyah/gh_virt_wdt.c"
+      ],
+      "origin_candidate_is_proven": false,
+      "attribution": "Original notices preserved; name-only matches are candidates, not invented upstream attribution."
+    },
+    "wdtCLG8/include/linux/gunyah/gh_errno.h": {
+      "status": "LOCAL_PORT_SOURCE",
+      "sha256": "82c1e1f5694cb5e5788b061a3fb0abc97640a0402f2ca83d8250326c10c00b28",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [
+        "include/linux/gunyah/gh_errno.h"
+      ],
+      "origin_candidate_is_proven": true,
+      "attribution": "Original notices preserved; name-only matches are candidates, not invented upstream attribution."
+    },
+    "wdtCLG8/include/soc/qcom/watchdog.h": {
+      "status": "LOCAL_PORT_SOURCE",
+      "sha256": "d1cb716f76962859e3ee3b121ffb36656c9b6b398477ccdb0278bcb52f8d9cf8",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [
+        "include/soc/qcom/watchdog.h"
+      ],
+      "origin_candidate_is_proven": false,
+      "attribution": "Original notices preserved; name-only matches are candidates, not invented upstream attribution."
+    },
+    "wdtCLG8/qcom_wdt_core.c": {
+      "status": "LOCAL_PORT_SOURCE",
+      "sha256": "9f3c55d9a0eb801e082c873e38ec12a57a3cd01db1a2dfafdddf8444ee985c81",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [
+        "drivers/soc/qcom/qcom_wdt_core.c"
+      ],
+      "origin_candidate_is_proven": false,
+      "attribution": "Original notices preserved; name-only matches are candidates, not invented upstream attribution."
+    },
+    "rngCLG8/BUILD.bazel": {
+      "status": "LOCAL_PORT_SOURCE",
+      "sha256": "f0a717a8f3a8f6ab0549674ce8c2e2ca4a8bab7b3e785fb01b7c27f9a7585fc8",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [],
+      "origin_candidate_is_proven": false,
+      "attribution": "Original notices preserved; name-only matches are candidates, not invented upstream attribution."
+    },
+    "rngCLG8/include/linux/qrng.h": {
+      "status": "LOCAL_PORT_SOURCE",
+      "sha256": "fe882ef5e321bb7cb54f0f36a02d7d418dd8f28f37a2f459ddf09dc22a1a8663",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [
+        "include/uapi/linux/qrng.h"
+      ],
+      "origin_candidate_is_proven": true,
+      "attribution": "Original notices preserved; name-only matches are candidates, not invented upstream attribution."
+    },
+    "rngCLG8/msm_rng.c": {
+      "status": "LOCAL_PORT_SOURCE",
+      "sha256": "4458dbe9c0abc2f3d3966f37d88f82dccc4aa09ee85da246e06b93f4345b39bf",
+      "integration": "Claude CLG3/CLG8; Codex1411 source integration and focused QMI adaptation",
+      "upstream_candidates": [
+        "drivers/char/hw_random/msm_rng.c"
+      ],
+      "origin_candidate_is_proven": false,
+      "attribution": "Original notices preserved; name-only matches are candidates, not invented upstream attribution."
+    },
+    "thermalCLG8/SOURCE.md": {
+      "status": "LOCAL_INTEGRATION",
+      "attribution": "Claude platform-port integration; original Qualcomm notices retained.",
+      "sha256": "1147f193c27b061efbdec93f7efde92d6583f69411eb39c346a35243fdd573b4"
+    },
+    "wdtCLG8/SOURCE.md": {
+      "status": "LOCAL_INTEGRATION",
+      "attribution": "Claude platform-port integration; original Qualcomm notices retained.",
+      "sha256": "22dbfdcc4ab78cf2736736a2e665199072ad9388985182fd85c142ee17914bbf"
+    },
+    "rngCLG8/SOURCE.md": {
+      "status": "LOCAL_INTEGRATION",
+      "attribution": "Claude platform-port integration; original Qualcomm notices retained.",
+      "sha256": "f949a350205591e06e1843dc4af86f9ab40e23262bb9077e54808ee022d02565"
+    },
+    "docs/CLG277.md": {
+      "status": "LOCAL_INTEGRATION",
+      "attribution": "Pong build/test integration; original driver work attributed separately",
+      "sha256": "4f64ab86b11e9bfb80039da4c1cabdf98cf6354375d7c8731a3a36bf716fb714"
+    },
+    "docs/build-evidence/CLG277-20261102.json": {
+      "status": "LOCAL_INTEGRATION",
+      "attribution": "Pong build/test integration; original driver work attributed separately",
+      "sha256": "ecd4e3cb44b82bdb8e5fb96601a636cfbd3cd1292ce571bf2ad77fd59c7c79a0"
+    },
+    "docs/build-reference-6.18.60-CLG277.json": {
+      "status": "LOCAL_INTEGRATION",
+      "attribution": "Pong build/test integration; original driver work attributed separately",
+      "sha256": "9ad960be13a4b34315468758366a4d50a59923dcb04f5fac8cc33568d62afa3b"
+    },
+    "docs/cohorts/CLG277-first-stage.modules": {
+      "status": "LOCAL_INTEGRATION",
+      "attribution": "Pong build/test integration; original driver work attributed separately",
+      "sha256": "9f25cdb056b180e257543fa5e97aa97a6e87823677fd54d35f86a45a61ea5356"
+    },
+    "tools/test-build-profiles.py": {
+      "status": "LOCAL_INTEGRATION",
+      "attribution": "Pong build/test integration; original driver work attributed separately",
+      "sha256": "cd33824fdfadd7b5e3272da69b53afcf1dfb30cc6a0112f0bf6f19a5cc417837"
+    },
+    "tools/test-qmi-sensors.py": {
+      "status": "LOCAL_INTEGRATION",
+      "attribution": "Pong build/test integration; original driver work attributed separately",
+      "sha256": "058d3fc202777fdee3981055e7ca528dc797ea43487ce609b5f4d7fa931a6c4a"
     }
   },
   "snapshot": {
-    "reference": "CLS38 source closure; host build evidence in docs/build-evidence",
+    "reference": "CLG277 source integration; hardware-qualified focused QMI update, complete clean build pending",
     "previous_modules_commit": "3fb62fa0d8d9c2aadcef667945dfcc7ae11cf7ca",
-    "source_graph_modules": 178,
+    "source_graph_modules": 193,
     "original_notices_preserved": true,
     "selected_GKI_modules": 84,
     "self_digest_excluded": true,
     "locked_kernel_commit": "89684ef737b91893c9c982200f9bd3402a0e4ec2",
     "locked_module_source_commit": "3a5a4ec78c1635e2d7b2afa686e5d2cbbd6db076",
     "upstream_candidate": "6.18.60",
-    "runtime_reference": "CLS38 / 6.18.59",
-    "previous_verified_59_modules_commit": "cbb11e90d28906b232dd31c4c09cc773c6af10eb"
+    "runtime_reference": "stage1413/1419 QMI cohort / 6.18.60",
+    "previous_verified_59_modules_commit": "cbb11e90d28906b232dd31c4c09cc773c6af10eb",
+    "historical_reference": "CLS38 source closure; host build evidence in docs/build-evidence",
+    "kernel_profile": "lab",
+    "kernel_source_prerequisite": "58b289d57b3d1f4b6fa6bb51db13920f459ae153",
+    "published_manifest_for_CLG277": false
   },
   "retired_files": {
     "ipa930/.gitupstream": {

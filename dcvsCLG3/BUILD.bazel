@@ -1,0 +1,38 @@
+# CLG3: Qualcomm DCVS stack (memlat/bwmon/L3 EPSS/DDR-LLCC fast path) from the Nothing 5.10 tree, ported to 6.18.
+package(default_visibility=['//visibility:public'])
+load('//build/kernel/kleaf:kernel.bzl', 'ddk_headers', 'ddk_module')
+
+ddk_headers(name='headers', hdrs=glob(['include/**/*.h']), linux_includes=['include'])
+
+DEFS = [
+    'CONFIG_QCOM_DCVS_MODULE=1',
+    'CONFIG_QCOM_DCVS_FP_MODULE=1',
+    'CONFIG_QCOM_PMU_LIB_MODULE=1',
+    'CONFIG_QCOM_LLCC_PMU_MODULE=1',
+    'CONFIG_QCOM_MEMLAT_MODULE=1',
+    'CONFIG_QCOM_BWMON_MODULE=1',
+]
+
+ddk_module(name='llcc_pmu', kernel_build='//common:kernel_aarch64', out='qcom_llcc_pmu.ko',
+           srcs=['qcom_llcc_pmu.c'], hdrs=[':headers'], local_defines=DEFS, copts=['-ferror-limit=0'])
+
+ddk_module(name='pmu_lib', kernel_build='//common:kernel_aarch64', out='qcom-pmu-lib.ko',
+           srcs=['pmu_lib.c'], hdrs=[':headers'], local_defines=DEFS, deps=[':llcc_pmu'], copts=['-ferror-limit=0'])
+
+ddk_module(name='dcvs_fp', kernel_build='//common:kernel_aarch64', out='dcvs_fp.ko',
+           srcs=['dcvs_fp.c', 'dcvs_private.h'], hdrs=[':headers', '//devices/pong618/rpmh-native25:headers'],
+           local_defines=DEFS + ['CONFIG_QCOM_RPMH_MODULE=1', 'CONFIG_QCOM_COMMAND_DB_MODULE=1'],
+           deps=['//devices/pong618/build:symbol_qcom_rpmh', '//devices/pong618/build:symbol_cmd_db'],
+           copts=['-ferror-limit=0'])
+
+ddk_module(name='dcvs', kernel_build='//common:kernel_aarch64', out='qcom-dcvs.ko',
+           srcs=['dcvs.c', 'dcvs_icc.c', 'dcvs_epss.c', 'trace-dcvs.c', 'dcvs_private.h', 'trace-dcvs.h'],
+           includes=['.'], hdrs=[':headers'], local_defines=DEFS, deps=[':dcvs_fp'], copts=['-ferror-limit=0'])
+
+ddk_module(name='memlat', kernel_build='//common:kernel_aarch64', out='memlat.ko',
+           srcs=['memlat.c', 'trace-dcvs.h'], includes=['.'], hdrs=[':headers'], local_defines=DEFS,
+           deps=[':dcvs', ':pmu_lib'], copts=['-ferror-limit=0'])
+
+ddk_module(name='bwmon', kernel_build='//common:kernel_aarch64', out='bwmon.ko',
+           srcs=['bwmon.c', 'bwmon.h', 'trace-dcvs.h'], includes=['.'], hdrs=[':headers'], local_defines=DEFS,
+           deps=[':dcvs'], copts=['-ferror-limit=0'])

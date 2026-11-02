@@ -19,10 +19,20 @@ overnight stability run remain unqualified.
 The preserved 6.18.59 branch remains the remote default.
 
 
+**Local CLG277 integration update (2026-11-02):** this checkout now includes
+193 vendor outputs plus 84 GKI modules, including the Claude CLG3/CLG8 platform
+ports and the focused QMI temperature-sentinel fix. The default build wrappers
+select the explicit LAB profile and
+`docs/build-reference-6.18.60-CLG277.json`; they retain signature enforcement and
+all LAB write guards. See [CLG277 evidence and limits](docs/CLG277.md).
+The older 262-module manifests below remain historical pinned checkpoints;
+they do not acquire the new packages automatically. A fresh full resync/build
+and complete OTA of CLG277 are not yet qualified.
+
 Source release branch: `pong-a17-6.18.60`. The older `pong-a17-6.18.32` branch
-is preserved as the historical image-734 checkpoint. This branch extends it
-with the current port source snapshots: **178 vendor module outputs** plus
-**84 reference GKI modules** built with the companion kernel.
+is preserved as the historical image-734 checkpoint. The preserved QRTR256 checkpoint contains178 vendor outputs plus84 GKI modules.
+The current CLG277 integration contains **193 vendor outputs** plus
+**84 reference GKI modules**, built with the explicit companion LAB profile.
 
 Kernel: [android_kernel_nothing_sm8475-6.18](https://github.com/Szmazwidi/android_kernel_nothing_sm8475-6.18/tree/pong-a17-6.18.60).
 The kernel retains Linux/ACK/stable history, the U59 integration and its KMI
@@ -31,7 +41,7 @@ reverts. Its 6.18.60 release string does not imply an unmodified mainline tree.
 For the captured complete ROM recipe and the actual AIDL/HIDL selection, see
 [ROM source state](docs/rom/README.md) and [HAL interfaces](docs/hal-interfaces.md).
 
-## Build a pinned source set
+## Build the preserved pinned 262-module source set
 
 The repositories are private at present. Configure your normal GitHub Git
 credentials first; do not put access tokens into commands, manifests or commits.
@@ -69,9 +79,10 @@ filename. `build/providers.bzl` obtains symbol providers from source builds.
 The original stage-based package paths are retained for traceability and to
 avoid gratuitous source-path/BTF changes.
 
-## Complete build with one command
+## Complete build of a selected source cohort
 
-From the pinned Kleaf workspace root, with an AArch64 system QEMU installed:
+For the current CLG277 checkout, first use the matching CLG1 kernel source
+and prerequisites in [CLG277](docs/CLG277.md). With an AArch64 system QEMU installed:
 
 ```sh
 PONG_QEMU=/absolute/path/to/qemu-system-aarch64 \

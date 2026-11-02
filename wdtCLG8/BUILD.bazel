@@ -1,0 +1,9 @@
+# CLG8: Qualcomm apps watchdog core + Gunyah virtual watchdog (5.10 Nothing tree, ported to 6.18; no minidump, no IRQ stats).
+package(default_visibility=['//visibility:public'])
+load('//build/kernel/kleaf:kernel.bzl', 'ddk_headers', 'ddk_module')
+ddk_headers(name='headers', hdrs=glob(['include/**/*.h']), linux_includes=['include'])
+DEFS = ['CONFIG_QCOM_WDT_CORE_MODULE=1', 'CONFIG_GH_VIRT_WATCHDOG_MODULE=1', 'CONFIG_QCOM_WATCHDOG_BARK_TIME=11000', 'CONFIG_QCOM_WATCHDOG_PET_TIME=9360']
+ddk_module(name='wdt_core', kernel_build='//common:kernel_aarch64', out='qcom_wdt_core.ko', srcs=['qcom_wdt_core.c'],
+           hdrs=[':headers'], local_defines=DEFS, copts=['-ferror-limit=0'])
+ddk_module(name='gh_virt_wdt', kernel_build='//common:kernel_aarch64', out='gh_virt_wdt.ko', srcs=['gh_virt_wdt.c'],
+           hdrs=[':headers'], local_defines=DEFS, deps=[':wdt_core'], copts=['-ferror-limit=0'])

@@ -132,6 +132,21 @@ pong_modules(name = "pong_modules", modules = {
     '//devices/pong618/videocc893:videocc893': 'videocc-sm8450.ko',
     '//devices/pong618/wlan452/platform:helpers': 'cnss_nl.ko cnss_prealloc.ko',
     '//devices/pong618/wlan452/qcacld-3.0:waipio_gki_qca_cld_qca6490': 'qca_cld3_qca6490.ko',
+    '//devices/pong618/dcvsCLG3:llcc_pmu': 'qcom_llcc_pmu.ko',
+    '//devices/pong618/dcvsCLG3:pmu_lib': 'qcom-pmu-lib.ko',
+    '//devices/pong618/dcvsCLG3:dcvs_fp': 'dcvs_fp.ko',
+    '//devices/pong618/dcvsCLG3:dcvs': 'qcom-dcvs.ko',
+    '//devices/pong618/dcvsCLG3:memlat': 'memlat.ko',
+    '//devices/pong618/dcvsCLG3:bwmon': 'bwmon.ko',
+    '//devices/pong618/wdtCLG8:wdt_core': 'qcom_wdt_core.ko',
+    '//devices/pong618/wdtCLG8:gh_virt_wdt': 'gh_virt_wdt.ko',
+    '//devices/pong618/rngCLG8:msm_rng': 'msm_rng.ko',
+    '//devices/pong618/thermalCLG8:qmi_cdev': 'qti_qmi_cdev.ko',
+    '//devices/pong618/thermalCLG8:qmi_sensor': 'qti_qmi_sensor.ko',
+    '//devices/pong618/thermalCLG8:cpu_hotplug': 'cpu_hotplug.ko',
+    '//devices/pong618/thermalCLG8:ddr_cdev': 'ddr_cdev.ko',
+    '//devices/pong618/thermalCLG8:thermal_pause': 'thermal_pause.ko',
+    '//devices/pong618/thermalCLG8:bcl_pmic5': 'bcl_pmic5.ko',
 })
 pkg_files(name="pong_files", srcs=[":pong_modules"], strip_prefix=strip_prefix.files_only())
 pkg_install(name="pong_dist", srcs=[":pong_files"])

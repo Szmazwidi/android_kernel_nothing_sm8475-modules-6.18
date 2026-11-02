@@ -1,0 +1,17 @@
+# CLG8: QTI thermal cooling/sensor drivers and BCL from the Nothing 5.10 tree, ported to 6.18 (+ hotplug-based thermal-pause).
+package(default_visibility=['//visibility:public'])
+load('//build/kernel/kleaf:kernel.bzl', 'ddk_headers', 'ddk_module')
+ddk_headers(name='headers', hdrs=glob(['include/**/*.h']), linux_includes=['include'])
+COPTS = ['-ferror-limit=0', '-Wno-initializer-overrides']
+DEFS = ['CONFIG_QTI_QMI_COOLING_DEVICE_MODULE=1', 'CONFIG_QTI_QMI_SENSOR_MODULE=1', 'CONFIG_QTI_BCL_PMIC5_MODULE=1']
+ddk_module(name='qmi_cdev', kernel_build='//common:kernel_aarch64', out='qti_qmi_cdev.ko',
+           srcs=['qmi_cooling.c', 'thermal_mitigation_device_service_v01.c', 'thermal_mitigation_device_service_v01.h'],
+           includes=['.'], hdrs=[':headers'], local_defines=DEFS, deps=['//devices/pong618/build:symbol_qmi_helpers'], copts=COPTS)
+ddk_module(name='qmi_sensor', kernel_build='//common:kernel_aarch64', out='qti_qmi_sensor.ko',
+           srcs=['qmi_sensors.c', 'qmi_sensors.h', 'thermal_sensor_service_v01.c', 'thermal_sensor_service_v01.h'],
+           includes=['.'], hdrs=[':headers'], local_defines=DEFS, deps=['//devices/pong618/build:symbol_qmi_helpers'], copts=COPTS)
+ddk_module(name='cpu_hotplug', kernel_build='//common:kernel_aarch64', out='cpu_hotplug.ko', srcs=['cpu_hotplug.c'], copts=COPTS)
+ddk_module(name='ddr_cdev', kernel_build='//common:kernel_aarch64', out='ddr_cdev.ko', srcs=['ddr_cdev.c'], copts=COPTS)
+ddk_module(name='thermal_pause', kernel_build='//common:kernel_aarch64', out='thermal_pause.ko', srcs=['thermal_pause_hp.c'], copts=COPTS)
+ddk_module(name='bcl_pmic5', kernel_build='//common:kernel_aarch64', out='bcl_pmic5.ko',
+           srcs=['qti_bcl_pmic5.c', 'qti_bcl_stats.c', 'qti_bcl_stats.h'], includes=['.'], hdrs=[':headers'], local_defines=DEFS, copts=COPTS)

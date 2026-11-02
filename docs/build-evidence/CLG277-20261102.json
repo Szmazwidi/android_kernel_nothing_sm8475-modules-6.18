@@ -1,0 +1,45 @@
+{
+  "schema": "pong-CLG277-runtime-v1",
+  "status": "QMI_SENTINEL_FIX_NATIVE_ANDROID_VERIFIED",
+  "kernel_source_commit": "58b289d57b3d1f4b6fa6bb51db13920f459ae153",
+  "kernel_Image_sha256": "b03008f2fd8a0899dc448c0f4f075334ed4b927b449e2f43e4d58c24f621186d",
+  "kernel_notes_sha256": "ce15e6dca7abf85b1f161af2e37433fdf120053917cdc01c0744f23588a7f85d",
+  "modules": 277,
+  "first_stage_modules": 100,
+  "changed_module_ELF_payloads": [
+    "qti_qmi_sensor.ko"
+  ],
+  "all277_final_ABI_and_signatures_pass": true,
+  "LAB_guards_and_VM_tests_pass": true,
+  "kernel_config_unchanged": true,
+  "hardware": {
+    "native_Android_boot": true,
+    "Enforcing": true,
+    "forced_signatures": true,
+    "four_image_readbacks": true,
+    "protected_data_canary_and_checkpoint": true,
+    "slot_A_and_GPT_unchanged": true,
+    "normal_UID_front_and_main_YUV_frames": true,
+    "fingerprint_after_reboot_user_confirmed": true,
+    "hardware_sensors": 41,
+    "RAM_MemTotal_KiB": 11621732,
+    "cellular_interface_bound_IPv4_ping": true,
+    "QMI_trip_rejections_before": 13,
+    "QMI_trip_rejections_after": 0
+  },
+  "limits": [
+    "No clean resync/build or complete CLG277 OTA qualified.",
+    "WLAN association not established in this boot; do not claim a WLAN regression fix.",
+    "12s alarm probe returned in same boot, but actual suspend time0s due immediate goodix wake; long watchdog suspend not qualified.",
+    "No fresh call/audio/NFC/payment/accessory qualification.",
+    "Cohort prebuilt importer still needs explicit277/100 layout support."
+  ],
+  "phone_personal_data_erases": 0,
+  "raw_logs_or_private_keys_in_repository": false,
+  "source_integration_checks": {
+    "complete_277_Bazel_graph_analysis": true,
+    "build_profile_host_cases": 5,
+    "QMI_IEEE754_UBSAN_cases": 582,
+    "fresh_all277_source_build": false
+  }
+}
