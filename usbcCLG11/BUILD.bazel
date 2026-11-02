@@ -1,0 +1,7 @@
+# CLG11: USB Type-C UCSI over the vendor qti_pmic_glink (upstream 6.18 ucsi_glink adapted; Nothing DT node qcom,ucsi-glink).
+package(default_visibility=['//visibility:public'])
+load('//build/kernel/kleaf:kernel.bzl', 'ddk_headers', 'ddk_module')
+ddk_headers(name='headers', hdrs=glob(['include/**/*.h']), linux_includes=['include'])
+ddk_module(name='ucsi_glink', kernel_build='//common:kernel_aarch64', out='ucsi_glink_qti.ko', srcs=['ucsi_glink_qti.c', 'ucsi.h'],
+           includes=['.'], hdrs=[':headers'], local_defines=['CONFIG_QTI_PMIC_GLINK_MODULE=1'],
+           deps=['//devices/pong618/build:symbol_qti_pmic_glink'], copts=['-ferror-limit=0'])

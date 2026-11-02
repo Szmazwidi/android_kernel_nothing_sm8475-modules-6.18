@@ -1,0 +1,9 @@
+# CLG11: Qualcomm memshare (modem shared-memory QMI service; GPS/FTM/DIAG clients) from the Nothing 5.10 tree, ported to 6.18.
+package(default_visibility=['//visibility:public'])
+load('//build/kernel/kleaf:kernel.bzl', 'ddk_headers', 'ddk_module')
+ddk_headers(name='headers', hdrs=glob(['include/**/*.h']), linux_includes=['include'])
+ddk_module(name='memshare', kernel_build='//common:kernel_aarch64', out='memshare.ko',
+           srcs=['msm_memshare.c', 'msm_memshare.h', 'heap_mem_ext_v01.c', 'heap_mem_ext_v01.h'], includes=['.'], hdrs=[':headers'],
+           local_defines=['CONFIG_QCOM_RPROC_COMMON_MODULE=1', 'CONFIG_QCOM_SECURE_BUFFER_MODULE=1'],
+           deps=['//devices/pong618/build:symbol_qmi_helpers', '//devices/pong618/build:symbol_rproc_qcom_common', '//devices/pong618/build:symbol_secure_buffer'],
+           copts=['-ferror-limit=0', '-Wno-initializer-overrides'])

@@ -1,0 +1,12 @@
+# CLG11: sleep statistics (upstream qcom_stats, vendor subsystem/cpuss sleep stats) and smp2p sleepstate.
+package(default_visibility=['//visibility:public'])
+load('//build/kernel/kleaf:kernel.bzl', 'ddk_headers', 'ddk_module')
+ddk_headers(name='headers', hdrs=glob(['include/**/*.h']), linux_includes=['include'])
+ddk_module(name='qcom_stats', kernel_build='//common:kernel_aarch64', out='qcom_stats.ko', srcs=['qcom_stats.c'],
+           deps=['//devices/pong618/build:symbol_smem'], copts=['-ferror-limit=0'])
+ddk_module(name='subsystem_sleep_stats', kernel_build='//common:kernel_aarch64', out='subsystem_sleep_stats.ko',
+           srcs=['subsystem_sleep_stats.c'], hdrs=[':headers'], deps=['//devices/pong618/build:symbol_smem'], copts=['-ferror-limit=0'])
+ddk_module(name='cpuss_sleep_stats', kernel_build='//common:kernel_aarch64', out='qcom_cpuss_sleep_stats.ko',
+           srcs=['qcom_cpuss_sleep_stats.c'], hdrs=[':headers'], deps=['//devices/pong618/build:symbol_qcom_scm'], copts=['-ferror-limit=0'])
+ddk_module(name='smp2p_sleepstate', kernel_build='//common:kernel_aarch64', out='smp2p_sleepstate.ko', srcs=['smp2p_sleepstate.c'],
+           deps=['//devices/pong618/build:symbol_smp2p'], copts=['-ferror-limit=0'])
