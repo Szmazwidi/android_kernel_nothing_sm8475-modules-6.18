@@ -19,12 +19,15 @@ def digest(data):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--check', action='store_true', help='validate without changing files')
+    parser.add_argument('--profile', choices=['snapshot', 'bootfix'], default='snapshot',
+                        help='snapshot preserves the original recipe; bootfix also applies the idempotent boot-success adaptation')
     args = parser.parse_args()
     root = Path.cwd()
     if not (root / '.repo').is_dir():
         raise RuntimeError('Run from the Android source tree root (containing .repo).')
     patches = Path(__file__).resolve().parent / 'patches'
-    series = json.loads((patches / 'series.json').read_text())
+    series_file = 'bootfix-series.json' if args.profile == 'bootfix' else 'series.json'
+    series = json.loads((patches / series_file).read_text())
     pending = []
     # Validate every project and file before modifying any project.
     for entry in series:

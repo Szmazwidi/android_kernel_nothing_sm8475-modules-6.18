@@ -1,0 +1,28 @@
+[
+  {
+    "project": "system/sepolicy",
+    "revision": "a09cd5e0f6f9a85707460914970cb5d17054c2cb",
+    "patch": "system_sepolicy.patch",
+    "sha256": "ebd6915d7a3ace667c7c20dd9f591012211cd5f1ea7d1256e44f42c8e61525ab",
+    "files": [
+      {
+        "path": "private/compat/202504/202504.ignore.cil",
+        "before": "baeccbf6f4407f25ea877ae2fe30106821a7237f9863a8a34778373da9e1b937",
+        "after": "5cf1c1467034157d098d9d5741503f0c19fb96bb0cf6381e391c6699990c1ce7"
+      }
+    ]
+  },
+  {
+    "project": "hardware/qcom-caf/bootctrl",
+    "revision": "25092672e644459db328b43fd1c7c57cbff65c91",
+    "patch": "bootctrl-idempotent-success.patch",
+    "sha256": "afd631a3f547a1e710f31d936f5789c37de18bdc44c4b91cd044dbdb5eea03a7",
+    "files": [
+      {
+        "path": "1.1/libboot_control_qti/libboot_control_qti.cpp",
+        "before": "0b33f58808616fce55b51e5f06a4f390735389c82aa199f3467cd6c0913f29a1",
+        "after": "f2ff9e70d8b5a16fe6042fbd20ad2172599e701a87e31e523abeb2ac640f9ca5"
+      }
+    ]
+  }
+]

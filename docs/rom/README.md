@@ -94,30 +94,47 @@ recipe until access and redistribution rights are arranged. Repository visibilit
 is not changed by this document. Vendor firmware/userspace remains proprietary;
 retain its original notices and extraction/fixup provenance.
 
-## Reproduce the captured source state
+## Current native 6.18.60 profile
+
+`derpfest17-pong618-6.18.60-bootfix.xml` pins the source-built QRTR256 bank,
+native early guards, SLPI-before-enumeration startup and AIDL fingerprint fix.
+Use `apply-snapshot.py --profile bootfix` for its compatibility mapping and
+idempotent boot-success patch. The latter avoids rewriting GPT when the active
+slot is already confirmed successful; the original unmarked-slot behavior and
+error handling remain intact. Neither patch disables enforcing or data encryption.
+
+The derived native image bundle booted the development handset with 41 sensors,
+five internal cameras, normal-UID front/main Camera2 frames, an interface-bound
+cellular ping and Wi-Fi reconnect verified. This does not qualify the old ZIP:
+no complete OTA ZIP with these fixes has been rebuilt yet. The original XML
+snapshots remain unchanged as historical evidence. See
+`../build-evidence/native-qrtr256-20261102.json` for hashes and remaining issues.
+
+## Reproduce the current source state
 
 Keep this support checkout outside the Android tree while syncing. Install the
 normal AOSP host dependencies, Git LFS and `repo`, and configure GitHub access
 without storing credentials in XML or scripts.
 
 ```sh
-git clone --branch pong-a17-6.18.59 --single-branch \
+git clone --branch pong-a17-6.18.60 --single-branch \
   https://github.com/Szmazwidi/android_kernel_nothing_sm8475-modules-6.18.git pong-source
 mkdir pong-android && cd pong-android
-repo init -u https://github.com/DerpFest-AOSP/manifest.git -b 17
-cp ../pong-source/docs/rom/derpfest17-pong618-current.xml .repo/manifests/pong618-current.xml
+repo init -u https://github.com/DerpFest-AOSP/android_manifest.git -b 17
+cp ../pong-source/docs/rom/derpfest17-pong618-6.18.60-bootfix.xml .repo/manifests/pong618-current.xml
 repo init -m pong618-current.xml
 repo sync -j4
 repo forall -c 'if git lfs ls-files | grep -q .; then git lfs pull; fi'
-python3 ../pong-source/docs/rom/apply-snapshot.py --check
-python3 ../pong-source/docs/rom/apply-snapshot.py
+python3 ../pong-source/docs/rom/apply-snapshot.py --check --profile bootfix
+python3 ../pong-source/docs/rom/apply-snapshot.py --profile bootfix
 source build/envsetup.sh
 lunch lineage_Pong-cp2a-userdebug
 m derp -j4
 ```
 
-For the 6.18.60 candidate, use the `pong-a17-6.18.60` modules branch and copy
-`derpfest17-pong618-6.18.60.xml` instead. The snapshot patch checks still apply.
+For the preserved earlier snapshots, select their corresponding XML and use
+the default `snapshot` patch profile instead. Do not mix historical pins with
+the current bootfix profile.
 The optional camera enumeration recovery and sensors AIDL frontend are disabled
 by default; neither is claimed to be device-qualified by this recipe.
 

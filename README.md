@@ -1,13 +1,15 @@
 # Nothing Phone (2): android17-6.18.60 vendor modules
 
-**6.18.60 qualification is in progress.** The corrected source-built bank
-booted Android with full RAM, root and signature forcing under Enforcing.
-Camera testing then exposed an additional CPU-access ownership regression:
-the recipe now selects heap1063, whose complete machine code matches the
-working CLS38 heap, and verifies pin/check/unpin calls inside its CPU callbacks.
-This latest correction still needs its own complete signed-bank build and
-native hardware test. The first failed trials and accepted source provenance
-remain recorded in [runtime regression](docs/runtime-regression-6.18.60.md).
+**6.18.60 native Android qualification is in progress.** The complete signed
+QRTR256 source bank boots the November 1 Android 17 ROM with full RAM, root,
+SELinux enforcing and forced signatures. All 262 module ABI/signature checks,
+immutable admission and bounded QRTR lookup VM tests passed. Native startup
+exposes 41 sensors and five internal camera devices. Normal-UID Camera2
+front/main frames and an interface-bound cellular Internet ping passed.
+Overnight WLAN suspend/resume stability and background diagnostics remain open.
+See [native qualification](docs/build-evidence/native-qrtr256-20261102.json)
+and the preserved earlier failures in
+[runtime regression](docs/runtime-regression-6.18.60.md).
 The preserved 6.18.59 branch remains the remote default.
 
 

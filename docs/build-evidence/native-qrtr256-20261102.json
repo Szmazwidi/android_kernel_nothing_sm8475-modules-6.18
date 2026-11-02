@@ -1,0 +1,68 @@
+{
+  "schema": "pong-native-qualification-v1",
+  "date": "2026-11-02",
+  "kernel_source": "63c338a72de26b1dcbada094f877552284932a91",
+  "module_source": "928853ff938e2cdbd0006550f5a811c05ff5886b",
+  "device_source": "8712105a87d07ef156445ed1707e98b2147669f3",
+  "vendor_source": "fcb71610a7f6506f5e07761d91044125cf1aaec5",
+  "kernel_Image_sha256": "a3ed7ff978e163ae20805b577b0345aeef8285c6b0533cd71d088b5366f49ef1",
+  "kernel_notes_sha256": "58cb73e46dc18612594b7aa06eac3a5e5cf637d33036c6109b943e68189d5c7f",
+  "signed_modules": 262,
+  "first_stage_modules": 94,
+  "host": {
+    "ABI_signatures_and_VM": "HOST_ABI_SIGNATURE_AND_256_LOOKUP_VM_VERIFIED_NOT_FLASHED",
+    "old_64_limit_reproduced": true,
+    "new_256_bound_and_cleanup_verified": true
+  },
+  "runtime": {
+    "native_Android17": true,
+    "Enforcing": true,
+    "signature_force": true,
+    "root": true,
+    "RAM_KiB": 11621732,
+    "qrtr_lookup_completes": true,
+    "both_SIM_HALs_running": true,
+    "sensor_count": 41,
+    "internal_camera_devices": 5,
+    "Camera2_normal_UID": [
+      {
+        "id": "1",
+        "width": 320,
+        "height": 240,
+        "lensFacing": 0,
+        "frames": 4,
+        "lastTimestamp": 407949520687,
+        "ok": true,
+        "closed": true
+      },
+      {
+        "id": "0",
+        "width": 320,
+        "height": 240,
+        "lensFacing": 1,
+        "frames": 4,
+        "lastTimestamp": 408652141402,
+        "ok": true,
+        "closed": true
+      }
+    ],
+    "frames_saved": false,
+    "mobile_interface_bound_ping": "rmnet_data2",
+    "wifi_reconnected": true,
+    "nine_partition_hashes_verified": true,
+    "data_canary_preserved": true,
+    "checkpoint_clean": true,
+    "slot_A_GPT_layout_preserved": true
+  },
+  "limits": [
+    "One development handset; no general hardware certification",
+    "Previous overnight MHI M3-to-M0 failure remains unresolved; Wi-Fi reconnect alone does not qualify suspend/resume",
+    "SensorService watchdogs and QTI app ANRs occurred on previous64 bank; long-duration observation of256 still pending",
+    "Brief DEAD_OBJECT flood before fingerprint postboot HAL restart; physical unlock not retested in this trial",
+    "CDSP FastRPC daemon ENODEV error loop remains",
+    "No complete OTA ZIP has been rebuilt with these fixes yet"
+  ],
+  "data_resets": 0,
+  "private_raw_logs_included": false,
+  "prebuilt_source": "69e1d7c218f0e0a5d64733123798f0c71474123b"
+}

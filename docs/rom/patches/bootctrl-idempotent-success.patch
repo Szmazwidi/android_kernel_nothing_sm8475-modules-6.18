@@ -1,0 +1,23 @@
+diff --git a/1.1/libboot_control_qti/libboot_control_qti.cpp b/1.1/libboot_control_qti/libboot_control_qti.cpp
+index 7aa8619..b00052f 100644
+--- a/1.1/libboot_control_qti/libboot_control_qti.cpp
++++ b/1.1/libboot_control_qti/libboot_control_qti.cpp
+@@ -553,6 +553,18 @@ unsigned get_current_slot()
+ }
+ 
+ int mark_boot_successful(){
++	if (!mGvmqPlatform) {
++		const unsigned slot = get_current_slot();
++		const int successful = is_slot_marked_successful(slot);
++		if (successful < 0) {
++			ALOGE("%s: Failed to read current slot success state", __func__);
++			return -1;
++		}
++		if (successful == 1) {
++			ALOGI("%s: Current slot is already marked successful", __func__);
++			return 0;
++		}
++	}
+ 	if (mGvmqPlatform) {
+ 		std::string err;
+ 		std::string misc_blk_device = get_bootloader_message_blk_device(&err);

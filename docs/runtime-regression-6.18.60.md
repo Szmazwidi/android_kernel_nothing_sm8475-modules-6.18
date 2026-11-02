@@ -95,3 +95,33 @@ null device and restarted, and com.qti.phone reported a missing Nothing
 telephony class. The latter warrants further investigation despite the bound
 data ping succeeding. These warnings and crashes remain open issues, not proof
 of a regression introduced by the version update.
+
+## Native ROM QRTR and sensor startup
+
+The November 1 native ROM exhausted the selected qrtr154 nameservice's finite
+64-lookups budget per client node. qrtr-lookup stopped responding, cameras
+were absent, and only two wrapper sensors were enumerated. Stopping the unused
+second-SIM HAL restored lookup but did not qualify the complete Android stack.
+The selected provider now retains a finite budget of 256: the old signed bank
+reproduces 64 in a VM; the complete new bank admits 256, rejects 257, and releases
+entries on cleanup. Module admission and signatures remain enforced.
+
+Native init disables the incompatible userspace QRTR nameservice and 5.10
+irqbalance before class startup, then completes SLPI boot before the sensor HAL
+caches its initial list. A separate boot-control patch avoids a redundant GPT
+write when the current slot is already confirmed successful; error handling and
+the unmarked-slot path remain intact. The bootfix ROM profile includes that patch.
+
+The coherent bank booted native Android on B without resetting data. All nine
+image readbacks, data checkpoint, canary and slot A/GPT layout checks passed.
+Android exposed 41 sensors and five internal cameras. A normal app UID received
+four transient YUV frames from each public front/main camera; no images were
+saved. An Internet ping bound to rmnet_data2 passed with Wi-Fi briefly disabled,
+and Wi-Fi subsequently reconnected. Exact inputs and limited results are in
+build-evidence/native-qrtr256-20261102.json.
+
+The previous overnight kernel log records a WLAN MHI M3-to-M0 resume timeout,
+followed by local disconnect and slow recovery. A working reconnect does not
+resolve that sleep/wake failure. Earlier framework watchdogs blocked in
+SensorService; long observation is needed before attributing their absence to
+this fix. A CDSP FastRPC ENODEV error loop also remains under investigation.
