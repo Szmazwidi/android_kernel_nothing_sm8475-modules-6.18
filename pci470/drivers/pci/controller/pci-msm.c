@@ -1296,6 +1296,7 @@ struct msm_pcie_dev_t {
 	struct msm_pcie_sm_info *sm_info;
 	/* Need to configure the l1ss TO when using cesta */
 	u32 l1ss_timeout_us;
+	bool pong_drv_vreg_kept; /* CLG28 */
 	u32 l1ss_sleep_disable;
 	u32 clkreq_gpio;
 
@@ -6117,9 +6118,18 @@ MODULE_PARM_DESC(pong_drv_trace, "Pong: log PCIe link state around DRV suspend/r
 static bool pong_prevent_l1_stock = true;
 module_param(pong_prevent_l1_stock, bool, 0644);
 MODULE_PARM_DESC(pong_prevent_l1_stock, "Pong: clear RC LNKCTL ASPM L1 before the L1 exit request (stock 5.10)");
-static bool pong_prevent_l1_retry = true;
+static bool pong_prevent_l1_retry;
 module_param(pong_prevent_l1_retry, bool, 0644);
 MODULE_PARM_DESC(pong_prevent_l1_retry, "Pong: re-issue the L1 exit request once before declaring link down");
+
+/* CLG28 experiments (default off): keep the PHY rails/GDSC on across the DRV hand-off; do not ask
+ * the DRV subsystem for L1ss sleep. */
+static bool pong_drv_keep_vreg;
+module_param(pong_drv_keep_vreg, bool, 0644);
+MODULE_PARM_DESC(pong_drv_keep_vreg, "Pong: keep PCIe vregs and GDSC on while the link is handed to DRV");
+static bool pong_drv_no_l1ss_sleep;
+module_param(pong_drv_no_l1ss_sleep, bool, 0644);
+MODULE_PARM_DESC(pong_drv_no_l1ss_sleep, "Pong: do not request DRV L1ss sleep on DRV suspend");
 
 static void pong_drv_trace_dump(struct msm_pcie_dev_t *dev, const char *tag)
 {
@@ -9607,7 +9617,13 @@ int msm_pcie_prevent_l1(struct pci_dev *pci_dev)
 			goto err;
 		}
 
-		if (unlikely(cnt == cnt_max) && pong_prevent_l1_retry) {
+		/*
+		 * CLG28: never retry when the link is gone (LTSSM below L0, e.g. 0x05
+		 * PRE_DETECT_QUIET after a DRV resume): callers re-issue prevent_l1 in a
+		 * loop and the extra 500 ms with setup/aspm locks held starved the system.
+		 */
+		if (unlikely(cnt == cnt_max) && pong_prevent_l1_retry &&
+		    (readl_relaxed(pcie_dev->parf + PCIE20_PARF_LTSSM) & MSM_PCIE_LTSSM_MASK) >= MSM_PCIE_LTSSM_L0) {
 			pong_drv_trace_dump(pcie_dev, "prevent_l1 timeout, retrying");
 			msm_pcie_write_mask(pcie_dev->parf + PCIE20_PARF_PM_CTRL, BIT(5), 0);
 			usleep_range(100, 105);
@@ -10685,21 +10701,24 @@ static int msm_pcie_drv_resume(struct msm_pcie_dev_t *pcie_dev)
 	if (pong_drv_trace)
 		pr_info("PONG_DRV RC%d resume: disable_l1ss_sleep rpmsg=%d\n", pcie_dev->rc_idx, rpmsg_ret);
 
-	msm_pcie_vreg_init(pcie_dev);
+	if (!pcie_dev->pong_drv_vreg_kept) {
+		msm_pcie_vreg_init(pcie_dev);
 
-	PCIE_DBG(pcie_dev, "PCIe: RC%d:enable gdsc-core\n", pcie_dev->rc_idx);
+		PCIE_DBG(pcie_dev, "PCIe: RC%d:enable gdsc-core\n", pcie_dev->rc_idx);
 
-	if (!pcie_dev->gdsc_clk_drv_ss_nonvotable) {
-		if (pcie_dev->gdsc_pd_core)
-			ret = pm_runtime_get_sync(pcie_dev->gdsc_pd_core);
-		else if (pcie_dev->gdsc_core)
-			ret = regulator_enable(pcie_dev->gdsc_core);
+		if (!pcie_dev->gdsc_clk_drv_ss_nonvotable) {
+			if (pcie_dev->gdsc_pd_core)
+				ret = pm_runtime_get_sync(pcie_dev->gdsc_pd_core);
+			else if (pcie_dev->gdsc_core)
+				ret = regulator_enable(pcie_dev->gdsc_core);
 
-		if (ret)
-			PCIE_ERR(pcie_dev,
-			"PCIe: RC%d: failed to enable GDSC: ret %d\n",
-			pcie_dev->rc_idx, ret);
+			if (ret)
+				PCIE_ERR(pcie_dev,
+				"PCIe: RC%d: failed to enable GDSC: ret %d\n",
+				pcie_dev->rc_idx, ret);
+		}
 	}
+	pcie_dev->pong_drv_vreg_kept = false;
 
 	PCIE_DBG(pcie_dev, "PCIe: RC%d:set ICC path vote\n", pcie_dev->rc_idx);
 
@@ -10916,7 +10935,7 @@ static int msm_pcie_drv_suspend(struct msm_pcie_dev_t *pcie_dev,
 			clk_disable_unprepare(clk_info->hdl);
 
 	/* enable L1ss sleep if client allows it */
-	if (!pcie_dev->l1ss_sleep_disable &&
+	if (!pcie_dev->l1ss_sleep_disable && !pong_drv_no_l1ss_sleep &&
 		!(options & MSM_PCIE_CONFIG_NO_L1SS_TO))
 		msm_pcie_drv_send_rpmsg(pcie_dev,
 					&drv_info->drv_enable_l1ss_sleep);
@@ -10932,14 +10951,17 @@ static int msm_pcie_drv_suspend(struct msm_pcie_dev_t *pcie_dev,
 		return ret;
 	}
 
-	if (!pcie_dev->gdsc_clk_drv_ss_nonvotable) {
-		if (pcie_dev->gdsc_pd_core)
-			pm_runtime_put_sync(pcie_dev->gdsc_pd_core);
-		else if (pcie_dev->gdsc_core)
-			regulator_disable(pcie_dev->gdsc_core);
-	}
+	pcie_dev->pong_drv_vreg_kept = pong_drv_keep_vreg;
+	if (!pcie_dev->pong_drv_vreg_kept) {
+		if (!pcie_dev->gdsc_clk_drv_ss_nonvotable) {
+			if (pcie_dev->gdsc_pd_core)
+				pm_runtime_put_sync(pcie_dev->gdsc_pd_core);
+			else if (pcie_dev->gdsc_core)
+				regulator_disable(pcie_dev->gdsc_core);
+		}
 
-	msm_pcie_vreg_deinit(pcie_dev);
+		msm_pcie_vreg_deinit(pcie_dev);
+	}
 	if (pong_drv_trace)
 		pr_info("PONG_DRV RC%d suspend: handed to DRV, options=0x%x l1ss_sleep_disable=%d\n",
 			pcie_dev->rc_idx, options, pcie_dev->l1ss_sleep_disable);
