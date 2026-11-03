@@ -4164,6 +4164,15 @@ static void _sde_top_parse_dt_helper(struct sde_mdss_cfg *cfg,
 	cfg->ubwc_rev = props->exists[UBWC_VERSION] ?
 			PROP_VALUE_ACCESS(props->values,
 			UBWC_VERSION, 0) : DEFAULT_SDE_UBWC_NONE;
+	/*
+	 * PONG CLG25: the stock 5.10 waipio DT carries the short form
+	 * (qcom,sde-ubwc-version = <0x400>) that 5.10 widened with
+	 * SDE_HW_UBWC_VER(). Without it no IS_UBWC_*_SUPPORTED() check matches,
+	 * the SSPP/top UBWC static control is never programmed and UBWC
+	 * buffers scan out with broken colours. Accept both forms.
+	 */
+	if (cfg->ubwc_rev && cfg->ubwc_rev <= 0xfff)
+		cfg->ubwc_rev = SDE_HW_UBWC_VER(cfg->ubwc_rev);
 
 	cfg->mdp[0].highest_bank_bit = DEFAULT_SDE_HIGHEST_BANK_BIT;
 
