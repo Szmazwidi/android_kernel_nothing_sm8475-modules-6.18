@@ -1,0 +1,7 @@
+# CLG25: rq_stats (/sys/devices/system/cpu/cpu0/rq-stats for msm_irqbalance) from the Qualcomm CLO
+# kernel.lnx.6.12.r67 tree as built for Nothing Phone (2) by redducc (redducc-stuff/kernel_nothing_pong
+# 9abfbb2a2c "waipio: Build rq_stats for msm_irqbalance"), built for the 6.18 DDK.
+# msm_performance was dropped: it needs WALT core_ctl and the libperfmgr PowerHAL does not use it.
+package(default_visibility=['//visibility:public'])
+load('//build/kernel/kleaf:kernel.bzl', 'ddk_module')
+ddk_module(name='rq_stats', kernel_build='//common:kernel_aarch64', out='rq_stats.ko', srcs=['rq_stats.c'], copts=['-ferror-limit=0'])
