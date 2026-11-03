@@ -353,6 +353,15 @@ static int ufs_qcom_enable_lane_clks(struct ufs_qcom_host *host)
 {
 	int err;
 
+	/*
+	 * PONG CLG22: system resume enables the lane clocks twice (setup_clocks
+	 * PRE_CHANGE with the link in hibern8, then ufs_qcom_resume) while
+	 * ufs_qcom_disable_lane_clks() drops them once (is_lane_clks_enabled),
+	 * so every resume leaked one bi_tcxo vote and CXSD never happened.
+	 */
+	if (host->is_lane_clks_enabled)
+		return 0;
+
 	err = clk_bulk_prepare_enable(host->num_clks, host->clks);
 	if (err)
 		return err;
