@@ -4643,12 +4643,21 @@ static void sde_kms_handle_power_event(u32 event_type, void *usr)
 		 */
 		sde_kms_init_rot_sid_hw(sde_kms);
 		sde_kms_init_hw_fences(sde_kms);
+		/*
+		 * PONG CLG27: the UEFI splash scans out a linear buffer and never
+		 * programs the MDP top UBWC static/swizzle config. Skipping it here
+		 * during continuous splash left the first UBWC frames (boot animation)
+		 * decoded with a stale config until the encoder was re-enabled after an
+		 * ESD "panel dead" recovery: corrupted colours, a pp_done timeout and a
+		 * blank panel at boot. These registers do not affect the linear splash.
+		 */
+		if (!sde_in_trusted_vm(sde_kms))
+			sde_kms_init_shared_hw(sde_kms);
 		if (sde_kms->splash_data.num_splash_displays ||
 				sde_in_trusted_vm(sde_kms))
 			return;
 
 		sde_vbif_init_memtypes(sde_kms);
-		sde_kms_init_shared_hw(sde_kms);
 		_sde_kms_set_lutdma_vbif_remap(sde_kms);
 	} else if (event_type == SDE_POWER_EVENT_PRE_DISABLE) {
 		sde_irq_update(msm_kms, false);
