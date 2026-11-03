@@ -6104,6 +6104,40 @@ static void msm_pcie_pong_clear_l0s(struct msm_pcie_dev_t *dev)
 		 readl_relaxed(dev->dm_core + PCIE20_CAP + PCI_EXP_LNKCAP));
 }
 
+/*
+ * PONG CLG26: DRV system-suspend investigation. With DRV (cnss2 pong_disable_drv=0) a resume that
+ * follows the DRV hand-off within ~50 ms left the link stuck outside L0 ("failed to transition to L0"
+ * -> link down -> WLAN recovery). pong_drv_trace logs the link state around the DRV hand-off;
+ * pong_prevent_l1_stock clears RC ASPM L1 in LNKCTL before requesting L1 exit like stock 5.10;
+ * pong_prevent_l1_retry re-issues the L1 exit request once (500 ms) before giving up.
+ */
+static bool pong_drv_trace = true;
+module_param(pong_drv_trace, bool, 0644);
+MODULE_PARM_DESC(pong_drv_trace, "Pong: log PCIe link state around DRV suspend/resume and prevent_l1");
+static bool pong_prevent_l1_stock = true;
+module_param(pong_prevent_l1_stock, bool, 0644);
+MODULE_PARM_DESC(pong_prevent_l1_stock, "Pong: clear RC LNKCTL ASPM L1 before the L1 exit request (stock 5.10)");
+static bool pong_prevent_l1_retry = true;
+module_param(pong_prevent_l1_retry, bool, 0644);
+MODULE_PARM_DESC(pong_prevent_l1_retry, "Pong: re-issue the L1 exit request once before declaring link down");
+
+static void pong_drv_trace_dump(struct msm_pcie_dev_t *dev, const char *tag)
+{
+	if (!pong_drv_trace)
+		return;
+	pr_info("PONG_DRV RC%d %s: ltssm=0x%x pm_ctrl=0x%x pm_stts=0x%x lnkctlsta=0x%x l1sub=0x%x st=%d cfg=%d drv=%lu cnt_l1=%u l1sub1=%u l1sub2=%u\n",
+		dev->rc_idx, tag,
+		readl_relaxed(dev->parf + PCIE20_PARF_LTSSM),
+		readl_relaxed(dev->parf + PCIE20_PARF_PM_CTRL),
+		readl_relaxed(dev->parf + PCIE20_PARF_PM_STTS),
+		readl_relaxed(dev->dm_core + PCIE20_CAP_LINKCTRLSTATUS),
+		readl_relaxed(dev->dm_core + PCIE20_L1SUB_CONTROL1_REG),
+		dev->link_status, dev->cfg_access, pcie_drv.rc_drv_enabled,
+		readl_relaxed(dev->parf + PCIE20_PARF_DEBUG_CNT_IN_L1),
+		readl_relaxed(dev->parf + PCIE20_PARF_DEBUG_CNT_IN_L1SUB_L1),
+		readl_relaxed(dev->parf + PCIE20_PARF_DEBUG_CNT_IN_L1SUB_L2));
+}
+
 static void msm_pcie_disable_dbi_mirroring(struct msm_pcie_dev_t *dev)
 {
 	struct resource *dbi_res = dev->res[MSM_PCIE_RES_DM_CORE].resource;
@@ -9559,6 +9593,9 @@ int msm_pcie_prevent_l1(struct pci_dev *pci_dev)
 	if (pcie_dev->prevent_l1++)
 		goto out;
 
+	if (pong_prevent_l1_stock)
+		msm_pcie_write_mask(pcie_dev->dm_core + PCIE20_CAP + PCI_EXP_LNKCTL,
+				    PCI_EXP_LNKCTL_ASPM_L1, 0);
 	msm_pcie_write_mask(pcie_dev->parf + PCIE20_PARF_PM_CTRL, 0, BIT(5));
 
 	/* confirm link is in L0/L0s */
@@ -9570,7 +9607,16 @@ int msm_pcie_prevent_l1(struct pci_dev *pci_dev)
 			goto err;
 		}
 
+		if (unlikely(cnt == cnt_max) && pong_prevent_l1_retry) {
+			pong_drv_trace_dump(pcie_dev, "prevent_l1 timeout, retrying");
+			msm_pcie_write_mask(pcie_dev->parf + PCIE20_PARF_PM_CTRL, BIT(5), 0);
+			usleep_range(100, 105);
+			msm_pcie_write_mask(pcie_dev->parf + PCIE20_PARF_PM_CTRL, 0, BIT(5));
+			cnt_max += 5000;
+		}
+
 		if (unlikely(cnt++ >= cnt_max)) {
+			pong_drv_trace_dump(pcie_dev, "prevent_l1 failed");
 			PCIE_ERR(pcie_dev,
 				"PCIe: RC%d: %02x:%02x.%01x: failed to transition to L0\n",
 				pcie_dev->rc_idx, pci_dev->bus->number,
@@ -9593,6 +9639,8 @@ int msm_pcie_prevent_l1(struct pci_dev *pci_dev)
 		usleep_range(100, 105);
 	}
 
+	if (cnt > 1000)
+		pong_drv_trace_dump(pcie_dev, "prevent_l1 recovered by retry");
 	msm_pcie_config_l1_disable_all(pcie_dev, bus);
 
 	PCIE_DBG2(pcie_dev, "PCIe: RC%d: %02x:%02x.%01x: exit\n",
@@ -10634,6 +10682,8 @@ static int msm_pcie_drv_resume(struct msm_pcie_dev_t *pcie_dev)
 	    !pcie_dev->l1ss_sleep_disable)
 		rpmsg_ret = msm_pcie_drv_send_rpmsg(pcie_dev,
 					&drv_info->drv_disable_l1ss_sleep);
+	if (pong_drv_trace)
+		pr_info("PONG_DRV RC%d resume: disable_l1ss_sleep rpmsg=%d\n", pcie_dev->rc_idx, rpmsg_ret);
 
 	msm_pcie_vreg_init(pcie_dev);
 
@@ -10773,6 +10823,7 @@ static int msm_pcie_drv_resume(struct msm_pcie_dev_t *pcie_dev)
 					PCI_EXP_LNKSTA_CLS;
 
 	msm_pcie_scale_link_bandwidth(pcie_dev, pcie_dev->current_link_speed);
+	pong_drv_trace_dump(pcie_dev, "resume: clocks on, DRV released");
 
 	pcie_dev->user_suspend = false;
 	spin_lock_irq(&pcie_dev->cfg_lock);
@@ -10824,6 +10875,7 @@ static int msm_pcie_drv_suspend(struct msm_pcie_dev_t *pcie_dev,
 	if (!pcie_dev->pcie_sm)
 		disable_irq(pcie_dev->irq[MSM_PCIE_INT_GLOBAL_INT].num);
 
+	pong_drv_trace_dump(pcie_dev, "suspend: before DRV enable");
 	ret = msm_pcie_drv_send_rpmsg(pcie_dev, &drv_info->drv_enable);
 	if (ret) {
 		ret = -EBUSY;
@@ -10888,6 +10940,9 @@ static int msm_pcie_drv_suspend(struct msm_pcie_dev_t *pcie_dev,
 	}
 
 	msm_pcie_vreg_deinit(pcie_dev);
+	if (pong_drv_trace)
+		pr_info("PONG_DRV RC%d suspend: handed to DRV, options=0x%x l1ss_sleep_disable=%d\n",
+			pcie_dev->rc_idx, options, pcie_dev->l1ss_sleep_disable);
 
 	mutex_unlock(&pcie_dev->setup_lock);
 	mutex_unlock(&pcie_dev->recovery_lock);
