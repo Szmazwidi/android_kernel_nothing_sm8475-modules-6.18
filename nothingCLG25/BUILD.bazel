@@ -1,0 +1,7 @@
+# CLG25: Nothing Phone (2) misc drivers (Nothing Technology, 5.10) as adapted to 6.12 by redducc
+# (redducc-stuff/kernel_nothing_pong 064d1acbe2, 0f16fb8b4a, c80abebcd5, 888a712316; tree 9abfbb2a2c), built for 6.18 DDK.
+package(default_visibility=['//visibility:public'])
+load('//build/kernel/kleaf:kernel.bzl', 'ddk_headers', 'ddk_module')
+ddk_headers(name='headers', hdrs=glob(['include/*.h']), includes=['.'])
+[ddk_module(name=n, kernel_build='//common:kernel_aarch64', out=n+'.ko', srcs=[n+'.c'], hdrs=[':headers'], copts=['-ferror-limit=0'])
+ for n in ['hardware_id', 'secure_state', 'slot_status', 'simulated_ntc', 'nothing_secure_element', 'nothing_bootloader_log', 'nothing_task_meminfo']]

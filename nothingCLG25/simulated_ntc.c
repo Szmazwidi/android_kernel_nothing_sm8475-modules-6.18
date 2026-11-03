@@ -122,7 +122,7 @@ static int slntc_shell_probe(struct platform_device *pdev)
 		return -ENOMEM;
 	}
 
-	result = ida_simple_get(&shell_temp_ida, 0, 0, GFP_KERNEL);
+	result = ida_alloc(&shell_temp_ida, GFP_KERNEL);
 	if (result < 0) {
 		pr_err("genernal slntc id failed\n");
 		ret = -EINVAL;
@@ -161,7 +161,7 @@ static int slntc_shell_probe(struct platform_device *pdev)
 err_free_trip:
 	kfree(hst->trips);
 err_remove_id:
-	ida_simple_remove(&shell_temp_ida, result);
+	ida_free(&shell_temp_ida, result);
 err_free_mem:
 	kfree(hst);
 	return ret;

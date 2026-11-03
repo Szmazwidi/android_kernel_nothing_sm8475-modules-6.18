@@ -280,9 +280,9 @@ static int __init nt_meminfo_init(void)
 }
 device_initcall(nt_meminfo_init);
 
-MODULE_IMPORT_NS(MINIDUMP);
-MODULE_IMPORT_NS(DMA_BUF);
+
+MODULE_IMPORT_NS("DMA_BUF");
 MODULE_LICENSE("GPL v2");
-MODULE_LICENSE("Dual BSD/GPL");
+
 MODULE_AUTHOR("<BSP_CORE@nothing.tech>");
 MODULE_DESCRIPTION("NOTHING memory information");

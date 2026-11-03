@@ -44,7 +44,7 @@ exit:
 	return ret;
 }
 
-secure_type get_oem_sec_boot(void)
+static secure_type get_oem_sec_boot(void)
 {
 	secure_type ret = SECURE_UNKNOWN;
 	void __iomem *oem_config_base;
