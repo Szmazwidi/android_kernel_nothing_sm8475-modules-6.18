@@ -6074,6 +6074,36 @@ static void msm_pcie_set_root_port_class(struct msm_pcie_dev_t *dev)
 	msm_pcie_write_mask(dev->dm_core + PCIE_GEN3_MISC_CONTROL, BIT(0), 0);
 }
 
+/*
+ * PONG CLG20: the 6.18 ASPM core (pcie_aspm_override_default_link_state)
+ * enables L0s and L1 by default on devicetree platforms for every link
+ * that advertises them.  This RC/QCA6490 link is "qcom,no-l0s-supported"
+ * (stock 5.10 never enabled L0s), so hide L0s from the RC Link
+ * Capabilities like upstream pcie-qcom does.  pong_clear_l0s=0 restores
+ * the previous behaviour.
+ */
+static bool pong_clear_l0s = true;
+module_param(pong_clear_l0s, bool, 0444);
+MODULE_PARM_DESC(pong_clear_l0s, "Pong: clear ASPM L0s from RC LNKCAP when DT says no-l0s");
+
+static void msm_pcie_pong_clear_l0s(struct msm_pcie_dev_t *dev)
+{
+	if (dev->l0s_supported || !pong_clear_l0s)
+		return;
+
+	/* enable write access to RO register */
+	msm_pcie_write_mask(dev->dm_core + PCIE_GEN3_MISC_CONTROL, 0, BIT(0));
+
+	msm_pcie_write_mask(dev->dm_core + PCIE20_CAP + PCI_EXP_LNKCAP,
+			    PCI_EXP_LNKCAP_ASPM_L0S, 0);
+
+	/* disable write access to RO register */
+	msm_pcie_write_mask(dev->dm_core + PCIE_GEN3_MISC_CONTROL, BIT(0), 0);
+
+	PCIE_DBG(dev, "PCIe: RC%d: PONG L0s cleared, LNKCAP 0x%x\n", dev->rc_idx,
+		 readl_relaxed(dev->dm_core + PCIE20_CAP + PCI_EXP_LNKCAP));
+}
+
 static void msm_pcie_disable_dbi_mirroring(struct msm_pcie_dev_t *dev)
 {
 	struct resource *dbi_res = dev->res[MSM_PCIE_RES_DM_CORE].resource;
@@ -6430,6 +6460,7 @@ static int msm_pcie_enable_link(struct msm_pcie_dev_t *dev)
 	}
 
 	msm_pcie_set_root_port_class(dev);
+	msm_pcie_pong_clear_l0s(dev);
 
 	/* Disable override for fal10_veto logic to de-assert Qactive signal */
 	msm_pcie_write_mask(dev->parf + PCIE20_PARF_CFG_BITS_3, BIT(0), 0);

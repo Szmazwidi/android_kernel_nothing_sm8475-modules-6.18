@@ -4,6 +4,7 @@
  * Copyright (c) 2023, Linaro Ltd
  */
 #include <linux/platform_device.h>
+#include <linux/device/faux.h>
 #include <linux/of.h>
 #include <linux/module.h>
 #include <linux/mutex.h>
@@ -67,6 +68,7 @@ struct pmic_glink_ucsi {
 	struct gpio_desc *port_orientation[PMIC_GLINK_MAX_PORTS];
 
 	struct pmic_glink_client *client;
+	struct faux_device *fdev;
 
 	struct ucsi *ucsi;
 	struct completion read_ack;
@@ -331,6 +333,7 @@ static void pmic_glink_ucsi_destroy(void *data)
 	mutex_lock(&ucsi->lock);
 	ucsi_destroy(ucsi->ucsi);
 	mutex_unlock(&ucsi->lock);
+	faux_device_destroy(ucsi->fdev);
 }
 
 static unsigned long quirk_sm8450 = UCSI_DELAY_DEVICE_PDOS;
@@ -357,9 +360,22 @@ static int pmic_glink_ucsi_probe(struct platform_device *pdev)
 	spin_lock_init(&ucsi->state_lock);
 	mutex_init(&ucsi->lock);
 
-	ucsi->ucsi = ucsi_create(dev, &pmic_glink_ucsi_ops);
-	if (IS_ERR(ucsi->ucsi))
+	/*
+	 * CLG15 v3: the UCSI core looks up a USB role switch through the connector fwnode
+	 * (graph to ssusb@a600000). The Pong USB glue is peripheral-only and registers no
+	 * role switch, so ucsi_init() deferred forever and re-reset the PPM every 100 ms.
+	 * Give the UCSI core a faux child device without DT children: connectors get no
+	 * fwnode, no role switch is looked up, and the Type-C ports register (no OTG).
+	 */
+	ucsi->fdev = faux_device_create("ucsi_glink_qti_ppm", dev, NULL);
+	if (!ucsi->fdev)
+		return -ENOMEM;
+
+	ucsi->ucsi = ucsi_create(&ucsi->fdev->dev, &pmic_glink_ucsi_ops);
+	if (IS_ERR(ucsi->ucsi)) {
+		faux_device_destroy(ucsi->fdev);
 		return PTR_ERR(ucsi->ucsi);
+	}
 
 	/* Make sure we destroy *after* pmic_glink unregister */
 	ret = devm_add_action_or_reset(dev, pmic_glink_ucsi_destroy, ucsi);

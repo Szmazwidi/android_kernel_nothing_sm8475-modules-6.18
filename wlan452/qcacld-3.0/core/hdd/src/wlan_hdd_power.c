@@ -2506,10 +2506,29 @@ static int __wlan_hdd_cfg80211_suspend_wlan(struct wiphy *wiphy,
 
 	rc = wlan_hdd_validate_context(hdd_ctx);
 	if (0 != rc) {
-		if (pld_is_low_power_mode(hdd_ctx->parent_dev))
+		if (pld_is_low_power_mode(hdd_ctx->parent_dev)) {
 			hdd_debug("low power mode (Deep Sleep/Hibernate)");
-		else
+		} else if (rc == -EAGAIN &&
+			   hdd_ctx->driver_status != DRIVER_MODULES_ENABLED) {
+			/*
+			 * PONG CLG20: after a failed WLAN start/recovery a
+			 * cds state flag (recovery/load/bad/fw-down) can stay
+			 * set while Wi-Fi is off; every system suspend was then
+			 * rejected with -EAGAIN until reboot.  With the WLAN
+			 * modules closed the host has nothing to suspend here
+			 * (resume skips the same case); an active cnss recovery
+			 * holds its own wakeup source.
+			 */
+			hdd_info_rl("PONG: modules not enabled (status %d, cds state 0x%x), allow suspend",
+				    hdd_ctx->driver_status,
+				    cds_get_driver_state());
+			return 0;
+		} else {
+			hdd_err_rl("PONG: suspend rejected %d (status %d, cds state 0x%x)",
+				   rc, hdd_ctx->driver_status,
+				   cds_get_driver_state());
 			return rc;
+		}
 	}
 
 	if (ucfg_pmo_get_suspend_mode(hdd_ctx->psoc) == PMO_SUSPEND_NONE) {
