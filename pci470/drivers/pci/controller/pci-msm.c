@@ -1298,6 +1298,7 @@ struct msm_pcie_dev_t {
 	u32 l1ss_timeout_us;
 	bool pong_drv_vreg_kept; /* CLG28 */
 	bool pong_drv_l1ss_requested; /* CLG29 */
+	bool pong_drv_pipe_kept; /* CLG31 */
 	u32 l1ss_sleep_disable;
 	u32 clkreq_gpio;
 
@@ -6132,6 +6133,16 @@ static bool pong_drv_no_l1ss_sleep;
 module_param(pong_drv_no_l1ss_sleep, bool, 0644);
 MODULE_PARM_DESC(pong_drv_no_l1ss_sleep, "Pong: do not request DRV L1ss sleep on DRV suspend");
 
+/*
+ * CLG31: on 6.18 gcc_pcie_0_pipe_clk_src is an upstream clk_regmap_phy_mux, which parks the PIPE clock
+ * source on XO when it is disabled (stock 5.10 used a plain mux that pci-msm switched itself). Turning
+ * the pipe clocks off while the DRV owns the link therefore switched the PIPE source under the link and
+ * it went down at the next wake. Keep the pipe clocks on across the DRV hand-off.
+ */
+static bool pong_drv_keep_pipe_clk = true;
+module_param(pong_drv_keep_pipe_clk, bool, 0644);
+MODULE_PARM_DESC(pong_drv_keep_pipe_clk, "Pong: keep the PCIe pipe clocks (phy mux) enabled while the link is handed to DRV");
+
 static void pong_drv_trace_dump(struct msm_pcie_dev_t *dev, const char *tag)
 {
 	if (!pong_drv_trace)
@@ -10814,7 +10825,7 @@ static int msm_pcie_drv_resume(struct msm_pcie_dev_t *pcie_dev)
 		pcie_dev->rc_idx);
 
 	clk_info = pcie_dev->pipe_clk;
-	for (i = 0; i < pcie_dev->num_pipe_clk; i++, clk_info++) {
+	for (i = 0; i < pcie_dev->num_pipe_clk && !pcie_dev->pong_drv_pipe_kept; i++, clk_info++) {
 		if (clk_info->hdl && !clk_info->suppressible) {
 			ret = clk_prepare_enable(clk_info->hdl);
 			if (ret)
@@ -10824,6 +10835,7 @@ static int msm_pcie_drv_resume(struct msm_pcie_dev_t *pcie_dev)
 		}
 	}
 
+	pcie_dev->pong_drv_pipe_kept = false;
 	PCIE_DBG(pcie_dev, "PCIe: RC%d:turn on pipe clk, Done\n",
 		pcie_dev->rc_idx);
 
@@ -10932,8 +10944,9 @@ static int msm_pcie_drv_suspend(struct msm_pcie_dev_t *pcie_dev,
 	}
 
 	/* turn off all unsuppressible clocks */
+	pcie_dev->pong_drv_pipe_kept = pong_drv_keep_pipe_clk;
 	clk_info = pcie_dev->pipe_clk;
-	for (i = 0; i < pcie_dev->num_pipe_clk; i++, clk_info++)
+	for (i = 0; i < pcie_dev->num_pipe_clk && !pcie_dev->pong_drv_pipe_kept; i++, clk_info++)
 		if (clk_info->hdl && !clk_info->suppressible)
 			clk_disable_unprepare(clk_info->hdl);
 
