@@ -1297,6 +1297,7 @@ struct msm_pcie_dev_t {
 	/* Need to configure the l1ss TO when using cesta */
 	u32 l1ss_timeout_us;
 	bool pong_drv_vreg_kept; /* CLG28 */
+	bool pong_drv_l1ss_requested; /* CLG29 */
 	u32 l1ss_sleep_disable;
 	u32 clkreq_gpio;
 
@@ -10694,10 +10695,17 @@ static int msm_pcie_drv_resume(struct msm_pcie_dev_t *pcie_dev)
 	mutex_lock(&pcie_dev->setup_lock);
 
 	/* if DRV hand-off was done and DRV subsystem is powered up */
+	/*
+	 * CLG29: only undo an L1ss sleep request that was actually sent. With
+	 * pong_drv_no_l1ss_sleep the DRV never got enable_l1ss_sleep, did not ack
+	 * the disable (-ETIMEDOUT) and drv_disable below was then skipped, leaving
+	 * the link owned by the DRV after resume.
+	 */
 	if (PCIE_RC_DRV_ENABLED(pcie_dev->rc_idx) &&
-	    !pcie_dev->l1ss_sleep_disable)
+	    !pcie_dev->l1ss_sleep_disable && pcie_dev->pong_drv_l1ss_requested)
 		rpmsg_ret = msm_pcie_drv_send_rpmsg(pcie_dev,
 					&drv_info->drv_disable_l1ss_sleep);
+	pcie_dev->pong_drv_l1ss_requested = false;
 	if (pong_drv_trace)
 		pr_info("PONG_DRV RC%d resume: disable_l1ss_sleep rpmsg=%d\n", pcie_dev->rc_idx, rpmsg_ret);
 
@@ -10937,7 +10945,8 @@ static int msm_pcie_drv_suspend(struct msm_pcie_dev_t *pcie_dev,
 	/* enable L1ss sleep if client allows it */
 	if (!pcie_dev->l1ss_sleep_disable && !pong_drv_no_l1ss_sleep &&
 		!(options & MSM_PCIE_CONFIG_NO_L1SS_TO))
-		msm_pcie_drv_send_rpmsg(pcie_dev,
+		pcie_dev->pong_drv_l1ss_requested =
+			!msm_pcie_drv_send_rpmsg(pcie_dev,
 					&drv_info->drv_enable_l1ss_sleep);
 
 	if (pcie_dev->pcie_sm)
