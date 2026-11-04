@@ -1,0 +1,8 @@
+# CLG33: Qualcomm sys_pm_vx (system PM violators: which subsystem/master blocks CXSD/AOSD), stock Nothing 5.10
+# drivers/soc/qcom/sys_pm_vx.c (qcom,sys-pm-waipio), built for 6.18. Read-only debugfs: /sys/kernel/debug/sys_pm_violators.
+package(default_visibility=['//visibility:public'])
+load('//build/kernel/kleaf:kernel.bzl', 'ddk_headers', 'ddk_module')
+ddk_headers(name='headers', hdrs=glob(['include/**/*.h']), linux_includes=['include'])
+ddk_module(name='sys_pm_vx', kernel_build='//common:kernel_aarch64', out='sys_pm_vx.ko', srcs=['sys_pm_vx.c'],
+           hdrs=[':headers', '//devices/pong618/pmCLG11:headers'], deps=['//devices/pong618/pmCLG11:subsystem_sleep_stats'],
+           copts=['-ferror-limit=0'])
