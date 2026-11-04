@@ -1014,6 +1014,18 @@ int dsi_display_check_status(struct drm_connector *connector, void *display,
 
 	if (status_mode == ESD_MODE_REG_READ) {
 		rc = dsi_display_status_reg_read(dsi_display);
+		/*
+		 * PONG CLG32: the first ESD status read after boot (while the boot
+		 * animation starts) can get no response (0x0) from the NT37705 even
+		 * though the panel is fine; the immediate PANEL_DEAD recovery then
+		 * blanks and flashes the panel. Re-read once a couple of frames later
+		 * before declaring the panel dead.
+		 */
+		if (rc <= 0) {
+			DSI_WARN("ESD status read failed (%d), retrying once\n", rc);
+			msleep(20);
+			rc = dsi_display_status_reg_read(dsi_display);
+		}
 	} else if (status_mode == ESD_MODE_SW_BTA) {
 		rc = dsi_display_status_bta_request(dsi_display);
 	} else if (status_mode == ESD_MODE_PANEL_TE) {
