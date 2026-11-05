@@ -6,6 +6,7 @@
 #include <linux/clk-provider.h>
 #include <linux/mod_devicetable.h>
 #include <linux/module.h>
+#include <linux/pm_domain.h>
 #include <linux/platform_device.h>
 #include <linux/regmap.h>
 
@@ -794,10 +795,22 @@ static int gpu_cc_sm8450_probe(struct platform_device *pdev)
 	return qcom_cc_really_probe(&pdev->dev, &gpu_cc_sm8450_desc, regmap);
 }
 
+/*
+ * PONG CLG38: like stock gpu_cc_waipio_sync_state(). Without a driver sync_state the genpd core
+ * installs its own, which never releases the clock core's boot holds (gpu_cc_demet_clk and
+ * gpu_cc_hub_aon_clk stayed on, keeping bi_tcxo voted in the RPMh sleep set).
+ */
+static void gpu_cc_sm8450_sync_state(struct device *dev)
+{
+	clk_sync_state(dev);
+	of_genpd_sync_state(dev->of_node);
+}
+
 static struct platform_driver gpu_cc_sm8450_driver = {
 	.probe = gpu_cc_sm8450_probe,
 	.driver = {
 		.name = "sm8450-gpucc",
+		.sync_state = gpu_cc_sm8450_sync_state,
 		.of_match_table = gpu_cc_sm8450_match_table,
 	},
 };
