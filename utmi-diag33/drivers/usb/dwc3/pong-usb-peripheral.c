@@ -48,7 +48,19 @@ struct pong_usb {
 	bool usb2_only;
 	bool utmi_selected;
 	u32 saved_pipe_bits;
+	bool pm_off; /* CLG34 */
 };
+
+/*
+ * PONG CLG34: the glue powered the controller once at probe and never released it, so the USB
+ * GDSC, the XO-derived USB clocks and two untagged interconnect votes (which also apply to the
+ * RPMh sleep set) stayed on in system suspend with no cable, keeping HLOS from allowing CXSD.
+ * Release them in system suspend (the dwc3 child is suspended first and re-initialises its
+ * core on resume) and power back on at resume.
+ */
+static bool pong_usb_lpm = true;
+module_param(pong_usb_lpm, bool, 0644);
+MODULE_PARM_DESC(pong_usb_lpm, "Pong: power the USB controller down in system suspend");
 
 static void pong_usb_vbus(struct pong_usb *usb, bool on)
 {
@@ -379,13 +391,41 @@ static void pong_usb_remove(struct platform_device *pdev)
 	pong_usb_power_off(usb);
 }
 
+static int pong_usb_pm_suspend(struct device *dev)
+{
+	struct pong_usb *usb = dev_get_drvdata(dev);
+
+	if (!usb || !pong_usb_lpm || !usb->powered)
+		return 0;
+	pong_usb_power_off(usb);
+	usb->pm_off = true;
+	return 0;
+}
+
+static int pong_usb_pm_resume(struct device *dev)
+{
+	struct pong_usb *usb = dev_get_drvdata(dev);
+	int ret;
+
+	if (!usb || !usb->pm_off)
+		return 0;
+	usb->pm_off = false;
+	ret = pong_usb_power_on(usb);
+	if (ret)
+		dev_err(dev, "PONG618_USB34 resume power on failed: %d\n", ret);
+	return ret;
+}
+
+static DEFINE_SIMPLE_DEV_PM_OPS(pong_usb_pm_ops, pong_usb_pm_suspend, pong_usb_pm_resume);
+
 static const struct of_device_id pong_usb_match[] = {
 	{ .compatible = "qcom,dwc-usb3-msm" }, { }
 };
 MODULE_DEVICE_TABLE(of, pong_usb_match);
 static struct platform_driver pong_usb_driver = {
 	.probe = pong_usb_probe, .remove = pong_usb_remove,
-	.driver = { .name = "pong-dwc3-peripheral", .of_match_table = pong_usb_match },
+	.driver = { .name = "pong-dwc3-peripheral", .of_match_table = pong_usb_match,
+		    .pm = pm_sleep_ptr(&pong_usb_pm_ops) },
 };
 module_platform_driver(pong_usb_driver);
 MODULE_DESCRIPTION("Pong diagnostic peripheral glue using native DWC3 child");
