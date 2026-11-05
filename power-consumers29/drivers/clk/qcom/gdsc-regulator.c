@@ -963,6 +963,20 @@ static int gdsc_parse_dt_data(struct gdsc *sc, struct device *dev,
 
 	sc->skip_disable = of_property_read_bool(dev->of_node,
 							"qcom,skip-disable");
+	/*
+	 * PONG CLG38: keep the UFS GDSC on across system suspend. Once the GCC
+	 * boot clock holds are released, re-enabling it at resume timed out
+	 * (-110, GDSCR 0x6822f800), the storage controller stayed dead and the
+	 * phone reset. The cause is not understood yet; never collapsing the
+	 * domain avoids that path. Not the stock behaviour.
+	 */
+	{
+		const char *pong_name = NULL;
+
+		if (!of_property_read_string(dev->of_node, "regulator-name", &pong_name) &&
+		    pong_name && !strcmp(pong_name, "gcc_ufs_phy_gdsc"))
+			sc->skip_disable = true;
+	}
 	if (sc->skip_disable) {
 		/*
 		 * If the disable skipping feature is allowed, then use mode
