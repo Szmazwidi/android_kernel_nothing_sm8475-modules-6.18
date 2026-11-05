@@ -528,6 +528,9 @@ static int wcd938x_parse_port_mapping(struct device *dev,
 		ch_mask = dt_array[NUM_SWRS_DT_PARAMS * i + 2];
 		ch_rate = dt_array[NUM_SWRS_DT_PARAMS * i + 3];
 		master_port_type = dt_array[NUM_SWRS_DT_PARAMS * i + 4];
+		/* PONG CLG35: SWRM_TX* master types 46..57 (6.12) -> 34..45, as the swr master does */
+		if (pong_wcd938x_new_types > 0 && master_port_type >= 46 && master_port_type <= 57)
+			master_port_type -= 12;
 
 		if (port_num != old_port_num)
 			ch_iter = 0;

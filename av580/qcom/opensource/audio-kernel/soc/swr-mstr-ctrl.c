@@ -2809,6 +2809,28 @@ static int swrm_probe(struct platform_device *pdev)
 		goto err_pdata_fail;
 	}
 
+	/*
+	 * PONG CLG35: the Pong dtbo uses the 6.12 bindings header, where the
+	 * SWRM_TX* master port types moved from 34..45 to 46..57. Userspace (the
+	 * stock mixer paths behind the "ChMap" controls) and the codec drivers use
+	 * the old values, so TX connects failed with "port type not supported by
+	 * master" and captures were silent. Translate 46..57 back when the map
+	 * contains the new TX range (47..57 is never used by the old numbering).
+	 */
+	{
+		bool pong_new_tx = false;
+
+		for (i = 0; i < map_length; i++)
+			if (temp[3 * i + 1] >= 47 && temp[3 * i + 1] <= 57)
+				pong_new_tx = true;
+		if (pong_new_tx) {
+			for (i = 0; i < map_length; i++)
+				if (temp[3 * i + 1] >= 46 && temp[3 * i + 1] <= 57)
+					temp[3 * i + 1] -= 12;
+			dev_info(&pdev->dev, "PONG_CLG35 swr master: 6.12 SWRM_TX port types translated\n");
+		}
+	}
+
 	for (i = 0; i < map_length; i++) {
 		port_num = temp[3 * i];
 		port_type = temp[3 * i + 1];
