@@ -30,6 +30,7 @@
 #include "qcom_sg_ops.h"
 #include <soc/qcom/secure_buffer.h>
 #include <linux/mem-buf-exporter.h>
+#include <linux/mem-buf.h>
 
 #define PONG_ADSP_HEAP_NAME "qcom,adsp"
 
@@ -274,158 +275,41 @@ static void pong_contig_heap_register(void)
 }
 
 /*
- * PONG CLG34: "qcom,secure-non-pixel" heap. msm_vidc allocates encoder internal buffers (the
+ * PONG CLG34/CLG35: "qcom,secure-non-pixel" heap. msm_vidc allocates encoder internal buffers (the
  * iris2 ARP buffer among them) from this heap; without it every H.264/HEVC encode failed at
  * STREAMON (-ENOMEM, "No heap named qcom,secure-non-pixel"), so camera video recording stopped
- * at once. Like the stock secure system heap: contiguous chunks (few TZ regions), zeroed, cache
- * cleaned, then hyp-assigned HLOS -> CP_NON_PIXEL; on free assigned back before the pages are
- * released (pages are leaked if that fails, never reused while protected).
+ * at once. CLG34 hyp-assigned the pages directly and TZ refused (-EINVAL); CLG35 uses the path
+ * proven for EVA since CLS13: a pong,secure-contig style buffer (few TZ regions) lent to
+ * CP_NON_PIXEL with mem_buf_lend(). mem_buf reclaims it on release and keeps the pages if the
+ * reclaim fails.
  */
 #define PONG_NONPIXEL_HEAP_NAME "qcom,secure-non-pixel"
-static struct device *pong_nonpixel_dev;
-
-static int pong_nonpixel_assign(struct sg_table *sgt, bool to_cp)
-{
-	u32 src_hlos[1] = { VMID_HLOS };
-	u32 src_cp[1] = { VMID_CP_NON_PIXEL };
-	int dst_cp[1] = { VMID_CP_NON_PIXEL }, perm_cp[1] = { PERM_READ | PERM_WRITE };
-	int dst_hlos[1] = { VMID_HLOS }, perm_hlos[1] = { PERM_READ | PERM_WRITE | PERM_EXEC };
-
-	if (to_cp)
-		return hyp_assign_table(sgt, src_hlos, 1, dst_cp, perm_cp, 1);
-	return hyp_assign_table(sgt, src_cp, 1, dst_hlos, perm_hlos, 1);
-}
-
-static void pong_nonpixel_heap_free(struct qcom_sg_buffer *buffer)
-{
-	struct scatterlist *sg;
-	int i, ret;
-
-	ret = pong_nonpixel_assign(&buffer->sg_table, false);
-	if (ret) {
-		pr_err("PONG_CLG34 %s: assign back to HLOS failed (%d), leaking %lu bytes\n",
-		       PONG_NONPIXEL_HEAP_NAME, ret, buffer->len);
-		sg_free_table(&buffer->sg_table);
-		kfree(buffer);
-		return;
-	}
-	for_each_sgtable_sg(&buffer->sg_table, sg, i)
-		free_pages_exact(page_address(sg_page(sg)), sg->length);
-	sg_free_table(&buffer->sg_table);
-	kfree(buffer);
-}
 
 static struct dma_buf *pong_nonpixel_heap_allocate(struct dma_heap *heap,
 						   unsigned long len, u32 fd_flags,
 						   u64 heap_flags)
 {
-	size_t size = PAGE_ALIGN(len), remaining = size, chunk;
-	int vmids[1] = { VMID_CP_NON_PIXEL }, perms[1] = { PERM_READ | PERM_WRITE };
-	DEFINE_DMA_BUF_EXPORT_INFO(exp_info);
-	struct qcom_sg_buffer *buffer;
-	struct scatterlist *sg;
+	int vmids[1] = { VMID_CP_NON_PIXEL };
+	int perms[1] = { PERM_READ | PERM_WRITE };
+	struct mem_buf_lend_kernel_arg arg = {
+		.nr_acl_entries = 1,
+		.vmids = vmids,
+		.perms = perms,
+	};
 	struct dma_buf *dmabuf;
-	void **addr;
-	size_t *lens;
-	int n = 0, i, ret = -ENOMEM;
-	bool assigned = false;
+	int ret;
 
-	if (!size)
-		return ERR_PTR(-EINVAL);
-
-	addr = kcalloc(PONG_CONTIG_MAX_ENTS, sizeof(*addr), GFP_KERNEL);
-	lens = kcalloc(PONG_CONTIG_MAX_ENTS, sizeof(*lens), GFP_KERNEL);
-	buffer = kzalloc(sizeof(*buffer), GFP_KERNEL);
-	if (!addr || !lens || !buffer)
-		goto free_meta;
-
-	while (remaining) {
-		void *p = NULL;
-
-		if (n == PONG_CONTIG_MAX_ENTS)
-			goto free_chunks;
-		chunk = min_t(size_t, remaining, PONG_CONTIG_MAX_CHUNK);
-		for (;;) {
-			p = alloc_pages_exact(chunk, GFP_KERNEL | __GFP_ZERO |
-					      __GFP_RETRY_MAYFAIL | __GFP_NOWARN);
-			if (p || chunk <= PONG_CONTIG_MIN_CHUNK)
-				break;
-			chunk = PAGE_ALIGN(chunk / 2);
-		}
-		if (!p)
-			goto free_chunks;
-		addr[n] = p;
-		lens[n++] = chunk;
-		remaining -= chunk;
-	}
-
-	ret = sg_alloc_table(&buffer->sg_table, n, GFP_KERNEL);
-	if (ret)
-		goto free_chunks;
-	for_each_sgtable_sg(&buffer->sg_table, sg, i)
-		sg_set_page(sg, virt_to_page(addr[i]), lens[i], 0);
-
-	/* Clean the zeroed lines to memory before the pages leave HLOS. */
-	ret = dma_map_sgtable(pong_nonpixel_dev, &buffer->sg_table, DMA_BIDIRECTIONAL, 0);
-	if (ret)
-		goto free_table;
-	dma_unmap_sgtable(pong_nonpixel_dev, &buffer->sg_table, DMA_BIDIRECTIONAL,
-			  DMA_ATTR_SKIP_CPU_SYNC);
-
-	ret = pong_nonpixel_assign(&buffer->sg_table, true);
+	dmabuf = pong_contig_heap_allocate(heap, len, fd_flags, heap_flags);
+	if (IS_ERR(dmabuf))
+		return dmabuf;
+	ret = mem_buf_lend(dmabuf, &arg);
 	if (ret) {
-		pr_err("PONG_CLG34 %s: assign to CP_NON_PIXEL failed: %d\n",
+		pr_err("PONG_CLG35 %s: lend to CP_NON_PIXEL failed: %d\n",
 		       PONG_NONPIXEL_HEAP_NAME, ret);
-		goto free_table;
-	}
-	assigned = true;
-
-	buffer->heap = heap;
-	INIT_LIST_HEAD(&buffer->attachments);
-	mutex_init(&buffer->lock);
-	buffer->len = size;
-	buffer->free = pong_nonpixel_heap_free;
-
-	buffer->vmperm = mem_buf_vmperm_alloc_staticvm(&buffer->sg_table, vmids, perms, 1);
-	if (IS_ERR(buffer->vmperm)) {
-		ret = PTR_ERR(buffer->vmperm);
-		goto unassign;
-	}
-
-	exp_info.exp_name = dma_heap_get_name(heap);
-	exp_info.size = buffer->len;
-	exp_info.flags = fd_flags;
-	exp_info.priv = buffer;
-	dmabuf = qcom_dma_buf_export(&exp_info, &qcom_sg_buf_ops);
-	if (IS_ERR(dmabuf)) {
-		ret = PTR_ERR(dmabuf);
-		mem_buf_vmperm_release(buffer->vmperm);
-		goto unassign;
-	}
-	kfree(addr);
-	kfree(lens);
-	return dmabuf;
-
-unassign:
-	if (assigned && pong_nonpixel_assign(&buffer->sg_table, false)) {
-		/* never hand protected pages back to the page allocator */
-		pr_err("PONG_CLG34 %s: unassign failed, leaking\n", PONG_NONPIXEL_HEAP_NAME);
-		sg_free_table(&buffer->sg_table);
-		kfree(buffer);
-		kfree(addr);
-		kfree(lens);
+		dma_buf_put(dmabuf);
 		return ERR_PTR(ret);
 	}
-free_table:
-	sg_free_table(&buffer->sg_table);
-free_chunks:
-	for (i = 0; i < n; i++)
-		free_pages_exact(addr[i], lens[i]);
-free_meta:
-	kfree(buffer);
-	kfree(addr);
-	kfree(lens);
-	return ERR_PTR(ret);
+	return dmabuf;
 }
 
 static const struct dma_heap_ops pong_nonpixel_heap_ops = {
@@ -451,8 +335,6 @@ static void pong_nonpixel_heap_register(void)
 		pr_err("PONG_CLG34 %s heap: %ld\n", PONG_NONPIXEL_HEAP_NAME, PTR_ERR(heap));
 		return;
 	}
-	pong_nonpixel_dev = dma_heap_get_dev(heap);
-	dma_coerce_mask_and_coherent(pong_nonpixel_dev, DMA_BIT_MASK(64));
 	pr_info("PONG_CLG34 DMA-BUF Heap: Created %s\n", PONG_NONPIXEL_HEAP_NAME);
 }
 
