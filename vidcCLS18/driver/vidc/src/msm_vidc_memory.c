@@ -10,6 +10,7 @@
 #include <linux/dma-mapping.h>
 #include <linux/qcom-dma-mapping.h>
 #include <linux/mem-buf.h>
+#include <linux/pong-system-heap.h>
 #include <soc/qcom/secure_buffer.h>
 
 #include "msm_vidc_memory.h"
@@ -175,19 +176,15 @@ void msm_vidc_memory_put_dmabuf_completely(struct msm_vidc_inst *inst,
 	}
 }
 
-static bool is_non_secure_buffer(struct dma_buf *dmabuf)
-{
-	return mem_buf_dma_buf_exclusive_owner(dmabuf);
-}
-
 int msm_vidc_memory_map(struct msm_vidc_core *core, struct msm_vidc_map *map)
 {
 	int rc = 0;
 	struct dma_buf_attachment *attach = NULL;
 	struct sg_table *table = NULL;
 	struct context_bank_info *cb = NULL;
+	bool non_secure_region, non_secure_buffer;
 
-	if (!core || !map) {
+	if (!core || !map || !map->dmabuf) {
 		d_vpr_e("%s: invalid params\n",	__func__);
 		return -EINVAL;
 	}
@@ -197,19 +194,24 @@ int msm_vidc_memory_map(struct msm_vidc_core *core, struct msm_vidc_map *map)
 		goto exit;
 	}
 
-	/* reject non-secure mapping request for a secure buffer(or vice versa) */
-	if (map->region == MSM_VIDC_NON_SECURE || map->region == MSM_VIDC_NON_SECURE_PIXEL) {
-		if (!is_non_secure_buffer(map->dmabuf)) {
-			d_vpr_e("%s: secure buffer mapping to non-secure region %d not allowed\n",
-				__func__, map->region);
-			return -EINVAL;
-		}
+	/* The native system heap cannot lend pages to a protected VM. */
+	if (pong_system_heap_owns_buffer(map->dmabuf)) {
+		non_secure_buffer = true;
 	} else {
-		if (is_non_secure_buffer(map->dmabuf)) {
-			d_vpr_e("%s: non-secure buffer mapping to secure region %d not allowed\n",
+		if (IS_ERR_OR_NULL(to_mem_buf_vmperm(map->dmabuf))) {
+			d_vpr_e("%s: unsupported DMA-BUF exporter for region %d\n",
 				__func__, map->region);
 			return -EINVAL;
 		}
+		non_secure_buffer = mem_buf_dma_buf_exclusive_owner(map->dmabuf);
+	}
+
+	non_secure_region = map->region == MSM_VIDC_NON_SECURE ||
+			    map->region == MSM_VIDC_NON_SECURE_PIXEL;
+	if (non_secure_buffer != non_secure_region) {
+		d_vpr_e("%s: DMA-BUF security does not match region %d\n",
+			__func__, map->region);
+		return -EINVAL;
 	}
 
 	cb = get_context_bank(core, map->region);

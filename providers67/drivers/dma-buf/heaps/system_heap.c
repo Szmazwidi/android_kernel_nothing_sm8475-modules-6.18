@@ -19,6 +19,7 @@
 #include <linux/iommu.h>
 #include <linux/mm.h>
 #include <linux/module.h>
+#include <linux/pong-system-heap.h>
 #include <linux/printk.h>
 #include <linux/scatterlist.h>
 #include <linux/swiotlb.h>
@@ -360,6 +361,12 @@ static const struct dma_buf_ops system_heap_buf_ops = {
 	.vunmap = system_heap_vunmap,
 	.release = system_heap_dma_buf_release,
 };
+
+bool pong_system_heap_owns_buffer(const struct dma_buf *dmabuf)
+{
+	return dmabuf && dmabuf->ops == &system_heap_buf_ops;
+}
+EXPORT_SYMBOL_GPL(pong_system_heap_owns_buffer);
 
 static struct page *alloc_largest_available(unsigned long size,
 					    unsigned int max_order)
