@@ -420,6 +420,52 @@ err_port_map:
 	return ret;
 }
 
+/*
+ * PONG CLG34: the Pong dtbo was built with the newer (6.12 audio-kernel) bindings
+ * header, where the codec slave port types moved (MBHC 17->29, ADC1 18->30,
+ * DMIC0 22->34, HPH_L 9->14, ...), while this driver compares against the old
+ * values. No TX port matched (\"Failed to find slave port for type 18/21\"), so the
+ * microphones never reached SoundWire and every capture was silent. Detect the
+ * new numbering (TX slave types 30..44 only exist there) and translate the slave
+ * port types back; master port types stay as in DT (both sides come from DT).
+ */
+static int pong_wcd938x_new_types = -1;
+
+static u32 pong_wcd938x_slave_type(struct device *dev, u32 t)
+{
+	static const u8 new2old[][2] = {
+		{14, 9}, {15, 10}, {16, 11}, {17, 12}, {18, 13}, {19, 14}, {20, 15}, {21, 16},
+		{29, 17}, {30, 18}, {31, 19}, {32, 20}, {33, 21}, {34, 22}, {35, 23},
+		{36, 24}, {37, 25}, {38, 26}, {39, 27}, {40, 28}, {41, 29}, {42, 30},
+		{43, 31}, {44, 32},
+	};
+	int i;
+
+	if (pong_wcd938x_new_types < 0) {
+		u32 *arr, size, n, k;
+
+		pong_wcd938x_new_types = 0;
+		if (of_find_property(dev->of_node, "qcom,tx_swr_ch_map", &size) &&
+		    size >= NUM_SWRS_DT_PARAMS * sizeof(u32)) {
+			n = size / sizeof(u32);
+			arr = kzalloc(size, GFP_KERNEL);
+			if (arr && !of_property_read_u32_array(dev->of_node, "qcom,tx_swr_ch_map", arr, n))
+				for (k = 1; k < n; k += NUM_SWRS_DT_PARAMS)
+					if (arr[k] >= 30 && arr[k] <= 44)
+						pong_wcd938x_new_types = 1;
+			kfree(arr);
+		}
+		dev_info(dev, "PONG_CLG34 wcd938x DT port types: %s numbering\n",
+			 pong_wcd938x_new_types ? "6.12 (translated)" : "native");
+	}
+	if (!pong_wcd938x_new_types)
+		return t;
+	for (i = 0; i < ARRAY_SIZE(new2old); i++)
+		if (new2old[i][0] == t)
+			return new2old[i][1];
+	return t;
+}
+
 static int wcd938x_parse_port_mapping(struct device *dev,
 			char *prop, u8 path)
 {
@@ -478,7 +524,7 @@ static int wcd938x_parse_port_mapping(struct device *dev,
 			goto err_pdata_fail;
 		}
 
-		slave_port_type = dt_array[NUM_SWRS_DT_PARAMS * i + 1];
+		slave_port_type = pong_wcd938x_slave_type(dev, dt_array[NUM_SWRS_DT_PARAMS * i + 1]);
 		ch_mask = dt_array[NUM_SWRS_DT_PARAMS * i + 2];
 		ch_rate = dt_array[NUM_SWRS_DT_PARAMS * i + 3];
 		master_port_type = dt_array[NUM_SWRS_DT_PARAMS * i + 4];
