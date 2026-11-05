@@ -584,7 +584,9 @@ static int cnss_pci_smmu_fault_handler(struct iommu_domain *domain,
 static
 void cnss_register_iommu_fault_handler(struct cnss_pci_data *pci_priv)
 {
-	iommu_set_fault_handler(pci_priv->iommu_domain,
+	if (pci_priv->iommu_domain &&
+	    pci_priv->iommu_domain->cookie_type == IOMMU_COOKIE_NONE)
+		iommu_set_fault_handler(pci_priv->iommu_domain,
 				cnss_pci_smmu_fault_handler, pci_priv);
 }
 #endif

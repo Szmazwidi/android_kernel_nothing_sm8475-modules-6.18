@@ -4383,7 +4383,8 @@ static int cam_populate_smmu_context_banks(struct device *dev,
 			cb->name[0]);
 		goto cb_init_fail;
 	}
-	if (cb->io_support && cb->domain)
+	if (cb->io_support && cb->domain &&
+	    cb->domain->cookie_type == IOMMU_COOKIE_NONE)
 		iommu_set_fault_handler(cb->domain,
 			cam_smmu_iommu_fault_handler,
 			(void *)cb->name[0]);

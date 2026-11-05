@@ -1075,8 +1075,9 @@ static int msm_cvp_populate_context_bank(struct device *dev,
 		goto err_setup_cb;
 	}
 
-	iommu_set_fault_handler(cb->domain,
-		msm_cvp_smmu_fault_handler, (void *)core);
+	if (cb->domain->cookie_type == IOMMU_COOKIE_NONE)
+		iommu_set_fault_handler(cb->domain,
+			msm_cvp_smmu_fault_handler, (void *)core);
 
 	return 0;
 
