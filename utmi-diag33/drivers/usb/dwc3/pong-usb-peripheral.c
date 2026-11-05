@@ -49,6 +49,7 @@ struct pong_usb {
 	bool utmi_selected;
 	u32 saved_pipe_bits;
 	bool pm_off; /* CLG34 */
+	bool gdsc_on; /* CLG36 */
 };
 
 /*
@@ -123,15 +124,47 @@ static void pong_usb_restore_pipe(struct pong_usb *usb)
 		 usb->saved_pipe_bits, readl(usb->qscratch + PONG_GENERAL_CFG));
 }
 
+/*
+ * PONG CLG36: the USB30 GDSC is a retention domain on SM8450 (upstream gcc-sm8450 marks it
+ * PWRSTS_RET_ON) and re-enabling it after a system suspend timed out (-110, GDSCR 0x6822f800),
+ * leaving USB dead until reboot. In suspend keep the GDSC and only release the clocks, the
+ * interconnect votes and the VBUS override; the controller is reset again at resume.
+ */
+static int pong_usb_gdsc_on(struct pong_usb *usb)
+{
+	int ret, i;
+
+	if (usb->gdsc_on)
+		return 0;
+	for (i = 0; i < 3; i++) {
+		ret = regulator_enable(usb->gdsc);
+		if (!ret) {
+			usb->gdsc_on = true;
+			return 0;
+		}
+		dev_warn(usb->dev, "PONG618_USB36 gdsc enable try %d: %d\n", i + 1, ret);
+		usleep_range(1000, 2000);
+	}
+	return ret;
+}
+
+static void pong_usb_gdsc_off(struct pong_usb *usb)
+{
+	if (!usb->gdsc_on)
+		return;
+	regulator_disable(usb->gdsc);
+	usb->gdsc_on = false;
+}
+
 static int pong_usb_power_on(struct pong_usb *usb)
 {
 	int ret;
-	ret = regulator_enable(usb->gdsc);
+	ret = pong_usb_gdsc_on(usb);
 	if (ret)
 		return ret;
 	ret = icc_set_bw(usb->memory_path, MBps_to_icc(1000), MBps_to_icc(2500));
 	if (ret)
-		goto regulator_off;
+		return ret;
 	ret = icc_set_bw(usb->config_path, 0, MBps_to_icc(40));
 	if (ret)
 		goto memory_off;
@@ -156,11 +189,10 @@ config_off:
 	icc_set_bw(usb->config_path, 0, 0);
 memory_off:
 	icc_set_bw(usb->memory_path, 0, 0);
-regulator_off:
-	regulator_disable(usb->gdsc);
 	return ret;
 }
 
+/* Release clocks, votes and the VBUS override; the GDSC stays on (retention). */
 static void pong_usb_power_off(struct pong_usb *usb)
 {
 	if (!usb->powered)
@@ -171,7 +203,6 @@ static void pong_usb_power_off(struct pong_usb *usb)
 	clk_bulk_disable_unprepare(usb->num_clks, usb->clks);
 	icc_set_bw(usb->config_path, 0, 0);
 	icc_set_bw(usb->memory_path, 0, 0);
-	regulator_disable(usb->gdsc);
 	usb->powered = false;
 }
 
@@ -359,12 +390,14 @@ static int pong_usb_probe(struct platform_device *pdev)
 	}
 	pong_stage = "power_on";
 	ret = pong_usb_power_on(usb);
-	if (ret)
+	if (ret) {
+		pong_usb_gdsc_off(usb);
 		goto put_child;
+	}
 	if (!usb->usb2_only) {
 		pong_stage = "redriver_connect";
 		ret = usb_redriver_connect_checked(usb->redriver, orientation ? ORIENTATION_CC2 : ORIENTATION_CC1);
-		if (ret) { pong_usb_power_off(usb); goto put_child; }
+		if (ret) { pong_usb_power_off(usb); pong_usb_gdsc_off(usb); goto put_child; }
 	}
 	pong_stage = "populate_core";
 	ret = of_platform_populate(dev->of_node, NULL, NULL, dev);
@@ -373,6 +406,7 @@ static int pong_usb_probe(struct platform_device *pdev)
 		if (!usb->usb2_only)
 			usb_redriver_disconnect_checked(usb->redriver);
 		pong_usb_power_off(usb);
+		pong_usb_gdsc_off(usb);
 	}
 put_child:
 	dev_info(dev, "PONG618_PROBE33 mode=%s stage=%s ret=%d\n", usb->usb2_only ? "high-speed" : "superspeed", pong_stage, ret);
@@ -389,6 +423,7 @@ static void pong_usb_remove(struct platform_device *pdev)
 	if (!usb->usb2_only)
 		usb_redriver_disconnect_checked(usb->redriver);
 	pong_usb_power_off(usb);
+	pong_usb_gdsc_off(usb);
 }
 
 static int pong_usb_pm_suspend(struct device *dev)
@@ -409,11 +444,14 @@ static int pong_usb_pm_resume(struct device *dev)
 
 	if (!usb || !usb->pm_off)
 		return 0;
-	usb->pm_off = false;
 	ret = pong_usb_power_on(usb);
-	if (ret)
-		dev_err(dev, "PONG618_USB34 resume power on failed: %d\n", ret);
-	return ret;
+	if (ret) {
+		/* keep pm_off: the next resume tries again instead of leaving USB dead */
+		dev_err(dev, "PONG618_USB36 resume power on failed: %d (retry at next resume)\n", ret);
+		return 0;
+	}
+	usb->pm_off = false;
+	return 0;
 }
 
 static DEFINE_SIMPLE_DEV_PM_OPS(pong_usb_pm_ops, pong_usb_pm_suspend, pong_usb_pm_resume);
