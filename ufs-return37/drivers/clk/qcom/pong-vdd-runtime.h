@@ -200,6 +200,14 @@ static int pong_vdd_init(struct device *dev)
 }
 static void pong_vdd_sync_state(struct device *dev)
 {
+ /*
+  * PONG CLG37: release the boot-enabled clocks held by clk_core_hold_state()
+  * (the native driver used qcom_cc_sync_state/clk_sync_state here). Without it every
+  * GCC clock the bootloader left on keeps an extra reference forever: PCIe1 rchng,
+  * USB master, QUP SEs..., so bi_tcxo stays voted in the sleep set and CXSD never happens.
+  * Done before dropping the boot voltage vote, which then covers the unprepares.
+  */
+ clk_sync_state(dev);
  if (pong_vdd_set_boot(0)) dev_warn(dev, "GCC boot voltage vote retained\n");
 }
 static int pong_vdd_register(struct device *dev)
