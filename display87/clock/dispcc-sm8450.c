@@ -1777,56 +1777,149 @@ MODULE_DEVICE_TABLE(of, disp_cc_sm8450_match_table);
  * Vendor gdsc-regulator retains MDSS ownership; this provider owns no GDSC.
  * No active bootloader PLL may be disabled during provider registration.
  */
-struct pong87_dispcc_power { struct regulator *rails[2]; bool voted[2], enabled[2]; struct clk *xo, *iface; bool released; };
-/*
- * PONG CLG42: the votes above were permanent: bi_tcxo, vdd_mxa and vdd_mm at level 256 stayed
- * on through system suspend. RPMh sleep-set trace: xo.lvl never changed and mx.lvl stayed at
- * NOM on every suspend, so HLOS blocked CXSD. Drop them for system suspend only, while no
- * display clock is prepared. Boot, splash and runtime display behaviour are unchanged.
- */
-static struct pong87_dispcc_power *pong87_power;
+#define PONG87_DISPCC_NOM	256
+
+struct pong87_dispcc_power {
+	struct regulator *rails[2];
+	struct clk *clks[2];
+	bool voted[2];
+	bool enabled[2];
+	int disable_error[2];
+	bool clocks_on[2];
+};
+
+/* Release the CLG42 probe votes only while the display is idle. */
 static bool pong_dispcc_sleep_release = true;
 module_param(pong_dispcc_sleep_release, bool, 0644);
 MODULE_PARM_DESC(pong_dispcc_sleep_release, "Pong: release XO and rail votes in system suspend");
+
+static int pong87_dispcc_restore(struct pong87_dispcc_power *p)
+{
+	int i, ret, uncertain = 0;
+
+	for (i = 0; i < ARRAY_SIZE(p->rails); i++) {
+		if (p->disable_error[i]) {
+			/*
+			 * regulator_disable() may fail on the parent after
+			 * dropping our consumer reference. Do not guess it.
+			 * Restore clocks only if the supply reports power.
+			 */
+			if (regulator_is_enabled(p->rails[i]) <= 0)
+				return p->disable_error[i];
+			uncertain = p->disable_error[i];
+			continue;
+		}
+		if (!p->voted[i]) {
+			ret = regulator_set_voltage(p->rails[i], PONG87_DISPCC_NOM,
+						    INT_MAX);
+			if (ret)
+				return ret;
+			p->voted[i] = true;
+		}
+		if (!p->enabled[i]) {
+			ret = regulator_enable(p->rails[i]);
+			if (ret)
+				return ret;
+			p->enabled[i] = true;
+		}
+	}
+
+	for (i = 0; i < ARRAY_SIZE(p->clks); i++) {
+		if (p->clocks_on[i])
+			continue;
+		ret = clk_prepare_enable(p->clks[i]);
+		if (ret)
+			return ret;
+		p->clocks_on[i] = true;
+	}
+
+	return uncertain;
+}
+
+static void pong87_dispcc_drop_clocks(struct pong87_dispcc_power *p)
+{
+	int i;
+
+	for (i = ARRAY_SIZE(p->clks) - 1; i >= 0; i--) {
+		if (!p->clocks_on[i])
+			continue;
+		clk_disable_unprepare(p->clks[i]);
+		p->clocks_on[i] = false;
+	}
+}
+
+static int pong87_dispcc_drop_rail(struct pong87_dispcc_power *p, int i)
+{
+	int ret;
+
+	if (p->disable_error[i])
+		return p->disable_error[i];
+
+	if (p->enabled[i]) {
+		ret = regulator_disable(p->rails[i]);
+		if (ret) {
+			p->disable_error[i] = ret;
+			return ret;
+		}
+		p->enabled[i] = false;
+	}
+	if (p->voted[i]) {
+		ret = regulator_set_voltage(p->rails[i], 0, INT_MAX);
+		if (ret)
+			return ret;
+		p->voted[i] = false;
+	}
+
+	return 0;
+}
+
 static void pong87_dispcc_unpower(void *data)
 {
- struct pong87_dispcc_power *p = data;
- int i;
- for (i = 1; i >= 0; i--) {
-  if (p->enabled[i] && regulator_disable(p->rails[i])) pr_warn("DISPCC87 rail disable failed\n");
-  if (p->voted[i] && regulator_set_voltage(p->rails[i], 0, INT_MAX)) pr_warn("DISPCC87 vote release failed\n");
- }
+	struct pong87_dispcc_power *p = data;
+	int i, ret;
+
+	pong87_dispcc_drop_clocks(p);
+	for (i = ARRAY_SIZE(p->rails) - 1; i >= 0; i--) {
+		ret = pong87_dispcc_drop_rail(p, i);
+		if (ret)
+			pr_warn("DISPCC87 release supply %d failed: %d\n", i, ret);
+	}
 }
+
 static int pong87_dispcc_power(struct device *dev)
 {
- static const char * const names[] = { "vdd_mm", "vdd_mxa" };
- struct pong87_dispcc_power *p;
- struct clk *clk;
- int i, ret;
- p = devm_kzalloc(dev, sizeof(*p), GFP_KERNEL);
- if (!p) return -ENOMEM;
- for (i = 0; i < 2; i++) {
-  p->rails[i] = devm_regulator_get(dev, names[i]);
-  if (IS_ERR(p->rails[i])) return dev_err_probe(dev, PTR_ERR(p->rails[i]), "DISPCC87 supply\n");
- }
- ret = devm_add_action_or_reset(dev, pong87_dispcc_unpower, p);
- if (ret) return ret;
- for (i = 0; i < 2; i++) {
-  ret = regulator_set_voltage(p->rails[i], 256, INT_MAX);
-  if (ret) return ret;
-  p->voted[i] = true;
-  ret = regulator_enable(p->rails[i]);
-  if (ret) return ret;
-  p->enabled[i] = true;
- }
- clk = devm_clk_get_enabled(dev, "bi_tcxo");
- if (IS_ERR(clk)) return dev_err_probe(dev, PTR_ERR(clk), "DISPCC87 XO\n");
- p->xo = clk;
- clk = devm_clk_get_enabled(dev, "iface");
- if (IS_ERR(clk)) return dev_err_probe(dev, PTR_ERR(clk), "DISPCC87 AHB\n");
- p->iface = clk;
- pong87_power = p;
- return 0;
+	static const char * const names[] = { "vdd_mm", "vdd_mxa" };
+	static const char * const clock_names[] = { "bi_tcxo", "iface" };
+	struct pong87_dispcc_power *p;
+	int i, ret;
+
+	p = devm_kzalloc(dev, sizeof(*p), GFP_KERNEL);
+	if (!p)
+		return -ENOMEM;
+	for (i = 0; i < ARRAY_SIZE(p->rails); i++) {
+		p->rails[i] = devm_regulator_get(dev, names[i]);
+		if (IS_ERR(p->rails[i]))
+			return dev_err_probe(dev, PTR_ERR(p->rails[i]),
+					     "DISPCC87 supply %s\n", names[i]);
+	}
+
+	for (i = 0; i < ARRAY_SIZE(p->clks); i++) {
+		p->clks[i] = devm_clk_get(dev, clock_names[i]);
+		if (IS_ERR(p->clks[i]))
+			return dev_err_probe(dev, PTR_ERR(p->clks[i]),
+					     "DISPCC87 input clock %s\n", clock_names[i]);
+	}
+
+	ret = devm_add_action_or_reset(dev, pong87_dispcc_unpower, p);
+	if (ret)
+		return ret;
+
+	ret = pong87_dispcc_restore(p);
+	if (ret)
+		return dev_err_probe(dev, ret, "DISPCC87 power setup\n");
+
+	dev_set_drvdata(dev, p);
+	return 0;
 }
 static int pong87_ole_configure(struct device *dev, struct clk_alpha_pll *pll,
  struct regmap *map, const struct alpha_pll_config *config)
@@ -1908,47 +2001,46 @@ err_put_rpm:
 
 static int pong87_suspend_late(struct device *dev)
 {
-	struct pong87_dispcc_power *p = pong87_power;
-	int i;
+	struct pong87_dispcc_power *p = dev_get_drvdata(dev);
+	int i, ret, restore;
 
-	if (!p || !pong_dispcc_sleep_release || p->released)
+	/* Recover a partial resume before attempting another power-down. */
+	ret = pong87_dispcc_restore(p);
+	if (ret) {
+		dev_err(dev, "DISPCC87 pre-suspend restore failed: %d\n", ret);
+		return ret;
+	}
+
+	if (!READ_ONCE(pong_dispcc_sleep_release))
 		return 0;
 	if (clk_hw_is_prepared(&disp_cc_mdss_ahb_clk.clkr.hw)) {
 		dev_info_once(dev, "PONG_CLG42 display clocks prepared, keeping votes\n");
 		return 0;
 	}
-	clk_disable_unprepare(p->iface);
-	clk_disable_unprepare(p->xo);
-	for (i = 1; i >= 0; i--) {
-		regulator_disable(p->rails[i]);
-		regulator_set_voltage(p->rails[i], 0, INT_MAX);
+
+	pong87_dispcc_drop_clocks(p);
+	for (i = ARRAY_SIZE(p->rails) - 1; i >= 0; i--) {
+		ret = pong87_dispcc_drop_rail(p, i);
+		if (ret)
+			goto rollback;
 	}
-	p->released = true;
 	return 0;
+
+rollback:
+	dev_err(dev, "DISPCC87 suspend release failed on supply %d: %d\n", i, ret);
+	restore = pong87_dispcc_restore(p);
+	if (restore)
+		dev_err(dev, "DISPCC87 suspend rollback failed: %d\n", restore);
+	return ret;
 }
 
 static int pong87_resume_early(struct device *dev)
 {
-	struct pong87_dispcc_power *p = pong87_power;
-	int i, ret;
+	int ret = pong87_dispcc_restore(dev_get_drvdata(dev));
 
-	if (!p || !p->released)
-		return 0;
-	for (i = 0; i < 2; i++) {
-		ret = regulator_set_voltage(p->rails[i], 256, INT_MAX);
-		if (!ret)
-			ret = regulator_enable(p->rails[i]);
-		if (ret)
-			dev_err(dev, "PONG_CLG42 rail %d restore failed: %d\n", i, ret);
-	}
-	ret = clk_prepare_enable(p->xo);
 	if (ret)
-		dev_err(dev, "PONG_CLG42 XO restore failed: %d\n", ret);
-	ret = clk_prepare_enable(p->iface);
-	if (ret)
-		dev_err(dev, "PONG_CLG42 AHB restore failed: %d\n", ret);
-	p->released = false;
-	return 0;
+		dev_err(dev, "DISPCC87 resume restore failed: %d\n", ret);
+	return ret;
 }
 
 static const struct dev_pm_ops pong87_dispcc_pm_ops = {
