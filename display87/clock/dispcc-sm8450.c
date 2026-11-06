@@ -1777,7 +1777,17 @@ MODULE_DEVICE_TABLE(of, disp_cc_sm8450_match_table);
  * Vendor gdsc-regulator retains MDSS ownership; this provider owns no GDSC.
  * No active bootloader PLL may be disabled during provider registration.
  */
-struct pong87_dispcc_power { struct regulator *rails[2]; bool voted[2], enabled[2]; };
+struct pong87_dispcc_power { struct regulator *rails[2]; bool voted[2], enabled[2]; struct clk *xo, *iface; bool released; };
+/*
+ * PONG CLG42: the votes above were permanent: bi_tcxo, vdd_mxa and vdd_mm at level 256 stayed
+ * on through system suspend. RPMh sleep-set trace: xo.lvl never changed and mx.lvl stayed at
+ * NOM on every suspend, so HLOS blocked CXSD. Drop them for system suspend only, while no
+ * display clock is prepared. Boot, splash and runtime display behaviour are unchanged.
+ */
+static struct pong87_dispcc_power *pong87_power;
+static bool pong_dispcc_sleep_release = true;
+module_param(pong_dispcc_sleep_release, bool, 0644);
+MODULE_PARM_DESC(pong_dispcc_sleep_release, "Pong: release XO and rail votes in system suspend");
 static void pong87_dispcc_unpower(void *data)
 {
  struct pong87_dispcc_power *p = data;
@@ -1811,8 +1821,11 @@ static int pong87_dispcc_power(struct device *dev)
  }
  clk = devm_clk_get_enabled(dev, "bi_tcxo");
  if (IS_ERR(clk)) return dev_err_probe(dev, PTR_ERR(clk), "DISPCC87 XO\n");
+ p->xo = clk;
  clk = devm_clk_get_enabled(dev, "iface");
  if (IS_ERR(clk)) return dev_err_probe(dev, PTR_ERR(clk), "DISPCC87 AHB\n");
+ p->iface = clk;
+ pong87_power = p;
  return 0;
 }
 static int pong87_ole_configure(struct device *dev, struct clk_alpha_pll *pll,
@@ -1893,10 +1906,60 @@ err_put_rpm:
 	return ret;
 }
 
+static int pong87_suspend_late(struct device *dev)
+{
+	struct pong87_dispcc_power *p = pong87_power;
+	int i;
+
+	if (!p || !pong_dispcc_sleep_release || p->released)
+		return 0;
+	if (clk_hw_is_prepared(&disp_cc_mdss_ahb_clk.clkr.hw)) {
+		dev_info_once(dev, "PONG_CLG42 display clocks prepared, keeping votes\n");
+		return 0;
+	}
+	clk_disable_unprepare(p->iface);
+	clk_disable_unprepare(p->xo);
+	for (i = 1; i >= 0; i--) {
+		regulator_disable(p->rails[i]);
+		regulator_set_voltage(p->rails[i], 0, INT_MAX);
+	}
+	p->released = true;
+	return 0;
+}
+
+static int pong87_resume_early(struct device *dev)
+{
+	struct pong87_dispcc_power *p = pong87_power;
+	int i, ret;
+
+	if (!p || !p->released)
+		return 0;
+	for (i = 0; i < 2; i++) {
+		ret = regulator_set_voltage(p->rails[i], 256, INT_MAX);
+		if (!ret)
+			ret = regulator_enable(p->rails[i]);
+		if (ret)
+			dev_err(dev, "PONG_CLG42 rail %d restore failed: %d\n", i, ret);
+	}
+	ret = clk_prepare_enable(p->xo);
+	if (ret)
+		dev_err(dev, "PONG_CLG42 XO restore failed: %d\n", ret);
+	ret = clk_prepare_enable(p->iface);
+	if (ret)
+		dev_err(dev, "PONG_CLG42 AHB restore failed: %d\n", ret);
+	p->released = false;
+	return 0;
+}
+
+static const struct dev_pm_ops pong87_dispcc_pm_ops = {
+	LATE_SYSTEM_SLEEP_PM_OPS(pong87_suspend_late, pong87_resume_early)
+};
+
 static struct platform_driver disp_cc_sm8450_driver = {
 	.probe = disp_cc_sm8450_probe,
 	.driver = {
 		.name = "disp_cc-sm8450",
+		.pm = pm_sleep_ptr(&pong87_dispcc_pm_ops),
 		.of_match_table = disp_cc_sm8450_match_table,
 	},
 };
