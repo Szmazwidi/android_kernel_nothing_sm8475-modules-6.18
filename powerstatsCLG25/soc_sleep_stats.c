@@ -23,9 +23,6 @@
 
 #define RPMH_STATS_OFFSET	0x48	/* upstream qcom_stats rpmh_data */
 #define NUM_RECORDS		2
-#define COUNT_OFFSET		0x4
-#define ACCUMULATED_OFFSET	0x18
-#define RECORD_SIZE		0x18	/* struct sleep_stats */
 
 struct sleep_stats {
 	u32 stat_type;
@@ -71,9 +68,10 @@ static ssize_t nt_rpmh_stats_show(struct kobject *kobj, struct kobj_attribute *a
 	int i;
 
 	for (i = 0; i < NUM_RECORDS; i++) {
-		void __iomem *base = nt_base + i * RECORD_SIZE;
-		u32 count = readl(base + COUNT_OFFSET);
-		u64 accumulated = readq(base + ACCUMULATED_OFFSET);
+		/* Match the record layout used by the qcom_stats driver. */
+		void __iomem *base = nt_base + i * sizeof(struct sleep_stats);
+		u32 count = readl(base + offsetof(struct sleep_stats, count));
+		u64 accumulated = readq(base + offsetof(struct sleep_stats, accumulated));
 
 		len += sysfs_emit_at(buf, len, fmt[i], count, nt_ticks_to_ms(accumulated));
 	}
