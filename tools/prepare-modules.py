@@ -31,7 +31,7 @@ def sign_payload(body, key, certificate_pem):
     """Detached SHA-256 CMS, matching the kernel PKCS#7 module trailer.
 
     Use full host OpenSSL CMS for an independently checked final signing path;
-    native kernel signature verification and the exact payload gate stay on.
+    native kernel signature verification stays on in both profiles.
     """
     signature = subprocess.run(['openssl', 'cms', '-sign', '-binary', '-noattr', '-nocerts',
                                 '-nosmimecap', '-md', 'sha256', '-outform', 'DER',
@@ -90,6 +90,8 @@ def sign(args):
     assert config.is_file(), 'Use Image from the final Kleaf dist, with config and symvers alongside it'
     assert 'CONFIG_MODULE_SIG_FORCE=y' in config.read_text(), 'Final kernel must enforce signatures'
     assert 'CONFIG_MODULE_SIG_SHA256=y' in config.read_text(), 'Final kernel must select SHA256 signing'
+    if args.profile == 'community':
+        assert 'CONFIG_PONG_LAB_GUARDS=y' not in config.read_text(), 'Community signing requires guards compiled out'
     symvers = next((final/n for n in ['Module.symvers', 'kernel_aarch64_Module.symvers'] if (final/n).is_file()), None)
     assert symvers, 'Final kernel symvers missing'
     # Recheck the frozen set against the final kernel, not only the first-pass
@@ -123,9 +125,10 @@ def sign(args):
         body = (args.frozen/'modules'/name).read_bytes()
         if sha(body) != row['payload_sha256'] or len(body) != row['payload_bytes']:
             raise ValueError('Frozen module changed: '+name)
-        entry = struct.pack('<Q', len(body))+hashlib.sha256(body).digest()
-        if entry not in image:
-            raise ValueError('Final Image does not embed the frozen payload entry: '+name)
+        if args.profile == 'lab':
+            entry = struct.pack('<Q', len(body))+hashlib.sha256(body).digest()
+            if entry not in image:
+                raise ValueError('Final Image does not embed the frozen payload entry: '+name)
     if args.output.exists() and any(args.output.iterdir()):
         raise ValueError('Signing output must be new/empty; no implicit re-signing')
     args.output.mkdir(parents=True, exist_ok=True)
@@ -157,6 +160,8 @@ def sign(args):
                   hardware_tested=False, phone_operations=0, private_key_copied=False)
     result['final_ABI_verified'] = True
     result['signature_force_config_verified'] = True
+    result['kernel_profile'] = args.profile
+    result['immutable_payload_admission_enforced'] = args.profile == 'lab'
     (args.output/'manifest.json').write_text(json.dumps(result, indent=2)+'\n')
     print(result['status'], len(rows))
 
@@ -171,6 +176,8 @@ def main():
     for name in ['frozen', 'image', 'key', 'cert', 'output']:
         s.add_argument('--'+name, type=Path, required=True)
     s.add_argument('--sign-file', type=Path, help='Legacy argument; final signatures use OpenSSL CMS SHA-256')
+    s.add_argument('--profile', choices=('lab', 'community'), default='lab',
+                   help='Community explicitly selects signature admission without the handset LAB payload list')
     args = parser.parse_args()
     (freeze if args.command == 'freeze' else sign)(args)
 

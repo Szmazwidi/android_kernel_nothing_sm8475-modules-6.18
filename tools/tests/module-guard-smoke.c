@@ -49,6 +49,8 @@ __attribute__((noreturn)) void _start(void)
         word result = fd < 0 ? fd : call(273, fd, (word)"", 0, 0, 0, 0);
         if (fd >= 0) call(57, fd, 0, 0, 0, 0, 0);
         result_line(files[i], result);
+        if (result == 0 && call(106, (word)"libarc4", 0, 0, 0, 0, 0) != 0)
+            say("PONG_GUARD_UNLOAD_FAILED\n");
     }
     say("PONG_GUARD_DONE\n");
     call(142, 0xfee1dead, 0x28121969, 0x4321fedc, 0, 0, 0);

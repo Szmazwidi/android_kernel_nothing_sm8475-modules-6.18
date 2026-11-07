@@ -39,6 +39,7 @@ def main():
     parser.add_argument('--sign-file', type=Path, help='Legacy argument, unused with OpenSSL CMS')
     parser.add_argument('--qemu-data', type=Path)
     parser.add_argument('--clang', default='clang')
+    parser.add_argument('--profile', choices=('lab', 'community'), default='lab')
     args = parser.parse_args()
     os.umask(0o077)
     args.output.mkdir(mode=0o700, parents=True, exist_ok=False)
@@ -62,7 +63,8 @@ def main():
     bad = bytearray((out/'good.ko').read_bytes())
     bad[-len(MAGIC)-12-1] ^= 1  # RSA signature byte, not ASN.1/trailer structure.
     (out/'corrupt-signature.ko').write_bytes(bad)
-    changed = bytearray(source.read_bytes()); changed[-1] ^= 1
+    # Trailing data changes the admitted payload without corrupting ELF sections.
+    changed = source.read_bytes() + b'\0'
     (out/'changed-signed.ko').write_bytes(changed)
     inform = 'PEM' if args.cert.read_bytes().startswith(b'-----BEGIN') else 'DER'
     pem = subprocess.check_output(['openssl', 'x509', '-inform', inform, '-in', str(args.cert), '-outform', 'PEM'])
@@ -103,13 +105,15 @@ def main():
     text = log.read_text(errors='replace') if log.exists() else ''
     results = {name: int(value) for name, value in re.findall(r'PONG_GUARD_MODULE /(\S+) (-?\d+)', text)}
     expected = {'unsigned.ko': -129, 'wrong-key.ko': -129, 'corrupt-signature.ko': -129,
-                'changed-signed.ko': -1, 'good.ko': 0}
-    passed = results == expected and 'PONG_GUARD_ENFORCE Y' in text and 'PONG_GUARD_DONE' in text
+                'changed-signed.ko': -1 if args.profile == 'lab' else 0, 'good.ko': 0}
+    passed = (results == expected and 'PONG_GUARD_ENFORCE Y' in text
+              and 'PONG_GUARD_DONE' in text and 'PONG_GUARD_UNLOAD_FAILED' not in text)
     result = dict(status='PASS' if passed else 'FAIL', results=results, expected=expected,
                   forced_by_default='PONG_GUARD_ENFORCE Y' in text,
                   kernel_sha256=hashlib.sha256(args.kernel.read_bytes()).hexdigest(),
                   seconds=round(time.monotonic()-start, 2), phone_operations=0,
                   disks_attached=0, hardware_tested=False)
+    result['kernel_profile'] = args.profile
     (out/'report.json').write_text(json.dumps(result, indent=2)+'\n')
     print(json.dumps(result))
     return 0 if passed else 1

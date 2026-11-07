@@ -1,186 +1,96 @@
-# Nothing Phone (2): android17-6.18.60 vendor modules
+# Nothing Phone (2), Android 17 and Linux 6.18.60
 
-**6.18.60 native Android qualification is in progress.** The complete signed
-QRTR256 source bank boots the November 1 Android 17 ROM with full RAM, root,
-SELinux enforcing and forced signatures. All 262 module ABI/signature checks,
-immutable admission and bounded QRTR lookup VM tests passed. Native startup
-exposes 41 sensors and five internal camera devices. Normal-UID Camera2
-front/main frames and an interface-bound cellular Internet ping passed.
-Overnight WLAN suspend/resume stability and background diagnostics remain open.
-See [native qualification](docs/build-evidence/native-qrtr256-20261102.json)
-and the preserved earlier failures in
-[runtime regression](docs/runtime-regression-6.18.60.md).
-The later [native stability update](docs/build-evidence/native-stability-20261102.json)
-qualifies source-built CDSP startup without the old ENODEV loop, fingerprint
-publication after hardware readiness, and physical camera enumeration without
-an unnecessary provider refresh or additional SELinux allow rules. The current
-ROM recipe is the `6.18.60-stability` manifest; a complete new OTA ZIP and an
-overnight stability run remain unqualified.
-The preserved 6.18.59 branch remains the remote default.
+This source candidate selects **293 modules**, comprising 209 vendor modules
+and 84 GKI modules, with 100 modules in the first-stage vendor ramdisk.
+It contains the CLG43 source cohort. OTG/UCSI and FSA4480 development remains
+on separate branches.
 
+The kernel and module repositories preserve ACK, stable and vendor history.
+Existing source notices, donor commits and local adaptation scope are documented
+in [provenance](docs/provenance-guide.md). The kernel release is an Android
+port with device support changes.
 
-**Local CLG277 integration update (2026-11-02):** this checkout now includes
-193 vendor outputs plus 84 GKI modules, including the Claude CLG3/CLG8 platform
-ports and the focused QMI temperature-sentinel fix. The default build wrappers
-select the explicit LAB profile and
-`docs/build-reference-6.18.60-CLG277.json`; they retain signature enforcement and
-all LAB write guards. See [CLG277 evidence and limits](docs/CLG277.md).
-The older 262-module manifests below remain historical pinned checkpoints;
-they do not acquire the new packages automatically. A fresh full resync/build
-and complete OTA of CLG277 are not yet qualified.
+## Build the community candidate
 
-Source release branch: `pong-a17-6.18.60`. The older `pong-a17-6.18.32` branch
-is preserved as the historical image-734 checkpoint. The preserved QRTR256 checkpoint contains178 vendor outputs plus84 GKI modules.
-The current CLG277 integration contains **193 vendor outputs** plus
-**84 reference GKI modules**, built with the explicit companion LAB profile.
-
-Kernel: [android_kernel_nothing_sm8475-6.18](https://github.com/Szmazwidi/android_kernel_nothing_sm8475-6.18/tree/pong-a17-6.18.60).
-The kernel retains Linux/ACK/stable history, the U59 integration and its KMI
-reverts. Its 6.18.60 release string does not imply an unmodified mainline tree.
-
-For the captured complete ROM recipe and the actual AIDL/HIDL selection, see
-[ROM source state](docs/rom/README.md) and [HAL interfaces](docs/hal-interfaces.md).
-
-## Build the preserved pinned 262-module source set
-
-The repositories are private at present. Configure your normal GitHub Git
-credentials first; do not put access tokens into commands, manifests or commits.
-The final XML pins the verified source commits. A subsequent documentation-only
-commit stores that lock without changing the compiled source inputs.
+Install the normal Android kernel host dependencies, `repo` and AArch64 system
+QEMU. Keep the support clone outside the Kleaf workspace.
 
 ```sh
-git clone --branch pong-a17-6.18.60 --single-branch \
+git clone --branch pong-a17-6.18.60-community-clg43 --single-branch \
   https://github.com/Szmazwidi/android_kernel_nothing_sm8475-modules-6.18.git pong-source
 mkdir pong-workspace && cd pong-workspace
 repo init -u https://android.googlesource.com/kernel/manifest -b common-android17-6.18
-cp ../pong-source/docs/manifest/pong618-6.18.60.xml .repo/manifests/pong618.xml
+cp ../pong-source/docs/manifest/pong618-6.18.60-community.xml .repo/manifests/pong618.xml
 repo init -m pong618.xml
 repo sync -c -j4
-bash devices/pong618/tools/build-pong.sh
-```
-
-Run the build script from the workspace root. It builds the kernel and the whole
-vendor output set, then checks output coverage, ELF identity, dependencies and imported-symbol
-CRCs of **all 262 selected modules**, including GKI providers. Only actual selected
-ELF exports and built-in kernel exports can satisfy imports; stale DDK cache
-metadata cannot make the check pass. Set `PONG_BUILD_JOBS` and `PONG_BUILD_MEMORY_MIB` to control resources;
-`PONG_OUT` selects the output directory. No old `.ko`, `Module.symvers`, private
-key, phone access or `/mnt/storage` work folder is needed as an input.
-
-The script is an ordinary wrapper around:
-
-```sh
-tools/bazel run //common:kernel_aarch64_dist -- --destdir=out/pong/kernel
-tools/bazel run //devices/pong618:pong_dist -- --destdir=out/pong/modules
-```
-
-See `docs/build-reference-6.18.60.json` for every selected vendor target and GKI
-filename. `build/providers.bzl` obtains symbol providers from source builds.
-The original stage-based package paths are retained for traceability and to
-avoid gratuitous source-path/BTF changes.
-
-## Complete build of a selected source cohort
-
-For the current CLG277 checkout, first use the matching CLG1 kernel source
-and prerequisites in [CLG277](docs/CLG277.md). With an AArch64 system QEMU installed:
-
-```sh
+PONG_REFERENCE=devices/pong618/docs/build-reference-6.18.60-community.json \
 PONG_QEMU=/absolute/path/to/qemu-system-aarch64 \
-PONG_OUT=out/pong-release bash devices/pong618/tools/build-release.sh
+PONG_OUT=out/pong-community \
+bash devices/pong618/tools/build-release.sh
 ```
 
-This runs the complete first pass, freezes the exact bank, rebuilds the final
-kernel policy, signs and rechecks all modules, and executes the diskless VM
-positive/negative tests. It restores the original policy on normal success or
-failure, refuses concurrent policy edits, and retains logs/frozen artifacts on
-a build error. `--help` lists resource/QEMU options. Private keys stay local.
-The existing `build-pong.sh` and manual commands below remain the phase-by-phase
-alternative. Host artifact qualification is separate from phone qualification.
+`PONG_BUILD_JOBS`, `PONG_BUILD_MEMORY_MIB`, `PONG_QEMU_DATA` and `PONG_CLANG`
+select host resources and emulator/compiler paths. The build creates the kernel,
+all selected vendor targets, a frozen module bank, final signatures and diskless
+VM tests. Actual selected ELF exports and the kernel symvers must satisfy every
+import and CRC. Stale DDK provider metadata cannot satisfy a missing module.
 
-## Before packaging for hardware
+No prebuilt `.ko`, private signing key, phone connection or maintainer working
+directory is required as an input. A fresh build generates its own module key.
+The `kernel-final`, `signed` and `frozen` output directories are the input to the
+companion Pong-kernel importer, with the same reference and exact startup lists.
 
-Compilation is distinct from runtime qualification. The fresh-build report
-records what was actually tested on the host; it does not assert that these
-new local-key artifacts were flashed. The laboratory runtime reference is CLS38 (BT_EN kept asserted while WLAN is
-powered, WLAN cold boot calibration off, qrtr-mhi without MHISTATUS reads in
-suspend_late, cnss2 non-DRV system suspend). Current source snapshots can include
-ongoing driver work; inspect the source manifest and commit history.
+## Community and LAB profiles
 
-A fresh key and a changed BTF layout mean the old laboratory payload allowlist
-will not admit newly built modules. Generate a list from the complete first-pass
-module set, keep that module set, rebuild only the kernel, then sign with its key:
+The community reference builds with `CONFIG_PONG_LAB_GUARDS` disabled. Standard
+Linux module signature admission remains enforced through
+`CONFIG_MODULE_SIG_FORCE=y` and SHA-256. The VM checks trusted modules and rejects
+unsigned modules, unknown keys and damaged signatures.
 
-```sh
-# build-pong.sh creates frozen/ with only the selected 178+84 payloads.
-cp out/pong/frozen/pong251-module-policy.h common/kernel/module/pong251-module-policy.h
-PONG_RELEASE_OUT="$(realpath out/pong)"
-tools/bazel "--output_root=$PONG_RELEASE_OUT/bazel" --host_jvm_args=-Xmx2048m run \
-  --jobs=4 --make_jobs=4 --local_resources=memory=7168 \
-  //common:kernel_aarch64_dist -- "--destdir=$PONG_RELEASE_OUT/kernel-final"
-python3 devices/pong618/tools/prepare-modules.py sign \
-  --frozen out/pong/frozen --image out/pong/kernel-final/Image \
-  --key bazel-bin/common/kernel_aarch64/certs/signing_key.pem \
-  --cert bazel-bin/common/kernel_aarch64/certs/signing_key.x509 \
-  --output out/pong/signed
-```
+The default wrappers retain the explicit LAB profile and
+`docs/build-reference-6.18.60-CLG43.json`. LAB keeps the fixed-UFS write/mount
+guards and immutable module payload admission for the development handset.
+Its two-pass build freezes the payloads, rebuilds the exact admission list and
+re-signs the bank. A trusted signature on a different payload is still rejected
+in LAB. Both profiles have positive and negative VM test expectations.
 
-The signing tool rechecks all 262 frozen modules against the final kernel ABI,
-requires its signature-force configuration, and checks all selected payload
-entries and the public certificate
-inside the final Image, then verifies every signature cryptographically against
-that certificate. A different image/key or changed frozen file is rejected.
-Keep the private key outside Git and other shared artifacts. The unmodified
-source policy can be restored after the final Image is saved; retain the generated
-policy and frozen manifest alongside the build evidence.
+See [Community CLG43](docs/COMMUNITY-CLG43.md) for the profile selection and
+packaging requirements. Preserve the generated module key outside Git when
+retaining a build. ROM APK/APEX/OTA/AVB signing identities are separate from
+the kernel module certificate.
 
-Use the first-pass module files when signing/packaging, not a new DDK rebuild
-against the changed final vmlinux BTF. Native signatures remain required. The source configuration enables
-`CONFIG_MODULE_SIG_FORCE=y`, automatic GKI signing and SHA-256. The old
-sign-file compatibility check incorrectly assumed every PKCS#7 fallback used
-SHA-1; BoringSSL actually uses RSA/SHA-256. The narrow BoringSSL-specific fix
-preserves the legacy OpenSSL fallback and keeps the GKI KMI checks enabled.
-Final frozen modules also use independently verified host OpenSSL CMS SHA-256.
-`CONFIG_MODULE_ALLOW_BTF_MISMATCH` is an existing requirement of this two-pass
-workflow. The image tools support signing with the builder's final key.
+## Runtime and ROM qualification
 
-`tools/images/` remains the **historical image-734 packaging recipe**. Its lists
-and userspace startup profile are not the current CLS38 profile. Do not present
-that old recipe as a tested 262-module Android image. Building a complete ROM
-also needs a matching userspace/firmware, device tree, startup ordering and
-compatibility policy; proprietary userspace blobs are not supplied here.
-There is no automatic flashing step. Physical write guards and RAM hot-add are
-specific to the tested hardware/partition geometry; do not assume an 8 GB SKU
-has the 12 GB hot-add memory ranges.
+The development CLG43 kernel combines the DISPCC recovery and PowerStats record
+fix with the tested clock handoff and USB reset changes. A separate LAB CLG42
+cohort reached CX shutdown and completed an overnight test. Those observations
+belong to their recorded image hashes, module parameters and boot IDs.
 
-## Runtime reference and outstanding work
+The community source candidate requires its own complete ROM boot, checkpoint,
+data-preserving update and hardware qualification. Host build and VM reports
+record those limits. Match the device sources, DTB/DTBO, firmware prerequisites,
+module options and init load ordering when packaging a ROM. WLAN calibration
+and DRV options must match the qualified companion prebuilt.
 
-On the development phone, the port has booted native Android with display/touch,
-audio, camera preview/JPEG, sensors, mobile data, CPU frequency scaling and the
-12 GB resource group. These are stage-specific observations, not a guarantee
-that every fresh build or ROM configuration has all features enabled.
+The source wrappers perform host builds and tests. Flashing is a separate
+operation. Qualify supported RAM/UFS variants and the recovery path before
+claiming a general flashable release. Private user data and proprietary
+userspace/DSP firmware are not provided by this repository.
 
-CLS37/38 address the observed qrtr-mhi suspend MMIO hang and WLAN DRV link loss;
-long-duration/low-power qualification remains open. Other remaining areas include
-BT startup and interoperability, CDSP listener retries,
-an OEM telephony-class dependency in the ROM, IOMMU fault-handler API adaptation,
-UBWC compression and low-power qualification. NFC controller ON is verified;
-payment/card interoperability and other long-duration tests remain separate.
-Audio startup, module autoload switches and the companion exact-image verifier
-must be kept consistent with the deployed init RC; a new RC hash without its
-matching verifier previously disabled the RAM/NFC/Glyph/haptic group.
+Historical source recipes and qualification remain in `docs/rom/`,
+`docs/build-evidence/`, `docs/CLG277.md` and
+`docs/runtime-regression-6.18.60.md`. These preserve earlier failures and build
+inputs. Their older module counts and manifests refer to those checkpoints.
 
-## Authorship, history and licenses
+## Authorship and licenses
 
-Existing upstream history remains intact. New package imports retain their
-original notices and exact donor mappings, separately from build/integration
-changes. Full donor history is not imported for every new package path; see
-[the provenance guide](docs/provenance-guide.md). `docs/provenance.json` records
-verbatim, modified and project-local sources with exact donor revisions. Files
-whose donor is not confidently mapped are explicitly labelled; they are not
-claimed as newly authored upstream code. Source/build adaptation was prepared
-by Szmazwidi with OpenAI Codex and Anthropic Claude assistance.
+Upstream ACK/stable history, vendor notices, original licenses and commit
+trailers remain intact. Full donor history is retained where imported. Other
+package imports retain exact donor mappings in `docs/provenance.json` and
+[the provenance guide](docs/provenance-guide.md). Unmapped sources are labelled
+explicitly. Source and build adaptation was prepared by Szmazwidi with OpenAI
+Codex and Anthropic Claude assistance.
 
 Per-file SPDX and copyright notices take precedence. `LICENSES/` and `COPYING`
-are copied verbatim from the kernel license inventory; this is not a blanket
-claim that every build tool is GPL-2.0. No private signing keys, personal phone
-backups, runtime private logs or proprietary DSP/userspace firmware are included.
+retain the kernel license inventory. No private signing keys, personal backups
+or private runtime logs belong in these source repositories.

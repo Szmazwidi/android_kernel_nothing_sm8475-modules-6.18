@@ -15,7 +15,7 @@ PONG_BUILD_MEMORY_MIB=${PONG_BUILD_MEMORY_MIB:-7168}
 [[ $PONG_BUILD_JOBS =~ ^[1-9][0-9]*$ && $PONG_BUILD_MEMORY_MIB =~ ^[1-9][0-9]*$ ]] || exit 2
 mkdir -p "$PONG_OUT"
 PONG_OUT=$(cd "$PONG_OUT" && pwd)
-PONG_REFERENCE=${PONG_REFERENCE:-devices/pong618/docs/build-reference-6.18.60-CLG277.json}
+PONG_REFERENCE=${PONG_REFERENCE:-devices/pong618/docs/build-reference-6.18.60-CLG43.json}
 [[ -f $PONG_REFERENCE ]] || { echo 'Missing cohort reference.' >&2; exit 2; }
 PONG_PROFILE=$(python3 - "$PONG_REFERENCE" <<'PYPROFILE'
 import json,sys
@@ -25,7 +25,7 @@ PYPROFILE
 PONG_CONFIG_FLAGS=()
 case "$PONG_PROFILE" in
     lab) [[ -f common/arch/arm64/configs/pong_lab.fragment ]] || { echo 'Selected cohort requires the LAB Kconfig profile.' >&2; exit 2; }; PONG_CONFIG_FLAGS+=(--defconfig_fragment=//common:pong_lab_defconfig);;
-    legacy) ;;
+    community|legacy) ;;
     *) echo 'Unknown kernel profile in cohort reference.' >&2; exit 2;;
 esac
 PONG_BAZEL=(tools/bazel "--output_root=$PONG_OUT/bazel" --host_jvm_args=-Xmx2048m)
