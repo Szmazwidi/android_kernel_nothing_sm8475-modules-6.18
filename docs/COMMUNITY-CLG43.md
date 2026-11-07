@@ -48,3 +48,17 @@ instructions with the final pinned commits and SHA-256. Use the maintainer's
 release certificates for ROM updates and system packages. Existing user data
 from a test-key installation needs separate signing-migration qualification.
 Kernel-source and module-source histories and donor attribution are retained.
+
+## Recorded native ROM checks (2026-11-07)
+
+The freshly built community cohort completed a nine-image native Android update
+on one EEA 12 GB / 256 GB Pong with personal data preserved, normal checkpoint
+and Enforcing. An additional RAM boot of the unmodified source boot image
+completed Android without Magisk, then returned to the persistent rooted image.
+Front/rear video with audio, microphone, cellular validation, physical display,
+touch and fingerprint checks passed. This does not qualify all camera modes,
+a complete signed OTA, key migration, fresh installation or deep sleep.
+
+See the [immutable qualification record](https://github.com/Szmazwidi/android_device_nothing_Pong/blob/6bc47b0c532e286aaeaf7e5a8d36e0f723eb83d1/manifests/community-clg43/qualification.json)
+for the precise scope and remaining gates. The build-time manifests remain
+unchanged; runtime evidence is recorded separately.
