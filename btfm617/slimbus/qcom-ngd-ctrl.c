@@ -2019,7 +2019,6 @@ static int qcom_slim_ngd_probe(struct platform_device *pdev)
 		atomic_read(&ctrl->ctrl.dev->power.usage_count));
 
 	INIT_WORK(&ctrl->m_work, qcom_slim_ngd_master_worker);
-	INIT_WORK(&ctrl->ngd_up_work, qcom_slim_ngd_up_worker);
 	ctrl->mwq = create_singlethread_workqueue("ngd_master");
 	if (!ctrl->mwq) {
 		dev_err(&pdev->dev, "Failed to start master worker\n");
@@ -2139,13 +2138,6 @@ static int qcom_slim_ngd_ctrl_probe(struct platform_device *pdev)
 	}
 
 	ctrl->dev = dev;
-	ctrl->nb.notifier_call = qcom_slim_ngd_ssr_notify;
-	ctrl->notifier = qcom_register_ssr_notifier("lpass", &ctrl->nb);
-	if (IS_ERR(ctrl->notifier)) {
-		ret = PTR_ERR(ctrl->notifier);
-		dev_err(dev, "Failed to register SSR notification: %d\n", ret);
-		goto remove_ipc_sysfs;
-	}
 
 	ctrl->framer.rootfreq = SLIM_ROOT_FREQ >> 3;
 	ctrl->framer.superfreq =
@@ -2171,6 +2163,20 @@ static int qcom_slim_ngd_ctrl_probe(struct platform_device *pdev)
 	init_completion(&ctrl->qmi_up);
 	init_completion(&ctrl->xfer_done);
 	init_completion(&ctrl->sync_done);
+
+	/* PDR/SSR can report UP as soon as the notifier is registered.
+	 * Initialize once in the parent; never reinitialize already queued work
+	 * from the child probe. The worker waits for the child QMI service.
+	 */
+	INIT_WORK(&ctrl->ngd_up_work, qcom_slim_ngd_up_worker);
+
+	ctrl->nb.notifier_call = qcom_slim_ngd_ssr_notify;
+	ctrl->notifier = qcom_register_ssr_notifier("lpass", &ctrl->nb);
+	if (IS_ERR(ctrl->notifier)) {
+		ret = PTR_ERR(ctrl->notifier);
+		dev_err(dev, "Failed to register SSR notification: %d\n", ret);
+		goto remove_ipc_sysfs;
+	}
 
 	ctrl->pdr = pdr_handle_alloc(slim_pd_status, ctrl);
 	if (IS_ERR(ctrl->pdr)) {
@@ -2200,6 +2206,7 @@ err_pdr_lookup:
 
 err_pdr_alloc:
 	qcom_unregister_ssr_notifier(ctrl->notifier, &ctrl->nb);
+	cancel_work_sync(&ctrl->ngd_up_work);
 
 remove_ipc_sysfs:
 	if (ctrl->ipc_slimbus_log)
@@ -2230,9 +2237,10 @@ static void qcom_slim_ngd_remove(struct platform_device *pdev)
 {
 	struct qcom_slim_ngd_ctrl *ctrl = platform_get_drvdata(pdev);
 
-	pm_runtime_disable(&pdev->dev);
 	pdr_handle_release(ctrl->pdr);
 	qcom_unregister_ssr_notifier(ctrl->notifier, &ctrl->nb);
+	cancel_work_sync(&ctrl->ngd_up_work);
+	pm_runtime_disable(&pdev->dev);
 	slim_unregister_controller(&ctrl->ctrl);
 	qcom_slim_ngd_exit_dma(ctrl);
 	qcom_slim_ngd_qmi_svc_event_deinit(&ctrl->qmi);
