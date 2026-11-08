@@ -28,6 +28,7 @@
 #include "ufshcd-pltfrm.h"
 #include "ufs-qcom.h"
 #include <linux/phy/phy-qcom-ufs.h>
+#include "ufs-qcom-pong-perf.h"
 
 #define MCQ_QCFGPTR_MASK	GENMASK(7, 0)
 #define MCQ_QCFGPTR_UNIT	0x200
@@ -834,8 +835,10 @@ static int ufs_qcom_suspend(struct ufs_hba *hba, enum ufs_pm_op pm_op,
 {
 	struct ufs_qcom_host *host = ufshcd_get_variant(hba);
 
-	if (status == PRE_CHANGE)
+	if (status == PRE_CHANGE) {
+		pong_perf_quiesce(hba);
 		return 0;
+	}
 
 	if (!ufs_qcom_is_link_active(hba))
 		ufs_qcom_disable_lane_clks(host);
@@ -1714,6 +1717,8 @@ static int ufs_qcom_init(struct ufs_hba *hba)
 	if (drvdata && drvdata->no_phy_retention)
 		hba->spm_lvl = UFS_PM_LVL_5;
 
+	pong_perf_init(hba);
+
 	return 0;
 
 out_variant_clear:
@@ -1726,6 +1731,7 @@ static void ufs_qcom_exit(struct ufs_hba *hba)
 {
 	struct ufs_qcom_host *host = ufshcd_get_variant(hba);
 
+	pong_perf_exit(hba);
 	ufs_qcom_disable_lane_clks(host);
 	phy_power_off(host->generic_phy);
 	phy_exit(host->generic_phy);
@@ -2911,6 +2917,7 @@ static const struct ufs_hba_variant_ops ufs_hba_qcom_vops = {
 	.get_ufs_hci_version	= ufs_qcom_get_ufs_hci_version,
 	.clk_scale_notify	= ufs_qcom_clk_scale_notify,
 	.setup_clocks           = ufs_qcom_setup_clocks,
+	.setup_xfer_req		= pong_perf_setup_xfer_req,
 	.hce_enable_notify      = ufs_qcom_hce_enable_notify,
 	.link_startup_notify    = ufs_qcom_link_startup_notify,
 	.negotiate_pwr_mode	= ufs_qcom_negotiate_pwr_mode,
