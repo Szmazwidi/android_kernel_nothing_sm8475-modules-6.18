@@ -30,6 +30,8 @@
 #include <linux/workqueue.h>
 #include <linux/blkdev.h>
 #include <scsi/scsi_device.h>
+#include <scsi/scsi_cmnd.h>
+#include <linux/blk-mq.h>
 
 #define PONG_PERF_MAX_GROUPS 4
 
@@ -207,6 +209,12 @@ static void pong_perf_mon_work(struct work_struct *work)
 	unsigned int n = atomic_xchg(&p->reqs, 0);
 
 	mutex_lock(&p->lock);
+	if (!n && READ_ONCE(p->hba->outstanding_reqs)) {
+		/* no new request in the window but one still in flight: keep the votes */
+		mutex_unlock(&p->lock);
+		queue_delayed_work(p->wq, &p->mon_work, msecs_to_jiffies(pong_window_ms));
+		return;
+	}
 	if (!n) {
 		/*
 		 * Idle window: drop everything and stop until the next request. A vote_work
@@ -247,8 +255,8 @@ static void pong_perf_mon_work(struct work_struct *work)
 	queue_delayed_work(p->wq, &p->mon_work, msecs_to_jiffies(pong_window_ms));
 }
 
-/* Issue path: called with hba->outstanding_lock held and IRQs off. */
-static void pong_perf_on_request(struct ufs_hba *hba)
+/* Issue path: called with hba->outstanding_lock held and IRQs off. cpu = CPU that queued the request. */
+static void pong_perf_on_request(struct ufs_hba *hba, int cpu)
 {
 	struct pong_perf *p = READ_ONCE(pong_perf_inst);
 	int g;
@@ -256,7 +264,7 @@ static void pong_perf_on_request(struct ufs_hba *hba)
 	if (!p || p->hba != hba)
 		return;
 	atomic_inc(&p->reqs);
-	g = p->cpu_grp[raw_smp_processor_id()];
+	g = (cpu >= 0 && cpu < nr_cpu_ids) ? p->cpu_grp[cpu] : -1;
 	if (g >= 0 && READ_ONCE(pong_qos) && !test_bit(g, &p->voted) &&
 	    !test_and_set_bit(g, &p->pending))
 		queue_work(p->wq, &p->vote_work);
@@ -266,8 +274,19 @@ static void pong_perf_on_request(struct ufs_hba *hba)
 
 static void pong_perf_setup_xfer_req(struct ufs_hba *hba, int tag, bool is_scsi_cmd)
 {
-	if (is_scsi_cmd)
-		pong_perf_on_request(hba);
+	struct scsi_cmnd *cmd;
+	int cpu = raw_smp_processor_id();
+
+	if (!is_scsi_cmd)
+		return;
+	/*
+	 * Vote for the CPU that submitted the request (as the CLO driver's tag_to_cpu()), not the one
+	 * dispatching it: blk-mq can dispatch from a kworker on another CPU (Codex 1476 review).
+	 */
+	cmd = hba->lrb[tag].cmd;
+	if (cmd)
+		cpu = blk_mq_rq_cpu(scsi_cmd_to_rq(cmd));
+	pong_perf_on_request(hba, cpu);
 }
 
 /*
@@ -279,6 +298,7 @@ static void pong_perf_config_scsi_dev(struct scsi_device *sdev)
 {
 	struct request_queue *q = sdev->request_queue;
 
+	sdev_printk(KERN_INFO, sdev, "CLG65 rq_affinity mode %d\n", pong_rq_affinity);
 	switch (pong_rq_affinity) {
 	case 0:
 		blk_queue_flag_clear(QUEUE_FLAG_SAME_COMP, q);
