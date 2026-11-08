@@ -24,6 +24,8 @@
 #include <linux/cpumask.h>
 #include <linux/interrupt.h>
 #include <linux/irq.h>
+#include <linux/mutex.h>
+#include <linux/rcupdate.h>
 #include <linux/pm_qos.h>
 #include <linux/workqueue.h>
 
@@ -58,11 +60,12 @@ struct pong_perf {
 	struct workqueue_struct *wq;
 	struct work_struct vote_work;
 	struct delayed_work mon_work;
+	struct mutex lock;		/* serializes votes, boost and IRQ state (work items, suspend, exit) */
 	int ngroups;
 	struct pong_perf_group grp[PONG_PERF_MAX_GROUPS];
 	s8 cpu_grp[NR_CPUS];
 	unsigned long pending;		/* groups to vote, set from the issue path */
-	unsigned long voted;		/* groups voted, written by the workqueue only */
+	unsigned long voted;		/* groups voted, changed under lock only */
 	unsigned long mon_armed;	/* bit 0: monitor work queued */
 	atomic_t reqs;			/* requests in the current window */
 	/* heavy-load state, workqueue only */
@@ -81,14 +84,20 @@ static struct pong_perf *pong_perf_inst;
 
 static int pong_perf_stats_get(char *buf, const struct kernel_param *kp)
 {
-	struct pong_perf *p = READ_ONCE(pong_perf_inst);
+	struct pong_perf *p;
+	int n;
 
+	rcu_read_lock();	/* pong_perf_exit() clears the pointer and waits for readers before freeing */
+	p = rcu_dereference(pong_perf_inst);
 	if (!p)
-		return sysfs_emit(buf, "inactive\n");
-	return sysfs_emit(buf, "groups=%d voted=%#lx boosted=%d irq_prime=%d votes=%d unvotes=%d boosts=%d\n",
-			  p->ngroups, READ_ONCE(p->voted), READ_ONCE(p->boosted),
-			  READ_ONCE(p->irq_on_prime), atomic_read(&p->n_votes),
-			  atomic_read(&p->n_unvotes), atomic_read(&p->n_boosts));
+		n = sysfs_emit(buf, "inactive\n");
+	else
+		n = sysfs_emit(buf, "groups=%d voted=%#lx boosted=%d irq_prime=%d votes=%d unvotes=%d boosts=%d\n",
+			       p->ngroups, READ_ONCE(p->voted), READ_ONCE(p->boosted),
+			       READ_ONCE(p->irq_on_prime), atomic_read(&p->n_votes),
+			       atomic_read(&p->n_unvotes), atomic_read(&p->n_boosts));
+	rcu_read_unlock();
+	return n;
 }
 static const struct kernel_param_ops pong_perf_stats_ops = { .get = pong_perf_stats_get };
 module_param_cb(pong_perf_stats, &pong_perf_stats_ops, NULL, 0444);
@@ -109,13 +118,16 @@ static void pong_perf_set_irq(struct pong_perf *p, bool prime)
 
 	if (prime == p->irq_on_prime || cpumask_empty(&p->prime_mask))
 		return;
+	ret = irq_set_affinity_and_hint(hba->irq, prime ? &p->prime_mask : &p->silver_mask);
+	if (ret) {
+		/* state stays as it was, so the next window retries */
+		dev_warn_ratelimited(hba->dev, "CLG60 irq affinity prime=%d: %d\n", prime, ret);
+		return;
+	}
 	if (prime)
 		irq_modify_status(hba->irq, 0, IRQ_NO_BALANCING);
 	else
 		irq_modify_status(hba->irq, IRQ_NO_BALANCING, 0);
-	ret = irq_set_affinity_and_hint(hba->irq, prime ? &p->prime_mask : &p->silver_mask);
-	if (ret)
-		dev_warn_ratelimited(hba->dev, "CLG60 irq affinity prime=%d: %d\n", prime, ret);
 	WRITE_ONCE(p->irq_on_prime, prime);
 }
 
@@ -153,9 +165,11 @@ static void pong_perf_set_boost(struct pong_perf *p, bool on)
 static void pong_perf_vote_work(struct work_struct *work)
 {
 	struct pong_perf *p = container_of(work, struct pong_perf, vote_work);
-	unsigned long todo = xchg(&p->pending, 0);
+	unsigned long todo;
 	int g;
 
+	mutex_lock(&p->lock);
+	todo = xchg(&p->pending, 0);
 	for_each_set_bit(g, &todo, p->ngroups) {
 		if (test_bit(g, &p->voted) || !READ_ONCE(pong_qos))
 			continue;
@@ -163,12 +177,15 @@ static void pong_perf_vote_work(struct work_struct *work)
 		set_bit(g, &p->voted);
 		atomic_inc(&p->n_votes);
 	}
+	mutex_unlock(&p->lock);
 }
 
+/* Called with p->lock held. */
 static void pong_perf_release_all(struct pong_perf *p)
 {
 	int g;
 
+	lockdep_assert_held(&p->lock);
 	for (g = 0; g < p->ngroups; g++) {
 		if (!test_and_clear_bit(g, &p->voted))
 			continue;
@@ -184,10 +201,14 @@ static void pong_perf_mon_work(struct work_struct *work)
 	struct pong_perf *p = container_of(to_delayed_work(work), struct pong_perf, mon_work);
 	unsigned int n = atomic_xchg(&p->reqs, 0);
 
+	mutex_lock(&p->lock);
 	if (!n) {
-		/* idle window: drop everything and stop until the next request */
-		flush_work(&p->vote_work);
+		/*
+		 * Idle window: drop everything and stop until the next request. A vote_work
+		 * queued meanwhile runs after us (same lock) and votes again for the new request.
+		 */
 		pong_perf_release_all(p);
+		mutex_unlock(&p->lock);
 		clear_bit(0, &p->mon_armed);
 		smp_mb__after_atomic();
 		/* a request may have come in after the xchg above */
@@ -217,6 +238,7 @@ static void pong_perf_mon_work(struct work_struct *work)
 		pong_perf_set_boost(p, false);
 	if (!READ_ONCE(pong_irq_prime))
 		pong_perf_set_irq(p, false);
+	mutex_unlock(&p->lock);
 	queue_delayed_work(p->wq, &p->mon_work, msecs_to_jiffies(pong_window_ms));
 }
 
@@ -254,7 +276,9 @@ static void pong_perf_quiesce(struct ufs_hba *hba)
 	flush_work(&p->vote_work);
 	clear_bit(0, &p->mon_armed);
 	atomic_set(&p->reqs, 0);
+	mutex_lock(&p->lock);
 	pong_perf_release_all(p);
+	mutex_unlock(&p->lock);
 }
 
 static void pong_perf_mask_from_dt(struct device_node *np, const char *name, cpumask_t *m)
@@ -302,6 +326,7 @@ static void pong_perf_init(struct ufs_hba *hba)
 	p->hba = hba;
 	p->boost_cpu = -1;
 	memset(p->cpu_grp, -1, sizeof(p->cpu_grp));
+	mutex_init(&p->lock);
 	INIT_WORK(&p->vote_work, pong_perf_vote_work);
 	INIT_DELAYED_WORK(&p->mon_work, pong_perf_mon_work);
 
@@ -353,7 +378,7 @@ static void pong_perf_init(struct ufs_hba *hba)
 	p->wq = alloc_workqueue("ufs_pong_perf", WQ_HIGHPRI | WQ_UNBOUND, 0);
 	if (!p->wq)
 		goto fail;
-	WRITE_ONCE(pong_perf_inst, p);
+	rcu_assign_pointer(pong_perf_inst, p);
 	dev_info(hba->dev, "CLG60 perf hints: %d qos groups, boost cpu %d, prime %*pbl, silver %*pbl\n",
 		 p->ngroups, p->boost_cpu, cpumask_pr_args(&p->prime_mask),
 		 cpumask_pr_args(&p->silver_mask));
@@ -373,7 +398,9 @@ static void pong_perf_exit(struct ufs_hba *hba)
 	synchronize_rcu();	/* issue paths run with IRQs off */
 	cancel_delayed_work_sync(&p->mon_work);
 	cancel_work_sync(&p->vote_work);
+	mutex_lock(&p->lock);
 	pong_perf_release_all(p);
+	mutex_unlock(&p->lock);
 	irq_set_affinity_and_hint(hba->irq, NULL);
 	pong_perf_free(p);
 }
