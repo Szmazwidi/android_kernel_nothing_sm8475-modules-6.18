@@ -368,7 +368,10 @@ static void pong_perf_config_scsi_dev(struct scsi_device *sdev)
  */
 static void pong_perf_use_threaded_intr(void *data, struct ufs_hba *hba, bool *use_threaded)
 {
-	if (pong_hardirq && READ_ONCE(pong_perf_inst) && hba == READ_ONCE(pong_perf_inst)->hba)
+	struct pong_perf *p = READ_ONCE(pong_perf_inst);
+
+	/* Keep one snapshot: exit can clear the global while this probe is in flight. */
+	if (pong_hardirq && p && hba == p->hba)
 		*use_threaded = false;
 }
 
