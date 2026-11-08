@@ -32,6 +32,7 @@
 #include <scsi/scsi_device.h>
 #include <scsi/scsi_cmnd.h>
 #include <linux/blk-mq.h>
+#include <trace/hooks/ufshcd.h>
 
 #define PONG_PERF_MAX_GROUPS 4
 
@@ -47,6 +48,12 @@ MODULE_PARM_DESC(pong_irq_prime, "CLG60: move the UFS IRQ to qcom,prime-mask und
 static int pong_rq_affinity = 0;
 module_param(pong_rq_affinity, int, 0444);
 MODULE_PARM_DESC(pong_rq_affinity, "CLG65: block queue rq_affinity for UFS LUNs (0 complete on the IRQ CPU like 5.10, 1 kernel default, 2 force submitter CPU)");
+static bool pong_hardirq = true;
+module_param(pong_hardirq, bool, 0444);
+MODULE_PARM_DESC(pong_hardirq, "CLG71: handle UFS completions in the primary (hard) IRQ handler as 5.10 did, not in the IRQ thread");
+static int pong_iosched;
+module_param(pong_iosched, int, 0444);
+MODULE_PARM_DESC(pong_iosched, "CLG72: UFS LUN I/O scheduler: 0 leave to userspace (vendor rc: bfq), 1 none, 2 mq-deadline (kernel default); 1/2 refuse later switches");
 static unsigned int pong_window_ms = 30;
 module_param(pong_window_ms, uint, 0644);
 static unsigned int pong_boost_hi = 64;
@@ -80,6 +87,8 @@ struct pong_perf {
 	bool irq_on_prime;
 	int boost_cpu;
 	bool fmin_added;
+	bool qd_logged;
+	bool elv_locked;
 	struct freq_qos_request fmin;
 	cpumask_t prime_mask;
 	cpumask_t silver_mask;
@@ -238,6 +247,41 @@ static void pong_perf_mon_work(struct work_struct *work)
 				atomic_inc(&p->n_unvotes);
 			}
 	}
+	if (pong_iosched && !p->elv_locked) {
+		struct scsi_device *sdev;
+		int locked = 0, pending = 0;
+
+		shost_for_each_device(sdev, p->hba->host) {
+			struct request_queue *q = sdev->request_queue;
+
+			if (sdev->type != TYPE_DISK)
+				continue;
+			if (!blk_queue_registered(q)) {
+				pending++;
+				continue;
+			}
+			if (!blk_queue_no_elv_switch(q)) {
+				blk_queue_flag_set(QUEUE_FLAG_NO_ELV_SWITCH, q);
+				locked++;
+			}
+		}
+		if (!pending) {
+			p->elv_locked = true;
+			dev_info(p->hba->dev, "CLG72 I/O scheduler kept at %s on %d LUNs\n",
+				 pong_iosched == 1 ? "none" : "mq-deadline", locked);
+		}
+	}
+	if (n > pong_boost_hi && !p->qd_logged) {
+		struct scsi_device *sdev;
+
+		p->qd_logged = true;
+		dev_info(p->hba->dev, "CLG71 nutrs=%d nortt=%d can_queue=%d cmd_per_lun=%d host_tagset=%d\n",
+			 p->hba->nutrs, p->hba->nortt, p->hba->host->can_queue, p->hba->host->cmd_per_lun,
+			 p->hba->host->host_tagset);
+		shost_for_each_device(sdev, p->hba->host)
+			sdev_printk(KERN_INFO, sdev, "CLG71 queue_depth=%d max_queue_depth=%d nr_requests=%lu\n",
+				    sdev->queue_depth, sdev->max_queue_depth, sdev->request_queue->nr_requests);
+	}
 	if (n > pong_boost_hi) {
 		if (READ_ONCE(pong_boost))
 			pong_perf_set_boost(p, true);
@@ -299,6 +343,8 @@ static void pong_perf_config_scsi_dev(struct scsi_device *sdev)
 	struct request_queue *q = sdev->request_queue;
 
 	sdev_printk(KERN_INFO, sdev, "CLG65 rq_affinity mode %d\n", pong_rq_affinity);
+	if (pong_iosched == 1 && q->tag_set)
+		q->tag_set->flags |= BLK_MQ_F_NO_SCHED_BY_DEFAULT;
 	switch (pong_rq_affinity) {
 	case 0:
 		blk_queue_flag_clear(QUEUE_FLAG_SAME_COMP, q);
@@ -311,6 +357,19 @@ static void pong_perf_config_scsi_dev(struct scsi_device *sdev)
 	default:
 		break;
 	}
+}
+
+/*
+ * CLG71: 6.18 ufshcd wakes an IRQ thread for every SDB interrupt; with one hardware queue blk-mq then
+ * completes through the BLOCK softirq, which from thread context runs in ksoftirqd. At 4K QD32 one CPU
+ * spent ~100 % in irq/ufshcd + ksoftirqd + BLOCK (64k IOPS vs 126k on 5.10). ACK lets the vendor opt
+ * out (android_vh_ufs_use_threaded_intr): the same handler then runs in hardirq and the softirq runs
+ * on IRQ exit.
+ */
+static void pong_perf_use_threaded_intr(void *data, struct ufs_hba *hba, bool *use_threaded)
+{
+	if (pong_hardirq && READ_ONCE(pong_perf_inst) && hba == READ_ONCE(pong_perf_inst)->hba)
+		*use_threaded = false;
 }
 
 /* Before suspend: nothing may stay voted while the system sleeps. */
@@ -427,8 +486,10 @@ static void pong_perf_init(struct ufs_hba *hba)
 	if (!p->wq)
 		goto fail;
 	rcu_assign_pointer(pong_perf_inst, p);
-	dev_info(hba->dev, "CLG60 perf hints: %d qos groups, boost cpu %d, prime %*pbl, silver %*pbl\n",
-		 p->ngroups, p->boost_cpu, cpumask_pr_args(&p->prime_mask),
+	if (pong_hardirq && register_trace_android_vh_ufs_use_threaded_intr(pong_perf_use_threaded_intr, NULL))
+		dev_warn(hba->dev, "CLG71 threaded-IRQ opt-out hook not registered\n");
+	dev_info(hba->dev, "CLG71 hardirq completions %d; CLG60 perf hints: %d qos groups, boost cpu %d, prime %*pbl, silver %*pbl\n",
+		 pong_hardirq, p->ngroups, p->boost_cpu, cpumask_pr_args(&p->prime_mask),
 		 cpumask_pr_args(&p->silver_mask));
 	return;
 fail:
@@ -442,6 +503,8 @@ static void pong_perf_exit(struct ufs_hba *hba)
 
 	if (!p || p->hba != hba)
 		return;
+	if (pong_hardirq)
+		unregister_trace_android_vh_ufs_use_threaded_intr(pong_perf_use_threaded_intr, NULL);
 	WRITE_ONCE(pong_perf_inst, NULL);
 	synchronize_rcu();	/* issue paths run with IRQs off */
 	cancel_delayed_work_sync(&p->mon_work);
