@@ -2918,6 +2918,7 @@ static const struct ufs_hba_variant_ops ufs_hba_qcom_vops = {
 	.clk_scale_notify	= ufs_qcom_clk_scale_notify,
 	.setup_clocks           = ufs_qcom_setup_clocks,
 	.setup_xfer_req		= pong_perf_setup_xfer_req,
+	.config_scsi_dev	= pong_perf_config_scsi_dev,
 	.hce_enable_notify      = ufs_qcom_hce_enable_notify,
 	.link_startup_notify    = ufs_qcom_link_startup_notify,
 	.negotiate_pwr_mode	= ufs_qcom_negotiate_pwr_mode,

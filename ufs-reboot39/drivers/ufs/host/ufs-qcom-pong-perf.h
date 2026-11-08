@@ -28,6 +28,8 @@
 #include <linux/rcupdate.h>
 #include <linux/pm_qos.h>
 #include <linux/workqueue.h>
+#include <linux/blkdev.h>
+#include <scsi/scsi_device.h>
 
 #define PONG_PERF_MAX_GROUPS 4
 
@@ -40,6 +42,9 @@ MODULE_PARM_DESC(pong_boost, "CLG60: raise the silver cluster minimum frequency 
 static bool pong_irq_prime = true;
 module_param(pong_irq_prime, bool, 0644);
 MODULE_PARM_DESC(pong_irq_prime, "CLG60: move the UFS IRQ to qcom,prime-mask under heavy UFS load");
+static int pong_rq_affinity = 0;
+module_param(pong_rq_affinity, int, 0444);
+MODULE_PARM_DESC(pong_rq_affinity, "CLG65: block queue rq_affinity for UFS LUNs (0 complete on the IRQ CPU like 5.10, 1 kernel default, 2 force submitter CPU)");
 static unsigned int pong_window_ms = 30;
 module_param(pong_window_ms, uint, 0644);
 static unsigned int pong_boost_hi = 64;
@@ -263,6 +268,29 @@ static void pong_perf_setup_xfer_req(struct ufs_hba *hba, int tag, bool is_scsi_
 {
 	if (is_scsi_cmd)
 		pong_perf_on_request(hba);
+}
+
+/*
+ * 6.18 blk-mq completes on the submitting CPU unless both CPUs share the LLC *and* have equal
+ * capacity (blk_mq_complete_need_ipi), so on this big.LITTLE SoC almost every UFS completion
+ * becomes a cross-CPU IPI (CLG58: 17k IPI1/s). 5.10 had no capacity test and completed locally.
+ */
+static void pong_perf_config_scsi_dev(struct scsi_device *sdev)
+{
+	struct request_queue *q = sdev->request_queue;
+
+	switch (pong_rq_affinity) {
+	case 0:
+		blk_queue_flag_clear(QUEUE_FLAG_SAME_COMP, q);
+		blk_queue_flag_clear(QUEUE_FLAG_SAME_FORCE, q);
+		break;
+	case 2:
+		blk_queue_flag_set(QUEUE_FLAG_SAME_COMP, q);
+		blk_queue_flag_set(QUEUE_FLAG_SAME_FORCE, q);
+		break;
+	default:
+		break;
+	}
 }
 
 /* Before suspend: nothing may stay voted while the system sleeps. */
