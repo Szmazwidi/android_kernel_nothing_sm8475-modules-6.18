@@ -303,7 +303,7 @@
     "Source snapshots are host-verified separately; no claim that a fresh local-key build was flashed.",
     "Private userspace/DSP blobs and personal signing keys are not included."
   ],
-  "runtime_reference": "Source-only 6.18.63 candidate; no build, QEMU, device or ROM qualification",
+  "runtime_reference": "Source-only ACK-preserved 6.18.63 candidate afb821156627c8d10827ef8f01a4c302cef8e1b3; no pinned Android/Kleaf build, ABI, QEMU or phone qualification",
   "runtime_contracts": {
     "pong_membuf_heap.ko": {
       "required_functions": [
