@@ -114,7 +114,7 @@ def main() -> None:
 
     ref["kernel_release_prefix"] = "6.18.63-"
     ref["reference"] = "CLG74_293_community_6.18.63_CANDIDATE"
-    ref["runtime_reference"] = "Source-only 6.18.63 candidate; no build, QEMU, device or ROM qualification"
+    ref["runtime_reference"] = ("Source-only ACK-preserved 6.18.63 candidate " + kernel_sha + "; no pinned Android/Kleaf build, ABI, QEMU or phone qualification")
     json_data = (json.dumps(ref, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
     xml_sha = write_once(NEW_XML, xml_data)
     json_sha = write_once(NEW_JSON, json_data)
