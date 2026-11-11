@@ -64,5 +64,5 @@
   <project revision="adffd291a17b6c017e73fc6075b91044834f4a26" path="u-boot" name="platform/external/u-boot" />
   <remote name="szmazwidi" fetch="https://github.com/Szmazwidi/" />
   <project path="common" name="android_kernel_nothing_sm8475-6.18" remote="szmazwidi" revision="afb821156627c8d10827ef8f01a4c302cef8e1b3" upstream="pong-a17-6.18.63-ack-preserve" dest-branch="pong-a17-6.18.63-ack-preserve" clone-depth="1" />
-  <project path="devices/pong618" name="android_kernel_nothing_sm8475-modules-6.18" remote="szmazwidi" revision="c6b143170cefaab0b83ac097cfcc0e1802ceb739" upstream="pong-a17-6.18.63-prep" dest-branch="pong-a17-6.18.63-prep" />
+  <project path="devices/pong618" name="android_kernel_nothing_sm8475-modules-6.18" remote="szmazwidi" revision="8abb74a64f232edb7c8d399d8fef62897d08ff45" upstream="pong-a17-6.18.63-prep" dest-branch="pong-a17-6.18.63-prep" />
 </manifest>
