@@ -1,0 +1,97 @@
+name: CLG74 6.18.63 source-lock preflight
+on:
+  push:
+    branches:
+      - pong-a17-6.18.63-prep
+    paths:
+      - tools/pong618-63-source-lock.py
+      - docs/manifest/pong618-6.18.63-community-clg74.xml
+      - docs/build-reference-6.18.63-community-clg74.json
+      - .github/workflows/pong618-63-source-lock.yml
+  pull_request:
+    branches:
+      - pong-a17-6.18.60-community-clg74
+    paths:
+      - tools/pong618-63-source-lock.py
+      - docs/manifest/pong618-6.18.63-community-clg74.xml
+      - docs/build-reference-6.18.63-community-clg74.json
+      - .github/workflows/pong618-63-source-lock.yml
+  workflow_dispatch:
+
+jobs:
+  check-source-bank:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact CLG74 preparation branch
+        uses: actions/checkout@v4
+        with:
+          ref: pong-a17-6.18.63-prep
+          persist-credentials: false
+      - name: Syntax check source-lock, build-release and 6.18.63 preflight
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python3 -m py_compile tools/pong618-63-source-lock.py tools/pong618-63-build-preflight.py
+          bash -n tools/build-release.sh
+          python3 - <<'PY'
+          from importlib.machinery import SourceFileLoader
+          mod=SourceFileLoader("pong63_preflight","tools/pong618-63-build-preflight.py").load_module()
+          assert mod.kernel_version("VERSION = 6\nPATCHLEVEL = 18\nSUBLEVEL = 63\n")=="6.18.63"
+          assert mod.EXPECTED_KERNEL=="afb821156627c8d10827ef8f01a4c302cef8e1b3"
+          assert mod.EXPECTED_COUNTS=={"gki":84,"vendor":209,"total":293,"first_stage":100}
+          print("STATIC_PREFLIGHT_SCRIPT_TEST=PASS")
+          PY
+      - name: Validate inherited 293-module reference and pinned source inputs
+        run: python3 tools/pong618-63-source-lock.py --lint-only
+      - name: Validate candidate source-lock metadata (not a build)
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+          import xml.etree.ElementTree as ET
+
+          base = json.loads(Path("docs/build-reference-6.18.60-community.json").read_text())
+          candidate = json.loads(Path("docs/build-reference-6.18.63-community-clg74.json").read_text())
+          assert base["kernel_release_prefix"] == "6.18.60-"
+          assert candidate["kernel_release_prefix"] == "6.18.63-"
+          assert candidate["reference"] == "CLG74_293_community_6.18.63_CANDIDATE"
+          assert candidate["kernel_profile"] == "community"
+          assert candidate["expected_counts"] == {"gki": 84, "vendor": 209, "total": 293, "first_stage": 100}
+          assert len(candidate["vendor"]) == 209 and len(candidate["gki"]) == 84
+          assert candidate["first_stage_list"] == base["first_stage_list"]
+          digest = hashlib.sha256(Path(candidate["first_stage_list"]).read_bytes()).hexdigest()
+          assert digest == candidate["first_stage_list_sha256"]
+          old = dict(base)
+          new = dict(candidate)
+          for key in ("kernel_release_prefix", "reference", "runtime_reference"):
+              old.pop(key)
+              new.pop(key)
+          assert old == new, "Unexpected candidate module-selection or contract drift"
+
+          original = ET.parse("docs/manifest/pong618-6.18.60-community.xml").getroot()
+          manifest = ET.parse("docs/manifest/pong618-6.18.63-community-clg74.xml").getroot()
+          src = {x.get("path"): x.attrib for x in original.findall("project")}
+          dst = {x.get("path"): x.attrib for x in manifest.findall("project")}
+          assert src.keys() == dst.keys(), "Project set differs"
+          assert [(r.tag, r.attrib) for r in original if r.tag != "project"] == [(r.tag, r.attrib) for r in manifest if r.tag != "project"]
+          kernel = "afb821156627c8d10827ef8f01a4c302cef8e1b3"
+          modules = "8abb74a64f232edb7c8d399d8fef62897d08ff45"
+          assert dst["common"]["revision"] == kernel
+          assert dst["common"]["upstream"] == dst["common"]["dest-branch"] == "pong-a17-6.18.63-ack-preserve"
+          assert dst["devices/pong618"]["revision"] == modules
+          assert dst["devices/pong618"]["upstream"] == dst["devices/pong618"]["dest-branch"] == "pong-a17-6.18.63-prep"
+          for key in src:
+              old_project, new_project = dict(src[key]), dict(dst[key])
+              if key in ("common", "devices/pong618"):
+                  for name in ("revision", "upstream", "dest-branch"):
+                      old_project.pop(name)
+                      new_project.pop(name)
+              assert old_project == new_project, "Unexpected project attr drift: " + key
+          print("HOST_VERIFIED_SOURCE_LOCK kernel=" + kernel + " modules=" + modules + " vendor=209 gki=84 first_stage=100")
+          print("BUILD=NOT_TESTED ABI=NOT_TESTED QEMU=NOT_TESTED PHONE_OPERATIONS=0")
+          PY

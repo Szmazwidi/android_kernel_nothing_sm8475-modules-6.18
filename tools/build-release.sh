@@ -25,6 +25,33 @@ import json,sys
 print(json.load(open(sys.argv[1])).get('kernel_profile','legacy'))
 PYPROFILE
 )
+# Exact-pinned Android 17 / 6.18.63 source and module preflight. This
+# runs before any Bazel compiler invocation or module signing; it is read-only.
+PONG_RELEASE_PREFIX=$(python3 - "$PONG_REFERENCE" <<'PYRELEASE'
+import json,sys
+print(json.load(open(sys.argv[1])).get("kernel_release_prefix",""))
+PYRELEASE
+)
+PONG_SOURCE_KERNELVER=$(make -s -C common kernelversion)
+if [[ "$PONG_SOURCE_KERNELVER" == "6.18.63" && "$PONG_RELEASE_PREFIX" != "6.18.63-" ]]; then
+    echo "STOP: 6.18.63 kernel paired with a different reference: $PONG_RELEASE_PREFIX" >&2
+    exit 2
+fi
+if [[ "$PONG_RELEASE_PREFIX" == "6.18.63-" ]]; then
+    PONG_MANIFEST=${PONG_MANIFEST:-.repo/manifests/pong618.xml}
+    if [[ ! -f "$PONG_MANIFEST" ]]; then
+        echo "STOP: no exact repo manifest at $PONG_MANIFEST (set PONG_MANIFEST explicitly)." >&2
+        exit 2
+    fi
+    if ! python3 devices/pong618/tools/pong618-63-build-preflight.py \
+        --workspace . --reference "$PONG_REFERENCE" --manifest "$PONG_MANIFEST" \
+        --report "$PONG_OUT/source-preflight.json" > "$PONG_OUT/source-preflight.log" 2>&1; then
+        cat "$PONG_OUT/source-preflight.log" >&2
+        echo "STOP: 6.18.63 source or module bank is not the reviewed candidate; no build started." >&2
+        exit 2
+    fi
+    echo "6.18.63 source-lock preflight PASS; details in $PONG_OUT/source-preflight.json"
+fi
 PONG_CONFIG_FLAGS=()
 case "$PONG_PROFILE" in
     lab) [[ -f common/arch/arm64/configs/pong_lab.fragment ]] || exit 2; PONG_CONFIG_FLAGS+=(--defconfig_fragment=//common:pong_lab_defconfig);;
