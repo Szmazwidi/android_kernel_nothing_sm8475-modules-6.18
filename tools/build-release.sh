@@ -32,6 +32,11 @@ import json,sys
 print(json.load(open(sys.argv[1])).get("kernel_release_prefix",""))
 PYRELEASE
 )
+PONG_SOURCE_KERNELVER=$(make -s -C common kernelversion)
+if [[ "$PONG_SOURCE_KERNELVER" == "6.18.63" && "$PONG_RELEASE_PREFIX" != "6.18.63-" ]]; then
+    echo "STOP: 6.18.63 kernel paired with a different reference: $PONG_RELEASE_PREFIX" >&2
+    exit 2
+fi
 if [[ "$PONG_RELEASE_PREFIX" == "6.18.63-" ]]; then
     PONG_MANIFEST=${PONG_MANIFEST:-.repo/manifests/pong618.xml}
     if [[ ! -f "$PONG_MANIFEST" ]]; then
