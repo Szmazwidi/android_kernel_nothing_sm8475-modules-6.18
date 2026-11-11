@@ -76,7 +76,7 @@ def main() -> None:
     ap.add_argument("--lint-only", action="store_true",
                     help="Check the inherited CLG74 manifest and reference only")
     ap.add_argument("--kernel-tree", type=Path,
-                    help="Clean worktree on pong-a17-6.18.63-integration")
+                    help="Clean worktree on pong-a17-6.18.63-ack-preserve")
     args = ap.parse_args()
 
     tree, ref = verify_base()
@@ -104,8 +104,8 @@ def main() -> None:
 
     projects = {p.get("path"): p for p in tree.findall(".//project")}
     projects["common"].set("revision", kernel_sha)
-    projects["common"].set("upstream", "pong-a17-6.18.63-integration")
-    projects["common"].set("dest-branch", "pong-a17-6.18.63-integration")
+    projects["common"].set("upstream", "pong-a17-6.18.63-ack-preserve")
+    projects["common"].set("dest-branch", "pong-a17-6.18.63-ack-preserve")
     projects["devices/pong618"].set("revision", module_sha)
     projects["devices/pong618"].set("upstream", "pong-a17-6.18.63-prep")
     projects["devices/pong618"].set("dest-branch", "pong-a17-6.18.63-prep")
