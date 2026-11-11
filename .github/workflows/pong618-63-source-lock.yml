@@ -1,0 +1,32 @@
+name: CLG74 6.18.63 source-lock preflight
+on:
+  push:
+    branches:
+      - pong-a17-6.18.63-prep
+    paths:
+      - tools/pong618-63-source-lock.py
+      - .github/workflows/pong618-63-source-lock.yml
+  pull_request:
+    branches:
+      - pong-a17-6.18.60-community-clg74
+    paths:
+      - tools/pong618-63-source-lock.py
+      - .github/workflows/pong618-63-source-lock.yml
+  workflow_dispatch:
+
+jobs:
+  check-source-bank:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact CLG74 preparation branch
+        uses: actions/checkout@v4
+        with:
+          ref: pong-a17-6.18.63-prep
+          persist-credentials: false
+      - name: Syntax check
+        run: python3 -m py_compile tools/pong618-63-source-lock.py
+      - name: Validate inherited 293-module reference and pinned source inputs
+        run: python3 tools/pong618-63-source-lock.py --lint-only
