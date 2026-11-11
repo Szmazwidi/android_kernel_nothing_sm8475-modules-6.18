@@ -30,8 +30,20 @@ jobs:
         with:
           ref: pong-a17-6.18.63-prep
           persist-credentials: false
-      - name: Syntax check
-        run: python3 -m py_compile tools/pong618-63-source-lock.py
+      - name: Syntax check source-lock, build-release and 6.18.63 preflight
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python3 -m py_compile tools/pong618-63-source-lock.py tools/pong618-63-build-preflight.py
+          bash -n tools/build-release.sh
+          python3 - <<'PY'
+          from importlib.machinery import SourceFileLoader
+          mod=SourceFileLoader("pong63_preflight","tools/pong618-63-build-preflight.py").load_module()
+          assert mod.kernel_version("VERSION = 6\nPATCHLEVEL = 18\nSUBLEVEL = 63\n")=="6.18.63"
+          assert mod.EXPECTED_KERNEL=="afb821156627c8d10827ef8f01a4c302cef8e1b3"
+          assert mod.EXPECTED_COUNTS=={"gki":84,"vendor":209,"total":293,"first_stage":100}
+          print("STATIC_PREFLIGHT_SCRIPT_TEST=PASS")
+          PY
       - name: Validate inherited 293-module reference and pinned source inputs
         run: python3 tools/pong618-63-source-lock.py --lint-only
       - name: Validate candidate source-lock metadata (not a build)
