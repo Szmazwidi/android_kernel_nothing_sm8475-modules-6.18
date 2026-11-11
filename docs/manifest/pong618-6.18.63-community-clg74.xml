@@ -63,6 +63,6 @@
   <project revision="317f01f3deebab8f1e0630e7bd905209e1e4e6b6" path="prebuilts/gcc/linux-x86/x86/x86_64-linux-android-4.9" name="platform/prebuilts/gcc/linux-x86/x86/x86_64-linux-android-4.9" clone-depth="1" />
   <project revision="adffd291a17b6c017e73fc6075b91044834f4a26" path="u-boot" name="platform/external/u-boot" />
   <remote name="szmazwidi" fetch="https://github.com/Szmazwidi/" />
-  <project path="common" name="android_kernel_nothing_sm8475-6.18" remote="szmazwidi" revision="d444348c03f7605f97eaa99423483e3bc91420bc" upstream="pong-a17-6.18.63-integration" dest-branch="pong-a17-6.18.63-integration" clone-depth="1" />
+  <project path="common" name="android_kernel_nothing_sm8475-6.18" remote="szmazwidi" revision="afb821156627c8d10827ef8f01a4c302cef8e1b3" upstream="pong-a17-6.18.63-ack-preserve" dest-branch="pong-a17-6.18.63-ack-preserve" clone-depth="1" />
   <project path="devices/pong618" name="android_kernel_nothing_sm8475-modules-6.18" remote="szmazwidi" revision="cfc4b0e9cc491330369dbab62a6ed9e2cf41ed7a" upstream="pong-a17-6.18.63-prep" dest-branch="pong-a17-6.18.63-prep" />
 </manifest>
