@@ -68,7 +68,7 @@ jobs:
           assert src.keys() == dst.keys(), "Project set differs"
           assert [(r.tag, r.attrib) for r in original if r.tag != "project"] == [(r.tag, r.attrib) for r in manifest if r.tag != "project"]
           kernel = "afb821156627c8d10827ef8f01a4c302cef8e1b3"
-          modules = "cfc4b0e9cc491330369dbab62a6ed9e2cf41ed7a"
+          modules = "c6b143170cefaab0b83ac097cfcc0e1802ceb739"
           assert dst["common"]["revision"] == kernel
           assert dst["common"]["upstream"] == dst["common"]["dest-branch"] == "pong-a17-6.18.63-ack-preserve"
           assert dst["devices/pong618"]["revision"] == modules
