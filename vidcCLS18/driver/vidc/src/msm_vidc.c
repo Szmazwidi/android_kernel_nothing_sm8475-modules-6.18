@@ -166,6 +166,9 @@ int msm_vidc_query_ctrl(void *instance, struct v4l2_queryctrl *q_ctrl)
 			__func__, q_ctrl->id);
 		return -EINVAL;
 	}
+	/* The V4L2 core uses the type to preserve scalar bounds on conversion. */
+	q_ctrl->type = ctrl->type;
+	strscpy(q_ctrl->name, ctrl->name, sizeof(q_ctrl->name));
 	q_ctrl->minimum = ctrl->minimum;
 	q_ctrl->maximum = ctrl->maximum;
 	q_ctrl->default_value = ctrl->default_value;
