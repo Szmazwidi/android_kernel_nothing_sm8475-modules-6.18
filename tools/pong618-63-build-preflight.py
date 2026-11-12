@@ -15,8 +15,7 @@ import subprocess
 import sys
 import xml.etree.ElementTree as ET
 
-EXPECTED_KERNEL="afb821156627c8d10827ef8f01a4c302cef8e1b3"
-EXPECTED_BASE="58b289d57b3d1f4b6fa6bb51db13920f459ae153"
+SOURCE_PIN = Path(__file__).resolve().parents[1] / "docs/pong618-6.18.63-source-pin.json"
 EXPECTED_COUNTS={"gki":84,"vendor":209,"total":293,"first_stage":100}
 
 def git(path:Path,*args:str)->str:
@@ -55,6 +54,7 @@ def audit(workspace:Path, reference:Path, manifest:Path)->dict:
     demand(common.is_dir() and modules.is_dir(),"Workspace common and devices/pong618 directories present",checks)
     demand(reference.is_file() and manifest.is_file(),"Exact reference and repo manifest present",checks)
     ref=json.loads(reference.read_text())
+    pin = json.loads(SOURCE_PIN.read_text())
     projects={p.get("path"):p for p in ET.parse(manifest).getroot().findall(".//project")}
     demand("common" in projects and "devices/pong618" in projects,
            "Manifest includes both source projects",checks)
@@ -62,12 +62,18 @@ def audit(workspace:Path, reference:Path, manifest:Path)->dict:
     mod=projects["devices/pong618"]
     khead=git(common,"rev-parse","--verify","HEAD^{commit}")
     mhead=git(modules,"rev-parse","--verify","HEAD^{commit}")
-    demand(khead==EXPECTED_KERNEL and src.get("revision")==khead,
-           "Kernel checkout and manifest are the exact reviewed ACK-preserve commit",checks)
+    demand(khead == pin["kernel_revision"] == src.get("revision"),
+           "Kernel checkout and manifest match the exact reviewed source pin", checks)
     demand(mod.get("revision")==mhead,
            "Modules checkout matches manifest exact SHA, not branch name",checks)
-    demand(src.get("upstream")==src.get("dest-branch")=="pong-a17-6.18.63-ack-preserve",
-           "Kernel manifest uses isolated ACK-preserve branch",checks)
+    demand(src.get("upstream") == src.get("dest-branch") == pin["kernel_branch"],
+           "Kernel manifest uses the reviewed branch", checks)
+    for parent, label in ((pin["kernel_base"], "Android kernel base"),
+                          (pin["upstream_stable"], "Linux v6.18.63")):
+        git(common, "merge-base", "--is-ancestor", parent, khead)
+        checks.append(f"{label} is in the kernel history")
+    git(modules, "merge-base", "--is-ancestor", pin["module_base"], mhead)
+    checks.append("CLG74 is in the module history")
     demand(git(common,"status","--porcelain","--untracked-files=no")=="",
            "No uncommitted tracked kernel changes",checks)
     demand(git(modules,"status","--porcelain","--untracked-files=no")=="",
@@ -117,6 +123,16 @@ def audit(workspace:Path, reference:Path, manifest:Path)->dict:
            "lpm_incapable:1" in xh[start:end] and "link_inactive:1" in xh[start:end] and
            xh[start:end].index("lpm_incapable:1")<xh[start:end].index("link_inactive:1"),
            "xHCI port bitfield order preserves Android 6.18.60 layout",checks)
+    release = need(common, "drivers/media/rc/rc-main.c")
+    release = release.split("static void rc_dev_release(struct device *device)", 1)[-1].split("\n}", 1)[0]
+    demand(release.count("ir_raw_event_free(dev);") == 1 and
+           "ir_raw_event_free(dev);" in release.split("kfree(dev);", 1)[0],
+           "IR raw state is freed once before the rc_dev allocation", checks)
+    vidc = need(modules, "vidcCLS18/driver/vidc/src/msm_vidc.c")
+    query = vidc.split("int msm_vidc_query_ctrl(", 1)[-1].split("\n}", 1)[0]
+    demand("q_ctrl->type = ctrl->type;" in query and
+           "strscpy(q_ctrl->name, ctrl->name" in query,
+           "VIDC ioctl retains control type and name for legacy conversion", checks)
     demand(lacks("drivers/media/rc/ene_ir.c","rc_free_device(dev->rdev);"),
            "No duplicate rc_dev put in ene_ir remove",checks)
     demand(has("rust/kernel/id_pool.rs","pub fn find_unused_id(") and
@@ -138,7 +154,6 @@ def audit(workspace:Path, reference:Path, manifest:Path)->dict:
         "Full Android-pinned Kleaf kernel Image and BTF",
         "Fresh compilation of 209 vendor and 84 GKI modules",
         "KMI/symbol CRC and signing verification",
-        "rc-ir-raw.c source lifetime review: old cleanup lost; no blind reversion",
         "nf_conntrack_expect timer_list -> u32 layout change: inspect BTF/CRC",
         "QEMU positive/negative module loading and recovery preflight",
         "Physical Android 17 sys.boot_completed=1 on 6.18.63"

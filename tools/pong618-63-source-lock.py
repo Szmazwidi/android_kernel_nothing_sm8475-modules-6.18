@@ -19,10 +19,10 @@ BASE_XML = ROOT / "docs/manifest/pong618-6.18.60-community.xml"
 BASE_JSON = ROOT / "docs/build-reference-6.18.60-community.json"
 NEW_XML = ROOT / "docs/manifest/pong618-6.18.63-community-clg74.xml"
 NEW_JSON = ROOT / "docs/build-reference-6.18.63-community-clg74.json"
-EXPECTED_KERNEL_BASE = "58b289d57b3d1f4b6fa6bb51db13920f459ae153"
+SOURCE_PIN = ROOT / "docs/pong618-6.18.63-source-pin.json"
+PIN = json.loads(SOURCE_PIN.read_text())
 EXPECTED_MODULE_MANIFEST = "bad6c14720da8364280add901bb549b78f30b5b8"
-CLG74_BASE = "935e1cf587ada4e684c48b89f04f93cd4b5ad86f"
-UPSTREAM_STABLE = "1cdda838e8475edf89b73ff0cc952005dd0b1fa7"
+
 
 def fail(message: str) -> None:
     raise SystemExit("STOP: " + message)
@@ -41,7 +41,7 @@ def verify_base() -> tuple[ET.ElementTree, dict]:
     projects = {p.get("path"): p for p in root.findall(".//project")}
     if projects.get("common") is None or projects.get("devices/pong618") is None:
         fail("Manifest missing source project mappings")
-    if projects["common"].get("revision") != EXPECTED_KERNEL_BASE:
+    if projects["common"].get("revision") != PIN["kernel_base"]:
         fail("Unexpected 6.18.60 kernel base in source manifest")
     if projects["devices/pong618"].get("revision") != EXPECTED_MODULE_MANIFEST:
         fail("CLG43 source manifest changed; review pin manually")
@@ -76,7 +76,9 @@ def main() -> None:
     ap.add_argument("--lint-only", action="store_true",
                     help="Check the inherited CLG74 manifest and reference only")
     ap.add_argument("--kernel-tree", type=Path,
-                    help="Clean worktree on pong-a17-6.18.63-ack-preserve")
+                    help="Clean kernel checkout at the reviewed source pin")
+    ap.add_argument("--manifest-out", type=Path, default=NEW_XML)
+    ap.add_argument("--reference-out", type=Path, default=NEW_JSON)
     args = ap.parse_args()
 
     tree, ref = verify_base()
@@ -90,9 +92,12 @@ def main() -> None:
         fail("Kernel source tree not present")
     kernel_sha = git(kernel, "rev-parse", "--verify", "HEAD^{commit}")
     module_sha = git(ROOT, "rev-parse", "--verify", "HEAD^{commit}")
-    git(ROOT, "merge-base", "--is-ancestor", CLG74_BASE, module_sha)
-    git(kernel, "merge-base", "--is-ancestor", EXPECTED_KERNEL_BASE, kernel_sha)
-    git(kernel, "merge-base", "--is-ancestor", UPSTREAM_STABLE, kernel_sha)
+    if kernel_sha != PIN["kernel_revision"]:
+        fail("Kernel HEAD differs from the reviewed source pin")
+    module_branch = git(ROOT, "symbolic-ref", "--quiet", "--short", "HEAD")
+    git(ROOT, "merge-base", "--is-ancestor", PIN["module_base"], module_sha)
+    git(kernel, "merge-base", "--is-ancestor", PIN["kernel_base"], kernel_sha)
+    git(kernel, "merge-base", "--is-ancestor", PIN["upstream_stable"], kernel_sha)
     if git(kernel, "status", "--porcelain"):
         fail("Dirty integrated kernel tree")
     if git(ROOT, "status", "--porcelain"):
@@ -104,11 +109,11 @@ def main() -> None:
 
     projects = {p.get("path"): p for p in tree.findall(".//project")}
     projects["common"].set("revision", kernel_sha)
-    projects["common"].set("upstream", "pong-a17-6.18.63-ack-preserve")
-    projects["common"].set("dest-branch", "pong-a17-6.18.63-ack-preserve")
+    projects["common"].set("upstream", PIN["kernel_branch"])
+    projects["common"].set("dest-branch", PIN["kernel_branch"])
     projects["devices/pong618"].set("revision", module_sha)
-    projects["devices/pong618"].set("upstream", "pong-a17-6.18.63-prep")
-    projects["devices/pong618"].set("dest-branch", "pong-a17-6.18.63-prep")
+    projects["devices/pong618"].set("upstream", module_branch)
+    projects["devices/pong618"].set("dest-branch", module_branch)
     ET.indent(tree, space="  ")
     xml_data = ET.tostring(tree.getroot(), encoding="utf-8", xml_declaration=True) + b"\n"
 
@@ -116,8 +121,8 @@ def main() -> None:
     ref["reference"] = "CLG74_293_community_6.18.63_CANDIDATE"
     ref["runtime_reference"] = ("Source-only ACK-preserved 6.18.63 candidate " + kernel_sha + "; no pinned Android/Kleaf build, ABI, QEMU or phone qualification")
     json_data = (json.dumps(ref, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
-    xml_sha = write_once(NEW_XML, xml_data)
-    json_sha = write_once(NEW_JSON, json_data)
+    xml_sha = write_once(args.manifest_out, xml_data)
+    json_sha = write_once(args.reference_out, json_data)
     print(json.dumps({
       "stage_status": "GENERATED_SOURCE_LOCK_BUILD_PENDING",
       "evidence_level": "HOST_VERIFIED_SOURCE_ONLY",

@@ -1,0 +1,7 @@
+{
+  "kernel_revision": "7c870eb605a7e2b767b3e52f86ea1e0d7bc897f9",
+  "kernel_branch": "pong-a17-6.18.63-rc-cleanup",
+  "kernel_base": "58b289d57b3d1f4b6fa6bb51db13920f459ae153",
+  "upstream_stable": "1cdda838e8475edf89b73ff0cc952005dd0b1fa7",
+  "module_base": "935e1cf587ada4e684c48b89f04f93cd4b5ad86f"
+}
