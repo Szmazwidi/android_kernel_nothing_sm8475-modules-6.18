@@ -7132,7 +7132,7 @@ static int fastrpc_restart_notifier_cb(struct notifier_block *nb,
 		break;
 	}
 
-	trace_rproc_qcom_event(dev_name(me->dev), "fastrpc_restart_notifier", "exit");
+	trace_rproc_qcom_event(gcinfo[cid].subsys, "fastrpc_restart_notifier", "exit");
 	return NOTIFY_DONE;
 }
 
@@ -8175,15 +8175,18 @@ static int __init fastrpc_device_init(void)
 		me->channel[i].subsystemstate = SUBSYSTEM_UP;
 		me->channel[i].ramdumpenabled = 0;
 		me->channel[i].rh_dump_dev = NULL;
-		me->channel[i].nb.notifier_call = fastrpc_restart_notifier_cb;
-		me->channel[i].handle = qcom_register_ssr_notifier(
-							gcinfo[i].subsys,
-							&me->channel[i].nb);
 		/* CDSP RPMsg is owned by the native FastRPC driver. */
 		if (i == CDSP_DOMAIN_ID)
 			me->channel[i].dev = me->non_secure_dev;
-		if (IS_ERR_OR_NULL(me->channel[i].handle))
-			pr_warn("adsprpc: %s: SSR notifier register failed for %s with err %d\n",
+		if (i != ADSP_DOMAIN_ID && i != SDSP_DOMAIN_ID)
+			continue;
+
+		me->channel[i].nb.notifier_call = fastrpc_restart_notifier_cb;
+		me->channel[i].handle =
+			qcom_register_ssr_notifier(gcinfo[i].subsys,
+						   &me->channel[i].nb);
+		if (IS_ERR(me->channel[i].handle))
+			pr_warn("adsprpc: %s: SSR notifier register failed for %s with err %ld\n",
 				__func__, gcinfo[i].subsys,
 				PTR_ERR(me->channel[i].handle));
 		else
@@ -8226,7 +8229,7 @@ static int __init fastrpc_device_init(void)
 	return 0;
 device_create_bail:
 	for (i = 0; i < NUM_CHANNELS; i++) {
-		if (me->channel[i].handle)
+		if (!IS_ERR_OR_NULL(me->channel[i].handle))
 			qcom_unregister_ssr_notifier(me->channel[i].handle,
 							&me->channel[i].nb);
 	}
@@ -8257,16 +8260,16 @@ static void __exit fastrpc_device_exit(void)
 	struct fastrpc_apps *me = &gfa;
 	int i;
 
+	for (i = 0; i < NUM_CHANNELS; i++) {
+		if (!IS_ERR_OR_NULL(me->channel[i].handle))
+			qcom_unregister_ssr_notifier(me->channel[i].handle,
+						     &me->channel[i].nb);
+	}
+
 	fastrpc_file_list_dtor(me);
 	fastrpc_deinit();
 	wakeup_source_unregister(me->wake_source);
 	wakeup_source_unregister(me->wake_source_secure);
-	for (i = 0; i < NUM_CHANNELS; i++) {
-		if (!gcinfo[i].name)
-			continue;
-		qcom_unregister_ssr_notifier(me->channel[i].handle,
-						&me->channel[i].nb);
-	}
 
 	/* Destroy the secure and non secure devices */
 	device_destroy(me->class, MKDEV(MAJOR(me->dev_no), MINOR_NUM_DEV));
