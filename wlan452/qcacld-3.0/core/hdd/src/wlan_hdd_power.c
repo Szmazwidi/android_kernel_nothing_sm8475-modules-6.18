@@ -2807,10 +2807,28 @@ int wlan_hdd_cfg80211_suspend_wlan(struct wiphy *wiphy,
 
 	errno = wlan_hdd_validate_context(hdd_ctx);
 	if (0 != errno) {
-		if (pld_is_low_power_mode(hdd_ctx->parent_dev))
-			hdd_debug("low power mode (Deep Sleep/Hibernate)");
-		else
+		bool low_power = pld_is_low_power_mode(hdd_ctx->parent_dev);
+
+		if (errno == -EAGAIN && !low_power &&
+		    READ_ONCE(hdd_ctx->driver_status) == DRIVER_MODULES_CLOSED) {
+			/*
+			 * CLG20 allows suspend after idle shutdown even if CDS
+			 * still reports failed WLAN recovery. Apply that check
+			 * before the outer validation can reject the callback.
+			 */
+			dev_info_ratelimited(wiphy_dev(wiphy),
+					    "allow suspend with WLAN closed (CDS state %#x)\n",
+					    cds_get_driver_state());
+			return 0;
+		}
+		if (!low_power) {
+			dev_warn_ratelimited(wiphy_dev(wiphy),
+					     "WLAN suspend validation failed: %d (modules %d, CDS %#x)\n",
+					     errno, READ_ONCE(hdd_ctx->driver_status),
+					     cds_get_driver_state());
 			return errno;
+		}
+		hdd_debug("low power mode (Deep Sleep/Hibernate)");
 	}
 
 	/*
@@ -2821,12 +2839,20 @@ int wlan_hdd_cfg80211_suspend_wlan(struct wiphy *wiphy,
 	hdd_psoc_idle_timer_stop(hdd_ctx);
 
 	errno = osif_psoc_sync_op_start(wiphy_dev(wiphy), &psoc_sync);
-	if (errno)
+	if (errno) {
+		dev_warn_ratelimited(wiphy_dev(wiphy),
+				     "WLAN suspend synchronization failed: %d\n",
+				     errno);
 		return errno;
+	}
 
 	errno = _wlan_hdd_cfg80211_suspend_wlan(wiphy, wow);
 
 	osif_psoc_sync_op_stop(psoc_sync);
+	if (errno)
+		dev_warn_ratelimited(wiphy_dev(wiphy),
+				     "WLAN suspend operation failed: %d\n",
+				     errno);
 
 	return errno;
 }
