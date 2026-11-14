@@ -28,3 +28,6 @@ tools and documentation are separate from imported driver implementations.
 Published branches are extended by normal commits. The older
 `pong-a17-6.18.32` branch remains available; no force-push or history rewrite is
 needed. Private signing keys, personal backups and raw device logs are excluded.
+
+See the [6.18.63 attribution record](pong-6.18.63-attribution.md) for the
+stable and ACK reconciliations and the WLAN follow-up.
