@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-2.0-only
-"""Fail-closed source and module-cohort preflight before Pong 6.18.63 Kleaf builds.
+"""Fail-closed source and module-cohort preflight before Pong community Kleaf builds.
 
 Read-only, no signing, flashing, phone access, or undocumented fallback.
 A PASS proves pins and selected source invariants, NOT compiled ABI/Android boot.
@@ -15,7 +15,7 @@ import subprocess
 import sys
 import xml.etree.ElementTree as ET
 
-SOURCE_PIN = Path(__file__).resolve().parents[1] / "docs/pong618-6.18.63-source-pin.json"
+SOURCE_PINS = Path(__file__).resolve().parents[1] / "docs"
 EXPECTED_COUNTS={"gki":84,"vendor":209,"total":293,"first_stage":100}
 
 def git(path:Path,*args:str)->str:
@@ -54,7 +54,10 @@ def audit(workspace:Path, reference:Path, manifest:Path)->dict:
     demand(common.is_dir() and modules.is_dir(),"Workspace common and devices/pong618 directories present",checks)
     demand(reference.is_file() and manifest.is_file(),"Exact reference and repo manifest present",checks)
     ref=json.loads(reference.read_text())
-    pin = json.loads(SOURCE_PIN.read_text())
+    version = kernel_version(need(common, "Makefile"))
+    demand(version in {"6.18.63", "6.18.64"},
+           "Reviewed kernel version supported by the source preflight", checks)
+    pin = json.loads((SOURCE_PINS / f"pong618-{version}-source-pin.json").read_text())
     projects={p.get("path"):p for p in ET.parse(manifest).getroot().findall(".//project")}
     demand("common" in projects and "devices/pong618" in projects,
            "Manifest includes both source projects",checks)
@@ -69,7 +72,7 @@ def audit(workspace:Path, reference:Path, manifest:Path)->dict:
     demand(src.get("upstream") == src.get("dest-branch") == pin["kernel_branch"],
            "Kernel manifest uses the reviewed branch", checks)
     for parent, label in ((pin["kernel_base"], "Android kernel base"),
-                          (pin["upstream_stable"], "Linux v6.18.63")):
+                          (pin["upstream_stable"], f"Linux v{version}")):
         git(common, "merge-base", "--is-ancestor", parent, khead)
         checks.append(f"{label} is in the kernel history")
     git(modules, "merge-base", "--is-ancestor", pin["module_base"], mhead)
@@ -78,11 +81,9 @@ def audit(workspace:Path, reference:Path, manifest:Path)->dict:
            "No uncommitted tracked kernel changes",checks)
     demand(git(modules,"status","--porcelain","--untracked-files=no")=="",
            "No uncommitted tracked module sources",checks)
-    demand(kernel_version(need(common,"Makefile"))=="6.18.63",
-           "Kernel Makefile identifies Linux 6.18.63",checks)
-    demand(ref.get("kernel_release_prefix")=="6.18.63-" and
+    demand(ref.get("kernel_release_prefix")==f"{version}-" and
            ref.get("kernel_profile")=="community",
-           "6.18.63 community profile with correct release prefix",checks)
+           f"{version} community profile with correct release prefix",checks)
     demand(ref.get("expected_counts")==EXPECTED_COUNTS,
            "CLG74 requires 209 vendor + 84 GKI and 100 first-stage",checks)
     vendor,gki=ref.get("vendor",{}),ref.get("gki",{})
@@ -147,7 +148,7 @@ def audit(workspace:Path, reference:Path, manifest:Path)->dict:
       "stage_status":"HOST_SOURCE_PREFLIGHT_PASSED_BUILD_NOT_STARTED",
       "evidence_level":"HOST_VERIFIED_STATIC_ONLY",
       "kernel_sha":khead,"modules_sha":mhead,
-      "release":"6.18.63","profile":"community","module_counts":EXPECTED_COUNTS,
+      "release":version,"profile":"community","module_counts":EXPECTED_COUNTS,
       "first_stage_sha256":digest,
       "checks_passed":checks,
       "remaining_blockers":[
@@ -156,7 +157,7 @@ def audit(workspace:Path, reference:Path, manifest:Path)->dict:
         "KMI/symbol CRC and signing verification",
         "nf_conntrack_expect timer_list -> u32 layout change: inspect BTF/CRC",
         "QEMU positive/negative module loading and recovery preflight",
-        "Physical Android 17 sys.boot_completed=1 on 6.18.63"
+        f"Physical Android 17 sys.boot_completed=1 on {version}"
       ],
       "historical_reuse_audit":{
         "6_18_60":[
