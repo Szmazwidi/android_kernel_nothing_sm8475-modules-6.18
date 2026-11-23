@@ -919,8 +919,15 @@ static ssize_t aw20036_imax_store(struct device *dev,
 	struct led_classdev *led_cdev = dev_get_drvdata(dev);
 	struct aw20036 *aw20036 = container_of(led_cdev, struct aw20036, cdev);
 
-	sscanf(buf, "%d", &databuf[0]);
-	aw20036_imax_cfg(aw20036, databuf[0]);
+	int ret = kstrtouint(buf, 10, &databuf[0]);
+
+	if (ret)
+		return ret;
+	if (databuf[0] > 0xf)
+		return -ERANGE;
+	ret = aw20036_imax_cfg(aw20036, databuf[0]);
+	if (ret < 0)
+		return ret;
 	return len;
 }
 
@@ -984,7 +991,19 @@ static ssize_t aw20036_effect_store(struct device *dev,
 	struct led_classdev *led_cdev = dev_get_drvdata(dev);
 	struct aw20036 *aw20036 = container_of(led_cdev, struct aw20036, cdev);
 
-	sscanf(buf, "%d", &databuf[0]);
+	int ret = kstrtouint(buf, 10, &databuf[0]);
+
+	if (ret)
+		return ret;
+#if defined(AW20036_BIN_CONFIG)
+	if (databuf[0] >= ARRAY_SIZE(aw20036_cfg_name))
+		return -ERANGE;
+#elif defined(AW20036_ARRAY_CONFIG)
+	if (databuf[0] >= ARRAY_SIZE(aw20036_cfg_array))
+		return -ERANGE;
+#else
+	return -EOPNOTSUPP;
+#endif
 	aw20036->effect = databuf[0];
 #if defined(AW20036_BIN_CONFIG)
 	aw20036_cfg_update(aw20036);
@@ -1025,7 +1044,12 @@ static ssize_t aw20036_all_white_brightness_store(struct device *dev,
 	unsigned char data_1[13];
 	unsigned char data_2[22];
 
-	sscanf(buf, "%d", &val);
+	int ret = kstrtouint(buf, 10, &val);
+
+	if (ret)
+		return ret;
+	if (val > 255)
+		return -ERANGE;
 	pr_info("%s: %d\n", __func__, val);
 
 	aw20036_hw_reinit(aw20036);
@@ -1051,7 +1075,12 @@ static ssize_t aw20036_all_brightness_store(struct device *dev,
 	struct aw20036 *aw20036 = container_of(led_cdev, struct aw20036, cdev);
 	unsigned char data[36];
 
-	sscanf(buf, "%d", &val);
+	int ret = kstrtouint(buf, 10, &val);
+
+	if (ret)
+		return ret;
+	if (val > 255)
+		return -ERANGE;
 	pr_info("%s: %d\n", __func__, val);
 
 	aw20036_hw_reinit(aw20036);
@@ -1077,43 +1106,58 @@ static ssize_t aw20036_all_brightness_store(struct device *dev,
 	return len;
 }
 
+static int aw20036_parse_frame(const char *buf, size_t len,
+			       unsigned int *frame, size_t capacity)
+{
+	size_t pos = 0, n = 0;
+
+	while (pos < len) {
+		unsigned int value = 0;
+
+		while (pos < len && (buf[pos] == ' ' || buf[pos] == '\t' ||
+		       buf[pos] == '\n' || buf[pos] == '\r'))
+			pos++;
+		if (pos == len)
+			break;
+		if (n == capacity)
+			return -E2BIG;
+		if (buf[pos] < '0' || buf[pos] > '9')
+			return -EINVAL;
+		while (pos < len && buf[pos] >= '0' && buf[pos] <= '9') {
+			value = value * 10 + (buf[pos++] - '0');
+			if (value > 255)
+				return -ERANGE;
+		}
+		if (pos < len && buf[pos] != ' ' && buf[pos] != '\t' &&
+		    buf[pos] != '\n' && buf[pos] != '\r')
+			return -EINVAL;
+		frame[n++] = value;
+	}
+	if (n != 5 && n != 9 && n != 16 && n != 33)
+		return -EINVAL;
+	return n;
+}
+
 static ssize_t aw20036_frame_brightness_store(struct device *dev,
 					      struct device_attribute *attr,
 					      const char *buf, size_t len)
 {
 	struct led_classdev *led_cdev = dev_get_drvdata(dev);
 	struct aw20036 *aw20036 = container_of(led_cdev, struct aw20036, cdev);
-	char ch = ' ';
-	const char *p;
-	int val=0;
 	unsigned int frame_brightness[33];
 	int frame_num =0;
 	unsigned int i, num;
 	unsigned char brightness_1[13] = {0};
 	unsigned char brightness_2[22] = {0};
 
+	frame_num = aw20036_parse_frame(buf, len, frame_brightness,
+					 ARRAY_SIZE(frame_brightness));
+	if (frame_num < 0)
+		return frame_num;
+
 	pr_info("%s\n", __func__);
-
 	pm_stay_awake(aw20036->dev);
-
 	aw20036_hw_reinit(aw20036);
-
-	frame_num = 0;
-	if(sscanf(buf, "%d", &val) ==1){
-		frame_brightness[frame_num] = val;
-		p = strchr(buf, ch);
-		while(p){
-			p = p+1;
-			if(sscanf(p, "%d", &val) ==1){
-				frame_num++;
-				frame_brightness[frame_num]= val;
-				p = strchr(p, ch);
-			}else{
-				break;
-			}
-		}
-		frame_num ++;
-	}
 
 	if(frame_num ==5){
 		//int led0[2] = {12,0};
@@ -1214,8 +1258,12 @@ static ssize_t aw20036_operating_mode_store(struct device *dev,
 	struct led_classdev *led_cdev = dev_get_drvdata(dev);
 	struct aw20036 *aw20036 = container_of(led_cdev, struct aw20036, cdev);
 
-	sscanf(buf, "%d", &val);
+	int ret = kstrtouint(buf, 10, &val);
 
+	if (ret)
+		return ret;
+	if (val > 2)
+		return -ERANGE;
 	pr_info("%s: var %d mode %d\n", __func__, val, aw20036->operating_mode);
 
 	if(val ==1){/*active*/
