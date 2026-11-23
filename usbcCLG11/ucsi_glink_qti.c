@@ -96,6 +96,10 @@ static int pmic_glink_ucsi_read(struct ucsi *__ucsi, unsigned int offset,
 	req.hdr.type = MSG_TYPE_REQ_RESP;
 	req.hdr.opcode = UC_UCSI_READ_BUF_REQ;
 
+	if (offset > sizeof(ucsi->read_buf) ||
+	    val_len > sizeof(ucsi->read_buf) - offset)
+		return -EINVAL;
+
 	mutex_lock(&ucsi->lock);
 	memset(ucsi->read_buf, 0, sizeof(ucsi->read_buf));
 	reinit_completion(&ucsi->read_ack);
@@ -147,6 +151,8 @@ static int pmic_glink_ucsi_locked_write(struct pmic_glink_ucsi *ucsi, unsigned i
 	req.hdr.owner = PMIC_GLINK_OWNER_USBC;
 	req.hdr.type = MSG_TYPE_REQ_RESP;
 	req.hdr.opcode = UC_UCSI_WRITE_BUF_REQ;
+	if (offset > sizeof(req.buf) || val_len > sizeof(req.buf) - offset)
+		return -EINVAL;
 	memcpy(&req.buf[offset], val, val_len);
 
 	reinit_completion(&ucsi->write_ack);
@@ -182,7 +188,7 @@ static void pmic_glink_ucsi_update_connector(struct ucsi_connector *con)
 {
 	struct pmic_glink_ucsi *ucsi = ucsi_get_drvdata(con->ucsi);
 
-	if (con->num > PMIC_GLINK_MAX_PORTS ||
+	if (!con->num || con->num > PMIC_GLINK_MAX_PORTS ||
 	    !ucsi->port_orientation[con->num - 1])
 		return;
 
@@ -199,7 +205,7 @@ static void pmic_glink_ucsi_connector_status(struct ucsi_connector *con)
 		return;
 	}
 
-	if (con->num > PMIC_GLINK_MAX_PORTS ||
+	if (!con->num || con->num > PMIC_GLINK_MAX_PORTS ||
 	    !ucsi->port_orientation[con->num - 1])
 		return;
 
@@ -296,11 +302,18 @@ static int pmic_glink_ucsi_callback(void *priv, void *data, size_t len)
 	struct pmic_glink_ucsi *ucsi = priv;
 	const struct pmic_glink_hdr *hdr = data;
 
+	if (!data || len < sizeof(*hdr))
+		return -EINVAL;
+
 	switch (le32_to_cpu(hdr->opcode)) {
 	case UC_UCSI_READ_BUF_REQ:
+		if (len < sizeof(struct ucsi_read_buf_resp_msg))
+			return -EINVAL;
 		pmic_glink_ucsi_read_ack(ucsi, data, len);
 		break;
 	case UC_UCSI_WRITE_BUF_REQ:
+		if (len < sizeof(struct ucsi_write_buf_resp_msg))
+			return -EINVAL;
 		pmic_glink_ucsi_write_ack(ucsi, data, len);
 		break;
 	case UC_UCSI_USBC_NOTIFY_IND:

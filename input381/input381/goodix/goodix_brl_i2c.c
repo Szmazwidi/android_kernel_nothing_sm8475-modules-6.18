@@ -52,7 +52,8 @@ static int goodix_i2c_read(struct device *dev, unsigned int reg,
 		/* code optimize, use stack memory */
 		msgs[1].buf = &get_buf[0];
 	} else {
-		msgs[1].buf = kzalloc(len, GFP_KERNEL);
+		msgs[1].buf = kzalloc(min_t(unsigned int, len, I2C_MAX_TRANSFER_SIZE),
+				     GFP_KERNEL);
 		if (msgs[1].buf == NULL)
 			return -ENOMEM;
 	}
@@ -108,11 +109,13 @@ static int goodix_i2c_write(struct device *dev, unsigned int reg,
 			.flags = !I2C_M_RD,
 	};
 
-	if (likely(len + GOODIX_REG_ADDR_SIZE < sizeof(put_buf))) {
+	if (likely(len < sizeof(put_buf) - GOODIX_REG_ADDR_SIZE)) {
 		/* code optimize,use stack memory*/
 		msg.buf = &put_buf[0];
 	} else {
-		msg.buf = kmalloc(len + GOODIX_REG_ADDR_SIZE, GFP_KERNEL);
+		msg.buf = kmalloc(min_t(unsigned int, len,
+				I2C_MAX_TRANSFER_SIZE - GOODIX_REG_ADDR_SIZE) +
+				GOODIX_REG_ADDR_SIZE, GFP_KERNEL);
 		if (msg.buf == NULL)
 			return -ENOMEM;
 	}
@@ -152,7 +155,7 @@ static int goodix_i2c_write(struct device *dev, unsigned int reg,
 	}
 
 write_exit:
-	if (likely(len + GOODIX_REG_ADDR_SIZE >= sizeof(put_buf)))
+	if (unlikely(len >= sizeof(put_buf) - GOODIX_REG_ADDR_SIZE))
 		kfree(msg.buf);
 	return r;
 }
