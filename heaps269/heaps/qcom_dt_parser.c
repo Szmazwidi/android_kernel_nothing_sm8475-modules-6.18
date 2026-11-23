@@ -178,10 +178,9 @@ struct platform_data *parse_heap_dt(struct platform_device *pdev)
 		mem_node = of_parse_phandle(node, "memory-region", 0);
 		if (mem_node) {
 			ret = heap_dt_init(mem_node, &pdata->heaps[idx]);
+			of_node_put(mem_node);
 			if (ret)
 				goto free_heaps;
-
-			of_node_put(mem_node);
 		}
 
 		++idx;

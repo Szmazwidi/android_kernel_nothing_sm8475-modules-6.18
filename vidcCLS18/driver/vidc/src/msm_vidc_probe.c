@@ -38,7 +38,7 @@ static int msm_vidc_deinit_irq(struct msm_vidc_core *core)
 		__func__, &dt->register_base, dt->register_size);
 
 	if (dt->irq)
-		free_irq(dt->irq, core);
+		devm_free_irq(&core->pdev->dev, dt->irq, core);
 	dt->irq = 0;
 
 	if (core->register_base_addr)
@@ -81,7 +81,10 @@ static int msm_vidc_init_irq(struct msm_vidc_core *core)
 	return 0;
 
 exit:
-	msm_vidc_deinit_irq(core);
+	/* No IRQ was successfully acquired on either failure path. */
+	if (core->register_base_addr)
+		devm_iounmap(&core->pdev->dev, core->register_base_addr);
+	core->register_base_addr = 0;
 	return rc;
 }
 
