@@ -1263,23 +1263,36 @@ void cnss_release_bt_en_bootstrap(struct cnss_plat_data *plat_priv)
 	struct cnss_pinctrl_info *pinctrl_info = &plat_priv->pinctrl_info;
 	int ret, bt_state;
 
-	if (!pinctrl_info->bt_en_bootstrap_asserted)
-		return;
-
 	if (plat_priv->device_id != QCA6490_DEVICE_ID ||
 	    pinctrl_info->bt_en_gpio < 0) {
 		pinctrl_info->bt_en_bootstrap_asserted = false;
 		return;
 	}
 
-	/* BT_EN is shared with Bluetooth. Release the temporary WLAN
-	 * bootstrap vote only when the Bluetooth power driver reports
-	 * that Bluetooth is actually powered off.
+	/*
+	 * Pong: BT-OFF cannot deassert shared BT_EN while WLAN is active.
+	 * After WLAN_EN falls, BT_EN can therefore be stuck high without
+	 * an outstanding CNSS bootstrap vote. Release this unowned vote
+	 * only if BOTH WLAN and Bluetooth are off.
+	 *
+	 * Never pull BT_EN low with WLAN_EN high or unreadable: doing so
+	 * could reset the QCA6490 PCIe endpoint while WLAN is running.
 	 */
+	if (pinctrl_info->wlan_en_gpio < 0 ||
+	    gpio_get_value(pinctrl_info->wlan_en_gpio)) {
+		cnss_pr_dbg("QCA6490: keeping BT_EN, WLAN_EN active or unknown\n");
+		return;
+	}
 	bt_state = btpower_get_power_state();
 	if (bt_state != BT_POWER_DISABLE) {
 		cnss_pr_info("BT power state %d active, keeping BT_EN asserted\n",
 			     bt_state);
+		pinctrl_info->bt_en_bootstrap_asserted = false;
+		return;
+	}
+
+	/* No reset is needed if the shared PMU line is already low. */
+	if (!gpio_get_value(pinctrl_info->bt_en_gpio)) {
 		pinctrl_info->bt_en_bootstrap_asserted = false;
 		return;
 	}
@@ -1289,13 +1302,13 @@ void cnss_release_bt_en_bootstrap(struct cnss_plat_data *plat_priv)
 	cnss_set_xo_clk_gpio_state(plat_priv, false);
 
 	if (ret) {
-		cnss_pr_err("Failed to release temporary BT_EN GPIO(%d), err=%d\n",
+		cnss_pr_err("Failed to release unowned BT_EN GPIO(%d), err=%d\n",
 			    pinctrl_info->bt_en_gpio, ret);
 		return;
 	}
 
 	pinctrl_info->bt_en_bootstrap_asserted = false;
-	cnss_pr_info("Temporary BT_EN GPIO(%d) released\n",
+	cnss_pr_info("Released unowned BT_EN GPIO(%d) after WLAN power-down\n",
 		     pinctrl_info->bt_en_gpio);
 }
 
