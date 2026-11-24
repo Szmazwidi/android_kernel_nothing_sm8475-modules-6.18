@@ -1302,6 +1302,21 @@ static ssize_t aw20036_operating_mode_store(struct device *dev,
 	return len;
 }
 
+static int aw20036_copy_id(char *dest, size_t capacity,
+			   const char *buf, size_t len)
+{
+	if (len && buf[len - 1] == '\n')
+		len--;
+	if (len && buf[len - 1] == '\r')
+		len--;
+	if (!len || len >= capacity || memchr(buf, '\0', len))
+		return -EINVAL;
+
+	memcpy(dest, buf, len);
+	dest[len] = '\0';
+	return 0;
+}
+
 static ssize_t aw20036_hwid_show(struct device *dev,
 				 struct device_attribute *attr, char *buf)
 {
@@ -1317,14 +1332,11 @@ static ssize_t aw20036_hwid_store(struct device *dev,
 	struct led_classdev *led_cdev = dev_get_drvdata(dev);
 	struct aw20036 *aw20036 = container_of(led_cdev, struct aw20036, cdev);
 
-	pr_info("%s %s %zu\n", __func__, buf, len);
+	int ret;
 
-	if(len > sizeof(hw_ver)){
-		pr_info("%s: invalid hwid \n", __func__);
-		return len;
-	}
-	memset(hw_ver, 0, sizeof(hw_ver));
-	strcpy(hw_ver, buf);
+	ret = aw20036_copy_id(hw_ver, sizeof(hw_ver), buf, len);
+	if (ret)
+		return ret;
 	if(strncmp(hw_ver, "T0", 2) == 0){
 		pr_info("%s: hwid is T0\n", __func__);
 		aw20036_reg_page_cfg(aw20036, AW20036_REG_PAGE1);
@@ -1363,14 +1375,11 @@ static ssize_t aw20036_dev_color_store(struct device *dev,
 	struct led_classdev *led_cdev = dev_get_drvdata(dev);
 	struct aw20036 *aw20036 = container_of(led_cdev, struct aw20036, cdev);
 
-	pr_info("%s %s %zu\n", __func__, buf, len);
+	int ret;
 
-	if(len > sizeof(dev_color)){
-		pr_info("%s: invalid hwid \n", __func__);
-		return len;
-	}
-	memset(dev_color, 0, sizeof(dev_color));
-	strcpy(dev_color, buf);
+	ret = aw20036_copy_id(dev_color, sizeof(dev_color), buf, len);
+	if (ret)
+		return ret;
 	if(strncmp(dev_color, "gray", 4) == 0){
 		pr_info("%s: device color is gray\n", __func__);
 		aw20036_imax_cfg(aw20036, 0x05);
