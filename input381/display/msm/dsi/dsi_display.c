@@ -435,7 +435,7 @@ static irqreturn_t dsi_display_panel_te_irq_handler(int irq, void *data)
 		return IRQ_HANDLED;
 
 	SDE_EVT32(SDE_EVTLOG_FUNC_CASE1);
-	complete_all(&display->esd_te_gate);
+	complete(&display->esd_te_gate);
 	return IRQ_HANDLED;
 }
 
@@ -457,28 +457,23 @@ static void dsi_display_change_te_irq_status(struct dsi_display *display,
 	}
 }
 
-static void dsi_display_register_te_irq(struct dsi_display *display)
+static int dsi_display_register_te_irq(struct dsi_display *display)
 {
-	int rc = 0;
+	int rc, te_irq;
 	struct platform_device *pdev;
 	struct device *dev;
-	unsigned int te_irq;
 
 	pdev = display->pdev;
 	if (!pdev) {
 		DSI_ERR("invalid platform device\n");
-		return;
+		return -ENODEV;
 	}
 
 	dev = &pdev->dev;
-	if (!dev) {
-		DSI_ERR("invalid device\n");
-		return;
-	}
 
 	if (display->trusted_vm_env) {
 		DSI_INFO("GPIO's are not enabled in trusted VM\n");
-		return;
+		return -EOPNOTSUPP;
 	}
 
 	if (!gpio_is_valid(display->disp_te_gpio)) {
@@ -486,31 +481,34 @@ static void dsi_display_register_te_irq(struct dsi_display *display)
 		goto error;
 	}
 
-	init_completion(&display->esd_te_gate);
 	te_irq = gpio_to_irq(display->disp_te_gpio);
-
-	/* Avoid deferred spurious irqs with disable_irq() */
-	irq_set_status_flags(te_irq, IRQ_DISABLE_UNLAZY);
-
-	rc = devm_request_irq(dev, te_irq, dsi_display_panel_te_irq_handler,
-			      IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
-			      "TE_GPIO", display);
-	if (rc) {
-		DSI_ERR("TE request_irq failed for ESD rc:%d\n", rc);
-		irq_clear_status_flags(te_irq, IRQ_DISABLE_UNLAZY);
+	if (te_irq < 0) {
+		rc = te_irq;
 		goto error;
 	}
 
-	disable_irq(te_irq);
+	init_completion(&display->esd_te_gate);
+
+	rc = devm_request_irq(dev, te_irq, dsi_display_panel_te_irq_handler,
+			      IRQF_TRIGGER_FALLING | IRQF_ONESHOT | IRQF_NO_AUTOEN,
+			      "TE_GPIO", display);
+	if (rc) {
+		DSI_ERR("TE request_irq failed for ESD rc:%d\n", rc);
+		goto error;
+	}
+
+	/* Avoid deferred spurious irqs with disable_irq(). */
+	irq_set_status_flags(te_irq, IRQ_DISABLE_UNLAZY);
 	display->is_te_irq_enabled = false;
 
-	return;
+	return te_irq;
 
 error:
 	/* disable the TE based ESD check */
 	DSI_WARN("Unable to register for TE IRQ\n");
 	if (display->panel->esd_config.status_mode == ESD_MODE_PANEL_TE)
 		display->panel->esd_config.esd_enabled = false;
+	return rc;
 }
 
 /* Allocate memory for cmd dma tx buffer */
@@ -908,41 +906,33 @@ static int dsi_display_status_bta_request(struct dsi_display *display)
 	return rc;
 }
 
-static void dsi_display_release_te_irq(struct dsi_display *display)
-{
-	int te_irq = 0;
-
-	te_irq = gpio_to_irq(display->disp_te_gpio);
-	if (te_irq)
-		free_irq(te_irq, display);
-}
-
 static int dsi_display_status_check_te(struct dsi_display *display,
 		int rechecks)
 {
-	int rc = 1, i = 0;
-	int const esd_te_timeout = msecs_to_jiffies(3*20);
+	int rc = 1, i, te_irq;
+	const unsigned long esd_te_timeout = msecs_to_jiffies(60);
 
 	if (!rechecks)
 		return rc;
 
-	/* register te irq handler */
-	dsi_display_register_te_irq(display);
+	te_irq = dsi_display_register_te_irq(display);
+	if (te_irq < 0)
+		return te_irq;
 
 	dsi_display_change_te_irq_status(display, true);
 
 	for (i = 0; i < rechecks; i++) {
-		reinit_completion(&display->esd_te_gate);
 		if (!wait_for_completion_timeout(&display->esd_te_gate,
 					esd_te_timeout)) {
 			DSI_ERR("TE check failed\n");
-			dsi_display_change_te_irq_status(display, false);
-			return -EINVAL;
+			rc = -EINVAL;
+			break;
 		}
 	}
 
 	dsi_display_change_te_irq_status(display, false);
-	dsi_display_release_te_irq(display);
+	irq_clear_status_flags(te_irq, IRQ_DISABLE_UNLAZY);
+	devm_free_irq(&display->pdev->dev, te_irq, display);
 
 	return rc;
 }

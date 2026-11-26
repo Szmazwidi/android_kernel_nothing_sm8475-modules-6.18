@@ -852,6 +852,8 @@ static int _sde_encoder_phys_cmd_handle_framedone_timeout(
 			frame_event);
 
 	/* check if panel is still sending TE signal or not */
+	pr_info_ratelimited("PONG_PANEL_TIMEOUT source=framedone encoder=%u pending=%d\n",
+			    DRMID(phys_enc->parent), pending_kickoff_cnt);
 	if (sde_connector_esd_status(phys_enc->connector))
 		goto exit;
 
@@ -1982,6 +1984,9 @@ static int _sde_encoder_phys_cmd_wait_for_wr_ptr(
 		if (ctl && ctl->ops.get_start_state)
 			frame_pending = ctl->ops.get_start_state(ctl);
 
+		pr_info_ratelimited("PONG_PANEL_TIMEOUT source=wrptr encoder=%u frame_pending=%d retire_pending=%d\n",
+				    DRMID(phys_enc->parent), frame_pending,
+				    atomic_read(&phys_enc->pending_retire_fence_cnt));
 		ret = (frame_pending || sde_connector_esd_status(phys_enc->connector)) ? ret : 0;
 
 		/*

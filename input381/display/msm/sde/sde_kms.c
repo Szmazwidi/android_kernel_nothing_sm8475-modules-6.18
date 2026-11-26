@@ -21,6 +21,7 @@
 
 #include <drm/drm_crtc.h>
 #include <drm/drm_fixed.h>
+#include <drm/drm_framebuffer.h>
 #include <drm/drm_panel.h>
 #include <linux/debugfs.h>
 #include <linux/of_address.h>
@@ -1327,6 +1328,38 @@ end:
 	SDE_ATRACE_END("prepare_commit");
 }
 
+/* Keep a few commits to catch a real framebuffer after a blank modeset. */
+static atomic_t pong_scanout_budget = ATOMIC_INIT(8);
+
+static void pong_log_commit_planes(struct sde_kms *sde_kms,
+		struct drm_atomic_state *state, struct drm_crtc *crtc)
+{
+	const struct drm_display_mode *mode = &crtc->state->adjusted_mode;
+	struct drm_plane_state *plane_state;
+	struct drm_plane *plane;
+	int i, left;
+
+	left = atomic_dec_if_positive(&pong_scanout_budget);
+	if (left < 0)
+		return;
+
+	DRM_INFO("PONG_SPLASH kickoff commit=%d crtc=%u splash=%d mode=%ux%u@%u\n",
+		 8 - left, DRMID(crtc), sde_kms->splash_data.num_splash_displays,
+		 mode->hdisplay, mode->vdisplay, drm_mode_vrefresh(mode));
+
+	for_each_new_plane_in_state(state, plane, plane_state, i) {
+		const struct drm_framebuffer *fb = plane_state->fb;
+
+		if (plane_state->crtc != crtc || !fb)
+			continue;
+
+		DRM_INFO("PONG_SPLASH plane commit=%d crtc=%u plane=%u type=%u fb=%u size=%ux%u fourcc=%#x modifier=%#llx pitch=%u offset=%u\n",
+			 8 - left, DRMID(crtc), DRMID(plane), plane->type,
+			 fb->base.id, fb->width, fb->height, fb->format->format,
+			 (unsigned long long)fb->modifier, fb->pitches[0], fb->offsets[0]);
+	}
+}
+
 static void sde_kms_commit(struct msm_kms *kms,
 		struct drm_atomic_state *old_state)
 {
@@ -1348,6 +1381,7 @@ static void sde_kms_commit(struct msm_kms *kms,
 	for_each_old_crtc_in_state(old_state, crtc, old_crtc_state, i) {
 		if (crtc->state->active) {
 			SDE_EVT32(DRMID(crtc), old_state);
+			pong_log_commit_planes(sde_kms, old_state, crtc);
 			sde_crtc_commit_kickoff(crtc, old_crtc_state);
 		}
 	}
@@ -1403,6 +1437,9 @@ static void _sde_kms_release_splash_resource(struct sde_kms *sde_kms,
 		return;
 
 	if (splash_display->cont_splash_enabled) {
+		DRM_INFO("PONG_SPLASH release crtc=%u regions=%d displays=%d\n",
+				DRMID(crtc), sde_kms->splash_data.num_splash_regions,
+				sde_kms->splash_data.num_splash_displays);
 		sde_encoder_update_caps_for_cont_splash(splash_display->encoder,
 				splash_display, false);
 		_sde_kms_free_splash_display_data(sde_kms, splash_display);
@@ -1720,6 +1757,9 @@ static void sde_kms_wait_for_commit_done(struct msm_kms *kms,
 		SDE_EVT32_VERBOSE(DRMID(crtc));
 		ret = sde_encoder_wait_for_event(encoder, cwb_disabling ?
 						MSM_ENC_TX_COMPLETE : MSM_ENC_COMMIT_DONE);
+		if (sde_kms->splash_data.num_splash_displays)
+			DRM_INFO("PONG_SPLASH commit_wait crtc=%u encoder=%u ret=%d\n",
+					DRMID(crtc), DRMID(encoder), ret);
 		if (ret && ret != -EWOULDBLOCK) {
 			SDE_ERROR("crtc:%d, enc:%d, cwb_d:%d, wait for commit done failed ret:%d\n",
 					DRMID(crtc), DRMID(encoder), cwb_disabling, ret);
